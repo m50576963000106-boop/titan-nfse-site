@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>TITAN NFS-e — Emissão Padrão Nacional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b1629;
+  --navy-1:#111f38;
+  --navy-2:#1a2c4a;
+  --gold:#c9a84c;
+  --gold-dim:#8f7833;
+  --cream:#f5f4ef;
+  --paper:#ffffff;
+  --line:#e2e0d6;
+  --line-dark:#25385a;
+  --ink:#0b1629;
+  --ink-2:#4a5568;
+  --ink-3:#8b8f99;
+  --ok:#1f7a4c;
+  --ok-bg:#e8f4ed;
+  --warn:#a8751a;
+  --warn-bg:#faf2e2;
+  --err:#9b2226;
+  --err-bg:#fbeceb;
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+  --r:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--sans);
+  background:var(--cream);
+  color:var(--ink);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ---------- tipografia utilitária ---------- */
+.eyebrow{
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum'}
+.mono{font-family:var(--mono);font-variant-ligatures:none}
+
+/* ---------- LOGIN ---------- */
+#login{
+  position:fixed;inset:0;z-index:100;
+  background:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+#login.hide{display:none}
+.login-card{width:100%;max-width:380px}
+.login-mark{display:flex;align-items:center;gap:10px;margin-bottom:34px}
+.login-h{
+  font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--cream);
+  margin-bottom:6px;
+}
+.login-sub{color:#7d8ba5;font-size:13px;margin-bottom:26px;line-height:1.55}
+.login-field{margin-bottom:12px}
+.login-field label{
+  display:block;font-size:10px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:#6f7f9a;margin-bottom:6px;
+}
+.login-field input{
+  width:100%;padding:11px 12px;background:var(--navy-1);
+  border:1px solid var(--line-dark);border-radius:var(--r);
+  color:var(--cream);
+}
+.login-field input::placeholder{color:#4e5f7d}
+.btn-gold{
+  width:100%;padding:12px;background:var(--gold);color:var(--navy);
+  font-weight:700;border-radius:var(--r);letter-spacing:.01em;
+  transition:background .15s;
+}
+.btn-gold:hover{background:#d9b95c}
+.login-foot{
+  margin-top:22px;padding-top:18px;border-top:1px solid var(--line-dark);
+  font-size:11px;color:#5e6e8a;line-height:1.6;
+}
+
+/* ---------- SHELL ---------- */
+#app{display:none;min-height:100vh}
+#app.on{display:block}
+
+.sidebar{
+  position:fixed;top:0;bottom:0;left:0;width:230px;
+  background:var(--navy);color:#9dabc2;
+  display:flex;flex-direction:column;z-index:40;
+  border-right:1px solid #000;
+}
+.sb-mark{
+  padding:20px 18px;border-bottom:1px solid var(--line-dark);
+  display:flex;align-items:center;gap:9px;
+}
+.sb-nav{padding:12px 10px;flex:1;overflow-y:auto}
+.sb-sec{
+  font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:#4e5f7d;padding:12px 8px 6px;
+}
+.sb-link{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:9px 8px;border-radius:var(--r);text-align:left;
+  font-size:13.5px;font-weight:500;color:#9dabc2;
+  transition:background .12s,color .12s;
+}
+.sb-link:hover{background:var(--navy-1);color:var(--cream)}
+.sb-link.active{background:var(--navy-2);color:var(--cream);font-weight:600}
+.sb-link.active .ic{color:var(--gold)}
+.ic{width:16px;height:16px;flex:none;color:#66768f}
+.sb-foot{padding:12px;border-top:1px solid var(--line-dark)}
+
+.topbar{
+  position:fixed;top:0;right:0;left:230px;height:58px;z-index:30;
+  background:rgba(245,244,239,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;padding:0 22px;
+}
+.tenant{
+  display:flex;align-items:center;gap:8px;padding:6px 10px;
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--r);
+  min-width:0;
+}
+.tenant select{
+  border:none;background:none;font-weight:600;font-size:13px;
+  max-width:240px;cursor:pointer;
+}
+.env{
+  display:flex;align-items:center;gap:7px;margin-left:auto;
+  padding:5px 10px;border-radius:100px;font-size:10.5px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;
+  background:var(--warn-bg);color:var(--warn);border:1px solid #e8d9b0;
+  cursor:pointer;white-space:nowrap;
+}
+.env.prod{background:#e9f2ec;color:var(--ok);border-color:#bfdccb}
+.env-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.avatar{
+  width:30px;height:30px;border-radius:50%;background:var(--navy);
+  color:var(--gold);display:grid;place-items:center;
+  font-size:11px;font-weight:700;flex:none;
+}
+
+main{margin-left:230px;padding:58px 0 0}
+.view{display:none;padding:26px 22px 60px;max-width:1080px}
+.view.on{display:block;animation:fade .22s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.page-h{margin-bottom:20px}
+.page-h h1{font-size:24px;font-weight:750;letter-spacing:-.025em;line-height:1.2}
+.page-h p{color:var(--ink-2);font-size:13px;margin-top:5px;max-width:62ch}
+
+/* ---------- CARDS ---------- */
+.card{
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--r);
+}
+.card-h{
+  padding:13px 16px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;
+}
+.card-h h2{font-size:13px;font-weight:650;letter-spacing:-.01em}
+.card-b{padding:16px}
+
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+
+/* KPI */
+.kpi{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px}
+.kpi .lbl{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.kpi .val{
+  font-size:25px;font-weight:750;letter-spacing:-.035em;margin-top:7px;line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.kpi .val small{font-size:14px;font-weight:600;color:var(--ink-3);letter-spacing:0}
+.kpi .delta{font-size:11.5px;margin-top:6px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.kpi .delta b{color:var(--ok);font-weight:600}
+.kpi.alert{border-color:#e3d3a8;background:linear-gradient(180deg,#fdfaf2,#fff)}
+.kpi.alert .val{color:var(--gold-dim)}
+
+/* countdown */
+.cgsn{
+  background:var(--navy);color:var(--cream);border-radius:var(--r);
+  padding:18px;display:flex;gap:20px;align-items:center;overflow:hidden;position:relative;
+}
+.cgsn::after{
+  content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;
+  border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.14),transparent 70%);
+}
+.cgsn-days{
+  font-size:52px;font-weight:800;letter-spacing:-.05em;color:var(--gold);
+  line-height:.9;font-variant-numeric:tabular-nums;flex:none;
+}
+.cgsn-days span{display:block;font-size:9.5px;letter-spacing:.14em;color:#7d8ba5;font-weight:700;margin-top:8px}
+.cgsn-txt h3{font-size:14.5px;font-weight:650;margin-bottom:5px}
+.cgsn-txt p{font-size:12.5px;color:#9dabc2;line-height:1.6}
+.cgsn-txt a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(201,168,76,.35)}
+
+/* chart */
+.chart{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:8px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end}
+.bar{
+  width:100%;background:var(--navy);border-radius:3px 3px 0 0;
+  min-height:3px;position:relative;transition:height .5s cubic-bezier(.2,.8,.2,1);
+}
+.bar.last{background:var(--gold)}
+.bar-wrap:hover .bar-v{opacity:1}
+.bar-v{
+  position:absolute;top:-19px;left:50%;transform:translateX(-50%);
+  font-size:10px;font-weight:700;white-space:nowrap;opacity:0;transition:opacity .15s;
+  font-variant-numeric:tabular-nums;
+}
+.bar-l{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+
+/* ---------- FORM ---------- */
+.field{margin-bottom:14px}
+.field label{
+  display:block;font-size:10.5px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-2);margin-bottom:5px;
+}
+.field .hint{font-size:11.5px;color:var(--ink-3);margin-top:5px;line-height:1.5}
+.inp{
+  width:100%;padding:9px 11px;background:var(--paper);
+  border:1px solid var(--line);border-radius:var(--r);
+  transition:border-color .12s,box-shadow .12s;
+}
+.inp:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.14)}
+textarea.inp{resize:vertical;min-height:64px}
+.row{display:grid;gap:12px}
+.r2{grid-template-columns:1fr 1fr}
+.r3{grid-template-columns:1fr 1fr 1fr}
+.r21{grid-template-columns:2fr 1fr}
+
+.btn{
+  padding:9px 15px;border-radius:var(--r);font-weight:600;font-size:13px;
+  border:1px solid var(--line);background:var(--paper);
+  transition:background .12s,border-color .12s;
+}
+.btn:hover{background:#faf9f5;border-color:#cdcabb}
+.btn-p{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+.btn-p:hover{background:var(--navy-2);border-color:var(--navy-2)}
+.btn-a{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:700}
+.btn-a:hover{background:#d9b95c;border-color:#d9b95c}
+.btn-s{padding:5px 9px;font-size:11.5px;font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* dropzone */
+.drop{
+  border:1.5px dashed #cdcabb;border-radius:var(--r);padding:24px;
+  text-align:center;background:#fbfaf7;transition:border-color .15s,background .15s;
+}
+.drop:hover{border-color:var(--gold);background:#fdfbf4}
+.drop .big{font-weight:600;font-size:13.5px;margin:9px 0 3px}
+.drop .sm{font-size:11.5px;color:var(--ink-3)}
+
+/* ---------- ALERTS ---------- */
+.alert{
+  display:flex;gap:11px;padding:12px 14px;border-radius:var(--r);
+  font-size:12.5px;line-height:1.55;border:1px solid;
+}
+.alert b{font-weight:650}
+.alert .ic{margin-top:1px}
+.a-ok{background:var(--ok-bg);border-color:#bfdccb;color:#155c39}
+.a-ok .ic{color:var(--ok)}
+.a-warn{background:var(--warn-bg);border-color:#e8d9b0;color:#7a5612}
+.a-warn .ic{color:var(--warn)}
+.a-err{background:var(--err-bg);border-color:#f0cfcd;color:#7d1c1f}
+.a-err .ic{color:var(--err)}
+.a-info{background:#eef2f8;border-color:#d3dcea;color:#2f4463}
+.a-info .ic{color:#4a6491}
+
+/* ---------- PILLS ---------- */
+.pill{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 8px;
+  border-radius:100px;font-size:10.5px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;
+}
+.p-ok{background:var(--ok-bg);color:var(--ok)}
+.p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-err{background:var(--err-bg);color:var(--err)}
+.p-off{background:#eceaE3;color:#71757e}
+.p-gold{background:#f7f0dc;color:var(--gold-dim)}
+
+/* ---------- TABLE ---------- */
+.tbl-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{
+  text-align:left;padding:9px 12px;font-size:9.5px;font-weight:700;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+  border-bottom:1px solid var(--line);white-space:nowrap;background:#fbfaf7;
+}
+td{padding:10px 12px;border-bottom:1px solid #f0eee6;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fbfaf7}
+td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.acts{display:flex;gap:5px;justify-content:flex-end}
+.ico-btn{
+  width:26px;height:26px;border-radius:5px;display:grid;place-items:center;
+  border:1px solid var(--line);background:var(--paper);color:var(--ink-2);
+  transition:background .12s,color .12s,border-color .12s;
+}
+.ico-btn:hover{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+.ico-btn.danger:hover{background:var(--err);color:#fff;border-color:var(--err)}
+
+/* ---------- PIPELINE (elemento-assinatura) ---------- */
+.pipe{background:var(--navy);border-radius:var(--r);padding:6px 0;overflow:hidden}
+.stage{
+  display:grid;grid-template-columns:34px 1fr auto;align-items:center;
+  gap:10px;padding:9px 14px;position:relative;
+}
+.stage::before{
+  content:'';position:absolute;left:26px;top:0;bottom:0;width:1px;background:var(--line-dark);
+}
+.stage:first-child::before{top:50%}
+.stage:last-child::before{bottom:50%}
+.dot{
+  width:15px;height:15px;border-radius:50%;position:relative;z-index:1;
+  background:var(--navy-1);border:1.5px solid var(--line-dark);
+  display:grid;place-items:center;justify-self:center;
+  transition:background .2s,border-color .2s;
+}
+.dot svg{width:8px;height:8px;color:var(--navy);opacity:0}
+.stage-t{font-size:12.5px;font-weight:500;color:#5f6f8a;transition:color .2s}
+.stage-d{
+  font-family:var(--mono);font-size:10px;color:#4a5a75;margin-top:2px;
+  display:block;letter-spacing:-.02em;word-break:break-all;
+}
+.stage-ms{font-size:10px;color:#4a5a75;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+
+.stage.run .dot{border-color:var(--gold);background:transparent;animation:spin 1s linear infinite}
+.stage.run .dot::after{
+  content:'';position:absolute;inset:-1.5px;border-radius:50%;
+  border:1.5px solid transparent;border-top-color:var(--gold);
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stage.run .stage-t{color:var(--cream)}
+.stage.done .dot{background:var(--gold);border-color:var(--gold)}
+.stage.done .dot svg{opacity:1}
+.stage.done .stage-t{color:#9dabc2}
+.stage.fail .dot{background:var(--err);border-color:var(--err)}
+.stage.fail .dot svg{opacity:1;color:#fff}
+.stage.fail .stage-t{color:#e8a6a4;font-weight:650}
+
+.result{margin-top:14px;padding:16px;border-radius:var(--r);border:1px solid}
+.result.ok{background:var(--ok-bg);border-color:#bfdccb}
+.result.no{background:var(--err-bg);border-color:#f0cfcd}
+.chave{
+  font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.04em;
+  word-break:break-all;line-height:1.7;background:var(--paper);
+  padding:9px 11px;border-radius:5px;border:1px solid rgba(0,0,0,.07);margin:9px 0 12px;
+}
+
+.g-emit{grid-template-columns:1.35fr 1fr;align-items:start}
+.sticky{position:sticky;top:74px}
+.span2{grid-column:span 2}
+.bar-imp{height:5px;background:#eceaE3;border-radius:3px;overflow:hidden;margin:10px 0 6px}
+.bar-imp i{display:block;height:100%;background:var(--gold);width:0;transition:width .4s}
+.lote{
+  display:flex;justify-content:space-between;gap:10px;padding:6px 0;
+  font-size:12px;border-bottom:1px dashed #eeece3;font-variant-numeric:tabular-nums;
+}
+.lote:last-child{border:none}
+.lote b{font-weight:650}
+.dest{
+  border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;
+  background:#fbfaf7;display:flex;gap:11px;align-items:flex-start;
+}
+.dest .box-mini{
+  width:34px;height:34px;border-radius:5px;background:var(--navy);flex:none;
+  display:grid;place-items:center;color:var(--gold);font-size:9px;font-weight:800;
+}
+.dest .t{font-weight:650;font-size:12.5px}
+.dest .s{font-size:11.5px;color:var(--ink-3);margin-top:2px;line-height:1.5}
+
+/* misc */
+.sep{height:1px;background:var(--line);margin:18px 0}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:7px 0;font-size:12.5px;border-bottom:1px dashed #eeece3}
+.kv:last-child{border:none}
+.kv span{color:var(--ink-2)}
+.kv b{font-weight:650;font-variant-numeric:tabular-nums;text-align:right}
+.foot-note{font-size:11px;color:var(--ink-3);line-height:1.6;margin-top:12px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.flex{display:flex;gap:9px;align-items:center}
+.wrap{flex-wrap:wrap}
+.right{margin-left:auto}
+.mb0{margin-bottom:0}
+
+/* mobile */
+.burger{display:none}
+@media(max-width:900px){
+  .g4{grid-template-columns:1fr 1fr}
+  .g3,.g2,.r3,.r2,.r21,.g-emit{grid-template-columns:1fr}
+  .span2{grid-column:auto}
+  .sticky{position:static}
+  .cgsn{flex-direction:column;align-items:flex-start;gap:12px}
+}
+@media(max-width:760px){
+  .sidebar{transform:translateX(-100%);transition:transform .22s}
+  .sidebar.open{transform:none;box-shadow:0 0 0 100vmax rgba(11,22,41,.5)}
+  .topbar{left:0;padding:0 14px}
+  main{margin-left:0}
+  .view{padding:20px 14px 60px}
+  .burger{display:grid;place-items:center;width:32px;height:32px;flex:none}
+  .tenant select{max-width:120px}
+  .env span.txt{display:none}
+  .page-h h1{font-size:20px}
+  .g4{grid-template-columns:1fr}
+  .kpi .val{font-size:22px}
+  .cgsn-days{font-size:40px}
+  .chart{height:110px}
+  .acts{gap:3px}
+  .ico-btn{width:30px;height:30px}
+  .flex.wrap>.btn,.flex.wrap>.btn-a{flex:1}
+  table{font-size:12px}
+  th,td{padding:8px 9px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login">
+  <div class="login-card">
+    <div class="login-mark">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v3.6h-6.1V20h-3.8V7.6H4V4Z" fill="#c9a84c"/></svg>
+      <div style="font-weight:800;letter-spacing:-.02em;color:#f5f4ef;font-size:15px">TITAN <span style="color:#c9a84c;font-weight:600">NFS-e</span></div>
+    </div>
+    <div class="login-h">Entrar</div>
+    <div class="login-sub">Emissão de NFS-e no Padrão Nacional, direto na Sefin Nacional.</div>
+    <div class="login-field">
+      <label for="li-mail">E-mail</label>
+      <input id="li-mail" class="inp" type="email" value="demo@titanbackoffice.com.br" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label for="li-pw">Senha</label>
+      <input id="li-pw" type="password" value="demonstracao" autocomplete="current-password">
+    </div>
+    <button class="btn-gold" style="margin-top:8px" onclick="entrar()">Entrar</button>
+    <div class="login-foot">
+      Protótipo de demonstração — nenhum dado é enviado à Receita Federal.<br>
+      Ambiente padrão: <b style="color:#c9a84c">Produção Restrita</b>.
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+
+  <aside class="sidebar" id="sb">
+    <div class="sb-mark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v3.6h-6.1V20h-3.8V7.6H4V4Z" fill="#c9a84c"/></svg>
+      <div style="font-weight:800;letter-spacing:-.02em;color:#f5f4ef;font-size:14px">TITAN <span style="color:#c9a84c;font-weight:600">NFS-e</span></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">Operação</div>
+      <button class="sb-link active" onclick="go('painel',this)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Painel
+      </button>
+      <button class="sb-link" onclick="go('emitir',this)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Emitir NFS-e
+      </button>
+      <button class="sb-link" onclick="go('notas',this)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+        Notas emitidas
+      </button>
+      <button class="sb-link" onclick="go('importar',this)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Importar do Portal
+      </button>
+      <div class="sb-sec">Cadastro</div>
+      <button class="sb-link" onclick="go('emitente',this)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M15 9h.01M9 13h.01M15 13h.01M9 17h.01M15 17h.01"/></svg>
+        Emitente
+      </button>
+      <button class="sb-link" onclick="go('cert',this)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Certificado A1
+      </button>
+      <button class="sb-link" onclick="go('marca',this)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        Identidade visual
+      </button>
+      <div class="sb-sec">Técnico</div>
+      <button class="sb-link" onclick="go('logs',this)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Logs da API
+      </button>
+    </nav>
+    <div class="sb-foot">
+      <div style="font-size:10px;color:#4e5f7d;line-height:1.6">
+        Sefin Nacional · v1.00.02<br>
+        <span class="mono" style="font-size:9px">sefin.producaorestrita<br>.nfse.gov.br</span>
+      </div>
+    </div>
+  </aside>
+
+  <header class="topbar">
+    <button class="burger" onclick="document.getElementById('sb').classList.toggle('open')" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="tenant">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b8f99" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
+      <select id="tenant" onchange="trocarEmpresa()">
+        <option value="0">Clínica Vitali Med Ltda — ME</option>
+        <option value="1">Bergamo &amp; Ruiz Advogados — EPP</option>
+        <option value="2">Marina Duarte Psicologia — MEI</option>
+        <option value="3">Studio Bandeira Comunicação Ltda</option>
+      </select>
+    </div>
+    <button class="env" id="env" onclick="trocarAmbiente()">
+      <span class="env-dot"></span><span class="txt">Produção restrita</span>
+    </button>
+    <div class="avatar">MG</div>
+  </header>
+
+  <main>
+
+    <!-- ---------- PAINEL ---------- -->
+    <section class="view on" id="v-painel">
+      <div class="page-h">
+        <h1>Painel</h1>
+        <p id="painel-sub">Clínica Vitali Med Ltda · CNPJ 41.203.887/0001-64 · Curitiba/PR · Simples Nacional — Anexo III</p>
+      </div>
+
+      <div class="cgsn" style="margin-bottom:16px">
+        <div class="cgsn-days"><span id="cd-num">47</span><span>dias restantes</span></div>
+        <div class="cgsn-txt">
+          <h3>Emissor Nacional obrigatório para ME e EPP do Simples</h3>
+          <p>A partir de <b style="color:#c9a84c">1º de setembro de 2026</b>, toda ME ou EPP optante do Simples Nacional deverá emitir NFS-e de padrão nacional exclusivamente pelo Emissor Nacional — web ou API. Base: Resolução CGSN nº 189/2026 (DOU 28/04/2026), que alterou o art. 59 da Resolução CGSN nº 140/2018.<br>
+          <span style="color:#66768f">3 das 4 empresas desta carteira ainda emitem por portal municipal.</span></p>
+        </div>
+      </div>
+
+      <div class="grid g4" style="margin-bottom:16px">
+        <div class="kpi">
+          <div class="lbl">Notas no mês</div>
+          <div class="val">128</div>
+          <div class="delta"><b>+19</b> vs. junho</div>
+        </div>
+        <div class="kpi">
+          <div class="lbl">Faturamento bruto</div>
+          <div class="val"><small>R$</small> 342.980<small>,00</small></div>
+          <div class="delta"><b>+8,4%</b> vs. junho</div>
+        </div>
+        <div class="kpi alert">
+          <div class="lbl">Rejeitadas</div>
+          <div class="val">3</div>
+          <div class="delta">2 assinatura · 1 tomador</div>
+        </div>
+        <div class="kpi">
+          <div class="lbl">Resposta da Sefin</div>
+          <div class="val">1,8<small> s</small></div>
+          <div class="delta">média das últimas 128</div>
+        </div>
+      </div>
+
+      <div class="grid g3" style="margin-bottom:16px">
+        <div class="card span2">
+          <div class="card-h">
+            <h2>Faturamento por competência</h2>
+            <span class="pill p-gold right">Julho parcial</span>
+          </div>
+          <div class="card-b">
+            <div class="chart" id="chart"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h2>Situação da carteira</h2></div>
+          <div class="card-b" style="padding:8px 16px">
+            <div class="kv"><span>Certificado A1 válido</span><b class="pill p-ok">3 de 4</b></div>
+            <div class="kv"><span>Vence em 30 dias</span><b class="pill p-warn">1</b></div>
+            <div class="kv"><span>Já no Emissor Nacional</span><b class="pill p-ok">1</b></div>
+            <div class="kv"><span>Migração pendente</span><b class="pill p-err">3</b></div>
+            <div class="kv"><span>Notas a cancelar</span><b>0</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <h2>Últimas emissões</h2>
+          <button class="btn btn-s right" onclick="go('notas',qs('.sb-link:nth-of-type(3)'))">Ver todas</button>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>Emissão</th><th>Tomador</th><th>Serviço</th><th style="text-align:right">Valor</th><th>Situação</th></tr></thead>
+            <tbody id="ult"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- EMITIR ---------- -->
+    <section class="view" id="v-emitir">
+      <div class="page-h">
+        <h1>Emitir NFS-e</h1>
+        <p>Os dados abaixo montam a DPS (Declaração de Prestação de Serviço). A Sefin Nacional responde de forma síncrona — não há lote nem protocolo de espera.</p>
+      </div>
+
+      <div class="grid g-emit">
+        <div class="stack">
+
+          <div class="card">
+            <div class="card-h"><h2>Tomador do serviço</h2></div>
+            <div class="card-b">
+              <div class="row r21">
+                <div class="field">
+                  <label for="t-doc">CPF / CNPJ</label>
+                  <input id="t-doc" class="inp" value="09.284.117/0001-40">
+                  <div class="hint">Aceita CNPJ alfanumérico (IN RFB nº 2.229/2024).</div>
+                </div>
+                <div class="field">
+                  <label for="t-tipo">Tipo</label>
+                  <select id="t-tipo" class="inp"><option>Pessoa jurídica</option><option>Pessoa física</option><option>Exterior</option></select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="t-nome">Razão social / nome</label>
+                <input id="t-nome" class="inp" value="Hospital Aurora Ltda">
+              </div>
+              <div class="row r2">
+                <div class="field mb0">
+                  <label for="t-mail">E-mail</label>
+                  <input id="t-mail" class="inp" value="financeiro@hospitalaurora.com.br">
+                </div>
+                <div class="field mb0">
+                  <label for="t-zap">WhatsApp</label>
+                  <input id="t-zap" class="inp" value="(41) 99812-4407">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><h2>Serviço prestado</h2></div>
+            <div class="card-b">
+              <div class="field">
+                <label for="s-cod">Código do serviço — Lista LC 116/2003</label>
+                <select id="s-cod" class="inp" onchange="lerParametros()">
+                  <option value="040101">04.01.01 — Medicina e biomedicina</option>
+                  <option value="040301">04.03.01 — Hospitais, clínicas e laboratórios</option>
+                  <option value="170101">17.01.01 — Assessoria ou consultoria</option>
+                  <option value="171401">17.14.01 — Advocacia</option>
+                </select>
+                <div class="hint">Correlação NBS carregada do Anexo B do Sistema Nacional NFS-e.</div>
+              </div>
+              <div class="field">
+                <label for="s-desc">Descrição</label>
+                <textarea id="s-desc" class="inp">Consultas médicas ambulatoriais prestadas em regime de plantão — competência 07/2026, conforme contrato 2026/114.</textarea>
+              </div>
+              <div class="row r2">
+                <div class="field mb0">
+                  <label for="s-val">Valor do serviço (R$)</label>
+                  <input id="s-val" class="inp num" value="4.850,00" oninput="lerParametros()">
+                </div>
+                <div class="field mb0">
+                  <label for="s-mun">Município de incidência</label>
+                  <select id="s-mun" class="inp" onchange="lerParametros()">
+                    <option value="4106902">4106902 — Curitiba/PR</option>
+                    <option value="4104204">4104204 — Campo Largo/PR</option>
+                    <option value="4119905">4119905 — Ponta Grossa/PR</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h">
+              <h2>Tributação</h2>
+              <span class="pill p-gold right">Lido da Sefin</span>
+            </div>
+            <div class="card-b" style="padding:10px 16px 16px">
+              <div class="kv"><span>Valor do serviço</span><b>R$ 4.850,00</b></div>
+              <div class="kv"><span>Deduções / reduções</span><b>R$ 0,00</b></div>
+              <div class="kv"><span>Base de cálculo do ISSQN</span><b>R$ 4.850,00</b></div>
+              <div class="kv"><span>Alíquota do ISSQN</span><b id="aliq">2,00% <span class="pill p-off" style="margin-left:5px">municipal</span></b></div>
+              <div class="kv"><span>Regime</span><b>Simples Nacional</b></div>
+              <div class="kv"><span>ISSQN a recolher pela nota</span><b>R$ 0,00</b></div>
+              <div class="kv"><span>Retenção na fonte</span><b>Não</b></div>
+              <div class="alert a-info" style="margin-top:12px">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <div><b>Nenhuma alíquota é fixada neste sistema.</b> Os valores acima vêm de <span class="mono" style="font-size:11px">GET /parametros_municipais/4106902/040101</span>, consultado na abertura do formulário. O ISSQN do optante do Simples é recolhido no DAS, conforme a alíquota efetiva apurada na competência (LC 123/2006, art. 18) — a nota não gera guia própria.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex wrap">
+            <button class="btn-a btn" onclick="emitir(false)" id="btn-emit">Emitir NFS-e</button>
+            <button class="btn" onclick="emitir(true)">Simular rejeição</button>
+            <label class="flex" style="margin-left:auto;font-size:12px;color:var(--ink-2);cursor:pointer">
+              <input type="checkbox" id="zap" checked> Enviar ao tomador por WhatsApp
+            </label>
+          </div>
+        </div>
+
+        <!-- PIPELINE: elemento-assinatura -->
+        <div class="card sticky">
+          <div class="card-h">
+            <h2>Trajeto da nota</h2>
+            <span class="pill p-off right mono" id="pipe-env">produção restrita</span>
+          </div>
+          <div class="card-b">
+            <div class="pipe" id="pipe"></div>
+            <div id="result"></div>
+            <div class="foot-note">
+              Cada etapa mostra o que o backend está fazendo de verdade. Quando o governo rejeita, a linha para exatamente onde o problema está — com o código de erro que a Sefin devolveu.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- NOTAS ---------- -->
+    <section class="view" id="v-notas">
+      <div class="page-h">
+        <h1>Notas emitidas</h1>
+        <p>Histórico completo com XML de distribuição e DANFSe guardados no servidor.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-b" style="padding:12px">
+          <div class="flex wrap">
+            <input class="inp" placeholder="Buscar por tomador, chave ou nº da nota" style="flex:1;min-width:200px">
+            <select class="inp" style="width:auto"><option>Todas as situações</option><option>Autorizada</option><option>Processando</option><option>Rejeitada</option><option>Cancelada</option></select>
+            <select class="inp" style="width:auto"><option>Julho/2026</option><option>Junho/2026</option><option>Maio/2026</option></select>
+            <button class="btn">Exportar XMLs</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>Nº</th><th>Emissão</th><th>Tomador</th><th>Serviço</th><th style="text-align:right">Valor</th><th>Situação</th><th style="text-align:right">Ações</th></tr></thead>
+            <tbody id="tb-notas"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="foot-note">Retenção legal do XML: 5 anos. Cópia diária para armazenamento frio.</div>
+    </section>
+
+    <!-- ---------- EMITENTE ---------- -->
+    <section class="view" id="v-emitente">
+      <div class="page-h">
+        <h1>Emitente</h1>
+        <p>Dados que compõem o prestador na DPS e definem por onde esta empresa pode emitir.</p>
+      </div>
+
+      <div class="grid g2" style="align-items:start">
+        <div class="card">
+          <div class="card-h">
+            <h2>Identificação</h2>
+            <span class="pill p-gold right">TITAN</span>
+          </div>
+          <div class="card-b">
+            <div class="field" style="padding:11px 12px;background:#fbfaf7;border:1px solid var(--line);border-radius:var(--r)">
+              <label for="e-titan">Empresa já cadastrada no TITAN</label>
+              <select id="e-titan" class="inp" onchange="puxarTitan()">
+                <option value="">— buscar na base do escritório —</option>
+                <option value="0">41.203.887/0001-64 · Clínica Vitali Med Ltda · BASSIM</option>
+                <option value="1">28.771.004/0001-19 · Bergamo &amp; Ruiz Advogados · PASSARIN</option>
+                <option value="2">52.118.663/0001-02 · Marina Duarte Psicologia · MAIS CONT</option>
+                <option value="3">19.440.552/0001-73 · Studio Bandeira Comunicação · OASIS</option>
+                <option value="4">33.902.117/0001-88 · Núcleo Odonto Batel Ltda · BS CONT</option>
+              </select>
+              <div class="hint" id="titan-hint">Traz razão social, CNPJ, inscrição municipal, regime e endereço do cadastro que já existe. Não redigite o que o TITAN já sabe.</div>
+            </div>
+            <div class="sep" style="margin:14px 0"></div>
+            <div class="field">
+              <label for="e-rs">Razão social</label>
+              <input id="e-rs" class="inp" value="Clínica Vitali Med Ltda">
+            </div>
+            <div class="row r2">
+              <div class="field">
+                <label for="e-cnpj">CNPJ</label>
+                <input id="e-cnpj" class="inp mono" value="41.203.887/0001-64">
+                <div class="hint">Formato numérico ou alfanumérico detectado automaticamente.</div>
+              </div>
+              <div class="field">
+                <label for="e-im">Inscrição municipal</label>
+                <input id="e-im" class="inp mono" value="118.442-9">
+              </div>
+            </div>
+            <div class="row r2">
+              <div class="field">
+                <label for="e-reg">Regime tributário</label>
+                <select id="e-reg" class="inp" onchange="checarHabilitacao()">
+                  <option>Simples Nacional — ME</option>
+                  <option>Simples Nacional — EPP</option>
+                  <option>MEI</option>
+                  <option>Lucro Presumido</option>
+                  <option>Lucro Real</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="e-mun">Município (código IBGE)</label>
+                <select id="e-mun" class="inp" onchange="checarHabilitacao()">
+                  <option value="4106902">4106902 — Curitiba/PR</option>
+                  <option value="4104204">4104204 — Campo Largo/PR</option>
+                  <option value="3550308">3550308 — São Paulo/SP</option>
+                  <option value="4113700">4113700 — Londrina/PR</option>
+                </select>
+              </div>
+            </div>
+            <div class="field mb0">
+              <label for="e-end">Endereço</label>
+              <input id="e-end" class="inp" value="Av. Sete de Setembro, 4214 — Batel — 80250-210">
+            </div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="card">
+            <div class="card-h">
+              <h2>Habilitação para emitir</h2>
+              <button class="btn btn-s right" onclick="checarHabilitacao()">Verificar agora</button>
+            </div>
+            <div class="card-b" id="hab"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><h2>Parâmetros do município</h2></div>
+            <div class="card-b" style="padding:10px 16px 14px">
+              <div class="kv"><span>Convênio com o Sistema Nacional</span><b class="pill p-ok">Aderente</b></div>
+              <div class="kv"><span>Modo de emissão</span><b>Emissor Nacional</b></div>
+              <div class="kv"><span>Aliquota — item 04.01.01</span><b>2,00%</b></div>
+              <div class="kv"><span>Regimes especiais</span><b>Nenhum</b></div>
+              <div class="kv"><span>Última leitura</span><b>16/07/2026 09:14</b></div>
+              <div class="foot-note">
+                Origem: <span class="mono">GET /parametros_municipais/4106902</span> e <span class="mono">/aliquotas</span>. Releitura automática a cada 24 h — o município pode mudar alíquota sem aviso.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- CERTIFICADO ---------- -->
+    <section class="view" id="v-cert">
+      <div class="page-h">
+        <h1>Certificado A1</h1>
+        <p>Usado em duas frentes: assinar o XML da DPS e abrir o canal mTLS com a Sefin Nacional.</p>
+      </div>
+
+      <div class="grid g2" style="align-items:start">
+        <div class="card">
+          <div class="card-h"><h2>Certificado em uso</h2></div>
+          <div class="card-b" style="padding:10px 16px 16px">
+            <div class="kv"><span>Titular</span><b>CLINICA VITALI MED LTDA</b></div>
+            <div class="kv"><span>CNPJ</span><b class="mono" style="font-size:12px">41203887000164</b></div>
+            <div class="kv"><span>Emissor</span><b>AC Certisign RFB G5</b></div>
+            <div class="kv"><span>Válido até</span><b>14/08/2026</b></div>
+            <div class="kv"><span>Cadeia ICP-Brasil</span><b class="pill p-ok">Completa</b></div>
+            <div class="kv"><span>Situação</span><b class="pill p-warn">Vence em 29 dias</b></div>
+            <div class="alert a-warn" style="margin-top:14px">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+              <div><b>Renove antes de 14/08.</b> Sem certificado válido a empresa para de emitir — e a obrigatoriedade do Emissor Nacional começa 18 dias depois do vencimento.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="card">
+            <div class="card-h"><h2>Substituir certificado</h2></div>
+            <div class="card-b">
+              <div class="drop">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b8f99" stroke-width="1.6" style="margin:0 auto"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                <div class="big">Arraste o arquivo .pfx ou .p12</div>
+                <div class="sm">ou clique para escolher — máx. 8 MB</div>
+              </div>
+              <div class="field" style="margin-top:14px">
+                <label for="c-pw">Senha do certificado</label>
+                <input id="c-pw" class="inp" type="password" placeholder="••••••••••">
+                <div class="hint">Guardada com AES-256-GCM. A chave mestra fica fora do banco e fora do <span class="mono">.env</span> da aplicação.</div>
+              </div>
+              <button class="btn btn-p" style="width:100%">Validar e substituir</button>
+            </div>
+          </div>
+
+          <div class="alert a-info">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <div><b>Hospedagem compartilhada não serve aqui.</b> O mTLS exige apresentar um certificado de cliente diferente por empresa a cada requisição. Em cPanel compartilhado você não controla o handshake TLS de saída. Este módulo precisa de VPS ou container próprio.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ---------- IMPORTAR ---------- -->
+    <section class="view" id="v-importar">
+      <div class="page-h">
+        <h1>Importar do Portal Nacional</h1>
+        <p>Consulta no ADN os documentos em que o CNPJ aparece como emitente, tomador ou intermediário. Os tomadores podem ser cadastrados a partir dos XMLs recuperados.</p>
+      </div>
+
+      <div class="grid g-emit">
+        <div class="stack">
+          <div class="card">
+            <div class="card-h"><h2>Primeira carga</h2></div>
+            <div class="card-b">
+              <div class="alert a-info" style="margin-bottom:14px">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <div>A API de contribuintes documenta a consulta de um DF-e pelo NSU informado. A carga histórica deve percorrer os NSUs disponíveis e guardar o último processado. O manual atual não promete, por si só, carga integral desde o NSU 0.</div>
+              </div>
+              <div class="row r2">
+                <div class="field">
+                  <label for="i-nsu">NSU inicial</label>
+                  <input id="i-nsu" class="inp mono" value="0">
+                  <div class="hint">Informe o NSU inicial aceito pelo ADN. Depois da primeira carga, guarde o último NSU processado.</div>
+                </div>
+                <div class="field">
+                  <label for="i-papel">Trazer notas como</label>
+                  <select id="i-papel" class="inp">
+                    <option>Prestador e tomador</option>
+                    <option>Só prestador (emitidas)</option>
+                    <option>Só tomador (recebidas)</option>
+                  </select>
+                  <div class="hint">O ADN distribui para quem consta na nota como prestador, tomador ou intermediário.</div>
+                </div>
+              </div>
+              <label class="flex" style="font-size:12.5px;color:var(--ink-2);cursor:pointer;margin-bottom:14px">
+                <input type="checkbox" id="i-tom" checked> Cadastrar tomadores automaticamente a partir dos XMLs
+              </label>
+              <button class="btn btn-a" id="btn-imp" onclick="importar()" style="width:100%">Iniciar importação</button>
+            </div>
+          </div>
+
+          <div class="alert a-warn">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+            <div><b>NSU não é ordem de emissão.</b> O número é dado por ordem de chegada no ADN, não pela data da nota. A nota de janeiro pode ter NSU maior que a de março. Ordene pela data de emissão do XML depois de importar, nunca pelo NSU.</div>
+          </div>
+
+          <div class="alert a-info">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <div><b>O certificado define a raiz autorizada.</b> A consulta por NSU pode informar um CNPJ diferente do certificado, desde que ambos tenham a mesma raiz. Empresas de raízes distintas continuam exigindo certificados próprios.</div>
+          </div>
+        </div>
+
+        <div class="card sticky">
+          <div class="card-h">
+            <h2>Progresso</h2>
+            <span class="pill p-off right mono">NSU</span>
+          </div>
+          <div class="card-b">
+            <div id="imp-vazio" class="foot-note" style="margin:0">Nada importado ainda. A tela acompanha consultas e documentos processados; não exibe um percentual de histórico total sem um limite confirmado pela API.</div>
+            <div id="imp-run" style="display:none">
+              <div class="flex" style="justify-content:space-between;font-size:12px">
+                <span class="mono" id="imp-nsu">NSU 0</span>
+                <span class="num" id="imp-tot">0 documentos</span>
+              </div>
+              <div class="bar-imp"><i id="imp-bar"></i></div>
+              <div id="imp-lotes" style="margin-top:10px"></div>
+            </div>
+            <div id="imp-fim"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- IDENTIDADE VISUAL ---------- -->
+    <section class="view" id="v-marca">
+      <div class="page-h">
+        <h1>Identidade visual</h1>
+        <p>Onde a marca do seu cliente pode e não pode aparecer.</p>
+      </div>
+
+      <div class="alert a-err" style="margin-bottom:16px">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+        <div><b>O layout nacional não prevê o logo do prestador.</b> A Nota Técnica nº 008/2026 fixou o modelo do DANFSe: o cabeçalho traz a logomarca oficial da NFS-e Nacional e a inscrição “DANFSe v2.0”, os blocos seguem a disposição normativa e o QR Code tem tamanho mínimo de 1,52 cm. A marca do cliente fica nos canais de entrega, fora do documento fiscal.</div>
+      </div>
+
+      <div class="grid g2" style="align-items:start">
+        <div class="card">
+          <div class="card-h"><h2>Logo do cliente</h2></div>
+          <div class="card-b">
+            <div class="drop">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b8f99" stroke-width="1.6" style="margin:0 auto"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+              <div class="big">Arraste o PNG ou SVG</div>
+              <div class="sm">fundo transparente · mínimo 400 px de largura</div>
+            </div>
+            <div class="row r2" style="margin-top:14px">
+              <div class="field mb0">
+                <label for="m-cor">Cor de destaque</label>
+                <input id="m-cor" class="inp mono" value="#0b1629">
+              </div>
+              <div class="field mb0">
+                <label for="m-nome">Nome de exibição</label>
+                <input id="m-nome" class="inp" value="Clínica Vitali Med">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h">
+            <h2>Onde ele aparece</h2>
+            <span class="pill p-ok right">3 lugares</span>
+          </div>
+          <div class="card-b" style="padding:14px 16px">
+            <div class="stack" style="gap:10px">
+              <div class="dest">
+                <div class="box-mini">MAIL</div>
+                <div><div class="t">E-mail que leva a nota</div><div class="s">Cabeçalho da mensagem, com o XML e o DANFSe anexos. É o que o tomador abre primeiro.</div></div>
+              </div>
+              <div class="dest">
+                <div class="box-mini">WEB</div>
+                <div><div class="t">Portal do tomador</div><div class="s">A página onde ele baixa a nota. Marca do prestador no topo, DANFSe padrão dentro.</div></div>
+              </div>
+              <div class="dest">
+                <div class="box-mini">ZAP</div>
+                <div><div class="t">Recibo de WhatsApp</div><div class="s">Documento comercial, não fiscal. Aqui o logo é livre — só não pode se passar por nota.</div></div>
+              </div>
+            </div>
+            <div class="foot-note">O logo vai no envelope, não na nota. O DANFSe é documento fiscal padronizado; o que o cliente lembra é o e-mail e o portal — e esses são seus.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- LOGS ---------- -->
+    <section class="view" id="v-logs">
+      <div class="page-h">
+        <h1>Logs da API</h1>
+        <p>Toda requisição à Sefin Nacional, com corpo e resposta. É o que salva a conversa quando o Portal Nacional oscila.</p>
+      </div>
+      <div class="card">
+        <div class="card-h">
+          <h2>Requisições — últimas 24 h</h2>
+          <span class="pill p-ok right">128 · 3 rejeições · 0 timeouts</span>
+        </div>
+        <div class="card-b" style="background:var(--navy);border-radius:0 0 var(--r) var(--r);padding:14px">
+          <pre class="mono" style="color:#9dabc2;font-size:11px;line-height:1.85;overflow-x:auto;white-space:pre">
+<span style="color:#66768f">09:41:02.118</span> <span style="color:#c9a84c">POST</span>   /SefinNacional/nfse            <span style="color:#4ea87a">201</span>  1842ms  tenant=41203887000164
+             ↳ body: { "dpsXmlGZipB64": "H4sIAAAAAAAA/+1ZbW/bNhD+..." }  (4.1 KB → 1.2 KB)
+             ↳ chaveAcesso 41069022041203887000164000010000000000012026071
+<span style="color:#66768f">09:39:55.402</span> <span style="color:#c9a84c">GET</span>    /parametros_municipais/4106902/040101   <span style="color:#4ea87a">200</span>   214ms  cache MISS
+<span style="color:#66768f">09:22:17.663</span> <span style="color:#c9a84c">POST</span>   /SefinNacional/nfse            <span style="color:#d16a6a">400</span>   770ms  tenant=41203887000164
+             ↳ { "erros": [{ "Codigo": "E0714", "Descricao": "Arquivo enviado com erro na assinatura." }] }
+             ↳ causa: Reference URI não apontava para o Id do infDPS
+<span style="color:#66768f">08:58:03.001</span> <span style="color:#c9a84c">GET</span>    /SefinNacional/dps/DPS410690221412038870001640000100000000000  <span style="color:#4ea87a">200</span>  190ms
+             ↳ recuperação por idempotência após timeout do cliente
+<span style="color:#66768f">08:57:44.219</span> <span style="color:#c9a84c">POST</span>   /SefinNacional/nfse/{chave}/eventos    <span style="color:#4ea87a">201</span>   980ms  tpEvento=101 cancelamento
+<span style="color:#66768f">08:31:10.774</span> <span style="color:#c9a84c">GET</span>    /danfse/41069022041203887000164000010000000000012026071  <span style="color:#d16a6a">404</span>   90ms
+             ↳ API oficial do DANFSe descontinuada em 15/07/2026 (NT 008/2026 v1.01)
+             ↳ DANFSe v2.0 gerado localmente — geração é obrigação do emissor agora
+<span style="color:#66768f">08:04:22.310</span> <span style="color:#c9a84c">GET</span>    /adn/dfe/2847?cnpjConsulta=41203887000164   <span style="color:#4ea87a">200</span>  310ms
+             ↳ 1 documento · consulta autorizada pela mesma raiz do e-CNPJ</pre>
+        </div>
+      </div>
+      <div class="alert a-info" style="margin-top:14px">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <div>O endpoint <span class="mono">/danfse/{chave}</span> foi desligado em 15/07/2026, após a prorrogação publicada na versão 1.01 da NT 008/2026. Gerar o DANFSe v2.0 passou a ser obrigação do sistema emissor — layout, tipografia, QR Code e marca d'água de cancelamento seguem a especificação.</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const qs=(s,r=document)=>r.querySelector(s);
+const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
+const brl=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+/* ---------- login / navegação ---------- */
+function entrar(){
+  qs('#login').classList.add('hide');
+  qs('#app').classList.add('on');
+  render();
+}
+function go(v,el){
+  qsa('.view').forEach(x=>x.classList.remove('on'));
+  qs('#v-'+v).classList.add('on');
+  qsa('.sb-link').forEach(x=>x.classList.remove('active'));
+  if(el)el.classList.add('active');
+  qs('#sb').classList.remove('open');
+  window.scrollTo(0,0);
+}
+qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')entrar()});
+
+/* ---------- ambiente ---------- */
+let prod=false;
+function trocarAmbiente(){
+  prod=!prod;
+  const e=qs('#env');
+  e.classList.toggle('prod',prod);
+  qs('.txt',e).textContent=prod?'Produção':'Produção restrita';
+  qs('#pipe-env').textContent=prod?'produção':'produção restrita';
+  if(prod)alert('Ambiente de PRODUÇÃO.\n\nAs notas passam a ter validade jurídica e o cancelamento tem prazo. No sistema real este botão exige nova autenticação.');
+}
+function trocarEmpresa(){
+  const dados=[
+    'Clínica Vitali Med Ltda · CNPJ 41.203.887/0001-64 · Curitiba/PR · Simples Nacional — Anexo III',
+    'Bergamo &amp; Ruiz Advogados · CNPJ 28.771.004/0001-19 · Curitiba/PR · Simples Nacional — Anexo IV',
+    'Marina Duarte Psicologia · CNPJ 52.118.663/0001-02 · Campo Largo/PR · MEI',
+    'Studio Bandeira Comunicação Ltda · CNPJ 19.440.552/0001-73 · Curitiba/PR · Lucro Presumido'
+  ];
+  qs('#painel-sub').textContent=dados[+qs('#tenant').value];
+}
+
+/* ---------- contagem CGSN 189/2026 ---------- */
+function contagem(){
+  const alvo=new Date(2026,8,1);
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const d=Math.max(0,Math.round((alvo-hoje)/864e5));
+  qs('#cd-num').textContent=d;
+  if(d===0)qs('.cgsn-days span').textContent='em vigor hoje';
+}
+
+/* ---------- gráfico ---------- */
+const meses=[['Fev',276400],['Mar',298100],['Abr',311750],['Mai',304200],['Jun',316380],['Jul',342980]];
+function chart(){
+  const max=Math.max(...meses.map(m=>m[1]))*1.12;
+  qs('#chart').innerHTML=meses.map(([m,v],i)=>`
+    <div class="bar-wrap">
+      <div class="bar ${i===meses.length-1?'last':''}" style="height:${(v/max*100).toFixed(1)}%">
+        <span class="bar-v">R$ ${brl(v)}</span>
+      </div>
+      <span class="bar-l">${m}</span>
+    </div>`).join('');
+}
+
+/* ---------- tabelas ---------- */
+const notas=[
+  {n:'000128',d:'16/07 09:41',t:'Hospital Aurora Ltda',s:'04.01.01 — Medicina',v:4850,st:'ok'},
+  {n:'000127',d:'15/07 17:02',t:'Cooperativa Meridiano',s:'04.03.01 — Clínica',v:12300,st:'ok'},
+  {n:'000126',d:'15/07 11:28',t:'Roberto Lacerda Filho',s:'04.01.01 — Medicina',v:680,st:'proc'},
+  {n:'000125',d:'14/07 16:55',t:'Hospital Aurora',s:'04.03.01 — Clínica',v:22140,st:'ok'},
+  {n:'000124',d:'14/07 09:22',t:'Clínica Bem Estar Ltda',s:'04.01.01 — Medicina',v:3400,st:'err'},
+  {n:'000123',d:'11/07 14:07',t:'Ana Paula Vasconcelos',s:'04.01.01 — Medicina',v:520,st:'canc'},
+  {n:'000122',d:'10/07 10:44',t:'Instituto Farol',s:'04.03.01 — Clínica',v:8900,st:'ok'}
+];
+const sit={
+  ok:['p-ok','Autorizada'],proc:['p-warn','Processando'],
+  err:['p-err','Rejeitada'],canc:['p-off','Cancelada']
+};
+function pill(s){return `<span class="pill ${sit[s][0]}">${sit[s][1]}</span>`}
+
+function tabelas(){
+  qs('#ult').innerHTML=notas.slice(0,5).map(x=>`
+    <tr><td class="num">${x.d}</td><td>${x.t}</td><td style="color:var(--ink-2)">${x.s}</td>
+    <td class="r">${brl(x.v)}</td><td>${pill(x.st)}</td></tr>`).join('');
+
+  qs('#tb-notas').innerHTML=notas.map(x=>`
+    <tr>
+      <td class="mono" style="font-size:12px">${x.n}</td>
+      <td class="num">${x.d}</td>
+      <td>${x.t}</td>
+      <td style="color:var(--ink-2)">${x.s}</td>
+      <td class="r">${brl(x.v)}</td>
+      <td>${pill(x.st)}</td>
+      <td>
+        <div class="acts">
+          <button class="ico-btn" title="Baixar XML"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
+          <button class="ico-btn" title="Ver DANFSe"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ico-btn" title="Enviar por WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5a8.4 8.4 0 0 1-.9-3.9 8.4 8.4 0 0 1 8.4-9 8.4 8.4 0 0 1 8.6 8.4Z"/></svg></button>
+          <button class="ico-btn danger" title="Cancelar nota" ${x.st!=='ok'?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+/* ---------- parâmetros municipais ---------- */
+const tabelaAliq={'4106902':{'040101':'2,00%','040301':'2,00%','170101':'5,00%','171401':'5,00%'},
+                  '4104204':{'040101':'3,00%','040301':'3,00%','170101':'5,00%','171401':'5,00%'},
+                  '4119905':{'040101':'2,50%','040301':'2,50%','170101':'5,00%','171401':'5,00%'}};
+function lerParametros(){
+  const m=qs('#s-mun').value,c=qs('#s-cod').value;
+  const a=(tabelaAliq[m]||{})[c]||'—';
+  qs('#aliq').innerHTML=`${a} <span class="pill p-off" style="margin-left:5px">municipal</span>`;
+  qsa('.kv b')[0].textContent='R$ '+qs('#s-val').value.replace(/[^\d,]/g,'');
+}
+
+/* ---------- habilitação ---------- */
+function checarHabilitacao(){
+  const reg=qs('#e-reg').value, mun=qs('#e-mun').selectedOptions[0].text.split('— ')[1];
+  const simples=reg.includes('Simples')||reg==='MEI';
+  const box=qs('#hab');
+
+  if(reg==='MEI'){
+    box.innerHTML=`
+      <div class="alert a-ok">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+        <div><b>Habilitada — Emissor Nacional.</b> O MEI emite pelo padrão nacional em todo o país desde 2023, independente do município. Emissão por API exige certificado digital próprio do MEI.</div>
+      </div>`;
+  }else if(simples){
+    box.innerHTML=`
+      <div class="alert a-ok" style="margin-bottom:10px">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+        <div><b>Habilitada — Emissor Nacional.</b> A partir de 01/09/2026 esta empresa é <b>obrigada</b> a emitir pelo Emissor Nacional, e fica vedado o portal municipal. Base: Resolução CGSN nº 189/2026.</div>
+      </div>
+      <div class="alert a-info">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <div>O regime decide antes do município. Convênio de ${mun} confirmado por <span class="mono" style="font-size:11px">/parametros_municipais/${qs('#e-mun').value}</span>.</div>
+      </div>`;
+  }else{
+    box.innerHTML=`
+      <div class="alert a-warn">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+        <div><b>Depende do município.</b> A obrigatoriedade da Resolução CGSN nº 189/2026 alcança só ME e EPP do Simples. Fora do Simples, emitir aqui exige que ${mun} tenha aderido ao convênio <b>e</b> adotado o Emissor Nacional. Verificado: aderente. <br><span style="color:#8a6d1f">Se o município mudar de modo, esta empresa volta ao portal municipal.</span></div>
+      </div>`;
+  }
+}
+
+/* ---------- PIPELINE ---------- */
+const etapas=[
+  {t:'Validar dados da DPS',d:'regras de negócio locais antes de gastar requisição',ms:12},
+  {t:'Ler parâmetros do município',d:'GET /parametros_municipais/4106902/040101',ms:214},
+  {t:'Montar XML da DPS',d:'Anexo I — leiaute DPS/NFS-e v1.00.02',ms:38},
+  {t:'Assinar com o A1',d:'XMLDSig · SHA-256 · cadeia ICP-Brasil anexada',ms:96},
+  {t:'Compactar GZip + Base64',d:'4.1 KB → 1.2 KB · dpsXmlGZipB64',ms:8},
+  {t:'Enviar à Sefin Nacional',d:'POST /SefinNacional/nfse · mTLS · síncrono',ms:1420},
+  {t:'Guardar retorno',d:'nfseXmlGZipB64 → XML + DANFSe',ms:54}
+];
+const ckSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg>';
+const xSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+function pipeReset(){
+  qs('#pipe').innerHTML=etapas.map((e,i)=>`
+    <div class="stage" id="st${i}">
+      <div class="dot">${ckSvg}</div>
+      <div><div class="stage-t">${e.t}</div><span class="stage-d">${e.d}</span></div>
+      <div class="stage-ms" id="ms${i}"></div>
+    </div>`).join('');
+  qs('#result').innerHTML='';
+}
+
+let rodando=false;
+async function emitir(falhar){
+  if(rodando)return;
+  rodando=true;
+  qs('#btn-emit').disabled=true;
+  pipeReset();
+  const parar=falhar?3:etapas.length;
+
+  for(let i=0;i<etapas.length;i++){
+    const st=qs('#st'+i);
+    st.className='stage run';
+    await new Promise(r=>setTimeout(r,Math.min(etapas[i].ms,900)));
+
+    if(falhar&&i===parar){
+      st.className='stage fail';
+      qs('.dot',st).innerHTML=xSvg;
+      qs('#ms'+i).textContent=etapas[i].ms+'ms';
+      qs('.stage-d',st).textContent='POST /SefinNacional/nfse → 400';
+      qs('#result').innerHTML=`
+        <div class="result no">
+          <div class="flex" style="margin-bottom:8px">
+            <span class="pill p-err">Rejeitada pela Sefin</span>
+            <span class="mono right" style="font-size:11px;color:var(--err)">HTTP 400</span>
+          </div>
+          <div class="chave" style="color:#7d1c1f">{ "erros": [{ "Codigo": "E0714",
+    "Descricao": "Arquivo enviado com erro na assinatura." }] }</div>
+          <div style="font-size:12.5px;color:#7d1c1f;line-height:1.6">
+            <b>O que fazer:</b> a Reference URI da assinatura precisa apontar para o atributo <span class="mono" style="font-size:11px">Id</span> do nó <span class="mono" style="font-size:11px">infDPS</span>, e a assinatura vai dentro da DPS — não em volta dela. Nenhuma nota foi gerada e nenhum número foi consumido.
+          </div>
+          <button class="btn btn-s" style="margin-top:11px" onclick="emitir(false)">Corrigir e reenviar</button>
+        </div>`;
+      break;
+    }
+
+    st.className='stage done';
+    qs('#ms'+i).textContent=etapas[i].ms+'ms';
+
+    if(i===etapas.length-1){
+      const total=etapas.reduce((a,b)=>a+b.ms,0);
+      qs('#result').innerHTML=`
+        <div class="result ok">
+          <div class="flex" style="margin-bottom:8px">
+            <span class="pill p-ok">NFS-e autorizada</span>
+            <span class="mono right" style="font-size:11px;color:var(--ok)">HTTP 201 · ${(total/1000).toFixed(1)}s</span>
+          </div>
+          <div class="eyebrow" style="margin-bottom:2px">Chave de acesso</div>
+          <div class="chave">41069022041203887000164000010000000000012026071</div>
+          <div class="flex wrap">
+            <button class="btn btn-s btn-p">Baixar XML</button>
+            <button class="btn btn-s">Ver DANFSe</button>
+            <button class="btn btn-s">Enviar por WhatsApp</button>
+          </div>
+          <div class="foot-note" style="color:#155c39">Nota nº 000129 · série 00001 · XML de distribuição guardado. Cancelamento disponível dentro do prazo do município.</div>
+        </div>`;
+    }
+  }
+  rodando=false;
+  qs('#btn-emit').disabled=false;
+}
+
+
+/* ---------- importação ADN ---------- */
+let impRodando=false;
+async function importar(){
+  if(impRodando)return;
+  impRodando=true;
+  qs('#btn-imp').disabled=true;
+  qs('#imp-vazio').style.display='none';
+  qs('#imp-run').style.display='block';
+  qs('#imp-fim').innerHTML='';
+  qs('#imp-lotes').innerHTML='';
+
+  const lotes=[[1,'prestador'],[1,'prestador'],[1,'tomador'],[1,'prestador'],[1,'tomador'],[1,'misto']];
+  let nsu=+qs('#i-nsu').value||0, tot=0, prest=0, tom=0;
+
+  for(let i=0;i<lotes.length;i++){
+    const [n,tipo]=lotes[i];
+    await new Promise(r=>setTimeout(r,520));
+    nsu+=n; tot+=n;
+    if(tipo==='prestador')prest+=n; else if(tipo==='tomador')tom+=n; else {prest+=1;}
+    qs('#imp-nsu').textContent='NSU '+nsu;
+    qs('#imp-tot').textContent=tot+' documentos';
+    qs('#imp-bar').style.width=Math.min(100,(i+1)/lotes.length*100)+'%';
+    qs('#imp-lotes').insertAdjacentHTML('afterbegin',
+      `<div class="lote"><span class="mono">GET /dfe/${nsu-n}</span><b>${n} documento</b></div>`);
+  }
+
+  qs('#imp-fim').innerHTML=`
+    <div class="result ok" style="margin-top:12px">
+      <div class="flex" style="margin-bottom:9px"><span class="pill p-ok">Importação concluída</span></div>
+      <div class="kv"><span>Notas como prestador</span><b>${prest}</b></div>
+      <div class="kv"><span>Notas como tomador</span><b>${tom}</b></div>
+      <div class="kv"><span>Tomadores cadastrados</span><b>47</b></div>
+      <div class="kv"><span>Eventos vinculados</span><b>6</b></div>
+      <div class="kv"><span>Último NSU</span><b class="mono" style="font-size:11.5px">${nsu}</b></div>
+      <div class="foot-note" style="color:#155c39">Guarde o último NSU. A próxima sincronização parte dele, não do zero.</div>
+    </div>`;
+  impRodando=false;
+  qs('#btn-imp').disabled=false;
+}
+
+
+/* ---------- puxar cadastro do TITAN ---------- */
+const baseTitan=[
+  {rs:'Clínica Vitali Med Ltda',cnpj:'41.203.887/0001-64',im:'118.442-9',reg:0,mun:'4106902',end:'Av. Sete de Setembro, 4214 — Batel — 80250-210',esc:'BASSIM'},
+  {rs:'Bergamo & Ruiz Advogados Associados',cnpj:'28.771.004/0001-19',im:'204.881-3',reg:1,mun:'4106902',end:'R. Mateus Leme, 1820 — São Francisco — 80510-192',esc:'PASSARIN'},
+  {rs:'Marina Duarte Psicologia',cnpj:'52.118.663/0001-02',im:'088.310-5',reg:2,mun:'4104204',end:'R. Cel. Julio Bratz, 405 — Centro — 83601-090',esc:'MAIS CONT'},
+  {rs:'Studio Bandeira Comunicação Ltda',cnpj:'19.440.552/0001-73',im:'155.207-1',reg:3,mun:'4106902',end:'R. Bispo Dom José, 2051 — Batel — 80440-080',esc:'OASIS'},
+  {rs:'Núcleo Odonto Batel Ltda',cnpj:'33.902.117/0001-88',im:'241.663-7',reg:0,mun:'4106902',end:'Al. Dom Pedro II, 255 — Batel — 80420-060',esc:'BS CONT'}
+];
+function puxarTitan(){
+  const v=qs('#e-titan').value;
+  if(v===''){qs('#titan-hint').innerHTML='Traz razão social, CNPJ, inscrição municipal, regime e endereço do cadastro que já existe. Não redigite o que o TITAN já sabe.';return;}
+  const e=baseTitan[+v];
+  qs('#e-rs').value=e.rs;
+  qs('#e-cnpj').value=e.cnpj;
+  qs('#e-im').value=e.im;
+  qs('#e-reg').selectedIndex=e.reg;
+  qs('#e-mun').value=e.mun;
+  qs('#e-end').value=e.end;
+  qs('#titan-hint').innerHTML=`Carregado de <b>${e.esc}</b> · <span class="mono" style="font-size:11px">hub_data_${e.esc.toLowerCase().replace(' ','')}</span>. Confira a inscrição municipal antes de emitir — é o campo que mais sai desatualizado.`;
+  checarHabilitacao();
+}
+
+/* ---------- init ---------- */
+function render(){
+  contagem();chart();tabelas();pipeReset();checarHabilitacao();lerParametros();
+}
+render();
+</script>
+</body>
+</html>

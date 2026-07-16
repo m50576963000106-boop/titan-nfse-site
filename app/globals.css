@@ -1,0 +1,28 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+.prototype-shell {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: #0b1629;
+}
+
+.prototype-shell {
+  height: 100dvh;
+}
+
+.prototype-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #f5f4ef;
+}
