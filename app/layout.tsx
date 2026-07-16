@@ -20,13 +20,13 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      images: [{ url: "/og.png", width: 1200, height: 630 }],
+      images: [{ url: "/og-onboarding.png", width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: ["/og.png"],
+      images: ["/og-onboarding.png"],
     },
   };
 }

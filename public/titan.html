@@ -62,7 +62,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
   padding:24px;
 }
 #login.hide{display:none}
-.login-card{width:100%;max-width:380px}
+.login-card{width:100%;max-width:420px}
 .login-mark{display:flex;align-items:center;gap:10px;margin-bottom:34px}
 .login-h{
   font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--cream);
@@ -392,6 +392,9 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .kv span{color:var(--ink-2)}
 .kv b{font-weight:650;font-variant-numeric:tabular-nums;text-align:right}
 .foot-note{font-size:11px;color:var(--ink-3);line-height:1.6;margin-top:12px}
+.empty-state{padding:30px 18px;text-align:center;color:var(--ink-3);font-size:12.5px;line-height:1.6}
+.onboard-step{display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border-radius:100px;background:#f7f0dc;color:var(--gold-dim);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.setup-actions{display:flex;gap:9px;align-items:center;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
 .stack{display:flex;flex-direction:column;gap:14px}
 .flex{display:flex;gap:9px;align-items:center}
 .wrap{flex-wrap:wrap}
@@ -441,20 +444,25 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v3.6h-6.1V20h-3.8V7.6H4V4Z" fill="#c9a84c"/></svg>
       <div style="font-weight:800;letter-spacing:-.02em;color:#f5f4ef;font-size:15px">TITAN <span style="color:#c9a84c;font-weight:600">NFS-e</span></div>
     </div>
-    <div class="login-h">Entrar</div>
-    <div class="login-sub">Emissão de NFS-e no Padrão Nacional, direto na Sefin Nacional.</div>
+    <div class="onboard-step">Primeiro acesso · etapa 1 de 2</div>
+    <div class="login-h">Criar acesso de teste</div>
+    <div class="login-sub">Informe o responsável. Na próxima etapa você cadastra a primeira empresa e deixa o ambiente pronto para os testes.</div>
+    <div class="login-field">
+      <label for="li-name">Nome do responsável</label>
+      <input id="li-name" type="text" placeholder="Nome completo" autocomplete="name">
+    </div>
     <div class="login-field">
       <label for="li-mail">E-mail</label>
-      <input id="li-mail" class="inp" type="email" value="demo@titanbackoffice.com.br" autocomplete="username">
+      <input id="li-mail" class="inp" type="email" placeholder="responsavel@empresa.com.br" autocomplete="username">
     </div>
     <div class="login-field">
       <label for="li-pw">Senha</label>
-      <input id="li-pw" type="password" value="demonstracao" autocomplete="current-password">
+      <input id="li-pw" type="password" placeholder="Crie uma senha de teste" autocomplete="new-password">
     </div>
-    <button class="btn-gold" style="margin-top:8px" onclick="entrar()">Entrar</button>
+    <button class="btn-gold" style="margin-top:8px" onclick="iniciarCadastro()">Continuar para a empresa</button>
     <div class="login-foot">
-      Protótipo de demonstração — nenhum dado é enviado à Receita Federal.<br>
-      Ambiente padrão: <b style="color:#c9a84c">Produção Restrita</b>.
+      Teste controlado — os dados ficam somente neste navegador e não são enviados à Receita Federal.<br>
+      Ambiente bloqueado em <b style="color:#c9a84c">Produção Restrita</b>.
     </div>
   </div>
 </div>
@@ -519,16 +527,13 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
     <div class="tenant">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b8f99" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
       <select id="tenant" onchange="trocarEmpresa()">
-        <option value="0">Clínica Vitali Med Ltda — ME</option>
-        <option value="1">Bergamo &amp; Ruiz Advogados — EPP</option>
-        <option value="2">Marina Duarte Psicologia — MEI</option>
-        <option value="3">Studio Bandeira Comunicação Ltda</option>
+        <option value="">Nenhuma empresa cadastrada</option>
       </select>
     </div>
     <button class="env" id="env" onclick="trocarAmbiente()">
       <span class="env-dot"></span><span class="txt">Produção restrita</span>
     </button>
-    <div class="avatar">MG</div>
+    <div class="avatar" id="avatar">--</div>
   </header>
 
   <main>
@@ -537,7 +542,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
     <section class="view on" id="v-painel">
       <div class="page-h">
         <h1>Painel</h1>
-        <p id="painel-sub">Clínica Vitali Med Ltda · CNPJ 41.203.887/0001-64 · Curitiba/PR · Simples Nacional — Anexo III</p>
+        <p id="painel-sub">Cadastre a primeira empresa para iniciar os testes.</p>
       </div>
 
       <div class="cgsn" style="margin-bottom:16px">
@@ -545,30 +550,30 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
         <div class="cgsn-txt">
           <h3>Emissor Nacional obrigatório para ME e EPP do Simples</h3>
           <p>A partir de <b style="color:#c9a84c">1º de setembro de 2026</b>, toda ME ou EPP optante do Simples Nacional deverá emitir NFS-e de padrão nacional exclusivamente pelo Emissor Nacional — web ou API. Base: Resolução CGSN nº 189/2026 (DOU 28/04/2026), que alterou o art. 59 da Resolução CGSN nº 140/2018.<br>
-          <span style="color:#66768f">3 das 4 empresas desta carteira ainda emitem por portal municipal.</span></p>
+          <span style="color:#66768f">A carteira está vazia e pronta para receber o primeiro cliente.</span></p>
         </div>
       </div>
 
       <div class="grid g4" style="margin-bottom:16px">
         <div class="kpi">
           <div class="lbl">Notas no mês</div>
-          <div class="val">128</div>
-          <div class="delta"><b>+19</b> vs. junho</div>
+          <div class="val">0</div>
+          <div class="delta">nenhuma nota registrada</div>
         </div>
         <div class="kpi">
           <div class="lbl">Faturamento bruto</div>
-          <div class="val"><small>R$</small> 342.980<small>,00</small></div>
-          <div class="delta"><b>+8,4%</b> vs. junho</div>
+          <div class="val"><small>R$</small> 0<small>,00</small></div>
+          <div class="delta">sem movimento</div>
         </div>
         <div class="kpi alert">
           <div class="lbl">Rejeitadas</div>
-          <div class="val">3</div>
-          <div class="delta">2 assinatura · 1 tomador</div>
+          <div class="val">0</div>
+          <div class="delta">nenhuma rejeição</div>
         </div>
         <div class="kpi">
           <div class="lbl">Resposta da Sefin</div>
-          <div class="val">1,8<small> s</small></div>
-          <div class="delta">média das últimas 128</div>
+          <div class="val">—</div>
+          <div class="delta">sem requisições</div>
         </div>
       </div>
 
@@ -576,7 +581,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
         <div class="card span2">
           <div class="card-h">
             <h2>Faturamento por competência</h2>
-            <span class="pill p-gold right">Julho parcial</span>
+            <span class="pill p-off right">Sem movimento</span>
           </div>
           <div class="card-b">
             <div class="chart" id="chart"></div>
@@ -585,10 +590,10 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
         <div class="card">
           <div class="card-h"><h2>Situação da carteira</h2></div>
           <div class="card-b" style="padding:8px 16px">
-            <div class="kv"><span>Certificado A1 válido</span><b class="pill p-ok">3 de 4</b></div>
-            <div class="kv"><span>Vence em 30 dias</span><b class="pill p-warn">1</b></div>
-            <div class="kv"><span>Já no Emissor Nacional</span><b class="pill p-ok">1</b></div>
-            <div class="kv"><span>Migração pendente</span><b class="pill p-err">3</b></div>
+            <div class="kv"><span>Empresas cadastradas</span><b id="kpi-empresas">0</b></div>
+            <div class="kv"><span>Certificado A1 válido</span><b class="pill p-off">Pendente</b></div>
+            <div class="kv"><span>Emissor Nacional</span><b class="pill p-off">Não verificado</b></div>
+            <div class="kv"><span>Cadastro inicial</span><b class="pill p-warn" id="kpi-cadastro">Pendente</b></div>
             <div class="kv"><span>Notas a cancelar</span><b>0</b></div>
           </div>
         </div>
@@ -624,7 +629,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
               <div class="row r21">
                 <div class="field">
                   <label for="t-doc">CPF / CNPJ</label>
-                  <input id="t-doc" class="inp" value="09.284.117/0001-40">
+                  <input id="t-doc" class="inp" placeholder="CPF ou CNPJ do tomador">
                   <div class="hint">Aceita CNPJ alfanumérico (IN RFB nº 2.229/2024).</div>
                 </div>
                 <div class="field">
@@ -634,16 +639,16 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
               </div>
               <div class="field">
                 <label for="t-nome">Razão social / nome</label>
-                <input id="t-nome" class="inp" value="Hospital Aurora Ltda">
+                <input id="t-nome" class="inp" placeholder="Nome ou razão social">
               </div>
               <div class="row r2">
                 <div class="field mb0">
                   <label for="t-mail">E-mail</label>
-                  <input id="t-mail" class="inp" value="financeiro@hospitalaurora.com.br">
+                  <input id="t-mail" class="inp" type="email" placeholder="financeiro@cliente.com.br">
                 </div>
                 <div class="field mb0">
                   <label for="t-zap">WhatsApp</label>
-                  <input id="t-zap" class="inp" value="(41) 99812-4407">
+                  <input id="t-zap" class="inp" placeholder="(00) 00000-0000">
                 </div>
               </div>
             </div>
@@ -664,12 +669,12 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
               </div>
               <div class="field">
                 <label for="s-desc">Descrição</label>
-                <textarea id="s-desc" class="inp">Consultas médicas ambulatoriais prestadas em regime de plantão — competência 07/2026, conforme contrato 2026/114.</textarea>
+                <textarea id="s-desc" class="inp" placeholder="Descreva o serviço prestado"></textarea>
               </div>
               <div class="row r2">
                 <div class="field mb0">
                   <label for="s-val">Valor do serviço (R$)</label>
-                  <input id="s-val" class="inp num" value="4.850,00" oninput="lerParametros()">
+                  <input id="s-val" class="inp num" value="0,00" oninput="lerParametros()">
                 </div>
                 <div class="field mb0">
                   <label for="s-mun">Município de incidência</label>
@@ -689,11 +694,11 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
               <span class="pill p-gold right">Lido da Sefin</span>
             </div>
             <div class="card-b" style="padding:10px 16px 16px">
-              <div class="kv"><span>Valor do serviço</span><b>R$ 4.850,00</b></div>
+              <div class="kv"><span>Valor do serviço</span><b id="resumo-valor">R$ 0,00</b></div>
               <div class="kv"><span>Deduções / reduções</span><b>R$ 0,00</b></div>
-              <div class="kv"><span>Base de cálculo do ISSQN</span><b>R$ 4.850,00</b></div>
+              <div class="kv"><span>Base de cálculo do ISSQN</span><b id="resumo-base">R$ 0,00</b></div>
               <div class="kv"><span>Alíquota do ISSQN</span><b id="aliq">2,00% <span class="pill p-off" style="margin-left:5px">municipal</span></b></div>
-              <div class="kv"><span>Regime</span><b>Simples Nacional</b></div>
+              <div class="kv"><span>Regime</span><b id="resumo-regime">Aguardando cadastro</b></div>
               <div class="kv"><span>ISSQN a recolher pela nota</span><b>R$ 0,00</b></div>
               <div class="kv"><span>Retenção na fonte</span><b>Não</b></div>
               <div class="alert a-info" style="margin-top:12px">
@@ -704,10 +709,10 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
           </div>
 
           <div class="flex wrap">
-            <button class="btn-a btn" onclick="emitir(false)" id="btn-emit">Emitir NFS-e</button>
+            <button class="btn-a btn" onclick="emitir(false)" id="btn-emit">Testar fluxo de emissão</button>
             <button class="btn" onclick="emitir(true)">Simular rejeição</button>
             <label class="flex" style="margin-left:auto;font-size:12px;color:var(--ink-2);cursor:pointer">
-              <input type="checkbox" id="zap" checked> Enviar ao tomador por WhatsApp
+              <input type="checkbox" id="zap"> Simular envio por WhatsApp
             </label>
           </div>
         </div>
@@ -772,32 +777,23 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
             <span class="pill p-gold right">TITAN</span>
           </div>
           <div class="card-b">
-            <div class="field" style="padding:11px 12px;background:#fbfaf7;border:1px solid var(--line);border-radius:var(--r)">
-              <label for="e-titan">Empresa já cadastrada no TITAN</label>
-              <select id="e-titan" class="inp" onchange="puxarTitan()">
-                <option value="">— buscar na base do escritório —</option>
-                <option value="0">41.203.887/0001-64 · Clínica Vitali Med Ltda · BASSIM</option>
-                <option value="1">28.771.004/0001-19 · Bergamo &amp; Ruiz Advogados · PASSARIN</option>
-                <option value="2">52.118.663/0001-02 · Marina Duarte Psicologia · MAIS CONT</option>
-                <option value="3">19.440.552/0001-73 · Studio Bandeira Comunicação · OASIS</option>
-                <option value="4">33.902.117/0001-88 · Núcleo Odonto Batel Ltda · BS CONT</option>
-              </select>
-              <div class="hint" id="titan-hint">Traz razão social, CNPJ, inscrição municipal, regime e endereço do cadastro que já existe. Não redigite o que o TITAN já sabe.</div>
+            <div class="alert a-info" style="margin-bottom:14px">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              <div><b>Cadastro inicial · etapa 2 de 2.</b> Para este teste, os dados ficam salvos somente neste navegador. Nenhum certificado ou informação fiscal é enviado para servidores externos.</div>
             </div>
-            <div class="sep" style="margin:14px 0"></div>
             <div class="field">
               <label for="e-rs">Razão social</label>
-              <input id="e-rs" class="inp" value="Clínica Vitali Med Ltda">
+              <input id="e-rs" class="inp" placeholder="Razão social completa" required>
             </div>
             <div class="row r2">
               <div class="field">
                 <label for="e-cnpj">CNPJ</label>
-                <input id="e-cnpj" class="inp mono" value="41.203.887/0001-64">
+                <input id="e-cnpj" class="inp mono" placeholder="00.000.000/0000-00" required>
                 <div class="hint">Formato numérico ou alfanumérico detectado automaticamente.</div>
               </div>
               <div class="field">
                 <label for="e-im">Inscrição municipal</label>
-                <input id="e-im" class="inp mono" value="118.442-9">
+                <input id="e-im" class="inp mono" placeholder="Inscrição municipal" required>
               </div>
             </div>
             <div class="row r2">
@@ -823,7 +819,11 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
             </div>
             <div class="field mb0">
               <label for="e-end">Endereço</label>
-              <input id="e-end" class="inp" value="Av. Sete de Setembro, 4214 — Batel — 80250-210">
+              <input id="e-end" class="inp" placeholder="Logradouro, número, bairro e CEP" required>
+            </div>
+            <div class="setup-actions">
+              <span class="foot-note" style="margin:0">Você poderá revisar estes dados antes de qualquer integração real.</span>
+              <button class="btn btn-a right" type="button" onclick="salvarCadastro()">Salvar cadastro inicial</button>
             </div>
           </div>
         </div>
@@ -840,13 +840,13 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
           <div class="card">
             <div class="card-h"><h2>Parâmetros do município</h2></div>
             <div class="card-b" style="padding:10px 16px 14px">
-              <div class="kv"><span>Convênio com o Sistema Nacional</span><b class="pill p-ok">Aderente</b></div>
-              <div class="kv"><span>Modo de emissão</span><b>Emissor Nacional</b></div>
-              <div class="kv"><span>Aliquota — item 04.01.01</span><b>2,00%</b></div>
-              <div class="kv"><span>Regimes especiais</span><b>Nenhum</b></div>
-              <div class="kv"><span>Última leitura</span><b>16/07/2026 09:14</b></div>
+              <div class="kv"><span>Convênio com o Sistema Nacional</span><b class="pill p-off">A verificar</b></div>
+              <div class="kv"><span>Modo de emissão</span><b>Não consultado</b></div>
+              <div class="kv"><span>Alíquota do serviço</span><b>—</b></div>
+              <div class="kv"><span>Regimes especiais</span><b>—</b></div>
+              <div class="kv"><span>Última leitura</span><b>Nunca</b></div>
               <div class="foot-note">
-                Origem: <span class="mono">GET /parametros_municipais/4106902</span> e <span class="mono">/aliquotas</span>. Releitura automática a cada 24 h — o município pode mudar alíquota sem aviso.
+                A consulta oficial será habilitada quando houver backend e certificado configurados.
               </div>
             </div>
           </div>
@@ -863,24 +863,13 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 
       <div class="grid g2" style="align-items:start">
         <div class="card">
-          <div class="card-h"><h2>Certificado em uso</h2></div>
-          <div class="card-b" style="padding:10px 16px 16px">
-            <div class="kv"><span>Titular</span><b>CLINICA VITALI MED LTDA</b></div>
-            <div class="kv"><span>CNPJ</span><b class="mono" style="font-size:12px">41203887000164</b></div>
-            <div class="kv"><span>Emissor</span><b>AC Certisign RFB G5</b></div>
-            <div class="kv"><span>Válido até</span><b>14/08/2026</b></div>
-            <div class="kv"><span>Cadeia ICP-Brasil</span><b class="pill p-ok">Completa</b></div>
-            <div class="kv"><span>Situação</span><b class="pill p-warn">Vence em 29 dias</b></div>
-            <div class="alert a-warn" style="margin-top:14px">
-              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
-              <div><b>Renove antes de 14/08.</b> Sem certificado válido a empresa para de emitir — e a obrigatoriedade do Emissor Nacional começa 18 dias depois do vencimento.</div>
-            </div>
-          </div>
+          <div class="card-h"><h2>Certificado em uso</h2><span class="pill p-off right">Não configurado</span></div>
+          <div class="empty-state">Nenhum certificado A1 foi adicionado. O upload real ficará bloqueado até existir um cofre seguro no backend.</div>
         </div>
 
         <div class="stack">
           <div class="card">
-            <div class="card-h"><h2>Substituir certificado</h2></div>
+            <div class="card-h"><h2>Adicionar certificado</h2></div>
             <div class="card-b">
               <div class="drop">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b8f99" stroke-width="1.6" style="margin:0 auto"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
@@ -892,7 +881,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
                 <input id="c-pw" class="inp" type="password" placeholder="••••••••••">
                 <div class="hint">Guardada com AES-256-GCM. A chave mestra fica fora do banco e fora do <span class="mono">.env</span> da aplicação.</div>
               </div>
-              <button class="btn btn-p" style="width:100%">Validar e substituir</button>
+              <button class="btn btn-p" style="width:100%" disabled>Disponível após configurar o backend seguro</button>
             </div>
           </div>
 
@@ -1004,7 +993,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
               </div>
               <div class="field mb0">
                 <label for="m-nome">Nome de exibição</label>
-                <input id="m-nome" class="inp" value="Clínica Vitali Med">
+                <input id="m-nome" class="inp" placeholder="Nome de exibição">
               </div>
             </div>
           </div>
@@ -1045,25 +1034,11 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
       <div class="card">
         <div class="card-h">
           <h2>Requisições — últimas 24 h</h2>
-          <span class="pill p-ok right">128 · 3 rejeições · 0 timeouts</span>
+          <span class="pill p-off right">0 requisições</span>
         </div>
         <div class="card-b" style="background:var(--navy);border-radius:0 0 var(--r) var(--r);padding:14px">
-          <pre class="mono" style="color:#9dabc2;font-size:11px;line-height:1.85;overflow-x:auto;white-space:pre">
-<span style="color:#66768f">09:41:02.118</span> <span style="color:#c9a84c">POST</span>   /SefinNacional/nfse            <span style="color:#4ea87a">201</span>  1842ms  tenant=41203887000164
-             ↳ body: { "dpsXmlGZipB64": "H4sIAAAAAAAA/+1ZbW/bNhD+..." }  (4.1 KB → 1.2 KB)
-             ↳ chaveAcesso 41069022041203887000164000010000000000012026071
-<span style="color:#66768f">09:39:55.402</span> <span style="color:#c9a84c">GET</span>    /parametros_municipais/4106902/040101   <span style="color:#4ea87a">200</span>   214ms  cache MISS
-<span style="color:#66768f">09:22:17.663</span> <span style="color:#c9a84c">POST</span>   /SefinNacional/nfse            <span style="color:#d16a6a">400</span>   770ms  tenant=41203887000164
-             ↳ { "erros": [{ "Codigo": "E0714", "Descricao": "Arquivo enviado com erro na assinatura." }] }
-             ↳ causa: Reference URI não apontava para o Id do infDPS
-<span style="color:#66768f">08:58:03.001</span> <span style="color:#c9a84c">GET</span>    /SefinNacional/dps/DPS410690221412038870001640000100000000000  <span style="color:#4ea87a">200</span>  190ms
-             ↳ recuperação por idempotência após timeout do cliente
-<span style="color:#66768f">08:57:44.219</span> <span style="color:#c9a84c">POST</span>   /SefinNacional/nfse/{chave}/eventos    <span style="color:#4ea87a">201</span>   980ms  tpEvento=101 cancelamento
-<span style="color:#66768f">08:31:10.774</span> <span style="color:#c9a84c">GET</span>    /danfse/41069022041203887000164000010000000000012026071  <span style="color:#d16a6a">404</span>   90ms
-             ↳ API oficial do DANFSe descontinuada em 15/07/2026 (NT 008/2026 v1.01)
-             ↳ DANFSe v2.0 gerado localmente — geração é obrigação do emissor agora
-<span style="color:#66768f">08:04:22.310</span> <span style="color:#c9a84c">GET</span>    /adn/dfe/2847?cnpjConsulta=41203887000164   <span style="color:#4ea87a">200</span>  310ms
-             ↳ 1 documento · consulta autorizada pela mesma raiz do e-CNPJ</pre>
+          <pre class="mono" style="color:#66768f;font-size:11px;line-height:1.85;overflow-x:auto;white-space:pre">Aguardando a primeira integração.
+Nenhuma requisição foi enviada à Sefin Nacional.</pre>
         </div>
       </div>
       <div class="alert a-info" style="margin-top:14px">
@@ -1081,11 +1056,30 @@ const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
 const brl=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
 /* ---------- login / navegação ---------- */
-function entrar(){
+const STORAGE_EMPRESA='titan_nfse_empresa_teste_v1';
+const STORAGE_USUARIO='titan_nfse_usuario_teste_v1';
+let empresaAtual=null;
+
+function iniciarCadastro(){
+  const nome=qs('#li-name').value.trim();
+  const email=qs('#li-mail').value.trim();
+  const senha=qs('#li-pw').value;
+  if(!nome||!email||senha.length<4){
+    alert('Preencha o nome, um e-mail válido e uma senha de teste com pelo menos 4 caracteres.');
+    return;
+  }
+  localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome,email}));
   qs('#login').classList.add('hide');
   qs('#app').classList.add('on');
+  carregarEstado();
   render();
+  if(empresaAtual){
+    go('painel',qs('.sb-link[onclick*="painel"]'));
+  }else{
+    go('emitente',qs('.sb-link[onclick*="emitente"]'));
+  }
 }
+function entrar(){iniciarCadastro()}
 function go(v,el){
   qsa('.view').forEach(x=>x.classList.remove('on'));
   qs('#v-'+v).classList.add('on');
@@ -1094,26 +1088,15 @@ function go(v,el){
   qs('#sb').classList.remove('open');
   window.scrollTo(0,0);
 }
-qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')entrar()});
+qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
 
 /* ---------- ambiente ---------- */
 let prod=false;
 function trocarAmbiente(){
-  prod=!prod;
-  const e=qs('#env');
-  e.classList.toggle('prod',prod);
-  qs('.txt',e).textContent=prod?'Produção':'Produção restrita';
-  qs('#pipe-env').textContent=prod?'produção':'produção restrita';
-  if(prod)alert('Ambiente de PRODUÇÃO.\n\nAs notas passam a ter validade jurídica e o cancelamento tem prazo. No sistema real este botão exige nova autenticação.');
+  alert('O ambiente de produção está bloqueado durante o teste inicial.');
 }
 function trocarEmpresa(){
-  const dados=[
-    'Clínica Vitali Med Ltda · CNPJ 41.203.887/0001-64 · Curitiba/PR · Simples Nacional — Anexo III',
-    'Bergamo &amp; Ruiz Advogados · CNPJ 28.771.004/0001-19 · Curitiba/PR · Simples Nacional — Anexo IV',
-    'Marina Duarte Psicologia · CNPJ 52.118.663/0001-02 · Campo Largo/PR · MEI',
-    'Studio Bandeira Comunicação Ltda · CNPJ 19.440.552/0001-73 · Curitiba/PR · Lucro Presumido'
-  ];
-  qs('#painel-sub').textContent=dados[+qs('#tenant').value];
+  aplicarEmpresa();
 }
 
 /* ---------- contagem CGSN 189/2026 ---------- */
@@ -1126,8 +1109,12 @@ function contagem(){
 }
 
 /* ---------- gráfico ---------- */
-const meses=[['Fev',276400],['Mar',298100],['Abr',311750],['Mai',304200],['Jun',316380],['Jul',342980]];
+const meses=[];
 function chart(){
+  if(!meses.length){
+    qs('#chart').innerHTML='<div class="empty-state" style="width:100%;align-self:center">O gráfico aparecerá depois da primeira emissão de teste.</div>';
+    return;
+  }
   const max=Math.max(...meses.map(m=>m[1]))*1.12;
   qs('#chart').innerHTML=meses.map(([m,v],i)=>`
     <div class="bar-wrap">
@@ -1139,15 +1126,7 @@ function chart(){
 }
 
 /* ---------- tabelas ---------- */
-const notas=[
-  {n:'000128',d:'16/07 09:41',t:'Hospital Aurora Ltda',s:'04.01.01 — Medicina',v:4850,st:'ok'},
-  {n:'000127',d:'15/07 17:02',t:'Cooperativa Meridiano',s:'04.03.01 — Clínica',v:12300,st:'ok'},
-  {n:'000126',d:'15/07 11:28',t:'Roberto Lacerda Filho',s:'04.01.01 — Medicina',v:680,st:'proc'},
-  {n:'000125',d:'14/07 16:55',t:'Hospital Aurora',s:'04.03.01 — Clínica',v:22140,st:'ok'},
-  {n:'000124',d:'14/07 09:22',t:'Clínica Bem Estar Ltda',s:'04.01.01 — Medicina',v:3400,st:'err'},
-  {n:'000123',d:'11/07 14:07',t:'Ana Paula Vasconcelos',s:'04.01.01 — Medicina',v:520,st:'canc'},
-  {n:'000122',d:'10/07 10:44',t:'Instituto Farol',s:'04.03.01 — Clínica',v:8900,st:'ok'}
-];
+const notas=[];
 const sit={
   ok:['p-ok','Autorizada'],proc:['p-warn','Processando'],
   err:['p-err','Rejeitada'],canc:['p-off','Cancelada']
@@ -1155,6 +1134,11 @@ const sit={
 function pill(s){return `<span class="pill ${sit[s][0]}">${sit[s][1]}</span>`}
 
 function tabelas(){
+  if(!notas.length){
+    qs('#ult').innerHTML='<tr><td colspan="5"><div class="empty-state">Nenhuma emissão registrada para este cliente.</div></td></tr>';
+    qs('#tb-notas').innerHTML='<tr><td colspan="7"><div class="empty-state">O histórico está vazio. As emissões de teste aparecerão aqui.</div></td></tr>';
+    return;
+  }
   qs('#ult').innerHTML=notas.slice(0,5).map(x=>`
     <tr><td class="num">${x.d}</td><td>${x.t}</td><td style="color:var(--ink-2)">${x.s}</td>
     <td class="r">${brl(x.v)}</td><td>${pill(x.st)}</td></tr>`).join('');
@@ -1186,7 +1170,9 @@ function lerParametros(){
   const m=qs('#s-mun').value,c=qs('#s-cod').value;
   const a=(tabelaAliq[m]||{})[c]||'—';
   qs('#aliq').innerHTML=`${a} <span class="pill p-off" style="margin-left:5px">municipal</span>`;
-  qsa('.kv b')[0].textContent='R$ '+qs('#s-val').value.replace(/[^\d,]/g,'');
+  const valor=qs('#s-val').value.replace(/[^\d,]/g,'')||'0,00';
+  qs('#resumo-valor').textContent='R$ '+valor;
+  qs('#resumo-base').textContent='R$ '+valor;
 }
 
 /* ---------- habilitação ---------- */
@@ -1194,6 +1180,11 @@ function checarHabilitacao(){
   const reg=qs('#e-reg').value, mun=qs('#e-mun').selectedOptions[0].text.split('— ')[1];
   const simples=reg.includes('Simples')||reg==='MEI';
   const box=qs('#hab');
+
+  if(!qs('#e-rs').value.trim()||!qs('#e-cnpj').value.trim()){
+    box.innerHTML='<div class="alert a-info"><div><b>Complete o cadastro da empresa.</b> A verificação de habilitação será exibida depois que razão social, CNPJ e município forem salvos.</div></div>';
+    return;
+  }
 
   if(reg==='MEI'){
     box.innerHTML=`
@@ -1205,17 +1196,17 @@ function checarHabilitacao(){
     box.innerHTML=`
       <div class="alert a-ok" style="margin-bottom:10px">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-        <div><b>Habilitada — Emissor Nacional.</b> A partir de 01/09/2026 esta empresa é <b>obrigada</b> a emitir pelo Emissor Nacional, e fica vedado o portal municipal. Base: Resolução CGSN nº 189/2026.</div>
+        <div><b>Pré-análise compatível com o Emissor Nacional.</b> A regra do regime foi identificada, mas a habilitação efetiva ainda precisa ser confirmada na integração oficial.</div>
       </div>
       <div class="alert a-info">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        <div>O regime decide antes do município. Convênio de ${mun} confirmado por <span class="mono" style="font-size:11px">/parametros_municipais/${qs('#e-mun').value}</span>.</div>
+        <div>Município selecionado: ${mun}. A consulta aos parâmetros municipais será executada quando o backend seguro estiver configurado.</div>
       </div>`;
   }else{
     box.innerHTML=`
       <div class="alert a-warn">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
-        <div><b>Depende do município.</b> A obrigatoriedade da Resolução CGSN nº 189/2026 alcança só ME e EPP do Simples. Fora do Simples, emitir aqui exige que ${mun} tenha aderido ao convênio <b>e</b> adotado o Emissor Nacional. Verificado: aderente. <br><span style="color:#8a6d1f">Se o município mudar de modo, esta empresa volta ao portal municipal.</span></div>
+        <div><b>Depende do município.</b> Fora do Simples, a emissão exige consulta oficial da adesão e do modo adotado por ${mun}. Essa verificação ainda não foi executada.</div>
       </div>`;
   }
 }
@@ -1227,8 +1218,8 @@ const etapas=[
   {t:'Montar XML da DPS',d:'Anexo I — leiaute DPS/NFS-e v1.00.02',ms:38},
   {t:'Assinar com o A1',d:'XMLDSig · SHA-256 · cadeia ICP-Brasil anexada',ms:96},
   {t:'Compactar GZip + Base64',d:'4.1 KB → 1.2 KB · dpsXmlGZipB64',ms:8},
-  {t:'Enviar à Sefin Nacional',d:'POST /SefinNacional/nfse · mTLS · síncrono',ms:1420},
-  {t:'Guardar retorno',d:'nfseXmlGZipB64 → XML + DANFSe',ms:54}
+  {t:'Simular envio à Sefin Nacional',d:'teste local · nenhuma requisição externa',ms:420},
+  {t:'Validar resultado do teste',d:'nenhuma NFS-e ou chave real é gerada',ms:54}
 ];
 const ckSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg>';
 const xSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg>';
@@ -1245,6 +1236,11 @@ function pipeReset(){
 
 let rodando=false;
 async function emitir(falhar){
+  if(!empresaAtual){
+    alert('Cadastre e salve a empresa antes de testar o fluxo de emissão.');
+    go('emitente',qs('.sb-link[onclick*="emitente"]'));
+    return;
+  }
   if(rodando)return;
   rodando=true;
   qs('#btn-emit').disabled=true;
@@ -1285,17 +1281,12 @@ async function emitir(falhar){
       qs('#result').innerHTML=`
         <div class="result ok">
           <div class="flex" style="margin-bottom:8px">
-            <span class="pill p-ok">NFS-e autorizada</span>
-            <span class="mono right" style="font-size:11px;color:var(--ok)">HTTP 201 · ${(total/1000).toFixed(1)}s</span>
+            <span class="pill p-ok">Simulação concluída</span>
+            <span class="mono right" style="font-size:11px;color:var(--ok)">teste local · ${(total/1000).toFixed(1)}s</span>
           </div>
-          <div class="eyebrow" style="margin-bottom:2px">Chave de acesso</div>
-          <div class="chave">41069022041203887000164000010000000000012026071</div>
-          <div class="flex wrap">
-            <button class="btn btn-s btn-p">Baixar XML</button>
-            <button class="btn btn-s">Ver DANFSe</button>
-            <button class="btn btn-s">Enviar por WhatsApp</button>
-          </div>
-          <div class="foot-note" style="color:#155c39">Nota nº 000129 · série 00001 · XML de distribuição guardado. Cancelamento disponível dentro do prazo do município.</div>
+          <div class="eyebrow" style="margin-bottom:2px">Resultado</div>
+          <div class="chave">Fluxo de tela validado — nenhuma chave fiscal foi gerada.</div>
+          <div class="foot-note" style="color:#155c39">Nenhum XML foi assinado e nenhuma requisição foi enviada à Sefin Nacional.</div>
         </div>`;
     }
   }
@@ -1307,6 +1298,13 @@ async function emitir(falhar){
 /* ---------- importação ADN ---------- */
 let impRodando=false;
 async function importar(){
+  if(!empresaAtual){
+    alert('Cadastre e salve a empresa antes de configurar a importação.');
+    go('emitente',qs('.sb-link[onclick*="emitente"]'));
+    return;
+  }
+  alert('A importação real permanece bloqueada até o certificado A1 e o backend seguro serem configurados.');
+  return;
   if(impRodando)return;
   impRodando=true;
   qs('#btn-imp').disabled=true;
@@ -1345,32 +1343,75 @@ async function importar(){
 }
 
 
-/* ---------- puxar cadastro do TITAN ---------- */
-const baseTitan=[
-  {rs:'Clínica Vitali Med Ltda',cnpj:'41.203.887/0001-64',im:'118.442-9',reg:0,mun:'4106902',end:'Av. Sete de Setembro, 4214 — Batel — 80250-210',esc:'BASSIM'},
-  {rs:'Bergamo & Ruiz Advogados Associados',cnpj:'28.771.004/0001-19',im:'204.881-3',reg:1,mun:'4106902',end:'R. Mateus Leme, 1820 — São Francisco — 80510-192',esc:'PASSARIN'},
-  {rs:'Marina Duarte Psicologia',cnpj:'52.118.663/0001-02',im:'088.310-5',reg:2,mun:'4104204',end:'R. Cel. Julio Bratz, 405 — Centro — 83601-090',esc:'MAIS CONT'},
-  {rs:'Studio Bandeira Comunicação Ltda',cnpj:'19.440.552/0001-73',im:'155.207-1',reg:3,mun:'4106902',end:'R. Bispo Dom José, 2051 — Batel — 80440-080',esc:'OASIS'},
-  {rs:'Núcleo Odonto Batel Ltda',cnpj:'33.902.117/0001-88',im:'241.663-7',reg:0,mun:'4106902',end:'Al. Dom Pedro II, 255 — Batel — 80420-060',esc:'BS CONT'}
-];
-function puxarTitan(){
-  const v=qs('#e-titan').value;
-  if(v===''){qs('#titan-hint').innerHTML='Traz razão social, CNPJ, inscrição municipal, regime e endereço do cadastro que já existe. Não redigite o que o TITAN já sabe.';return;}
-  const e=baseTitan[+v];
-  qs('#e-rs').value=e.rs;
-  qs('#e-cnpj').value=e.cnpj;
-  qs('#e-im').value=e.im;
-  qs('#e-reg').selectedIndex=e.reg;
-  qs('#e-mun').value=e.mun;
-  qs('#e-end').value=e.end;
-  qs('#titan-hint').innerHTML=`Carregado de <b>${e.esc}</b> · <span class="mono" style="font-size:11px">hub_data_${e.esc.toLowerCase().replace(' ','')}</span>. Confira a inscrição municipal antes de emitir — é o campo que mais sai desatualizado.`;
+/* ---------- cadastro inicial local ---------- */
+function salvarCadastro(){
+  const empresa={
+    rs:qs('#e-rs').value.trim(),
+    cnpj:qs('#e-cnpj').value.trim(),
+    im:qs('#e-im').value.trim(),
+    reg:qs('#e-reg').value,
+    mun:qs('#e-mun').value,
+    municipio:qs('#e-mun').selectedOptions[0].text.split('— ')[1],
+    endereco:qs('#e-end').value.trim()
+  };
+  if(!empresa.rs||!empresa.cnpj||!empresa.im||!empresa.endereco){
+    alert('Preencha razão social, CNPJ, inscrição municipal e endereço para salvar.');
+    return;
+  }
+  empresaAtual=empresa;
+  localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresa));
+  aplicarEmpresa();
   checarHabilitacao();
+  alert('Cadastro inicial salvo neste navegador. O ambiente está pronto para testar as telas.');
+  go('painel',qs('.sb-link[onclick*="painel"]'));
+}
+
+function aplicarEmpresa(){
+  const usuario=JSON.parse(localStorage.getItem(STORAGE_USUARIO)||'null');
+  if(usuario?.nome){
+    qs('#avatar').textContent=usuario.nome.split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
+  }
+  if(!empresaAtual){
+    qs('#tenant').innerHTML='<option value="">Nenhuma empresa cadastrada</option>';
+    qs('#painel-sub').textContent='Cadastre a primeira empresa para iniciar os testes.';
+    qs('#kpi-empresas').textContent='0';
+    qs('#kpi-cadastro').textContent='Pendente';
+    qs('#kpi-cadastro').className='pill p-warn';
+    return;
+  }
+  const opt=document.createElement('option');
+  opt.value=empresaAtual.cnpj;
+  opt.textContent=empresaAtual.rs;
+  qs('#tenant').replaceChildren(opt);
+  qs('#painel-sub').textContent=`${empresaAtual.rs} · CNPJ ${empresaAtual.cnpj} · ${empresaAtual.municipio} · ${empresaAtual.reg}`;
+  qs('#e-rs').value=empresaAtual.rs;
+  qs('#e-cnpj').value=empresaAtual.cnpj;
+  qs('#e-im').value=empresaAtual.im;
+  qs('#e-reg').value=empresaAtual.reg;
+  qs('#e-mun').value=empresaAtual.mun;
+  qs('#e-end').value=empresaAtual.endereco;
+  if(qs(`#s-mun option[value="${empresaAtual.mun}"]`))qs('#s-mun').value=empresaAtual.mun;
+  qs('#m-nome').value=empresaAtual.rs;
+  qs('#resumo-regime').textContent=empresaAtual.reg;
+  qs('#kpi-empresas').textContent='1';
+  qs('#kpi-cadastro').textContent='Concluído';
+  qs('#kpi-cadastro').className='pill p-ok';
+}
+
+function carregarEstado(){
+  try{empresaAtual=JSON.parse(localStorage.getItem(STORAGE_EMPRESA)||'null')}catch{empresaAtual=null}
+  try{
+    const usuario=JSON.parse(localStorage.getItem(STORAGE_USUARIO)||'null');
+    if(usuario){qs('#li-name').value=usuario.nome||'';qs('#li-mail').value=usuario.email||'';}
+  }catch{}
+  aplicarEmpresa();
 }
 
 /* ---------- init ---------- */
 function render(){
   contagem();chart();tabelas();pipeReset();checarHabilitacao();lerParametros();
 }
+carregarEstado();
 render();
 </script>
 </body>
