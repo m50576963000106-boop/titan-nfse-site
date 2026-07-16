@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const protocol = requestHeaders.get("x-forwarded-proto") ?? "https";
   const metadataBase = new URL(`${protocol}://${host}`);
   const title = "TITAN NFS-e — Emissão Padrão Nacional";
-  const description = "Protótipo do emissor TITAN NFS-e no Padrão Nacional.";
+  const description = "Emissor TITAN NFS-e integrado ao ambiente oficial de Produção Restrita.";
 
   return {
     metadataBase,

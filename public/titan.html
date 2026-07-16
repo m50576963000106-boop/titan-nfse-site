@@ -1050,25 +1050,46 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
   </main>
 </div>
 
+<script src="/config.js"></script>
 <script>
 const qs=(s,r=document)=>r.querySelector(s);
 const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
 const brl=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const API_URL=(window.TITAN_API_URL||'').replace(/\/$/,'');
+const STORAGE_TOKEN='titan_nfse_session_v1';
+
+async function api(path,options={}){
+  if(!API_URL)throw new Error('O servidor seguro ainda não foi vinculado a este endereço.');
+  const token=sessionStorage.getItem(STORAGE_TOKEN);
+  const response=await fetch(API_URL+path,{
+    ...options,
+    headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})}
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||data.message||'Falha de comunicação com o servidor.');
+  return data;
+}
 
 /* ---------- login / navegação ---------- */
 const STORAGE_EMPRESA='titan_nfse_empresa_teste_v1';
 const STORAGE_USUARIO='titan_nfse_usuario_teste_v1';
 let empresaAtual=null;
 
-function iniciarCadastro(){
+async function iniciarCadastro(){
   const nome=qs('#li-name').value.trim();
   const email=qs('#li-mail').value.trim();
   const senha=qs('#li-pw').value;
-  if(!nome||!email||senha.length<4){
-    alert('Preencha o nome, um e-mail válido e uma senha de teste com pelo menos 4 caracteres.');
+  if(!nome||!email||senha.length<10){
+    alert('Preencha o nome, um e-mail válido e uma senha com pelo menos 10 caracteres.');
     return;
   }
-  localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome,email}));
+  try{
+    const login=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email,password:senha})});
+    sessionStorage.setItem(STORAGE_TOKEN,login.token);
+    localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome,email}));
+    await carregarEmpresaServidor();
+    await carregarNotasServidor();
+  }catch(error){alert(error.message);return}
   qs('#login').classList.add('hide');
   qs('#app').classList.add('on');
   carregarEstado();
@@ -1089,6 +1110,23 @@ function go(v,el){
   window.scrollTo(0,0);
 }
 qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
+
+async function carregarEmpresaServidor(){
+  const row=await api('/api/company');
+  if(!row){empresaAtual=null;return}
+  const regimes={regular:'Lucro Presumido',mei:'MEI',simples:'Simples Nacional — ME'};
+  empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.municipality_code,endereco:''};
+  localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresaAtual));
+}
+
+async function carregarNotasServidor(){
+  const rows=await api('/api/invoices');
+  notas.splice(0,notas.length,...rows.map(row=>({
+    n:row.dps_number,d:new Date(row.created_at).toLocaleDateString('pt-BR'),t:row.borrower_name,
+    s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='rejected'||row.status==='error'?'err':'proc'
+  })));
+  tabelas();
+}
 
 /* ---------- ambiente ---------- */
 let prod=false;
@@ -1241,57 +1279,50 @@ async function emitir(falhar){
     go('emitente',qs('.sb-link[onclick*="emitente"]'));
     return;
   }
+  if(falhar){
+    alert('A simulação artificial foi removida. O sistema agora exibe somente respostas reais da Produção Restrita.');
+    return;
+  }
+  const valor=Number(qs('#s-val').value.replace(/\./g,'').replace(',','.'));
+  const payload={
+    competenceDate:new Date().toISOString().slice(0,10),
+    borrower:{name:qs('#t-nome').value.trim(),taxId:qs('#t-doc').value,email:qs('#t-mail').value.trim()||undefined},
+    service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,description:qs('#s-desc').value.trim(),amount:valor,issTaxation:'1',issWithholding:'1'}
+  };
+  if(!payload.borrower.name||!payload.borrower.taxId||!payload.service.description||!Number.isFinite(valor)||valor<=0){
+    alert('Preencha tomador, CPF/CNPJ, descrição e valor do serviço.');return;
+  }
   if(rodando)return;
   rodando=true;
   qs('#btn-emit').disabled=true;
   pipeReset();
-  const parar=falhar?3:etapas.length;
-
-  for(let i=0;i<etapas.length;i++){
+  try{
+    for(let i=0;i<etapas.length-1;i++){
     const st=qs('#st'+i);
     st.className='stage run';
-    await new Promise(r=>setTimeout(r,Math.min(etapas[i].ms,900)));
-
-    if(falhar&&i===parar){
-      st.className='stage fail';
-      qs('.dot',st).innerHTML=xSvg;
-      qs('#ms'+i).textContent=etapas[i].ms+'ms';
-      qs('.stage-d',st).textContent='POST /SefinNacional/nfse → 400';
-      qs('#result').innerHTML=`
-        <div class="result no">
-          <div class="flex" style="margin-bottom:8px">
-            <span class="pill p-err">Rejeitada pela Sefin</span>
-            <span class="mono right" style="font-size:11px;color:var(--err)">HTTP 400</span>
-          </div>
-          <div class="chave" style="color:#7d1c1f">{ "erros": [{ "Codigo": "E0714",
-    "Descricao": "Arquivo enviado com erro na assinatura." }] }</div>
-          <div style="font-size:12.5px;color:#7d1c1f;line-height:1.6">
-            <b>O que fazer:</b> a Reference URI da assinatura precisa apontar para o atributo <span class="mono" style="font-size:11px">Id</span> do nó <span class="mono" style="font-size:11px">infDPS</span>, e a assinatura vai dentro da DPS — não em volta dela. Nenhuma nota foi gerada e nenhum número foi consumido.
-          </div>
-          <button class="btn btn-s" style="margin-top:11px" onclick="emitir(false)">Corrigir e reenviar</button>
-        </div>`;
-      break;
-    }
-
+    await new Promise(r=>setTimeout(r,120));
     st.className='stage done';
-    qs('#ms'+i).textContent=etapas[i].ms+'ms';
-
-    if(i===etapas.length-1){
-      const total=etapas.reduce((a,b)=>a+b.ms,0);
-      qs('#result').innerHTML=`
+    }
+    const last=qs('#st'+(etapas.length-1));last.className='stage run';
+    const result=await api('/api/invoices/emit',{method:'POST',body:JSON.stringify(payload)});
+    last.className='stage done';
+    qs('#result').innerHTML=`
         <div class="result ok">
           <div class="flex" style="margin-bottom:8px">
-            <span class="pill p-ok">Simulação concluída</span>
-            <span class="mono right" style="font-size:11px;color:var(--ok)">teste local · ${(total/1000).toFixed(1)}s</span>
+            <span class="pill p-ok">Autorizada na Produção Restrita</span>
           </div>
-          <div class="eyebrow" style="margin-bottom:2px">Resultado</div>
-          <div class="chave">Fluxo de tela validado — nenhuma chave fiscal foi gerada.</div>
-          <div class="foot-note" style="color:#155c39">Nenhum XML foi assinado e nenhuma requisição foi enviada à Sefin Nacional.</div>
+          <div class="eyebrow" style="margin-bottom:2px">Chave da NFS-e de teste</div>
+          <div class="chave">${result.accessKey||'Autorização recebida'}</div>
+          <div class="foot-note" style="color:#155c39">Documento sem validade fiscal, emitido no ambiente oficial de testes.</div>
         </div>`;
-    }
+    await carregarNotasServidor();
+  }catch(error){
+    const current=qsa('.stage.run').at(-1);if(current){current.className='stage fail';qs('.dot',current).innerHTML=xSvg}
+    qs('#result').innerHTML=`<div class="result no"><span class="pill p-err">Emissão não autorizada</span><div class="chave" style="color:#7d1c1f">${String(error.message).replaceAll('<','&lt;')}</div><div class="foot-note">Nenhuma NFS-e válida foi gerada.</div></div>`;
+  }finally{
+    rodando=false;
+    qs('#btn-emit').disabled=false;
   }
-  rodando=false;
-  qs('#btn-emit').disabled=false;
 }
 
 
@@ -1344,7 +1375,7 @@ async function importar(){
 
 
 /* ---------- cadastro inicial local ---------- */
-function salvarCadastro(){
+async function salvarCadastro(){
   const empresa={
     rs:qs('#e-rs').value.trim(),
     cnpj:qs('#e-cnpj').value.trim(),
@@ -1358,11 +1389,15 @@ function salvarCadastro(){
     alert('Preencha razão social, CNPJ, inscrição municipal e endereço para salvar.');
     return;
   }
-  empresaAtual=empresa;
-  localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresa));
+  const regime=empresa.reg==='MEI'?'mei':empresa.reg.includes('Simples')?'simples':'regular';
+  try{
+    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?1:undefined,specialTaxRegime:0,dpsSeries:1})});
+    empresaAtual=empresa;
+    localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresa));
+  }catch(error){alert(error.message);return}
   aplicarEmpresa();
   checarHabilitacao();
-  alert('Cadastro inicial salvo neste navegador. O ambiente está pronto para testar as telas.');
+  alert('Cadastro salvo no servidor seguro. O ambiente está pronto para a Produção Restrita.');
   go('painel',qs('.sb-link[onclick*="painel"]'));
 }
 
