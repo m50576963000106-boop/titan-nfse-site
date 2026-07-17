@@ -454,6 +454,61 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
 }
+
+/* ---------- SUPORTE / ASSISTENTE ---------- */
+.sup-fab{
+  position:fixed;right:20px;bottom:20px;z-index:900;
+  width:56px;height:56px;border-radius:50%;
+  background:var(--gold);color:var(--navy);
+  display:none;align-items:center;justify-content:center;
+  box-shadow:0 10px 28px rgba(11,22,41,.32);
+  transition:transform .15s,background .15s;
+}
+#app.on ~ .sup-fab{display:flex}
+.sup-fab:hover{background:#d9b95c;transform:translateY(-2px)}
+.sup-fab svg{width:26px;height:26px}
+.sup-fab-dot{position:absolute;top:11px;right:11px;width:10px;height:10px;border-radius:50%;background:var(--ok);border:2px solid var(--gold)}
+.sup-fab.open-state{background:var(--navy);color:var(--cream)}
+.sup-panel{
+  position:fixed;right:20px;bottom:88px;z-index:901;
+  width:382px;max-width:calc(100vw - 32px);height:562px;max-height:calc(100vh - 120px);
+  background:var(--paper);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 26px 70px rgba(11,22,41,.32);
+  display:none;flex-direction:column;overflow:hidden;
+}
+.sup-panel.on{display:flex;animation:supUp .2s ease}
+@keyframes supUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.sup-head{background:var(--navy);color:var(--cream);padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sup-head-id{display:flex;align-items:center;gap:10px}
+.sup-ava{width:36px;height:36px;border-radius:50%;background:var(--gold);color:var(--navy);display:grid;place-items:center;font-weight:800;font-size:13px}
+.sup-head-id b{display:block;font-size:14px}
+.sup-head-id span{display:block;font-size:11px;color:#9dabc2}
+.sup-x{width:30px;height:30px;border-radius:8px;color:#9dabc2;font-size:22px;line-height:1;display:grid;place-items:center}
+.sup-x:hover{background:var(--navy-1);color:var(--cream)}
+.sup-log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:11px;background:var(--cream)}
+.sup-b{max-width:88%;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.5;box-shadow:0 1px 2px rgba(11,22,41,.06)}
+.sup-b.bot{align-self:flex-start;background:var(--paper);border:1px solid var(--line);border-bottom-left-radius:4px;color:var(--ink)}
+.sup-b.me{align-self:flex-end;background:var(--navy);color:var(--cream);border-bottom-right-radius:4px}
+.sup-b ul{margin:6px 0 2px;padding-left:16px}
+.sup-b li{margin:3px 0}
+.sup-act{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px}
+.sup-act button{padding:6px 11px;border-radius:20px;background:var(--navy);color:var(--cream);font-size:12px;font-weight:600}
+.sup-act button:hover{background:var(--navy-2)}
+.sup-diag{display:flex;align-items:flex-start;gap:8px;margin:5px 0;font-size:12.5px}
+.sup-diag .d{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none}
+.sup-diag .d-ok{background:var(--ok)}.sup-diag .d-warn{background:var(--warn)}.sup-diag .d-err{background:var(--err)}.sup-diag .d-off{background:var(--ink-3)}
+.sup-chips{padding:10px 12px 2px;display:flex;flex-wrap:wrap;gap:6px;background:var(--cream);max-height:96px;overflow-y:auto}
+.sup-chip{padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:var(--paper);font-size:12px;font-weight:600;color:var(--ink-2)}
+.sup-chip:hover{border-color:var(--gold);color:var(--ink)}
+.sup-input{display:flex;gap:8px;padding:12px;background:var(--paper);border-top:1px solid var(--line)}
+.sup-input input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:22px;background:var(--cream);outline:none}
+.sup-input input:focus{border-color:var(--gold)}
+.sup-input button{width:40px;height:40px;flex:none;border-radius:50%;background:var(--gold);color:var(--navy);font-weight:800;display:grid;place-items:center}
+.sup-input button:hover{background:#d9b95c}
+@media(max-width:760px){
+  .sup-fab{right:16px;bottom:16px;width:52px;height:52px}
+  .sup-panel{right:0;left:0;bottom:0;width:100%;max-width:100%;height:84vh;max-height:84vh;border-radius:16px 16px 0 0}
+}
 </style>
 </head>
 <body>
@@ -2001,6 +2056,125 @@ aplicarAcesso();
 prepararConvite();
 if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do usuário master para empresas, usuários, perfis e planos.'}
 else if(PORTAL_CNPJ){qs('.login-sub').textContent=`Entre com o usuário liberado para o CNPJ ${PORTAL_CNPJ.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5')}.`}
+
+/* ---------- SUPORTE / ASSISTENTE TITAN ---------- */
+const supNorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+function supFmtCnpj(v){v=String(v||'').replace(/\D/g,'');return v.length===14?v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5'):(v||'—')}
+const supAmb=()=>(typeof ambienteAtual!=='undefined'&&ambienteAtual==='production')?'Produção oficial':'Produção Restrita';
+
+const supTopics=[
+ {id:'emitir',chip:'Como emitir',kw:['emitir','como emito','gerar nota','criar nota','nova nota','fazer nota','fazer uma nota','passo a passo','dps','emissor nacional'],
+  a:()=>`Para <b>emitir uma NFS-e</b>:<ul><li>Tenha uma <b>empresa ativa</b> e o <b>certificado A1</b> enviado;</li><li>Preencha o <b>tomador</b> (CNPJ/CPF), o <b>serviço</b> (código LC 116), a <b>descrição</b>, o <b>valor</b> e o <b>município de incidência</b>;</li><li>Clique em <b>Emitir NFS-e</b> — o "Trajeto da nota" mostra cada etapa até a autorização.</li></ul>`,
+  act:[['Abrir emissão','emitir']]},
+ {id:'rejeicao',chip:'Nota rejeitada',kw:['rejeit','erro','recus','negad','falhou','falha','nao consigo','nao consegui','nao emit','nao autoriz','problema','deu erro','codigo de erro','sefin recusou'],
+  a:()=>`Se a Sefin <b>rejeitou</b> a nota, as causas mais comuns são:<ul><li><b>Certificado A1</b> vencido ou ausente;</li><li><b>CNPJ/CPF do tomador</b> inválido;</li><li><b>Código de serviço</b> (LC 116) incorreto para a atividade;</li><li><b>Município</b> não conveniado ao padrão nacional;</li><li><b>DPS duplicada</b> (mesma série/número);</li><li>Dados do <b>emitente</b> incompletos.</li></ul>O "Trajeto da nota" aponta a etapa que falhou e o código devolvido pela Sefin.`,
+  act:[['Verificar certificado','cert'],['Rever emissão','emitir']]},
+ {id:'certificado',chip:'Certificado A1',kw:['certificado','a1','pfx','p12','assinatura digital','senha do certificado','vencido','expirado','icp'],
+  a:()=>`O <b>certificado digital A1</b> (.pfx/.p12) assina os XMLs. Envie o arquivo e a senha em <b>Certificado A1</b> — ele é guardado criptografado no cofre seguro. <b>Sem um A1 válido não há emissão.</b> Acompanhe a validade.`,
+  act:[['Ir para Certificado A1','cert']]},
+ {id:'cancelar',chip:'Cancelar nota',kw:['cancel','anular','estornar','tornar sem efeito'],
+  a:()=>`Só é possível cancelar notas <b>Autorizadas</b>. Vá em <b>Notas emitidas</b>, clique no ícone de cancelar da linha, informe o <b>motivo</b> (mínimo 15 caracteres) e confirme — o cancelamento vira um <b>evento oficial</b> enviado à Sefin Nacional. O prazo segue a regra do município / padrão nacional.`,
+  act:[['Abrir Notas emitidas','notas']]},
+ {id:'danfse',chip:'DANFSe / PDF',kw:['danfse','pdf','imprimir','espelho','documento da nota','baixar nota','visualizar nota','abrir nota'],
+  a:()=>`O <b>DANFSe v2.0</b> é gerado pelo próprio TITAN. Em <b>Notas emitidas</b>, clique no ícone de <b>visualizar</b> (olho) da nota para abrir o PDF em nova aba. No <b>celular</b>, permita a abertura de nova aba/pop-up para o PDF aparecer. O endpoint público antigo foi desligado em 15/07/2026 — gerar o DANFSe passou a ser função do emissor.`,
+  act:[['Abrir Notas emitidas','notas']]},
+ {id:'habilitacao',chip:'Posso emitir?',kw:['habilita','posso emitir','obrigat','obrigado a emitir','sou obrigado','tenho que emitir','simples','mei','sou mei','me epp','quando comeco','prazo','regime'],
+  a:()=>`Regras de <b>habilitação</b>:<ul><li><b>MEI</b>: emite pelo padrão nacional em todo o país desde 2023;</li><li><b>ME/EPP do Simples</b>: emissão nacional <b>obrigatória a partir de 01/09/2026</b>;</li><li><b>Fora do Simples</b>: depende do convênio do município ao padrão nacional.</li></ul>`,
+  act:[['Dados do emitente','emitente']]},
+ {id:'importar',chip:'Importar do Portal',kw:['importar','portal','trazer notas','sincroniz','distribui','adn','baixar do portal'],
+  a:()=>`Em <b>Importar do Portal</b> você traz as notas e eventos <b>distribuídos pelo ADN</b> em que a empresa aparece como prestador, tomador ou intermediário.`,
+  act:[['Abrir Importar do Portal','importar']]},
+ {id:'ambiente',chip:'Ambiente',kw:['ambiente','restrit','producao','teste','validade juridica','homolog','tpamb','oficial'],
+  a:()=>`Ambiente atual: <b>${supAmb()}</b>.<ul><li><b>Produção Restrita</b> (tpAmb=2): ambiente oficial de <b>testes</b>, sem validade jurídica;</li><li><b>Produção oficial</b>: notas com validade fiscal.</li></ul>A troca é feita <b>somente por administrador no servidor</b>.`},
+ {id:'clientes',chip:'Clientes / CNPJ',kw:['cliente','tomador','consultar cnpj','cadastro de cliente','brasilapi','buscar cnpj'],
+  a:()=>`Em <b>Clientes</b> você cadastra e consulta empresas por <b>CNPJ</b> (consulta gratuita BrasilAPI). Na emissão, use <b>Buscar CNPJ</b> para preencher o tomador automaticamente.`,
+  act:[['Abrir Clientes','clientes']]},
+ {id:'servicos',chip:'Serviços e ISS',kw:['aliquota','retenc','issqn',' iss ','lc 116','codigo de servico','codigo do servico','tributo','nbs'],
+  a:()=>`Em <b>Serviços e retenções</b> você mantém os perfis de serviço (código <b>LC 116/2003</b>, NBS, alíquota e retenções). A alíquota efetiva do ISS pode vir dos <b>parâmetros municipais</b> na hora da emissão.`,
+  act:[['Abrir Serviços e retenções','servicos']]},
+ {id:'comercial',chip:'Orçamentos e O.S.',kw:['orcamento','ordem de servico',' os ','rascunho','proposta','comercial'],
+  a:()=>`Em <b>Orçamentos e O.S.</b> você cria documentos comerciais e rascunhos que depois viram uma emissão.`,
+  act:[['Abrir Orçamentos e O.S.','comercial']]}
+];
+
+function supGo(v){try{const el=[...document.querySelectorAll('.sb-link')].find(b=>(b.getAttribute('onclick')||'').includes("go('"+v+"'"));go(v,el);}catch(e){}if(window.innerWidth<=760)supClose();}
+function supDo(v){if(v==='diag'){supBubble('🔎 Analisar minha conta','me');supAnalisar();return}supGo(v);}
+function supScroll(){const l=qs('#sup-log');if(l)l.scrollTop=l.scrollHeight}
+function supBubble(html,who){const l=qs('#sup-log');if(!l)return null;const d=document.createElement('div');d.className='sup-b '+(who==='me'?'me':'bot');d.innerHTML=html;l.appendChild(d);supScroll();return d}
+function supActs(list){if(!list||!list.length)return '';return '<div class="sup-act">'+list.map(([label,view])=>`<button type="button" onclick="supDo('${view}')">${esc(label)}</button>`).join('')+'</div>'}
+function supAnswerTopic(t){supBubble(t.a()+supActs(t.act),'bot')}
+function supMatch(text){const q=supNorm(text);let best=null,score=0;for(const t of supTopics){let s=0;for(const k of t.kw){if(q.includes(supNorm(k)))s+=k.trim().length}if(s>score){score=s;best=t}}return score>0?best:null;}
+
+function supAnalisar(){
+  const rows=[];const push=(cls,txt)=>rows.push(`<div class="sup-diag"><span class="d d-${cls}"></span><span>${txt}</span></div>`);
+  const emp=(typeof empresaAtual!=='undefined')?empresaAtual:null;
+  if(emp&&emp.rs)push('ok',`Empresa ativa: <b>${esc(emp.rs)}</b> (${supFmtCnpj(emp.cnpj)}).`);
+  else push('warn','Nenhuma empresa ativa — cadastre em <b>Emitente</b>.');
+  push('off',`Ambiente: <b>${supAmb()}</b>.`);
+  const arr=(typeof notas!=='undefined'&&Array.isArray(notas))?notas:[];
+  const c={ok:0,err:0,canc:0,proc:0};arr.forEach(n=>{if(c[n.st]!=null)c[n.st]++});
+  if(!arr.length)push('off','Nenhuma emissão registrada ainda.');
+  else{push('ok',`${arr.length} emissão(ões): ${c.ok} autorizada(s), ${c.proc} processando, ${c.canc} cancelada(s).`);if(c.err>0)push('err',`${c.err} nota(s) <b>rejeitada(s)</b> — revise a causa no "Trajeto da nota".`);}
+  const holder=supBubble('Analisando sua conta…','bot');
+  (async()=>{
+    let certLine='';
+    try{const cert=await api('/api/invoices/certificate');
+      if(!cert.configured)certLine='<div class="sup-diag"><span class="d d-warn"></span><span>Certificado A1 <b>não configurado</b> — envie em Certificado A1.</span></div>';
+      else if(cert.expired)certLine='<div class="sup-diag"><span class="d d-err"></span><span>Certificado A1 <b>vencido</b> — substitua para voltar a emitir.</span></div>';
+      else certLine='<div class="sup-diag"><span class="d d-ok"></span><span>Certificado A1 válido.</span></div>';
+    }catch(e){certLine='<div class="sup-diag"><span class="d d-off"></span><span>Não consegui checar o certificado agora.</span></div>';}
+    let next;
+    if(!emp||!emp.rs)next='<div style="margin-top:8px">Próximo passo: cadastrar a empresa.</div>'+supActs([['Ir para Emitente','emitente']]);
+    else if(certLine.indexOf('d-warn')>-1||certLine.indexOf('d-err')>-1)next='<div style="margin-top:8px">Próximo passo: acertar o certificado A1.</div>'+supActs([['Ir para Certificado A1','cert']]);
+    else if(c.err>0)next='<div style="margin-top:8px">Próximo passo: revisar as notas rejeitadas.</div>'+supActs([['Abrir Notas emitidas','notas']]);
+    else next='<div style="margin-top:8px">Tudo pronto para emitir. 👍</div>'+supActs([['Abrir emissão','emitir']]);
+    if(holder){holder.innerHTML='<b>Diagnóstico da conta</b>'+rows.join('')+certLine+next;supScroll();}
+  })();
+}
+
+function supRenderChips(){const wrap=qs('#sup-chips');if(!wrap)return;const items=[['diag','🔎 Analisar minha conta'],...supTopics.map(t=>[t.id,t.chip])];wrap.innerHTML=items.map(([id,label])=>`<button class="sup-chip" type="button" onclick="supChip('${id}')">${esc(label)}</button>`).join('');}
+function supChip(id){if(id==='diag'){supBubble('🔎 Analisar minha conta','me');supAnalisar();return}const t=supTopics.find(x=>x.id===id);if(!t)return;supBubble(esc(t.chip),'me');supAnswerTopic(t);}
+
+function supSend(e){e.preventDefault();const inp=qs('#sup-in');const v=(inp.value||'').trim();if(!v)return false;inp.value='';supBubble(esc(v),'me');const q=supNorm(v);
+  if(/(^|\s)(oi|ola|bom dia|boa tarde|boa noite|hello|hi)(\s|$)/.test(q)){supBubble('Olá! Como posso ajudar? Toque em um assunto abaixo ou descreva sua dúvida.','bot');return false}
+  if(q.indexOf('analis')>-1||q.indexOf('diagnost')>-1||q.indexOf('minha conta')>-1||q.indexOf('meu status')>-1){supAnalisar();return false}
+  if(q.indexOf('humano')>-1||q.indexOf('atendente')>-1||q.indexOf('falar com')>-1||q.indexOf('pessoa')>-1){supBubble('Para <b>atendimento humano</b>, fale com o seu implantador do TITAN ou use o formulário <b>“Quero contratar o emissor”</b> na página inicial. Posso adiantar sua dúvida por aqui enquanto isso.','bot');return false}
+  const t=supMatch(v);
+  if(t)supAnswerTopic(t);
+  else supBubble('Ainda não sei responder isso com precisão. Toque em um dos atalhos abaixo, tente reformular, ou use <b>🔎 Analisar minha conta</b> para eu revisar seu cadastro, certificado e notas.','bot');
+  return false;
+}
+
+let supGreeted=false;
+function supGreet(){const emp=(typeof empresaAtual!=='undefined')?empresaAtual:null;let msg='Olá! Sou o <b>assistente do TITAN NFS-e</b>. Ajudo com emissão, certificado A1, rejeições da Sefin, cancelamento, DANFSe e mais.';let act;
+  if(!emp||!emp.rs){msg+='<br><br>Notei que <b>ainda não há empresa ativa</b>. Quer começar pelo cadastro?';act=[['Cadastrar empresa','emitente']];}
+  else{msg+=`<br><br>Empresa ativa: <b>${esc(emp.rs)}</b> · ${supAmb()}.`;act=[['🔎 Analisar minha conta','diag']];}
+  supBubble(msg+supActs(act),'bot');}
+function supOpen(){qs('#sup-panel').classList.add('on');qs('#sup-fab').classList.add('open-state');const dot=qs('.sup-fab-dot');if(dot)dot.style.display='none';if(!supGreeted){supGreeted=true;supRenderChips();supGreet();}setTimeout(()=>{const i=qs('#sup-in');if(i&&window.innerWidth>760)i.focus();},60);}
+function supClose(){qs('#sup-panel')?.classList.remove('on');qs('#sup-fab')?.classList.remove('open-state');}
+function supToggle(){const p=qs('#sup-panel');if(!p)return;p.classList.contains('on')?supClose():supOpen();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&qs('#sup-panel')?.classList.contains('on'))supClose();});
 </script>
+
+<!-- ============ SUPORTE / ASSISTENTE TITAN ============ -->
+<button id="sup-fab" class="sup-fab" type="button" onclick="supToggle()" aria-label="Abrir assistente de suporte">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
+  <span class="sup-fab-dot"></span>
+</button>
+<section id="sup-panel" class="sup-panel" role="dialog" aria-label="Assistente TITAN NFS-e">
+  <div class="sup-head">
+    <div class="sup-head-id">
+      <div class="sup-ava">TA</div>
+      <div><b>Assistente TITAN</b><span>Suporte do emissor NFS-e</span></div>
+    </div>
+    <button class="sup-x" type="button" onclick="supToggle()" aria-label="Fechar assistente">&times;</button>
+  </div>
+  <div class="sup-log" id="sup-log"></div>
+  <div class="sup-chips" id="sup-chips"></div>
+  <form class="sup-input" onsubmit="return supSend(event)">
+    <input id="sup-in" type="text" autocomplete="off" placeholder="Escreva sua dúvida…" aria-label="Sua mensagem">
+    <button type="submit" aria-label="Enviar mensagem">&#10148;</button>
+  </form>
+</section>
 </body>
 </html>
