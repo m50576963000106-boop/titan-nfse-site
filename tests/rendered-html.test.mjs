@@ -27,3 +27,14 @@ test("oferece documentos e cancelamento oficial sem identidade visual", async()=
   assert.match(html,/Cancelar NFS-e oficialmente/);
   assert.doesNotMatch(html,/Identidade visual|v-marca/);
 });
+
+test("isola as rotas do master e de cada CNPJ",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const route=await readFile(resolve(root,"app/nfs/[[...tenant]]/page.tsx"),"utf8");
+  assert.match(html,/PORTAL_ADMIN/);
+  assert.match(html,/PORTAL_CNPJ/);
+  assert.match(html,/não possui acesso liberado para o CNPJ/);
+  assert.match(html,/new URL\('\/nfs\/'\+federalTaxId/);
+  assert.match(route,/\^\\d\{14\}\$/);
+  assert.match(route,/portal: "adm"/);
+});

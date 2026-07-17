@@ -1131,6 +1131,10 @@ const API_URL=(window.TITAN_API_URL||'').replace(/\/$/,'');
 const STORAGE_TOKEN='titan_nfse_session_v1';
 const STORAGE_SESSION='titan_nfse_access_v1';
 const STORAGE_COMPANY_ID='titan_nfse_company_id_v1';
+const PORTAL_QUERY=new URLSearchParams(location.search);
+const PORTAL_PATH=location.pathname.match(/^\/nfs\/(adm|\d{14})\/?$/i)?.[1]||'';
+const PORTAL_ADMIN=(PORTAL_QUERY.get('portal')||PORTAL_PATH).toLowerCase()==='adm';
+const PORTAL_CNPJ=(PORTAL_QUERY.get('tenant')||(/^\d{14}$/.test(PORTAL_PATH)?PORTAL_PATH:'')).replace(/\D/g,'');
 const dataBrasil=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 qs('#s-comp').value=dataBrasil();
 let ambienteAtual='restricted';
@@ -1183,6 +1187,22 @@ const STORAGE_EMPRESA='titan_nfse_empresa_teste_v1';
 const STORAGE_USUARIO='titan_nfse_usuario_teste_v1';
 let empresaAtual=null;
 
+function selecionarDestinoPortal(access){
+  const user=access.user||{},companies=access.companies||[];
+  if(PORTAL_ADMIN){
+    if(!user.isMaster)throw new Error('Este endereço é exclusivo do administrador master.');
+    if(companies[0]?.id)sessionStorage.setItem(STORAGE_COMPANY_ID,companies[0].id);
+    return;
+  }
+  if(PORTAL_CNPJ){
+    const company=companies.find(item=>String(item.federal_tax_id||'').replace(/\D/g,'')===PORTAL_CNPJ);
+    if(!company)throw new Error('Seu usuário não possui acesso liberado para o CNPJ deste endereço.');
+    sessionStorage.setItem(STORAGE_COMPANY_ID,company.id);
+    return;
+  }
+  if(companies[0]?.id)sessionStorage.setItem(STORAGE_COMPANY_ID,companies[0].id);
+}
+
 async function iniciarCadastro(){
   const nome=qs('#li-name').value.trim();
   const email=qs('#li-mail').value.trim();
@@ -1195,9 +1215,9 @@ async function iniciarCadastro(){
   try{
     await carregarAmbiente();
     login=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email,password:senha})});
+    selecionarDestinoPortal(login);
     sessionStorage.setItem(STORAGE_TOKEN,login.token);
     sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:login.user||{},companies:login.companies||[]}));
-    if(login.companies?.[0]?.id)sessionStorage.setItem(STORAGE_COMPANY_ID,login.companies[0].id);
     localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome,email}));
     await carregarEmpresaServidor();
     await carregarNotasServidor();
@@ -1208,7 +1228,9 @@ async function iniciarCadastro(){
   aplicarAcesso(login);
   carregarEstado();
   render();
-  if(empresaAtual){
+  if(PORTAL_ADMIN){
+    go('master',qs('.sb-link[onclick*="master"]'));
+  }else if(empresaAtual){
     go('painel',qs('.sb-link[onclick*="painel"]'));
   }else{
     go('emitente',qs('.sb-link[onclick*="emitente"]'));
@@ -1221,7 +1243,11 @@ function aplicarAcesso(login){
   const companyId=sessionStorage.getItem(STORAGE_COMPANY_ID),company=(access.companies||[]).find(c=>c.id===companyId)||(access.companies||[])[0],permissions=company?.permissions||[];
   qsa('[data-permission]').forEach(el=>el.style.display=user.isMaster||permissions.includes(el.dataset.permission)?'flex':'none');
   qsa('[data-master-only]').forEach(el=>el.style.display=user.isMaster?'flex':'none');
-  if(access.companies?.length){qs('#tenant').innerHTML=access.companies.map(c=>`<option value="${c.id}" ${c.id===companyId?'selected':''}>${esc(c.trade_name||c.legal_name)}</option>`).join('')}
+  if(access.companies?.length){
+    const visible=PORTAL_CNPJ?access.companies.filter(c=>String(c.federal_tax_id||'').replace(/\D/g,'')===PORTAL_CNPJ):access.companies;
+    qs('#tenant').innerHTML=visible.map(c=>`<option value="${c.id}" ${c.id===companyId?'selected':''}>${esc(c.trade_name||c.legal_name)}</option>`).join('');
+    qs('#tenant').disabled=Boolean(PORTAL_CNPJ);
+  }
 }
 function go(v,el){
   qsa('.view').forEach(x=>x.classList.remove('on'));
@@ -1810,7 +1836,9 @@ async function criarConvite(){
   if(federalTaxId.length!==14||!email||!profileId){alert('Informe CNPJ, e-mail e perfil.');return}
   try{
     const result=await api('/api/master/invitations',{method:'POST',body:JSON.stringify({federalTaxId,email,profileId,planCode})});
-    const link=new URL(result.invitePath,location.origin).href;
+    const invitationToken=new URL(result.invitePath,location.origin).searchParams.get('invite');
+    const invitationUrl=new URL('/nfs/'+federalTaxId,location.origin);if(invitationToken)invitationUrl.searchParams.set('invite',invitationToken);
+    const link=invitationUrl.href;
     const box=qs('#master-link');box.style.display='flex';box.innerHTML=`<div><b>Convite pronto</b><br><span id="invite-url">${esc(link)}</span><br><button class="btn btn-s" style="margin-top:8px" onclick="navigator.clipboard.writeText(qs('#invite-url').textContent)">Copiar link</button></div>`;
     await carregarMaster();
   }catch(error){alert(error.message)}
@@ -1869,6 +1897,8 @@ carregarEstado();
 render();
 aplicarAcesso();
 prepararConvite();
+if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do usuário master para empresas, usuários, perfis e planos.'}
+else if(PORTAL_CNPJ){qs('.login-sub').textContent=`Entre com o usuário liberado para o CNPJ ${PORTAL_CNPJ.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5')}.`}
 </script>
 </body>
 </html>
