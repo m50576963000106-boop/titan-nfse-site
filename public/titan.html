@@ -677,6 +677,11 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
             <div class="card-h"><h2>Serviço prestado</h2></div>
             <div class="card-b">
               <div class="field">
+                <label for="s-comp">Data de competência</label>
+                <input id="s-comp" class="inp" type="date" required>
+                <div class="hint">Campo obrigatório da DPS. A data usa o fuso de Brasília.</div>
+              </div>
+              <div class="field">
                 <label for="s-profile">Cadastro padrão</label>
                 <select id="s-profile" class="inp" onchange="aplicarPerfilServico()"><option value="">Preenchimento avulso</option></select>
                 <div class="hint">Perfis configurados em Serviços e retenções.</div>
@@ -1032,7 +1037,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
             <div class="field"><label for="cad-search">Buscar no Anexo B nacional</label><div class="input-action"><input id="cad-search" class="inp" placeholder="Código ou descrição"><button class="btn btn-s" onclick="buscarCatalogoServico()">Buscar</button></div></div>
             <div class="field"><label for="cad-code">Código de tributação nacional</label><select id="cad-code" class="inp" onchange="selecionarCodigoCadastro()"><option value="">Pesquise o catálogo oficial</option></select></div>
             <div class="field"><label for="cad-desc">Descrição padrão do serviço</label><textarea id="cad-desc" class="inp" placeholder="Descrição que será levada à DPS"></textarea></div>
-            <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal</label><input id="cad-mun-code" class="inp" maxlength="20" placeholder="Opcional"></div><div class="field"><label for="cad-rate">Alíquota ISS (%)</label><input id="cad-rate" class="inp num" placeholder="Lida do município"></div></div>
+            <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal</label><input id="cad-mun-code" class="inp" maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="Até 3 dígitos (opcional)"><div class="hint">Não repita aqui o código nacional 15.06.01.</div></div><div class="field"><label for="cad-rate">Alíquota ISS (%)</label><input id="cad-rate" class="inp num" placeholder="Lida do município"></div></div>
             <div class="row r2"><div class="field"><label for="cad-trib-iss">Tributação ISSQN</label><select id="cad-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação</option><option value="4">4 — Não incidência</option></select></div><div class="field"><label for="cad-ret-iss">Retenção ISSQN</label><select id="cad-ret-iss" class="inp"><option value="1">1 — Não retido</option><option value="2">2 — Tomador</option><option value="3">3 — Intermediário</option></select></div></div>
             <div class="row r2"><div class="field"><label for="cad-cst">CST PIS/COFINS</label><input id="cad-cst" class="inp mono" maxlength="2" placeholder="Opcional"></div><div class="field"><label for="cad-ret-pc">tpRetPisCofins</label><select id="cad-ret-pc" class="inp"><option value="">Não informar</option><option value="0">0 — Não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — Todos retidos</option><option value="4">4 — PIS/COFINS retidos</option><option value="5">5 — PIS retido</option><option value="6">6 — COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div></div>
             <div class="row r3"><div class="field"><label for="cad-cp">vRetCP (R$)</label><input id="cad-cp" class="inp num" value="0,00"></div><div class="field"><label for="cad-irrf">vRetIRRF (R$)</label><input id="cad-irrf" class="inp num" value="0,00"></div><div class="field"><label for="cad-csll">vRetCSLL (R$)</label><input id="cad-csll" class="inp num" value="0,00"></div></div>
@@ -1136,6 +1141,8 @@ const brl=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDi
 const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const API_URL=(window.TITAN_API_URL||'').replace(/\/$/,'');
 const STORAGE_TOKEN='titan_nfse_session_v1';
+const dataBrasil=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+qs('#s-comp').value=dataBrasil();
 
 async function api(path,options={}){
   if(!API_URL)throw new Error('O servidor seguro ainda não foi vinculado a este endereço.');
@@ -1343,6 +1350,7 @@ async function salvarPerfilServico(){
   const rate=qs('#cad-rate').value.trim();
   const payload={id:qs('#cad-id').value||undefined,name:qs('#cad-name').value.trim(),serviceType:qs('#cad-type').value.trim(),nationalCode:qs('#cad-code').value,description:qs('#cad-desc').value.trim(),municipalCode:qs('#cad-mun-code').value.trim()||undefined,issTaxation:qs('#cad-trib-iss').value,issWithholding:qs('#cad-ret-iss').value,issRate:rate?dinheiro(rate):undefined,pisCofinsCst:cst||undefined,pisCofinsWithholding:qs('#cad-ret-pc').value||undefined,retCp:dinheiro(qs('#cad-cp').value),retIrrf:dinheiro(qs('#cad-irrf').value),retCsll:dinheiro(qs('#cad-csll').value)};
   if(!payload.name||!payload.serviceType||!payload.nationalCode||!payload.description){alert('Informe nome, tipo, código nacional e descrição.');return}
+  if(payload.municipalCode&&!/^\d{1,3}$/.test(payload.municipalCode)){alert('O código municipal, quando usado, deve conter de 1 a 3 dígitos.');return}
   try{await api('/api/services/profiles',{method:'POST',body:JSON.stringify(payload)});await carregarPerfisServico();novoPerfilServico();alert('Serviço padrão salvo. Ele já está disponível na emissão.')}catch(error){alert(error.message)}
 }
 
@@ -1559,12 +1567,12 @@ async function emitir(falhar){
   const perfil=perfisServico.find(item=>item.id===qs('#s-profile').value);
   const cst=qs('#s-cst').value.trim();
   const payload={
-    competenceDate:new Date().toISOString().slice(0,10),
+    competenceDate:qs('#s-comp').value,
     borrower:{name:qs('#t-nome').value.trim(),taxId:qs('#t-doc').value,email:qs('#t-mail').value.trim()||undefined},
     service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,municipalTaxCode:perfil?.municipal_code||undefined,description:qs('#s-desc').value.trim(),amount:valor,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,issRate:perfil?.iss_rate==null?undefined:Number(perfil.iss_rate),pisCofinsCst:cst||undefined,pisCofinsWithholding:qs('#s-ret-pc').value||undefined,retCp:dinheiro(qs('#s-ret-cp').value),retIrrf:dinheiro(qs('#s-ret-irrf').value),retCsll:dinheiro(qs('#s-ret-csll').value)}
   };
-  if(!payload.borrower.name||!payload.borrower.taxId||!payload.service.nationalTaxCode||!payload.service.description||!Number.isFinite(valor)||valor<=0){
-    alert('Preencha tomador, CPF/CNPJ, código nacional, descrição e valor do serviço.');return;
+  if(!payload.competenceDate||!payload.borrower.name||!payload.borrower.taxId||!payload.service.nationalTaxCode||!payload.service.description||!Number.isFinite(valor)||valor<=0){
+    alert('Preencha competência, tomador, CPF/CNPJ, código nacional, descrição e valor do serviço.');return;
   }
   if(documento.length!==11&&documento.length!==14){alert('O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 dígitos.');qs('#t-doc').focus();return}
   if(qs('#t-mail').value&&!qs('#t-mail').checkValidity()){alert('Informe um e-mail válido para o tomador.');qs('#t-mail').focus();return}
