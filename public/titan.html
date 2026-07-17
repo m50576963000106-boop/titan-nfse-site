@@ -515,6 +515,10 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         Certificado A1
       </button>
+      <button class="sb-link" onclick="go('servicos',this)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>
+        Serviços e retenções
+      </button>
       <button class="sb-link" onclick="go('marca',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
         Identidade visual
@@ -673,14 +677,16 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
             <div class="card-h"><h2>Serviço prestado</h2></div>
             <div class="card-b">
               <div class="field">
-                <label for="s-cod">Código do serviço — Lista LC 116/2003</label>
+                <label for="s-profile">Cadastro padrão</label>
+                <select id="s-profile" class="inp" onchange="aplicarPerfilServico()"><option value="">Preenchimento avulso</option></select>
+                <div class="hint">Perfis configurados em Serviços e retenções.</div>
+              </div>
+              <div class="field">
+                <label for="s-cod">Código de tributação nacional — Anexo B</label>
                 <select id="s-cod" class="inp" onchange="lerParametros()">
-                  <option value="040101">04.01.01 — Medicina e biomedicina</option>
-                  <option value="040301">04.03.01 — Hospitais, clínicas e laboratórios</option>
-                  <option value="170101">17.01.01 — Assessoria ou consultoria</option>
-                  <option value="171401">17.14.01 — Advocacia</option>
+                  <option value="">Carregando catálogo nacional...</option>
                 </select>
-                <div class="hint">Correlação NBS carregada do Anexo B do Sistema Nacional NFS-e.</div>
+                <div class="hint">Catálogo oficial PRODREST v1.01 de 22/01/2026.</div>
               </div>
               <div class="field">
                 <label for="s-desc">Descrição</label>
@@ -699,6 +705,25 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
                     <option value="4119905">4119905 — Ponta Grossa/PR</option>
                   </select>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><h2>Retenções do padrão nacional</h2></div>
+            <div class="card-b">
+              <div class="row r2">
+                <div class="field"><label for="s-trib-iss">Tributação do ISSQN</label><select id="s-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação de serviço</option><option value="4">4 — Não incidência</option></select></div>
+                <div class="field"><label for="s-ret-iss">Retenção do ISSQN</label><select id="s-ret-iss" class="inp"><option value="1">1 — Não retido</option><option value="2">2 — Retido pelo tomador</option><option value="3">3 — Retido pelo intermediário</option></select></div>
+              </div>
+              <div class="row r2">
+                <div class="field"><label for="s-cst">CST PIS/COFINS</label><input id="s-cst" class="inp mono" maxlength="2" placeholder="00 a 99"></div>
+                <div class="field"><label for="s-ret-pc">Retenção PIS/COFINS/CSLL</label><select id="s-ret-pc" class="inp"><option value="">Não informar</option><option value="0">0 — Não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — PIS/COFINS/CSLL retidos</option><option value="4">4 — PIS/COFINS retidos, CSLL não</option><option value="5">5 — Somente PIS retido</option><option value="6">6 — Somente COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — Somente CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div>
+              </div>
+              <div class="row r3">
+                <div class="field mb0"><label for="s-ret-cp">CP retida (R$)</label><input id="s-ret-cp" class="inp num" value="0,00"></div>
+                <div class="field mb0"><label for="s-ret-irrf">IRRF retido (R$)</label><input id="s-ret-irrf" class="inp num" value="0,00"></div>
+                <div class="field mb0"><label for="s-ret-csll">CSLL retida (R$)</label><input id="s-ret-csll" class="inp num" value="0,00"></div>
               </div>
             </div>
           </div>
@@ -794,7 +819,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
           <div class="card-b">
             <div class="alert a-info" style="margin-bottom:14px">
               <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-              <div><b>Cadastro inicial · etapa 2 de 2.</b> Para este teste, os dados ficam salvos somente neste navegador. Nenhum certificado ou informação fiscal é enviado para servidores externos.</div>
+              <div><b>Cadastro fiscal da empresa.</b> Os dados são gravados na base Neon e usados para montar a DPS no padrão nacional.</div>
             </div>
             <div class="field">
               <label for="e-rs">Razão social</label>
@@ -845,6 +870,15 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 
         <div class="stack">
           <div class="card">
+            <div class="card-h"><h2>Configuração da DPS Nacional</h2><span class="pill p-ok right">v1.01</span></div>
+            <div class="card-b">
+              <div class="row r2"><div class="field"><label for="e-series">Série da DPS</label><input id="e-series" class="inp mono" type="number" min="1" max="99999" value="1"><div class="hint">Campo série: 1 a 99999.</div></div><div class="field"><label for="e-next">Próximo número da DPS</label><input id="e-next" class="inp mono" inputmode="numeric" value="1"><div class="hint">Sequencial de até 15 dígitos.</div></div></div>
+              <div class="row r2"><div class="field"><label for="e-simple-ap">Regime de apuração do Simples</label><select id="e-simple-ap" class="inp"><option value="1">1 — Regime de caixa</option><option value="2">2 — Regime de competência</option><option value="3">3 — Regime especial informado</option></select></div><div class="field"><label for="e-special">Regime especial de tributação</label><select id="e-special" class="inp"><option value="0">0 — Nenhum</option><option value="1">1 — Microempresa municipal</option><option value="2">2 — Estimativa</option><option value="3">3 — Sociedade de profissionais</option><option value="4">4 — Cooperativa</option><option value="5">5 — MEI</option><option value="6">6 — ME/EPP do Simples Nacional</option></select></div></div>
+              <div class="kv"><span>Tipo de ambiente</span><b>2 — Produção Restrita</b></div><div class="kv"><span>Tipo do emitente</span><b>1 — Prestador</b></div><div class="kv"><span>Versão do leiaute</span><b>1.01</b></div>
+              <div class="foot-note">Alterar o próximo número pode gerar duplicidade de DPS. Use somente para alinhar a sequência já utilizada pela empresa.</div>
+            </div>
+          </div>
+          <div class="card">
             <div class="card-h">
               <h2>Habilitação para emitir</h2>
               <button class="btn btn-s right" onclick="checarHabilitacao()">Verificar agora</button>
@@ -861,7 +895,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
               <div class="kv"><span>Regimes especiais</span><b>—</b></div>
               <div class="kv"><span>Última leitura</span><b>Nunca</b></div>
               <div class="foot-note">
-                A consulta oficial será habilitada quando houver backend e certificado configurados.
+                O backend e o certificado estão configurados. A leitura oficial será registrada aqui após a consulta aos parâmetros municipais.
               </div>
             </div>
           </div>
@@ -976,6 +1010,34 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
               <div id="imp-lotes" style="margin-top:10px"></div>
             </div>
             <div id="imp-fim"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SERVIÇOS E RETENÇÕES ---------- -->
+    <section class="view" id="v-servicos">
+      <div class="page-h"><h1>Serviços e retenções</h1><p>Cadastros reutilizáveis baseados no Anexo B e nos domínios oficiais da DPS Nacional v1.01.</p></div>
+      <div class="grid g2" style="align-items:start">
+        <div class="card">
+          <div class="card-h"><h2>Cadastros da empresa</h2><span class="pill p-gold right">338 códigos oficiais</span><button class="btn btn-s" onclick="novoPerfilServico()">Novo</button></div>
+          <div class="card-b" id="svc-list"><div class="empty-state">Nenhum serviço cadastrado.</div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h2 id="svc-form-title">Novo serviço padrão</h2></div>
+          <div class="card-b">
+            <input id="cad-id" type="hidden">
+            <div class="field"><label for="cad-name">Nome do cadastro</label><input id="cad-name" class="inp" placeholder="Ex.: Consultoria mensal"></div>
+            <div class="field"><label for="cad-type">Tipo de serviço</label><input id="cad-type" class="inp" placeholder="Ex.: Consultoria, mensalidade, atendimento"></div>
+            <div class="field"><label for="cad-search">Buscar no Anexo B nacional</label><div class="input-action"><input id="cad-search" class="inp" placeholder="Código ou descrição"><button class="btn btn-s" onclick="buscarCatalogoServico()">Buscar</button></div></div>
+            <div class="field"><label for="cad-code">Código de tributação nacional</label><select id="cad-code" class="inp" onchange="selecionarCodigoCadastro()"><option value="">Pesquise o catálogo oficial</option></select></div>
+            <div class="field"><label for="cad-desc">Descrição padrão do serviço</label><textarea id="cad-desc" class="inp" placeholder="Descrição que será levada à DPS"></textarea></div>
+            <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal</label><input id="cad-mun-code" class="inp" maxlength="20" placeholder="Opcional"></div><div class="field"><label for="cad-rate">Alíquota ISS (%)</label><input id="cad-rate" class="inp num" placeholder="Lida do município"></div></div>
+            <div class="row r2"><div class="field"><label for="cad-trib-iss">Tributação ISSQN</label><select id="cad-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação</option><option value="4">4 — Não incidência</option></select></div><div class="field"><label for="cad-ret-iss">Retenção ISSQN</label><select id="cad-ret-iss" class="inp"><option value="1">1 — Não retido</option><option value="2">2 — Tomador</option><option value="3">3 — Intermediário</option></select></div></div>
+            <div class="row r2"><div class="field"><label for="cad-cst">CST PIS/COFINS</label><input id="cad-cst" class="inp mono" maxlength="2" placeholder="Opcional"></div><div class="field"><label for="cad-ret-pc">tpRetPisCofins</label><select id="cad-ret-pc" class="inp"><option value="">Não informar</option><option value="0">0 — Não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — Todos retidos</option><option value="4">4 — PIS/COFINS retidos</option><option value="5">5 — PIS retido</option><option value="6">6 — COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div></div>
+            <div class="row r3"><div class="field"><label for="cad-cp">vRetCP (R$)</label><input id="cad-cp" class="inp num" value="0,00"></div><div class="field"><label for="cad-irrf">vRetIRRF (R$)</label><input id="cad-irrf" class="inp num" value="0,00"></div><div class="field"><label for="cad-csll">vRetCSLL (R$)</label><input id="cad-csll" class="inp num" value="0,00"></div></div>
+            <button class="btn btn-p" style="width:100%" onclick="salvarPerfilServico()">Salvar cadastro</button>
+            <div class="foot-note">Fonte normativa: ANEXO B e leiaute DPS/NFS-e PRODREST v1.01.</div>
           </div>
         </div>
       </div>
@@ -1110,6 +1172,7 @@ async function iniciarCadastro(){
     localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome,email}));
     await carregarEmpresaServidor();
     await carregarNotasServidor();
+    carregarServicos().catch(()=>{});
   }catch(error){alert(error.message);return}
   qs('#login').classList.add('hide');
   qs('#app').classList.add('on');
@@ -1134,6 +1197,7 @@ function go(v,el){
     carregarCertificado();
   }
   if(v==='importar')carregarImportStatus();
+  if(v==='servicos'){carregarPerfisServico();buscarCatalogoServico()}
 }
 qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
 
@@ -1141,7 +1205,7 @@ async function carregarEmpresaServidor(){
   const row=await api('/api/company');
   if(!row){empresaAtual=null;return}
   const regimes={regular:'Lucro Presumido',mei:'MEI',simples:'Simples Nacional — ME'};
-  empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.municipality_code,endereco:''};
+  empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.municipality_code,endereco:'',series:Number(row.dps_series)||1,next:String(row.next_dps_number||1),simpleAp:Number(row.simple_assessment_regime)||1,special:Number(row.special_tax_regime)||0};
   localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresaAtual));
 }
 
@@ -1212,6 +1276,86 @@ qs('#t-nome').addEventListener('input',()=>{clearTimeout(buscaClienteTimer);busc
 qs('#t-nome').addEventListener('focus',()=>{if(qs('#t-nome').value.trim().length>=2)buscarClientes(false)});
 qs('#t-nome').addEventListener('blur',()=>setTimeout(()=>qs('#customer-results').classList.remove('on'),180));
 qs('#t-doc').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();consultarCnpj()}});
+
+/* ---------- serviços nacionais e perfis ---------- */
+let catalogoServicos=[];
+let catalogoCadastro=[];
+let perfisServico=[];
+const dinheiro=value=>Number(String(value||'0').replace(/\./g,'').replace(',','.'))||0;
+function formatarDinheiro(input){
+  let raw=input.value.trim().replace(/R\$|\s/g,'');
+  if(!raw){input.value='0,00';return}
+  let normalized;
+  if(raw.includes(','))normalized=raw.replace(/\./g,'').replace(',','.');
+  else if((raw.match(/\./g)||[]).length===1&&raw.split('.')[1].length<=2)normalized=raw;
+  else normalized=raw.replace(/\./g,'');
+  const value=Number(normalized.replace(/[^\d.-]/g,''));
+  input.value=Number.isFinite(value)?value.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'0,00';
+}
+qsa('input.num').forEach(input=>{input.addEventListener('blur',()=>formatarDinheiro(input));input.addEventListener('focus',()=>input.select())});
+
+async function carregarServicos(){
+  const [catalogo]=await Promise.all([api('/api/services/catalog?limit=400'),carregarPerfisServico()]);
+  catalogoServicos=catalogo.services;
+  qs('#s-cod').innerHTML=catalogoServicos.map(item=>`<option value="${item.code}">${item.code.slice(0,2)}.${item.code.slice(2,4)}.${item.code.slice(4)} — ${esc(item.description)}</option>`).join('');
+  if(catalogoServicos.some(item=>item.code==='170101'))qs('#s-cod').value='170101';
+  lerParametros();
+}
+
+async function carregarPerfisServico(){
+  try{perfisServico=await api('/api/services/profiles')}catch{perfisServico=[]}
+  qs('#s-profile').innerHTML='<option value="">Preenchimento avulso</option>'+perfisServico.map(item=>`<option value="${item.id}">${esc(item.name)}</option>`).join('');
+  const list=qs('#svc-list');
+  if(!perfisServico.length){list.innerHTML='<div class="empty-state">Nenhum serviço cadastrado. Clique em Novo para criar o primeiro perfil.</div>';return}
+  list.innerHTML=perfisServico.map((item,index)=>`<div class="dest" style="margin-bottom:8px"><div class="box-mini">${esc(item.national_code)}</div><div style="min-width:0;flex:1"><div class="t">${esc(item.name)}</div><div class="s">${esc(item.service_type)} · ${esc(item.description)}<br>ISS: ${esc(item.iss_withholding==='1'?'não retido':item.iss_withholding==='2'?'tomador':'intermediário')}</div></div><button class="btn btn-s" onclick="editarPerfilServico(${index})">Editar</button><button class="ico-btn danger" onclick="excluirPerfilServico('${item.id}')">×</button></div>`).join('');
+}
+
+function novoPerfilServico(){
+  ['cad-id','cad-name','cad-type','cad-search','cad-desc','cad-mun-code','cad-rate','cad-cst'].forEach(id=>qs('#'+id).value='');
+  ['cad-cp','cad-irrf','cad-csll'].forEach(id=>qs('#'+id).value='0,00');
+  qs('#cad-code').innerHTML='<option value="">Pesquise o catálogo oficial</option>';
+  qs('#cad-trib-iss').value='1';qs('#cad-ret-iss').value='1';qs('#cad-ret-pc').value='';qs('#svc-form-title').textContent='Novo serviço padrão';
+}
+
+async function buscarCatalogoServico(){
+  const query=qs('#cad-search').value.trim();
+  const result=await api('/api/services/catalog?limit=400&search='+encodeURIComponent(query));
+  catalogoCadastro=result.services;
+  qs('#cad-code').innerHTML='<option value="">Selecione um código nacional</option>'+catalogoCadastro.map(item=>`<option value="${item.code}">${item.code} — ${esc(item.description)}</option>`).join('');
+}
+
+function selecionarCodigoCadastro(){
+  const item=catalogoCadastro.find(service=>service.code===qs('#cad-code').value)||catalogoServicos.find(service=>service.code===qs('#cad-code').value);
+  if(item&&!qs('#cad-desc').value.trim())qs('#cad-desc').value=item.description;
+}
+
+function editarPerfilServico(index){
+  const item=perfisServico[index];if(!item)return;
+  qs('#cad-id').value=item.id;qs('#cad-name').value=item.name;qs('#cad-type').value=item.service_type;qs('#cad-desc').value=item.description;qs('#cad-mun-code').value=item.municipal_code||'';qs('#cad-rate').value=item.iss_rate==null?'':String(item.iss_rate).replace('.',',');
+  qs('#cad-trib-iss').value=item.iss_taxation;qs('#cad-ret-iss').value=item.iss_withholding;qs('#cad-cst').value=item.pis_cofins_cst||'';qs('#cad-ret-pc').value=item.pis_cofins_withholding||'';
+  qs('#cad-cp').value=String(item.ret_cp||0).replace('.',',');qs('#cad-irrf').value=String(item.ret_irrf||0).replace('.',',');qs('#cad-csll').value=String(item.ret_csll||0).replace('.',',');
+  catalogoCadastro=catalogoServicos.filter(service=>service.code===item.national_code);qs('#cad-code').innerHTML=`<option value="${item.national_code}">${item.national_code} — ${esc(catalogoCadastro[0]?.description||item.description)}</option>`;
+  qs('#svc-form-title').textContent='Editar serviço padrão';
+}
+
+async function salvarPerfilServico(){
+  const cst=qs('#cad-cst').value.trim();
+  const rate=qs('#cad-rate').value.trim();
+  const payload={id:qs('#cad-id').value||undefined,name:qs('#cad-name').value.trim(),serviceType:qs('#cad-type').value.trim(),nationalCode:qs('#cad-code').value,description:qs('#cad-desc').value.trim(),municipalCode:qs('#cad-mun-code').value.trim()||undefined,issTaxation:qs('#cad-trib-iss').value,issWithholding:qs('#cad-ret-iss').value,issRate:rate?dinheiro(rate):undefined,pisCofinsCst:cst||undefined,pisCofinsWithholding:qs('#cad-ret-pc').value||undefined,retCp:dinheiro(qs('#cad-cp').value),retIrrf:dinheiro(qs('#cad-irrf').value),retCsll:dinheiro(qs('#cad-csll').value)};
+  if(!payload.name||!payload.serviceType||!payload.nationalCode||!payload.description){alert('Informe nome, tipo, código nacional e descrição.');return}
+  try{await api('/api/services/profiles',{method:'POST',body:JSON.stringify(payload)});await carregarPerfisServico();novoPerfilServico();alert('Serviço padrão salvo. Ele já está disponível na emissão.')}catch(error){alert(error.message)}
+}
+
+async function excluirPerfilServico(id){
+  if(!confirm('Desativar este cadastro de serviço?'))return;
+  await api('/api/services/profiles/'+id,{method:'DELETE'});await carregarPerfisServico();
+}
+
+function aplicarPerfilServico(){
+  const item=perfisServico.find(profile=>profile.id===qs('#s-profile').value);if(!item)return;
+  qs('#s-cod').value=item.national_code;qs('#s-desc').value=item.description;qs('#s-trib-iss').value=item.iss_taxation;qs('#s-ret-iss').value=item.iss_withholding;qs('#s-cst').value=item.pis_cofins_cst||'';qs('#s-ret-pc').value=item.pis_cofins_withholding||'';
+  qs('#s-ret-cp').value=String(item.ret_cp||0).replace('.',',');qs('#s-ret-irrf').value=String(item.ret_irrf||0).replace('.',',');qs('#s-ret-csll').value=String(item.ret_csll||0).replace('.',',');lerParametros();
+}
 
 async function carregarCertificado(){
   const status=qs('#cert-status');
@@ -1331,12 +1475,9 @@ function tabelas(){
 }
 
 /* ---------- parâmetros municipais ---------- */
-const tabelaAliq={'4106902':{'040101':'2,00%','040301':'2,00%','170101':'5,00%','171401':'5,00%'},
-                  '4104204':{'040101':'3,00%','040301':'3,00%','170101':'5,00%','171401':'5,00%'},
-                  '4119905':{'040101':'2,50%','040301':'2,50%','170101':'5,00%','171401':'5,00%'}};
 function lerParametros(){
-  const m=qs('#s-mun').value,c=qs('#s-cod').value;
-  const a=(tabelaAliq[m]||{})[c]||'—';
+  const profile=perfisServico.find(item=>item.id===qs('#s-profile').value);
+  const a=profile?.iss_rate!=null?Number(profile.iss_rate).toLocaleString('pt-BR',{minimumFractionDigits:2})+'%':'Fornecida pela Sefin';
   qs('#aliq').innerHTML=`${a} <span class="pill p-off" style="margin-left:5px">municipal</span>`;
   const valor=qs('#s-val').value.replace(/[^\d,]/g,'')||'0,00';
   qs('#resumo-valor').textContent='R$ '+valor;
@@ -1386,8 +1527,8 @@ const etapas=[
   {t:'Montar XML da DPS',d:'Anexo I — leiaute DPS/NFS-e v1.00.02',ms:38},
   {t:'Assinar com o A1',d:'XMLDSig · SHA-256 · cadeia ICP-Brasil anexada',ms:96},
   {t:'Compactar GZip + Base64',d:'4.1 KB → 1.2 KB · dpsXmlGZipB64',ms:8},
-  {t:'Simular envio à Sefin Nacional',d:'teste local · nenhuma requisição externa',ms:420},
-  {t:'Validar resultado do teste',d:'nenhuma NFS-e ou chave real é gerada',ms:54}
+  {t:'Enviar à Sefin Nacional',d:'POST /nfse · mTLS com certificado A1',ms:420},
+  {t:'Validar autorização oficial',d:'resposta síncrona da Produção Restrita',ms:54}
 ];
 const ckSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg>';
 const xSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg>';
@@ -1415,13 +1556,15 @@ async function emitir(falhar){
   }
   const valor=Number(qs('#s-val').value.replace(/\./g,'').replace(',','.'));
   const documento=qs('#t-doc').value.replace(/\D/g,'');
+  const perfil=perfisServico.find(item=>item.id===qs('#s-profile').value);
+  const cst=qs('#s-cst').value.trim();
   const payload={
     competenceDate:new Date().toISOString().slice(0,10),
     borrower:{name:qs('#t-nome').value.trim(),taxId:qs('#t-doc').value,email:qs('#t-mail').value.trim()||undefined},
-    service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,description:qs('#s-desc').value.trim(),amount:valor,issTaxation:'1',issWithholding:'1'}
+    service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,municipalTaxCode:perfil?.municipal_code||undefined,description:qs('#s-desc').value.trim(),amount:valor,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,issRate:perfil?.iss_rate==null?undefined:Number(perfil.iss_rate),pisCofinsCst:cst||undefined,pisCofinsWithholding:qs('#s-ret-pc').value||undefined,retCp:dinheiro(qs('#s-ret-cp').value),retIrrf:dinheiro(qs('#s-ret-irrf').value),retCsll:dinheiro(qs('#s-ret-csll').value)}
   };
-  if(!payload.borrower.name||!payload.borrower.taxId||!payload.service.description||!Number.isFinite(valor)||valor<=0){
-    alert('Preencha tomador, CPF/CNPJ, descrição e valor do serviço.');return;
+  if(!payload.borrower.name||!payload.borrower.taxId||!payload.service.nationalTaxCode||!payload.service.description||!Number.isFinite(valor)||valor<=0){
+    alert('Preencha tomador, CPF/CNPJ, código nacional, descrição e valor do serviço.');return;
   }
   if(documento.length!==11&&documento.length!==14){alert('O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 dígitos.');qs('#t-doc').focus();return}
   if(qs('#t-mail').value&&!qs('#t-mail').checkValidity()){alert('Informe um e-mail válido para o tomador.');qs('#t-mail').focus();return}
@@ -1525,15 +1668,17 @@ async function salvarCadastro(){
     reg:qs('#e-reg').value,
     mun:qs('#e-mun').value,
     municipio:qs('#e-mun').selectedOptions[0].text.split('— ')[1],
-    endereco:qs('#e-end').value.trim()
+    endereco:qs('#e-end').value.trim(),
+    series:Number(qs('#e-series').value),next:qs('#e-next').value.replace(/\D/g,''),simpleAp:Number(qs('#e-simple-ap').value),special:Number(qs('#e-special').value)
   };
   if(!empresa.rs||!empresa.cnpj||!empresa.im||!empresa.endereco){
     alert('Preencha razão social, CNPJ, inscrição municipal e endereço para salvar.');
     return;
   }
+  if(!Number.isInteger(empresa.series)||empresa.series<1||empresa.series>99999||!empresa.next){alert('Informe uma série entre 1 e 99999 e o próximo número da DPS.');return}
   const regime=empresa.reg==='MEI'?'mei':empresa.reg.includes('Simples')?'simples':'regular';
   try{
-    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?1:undefined,specialTaxRegime:0,dpsSeries:1})});
+    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next})});
     empresaAtual=empresa;
     localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresa));
   }catch(error){alert(error.message);return}
@@ -1567,6 +1712,7 @@ function aplicarEmpresa(){
   qs('#e-reg').value=empresaAtual.reg;
   qs('#e-mun').value=empresaAtual.mun;
   qs('#e-end').value=empresaAtual.endereco;
+  qs('#e-series').value=empresaAtual.series||1;qs('#e-next').value=empresaAtual.next||1;qs('#e-simple-ap').value=String(empresaAtual.simpleAp||1);qs('#e-special').value=String(empresaAtual.special||0);
   if(qs(`#s-mun option[value="${empresaAtual.mun}"]`))qs('#s-mun').value=empresaAtual.mun;
   qs('#m-nome').value=empresaAtual.rs;
   qs('#resumo-regime').textContent=empresaAtual.reg;
