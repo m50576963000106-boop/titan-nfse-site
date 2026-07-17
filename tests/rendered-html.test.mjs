@@ -47,3 +47,13 @@ test("consulta CNPJ preenche emitente e endereço do tomador", async()=>{
   assert.match(html,/id="t-municipio"/);
   assert.match(html,/postalCode:qs\('#t-cep'\)/);
 });
+
+test("oferece municípios pesquisáveis, rascunhos, clientes e documentos comerciais", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/Pesquise o município pelo nome/);
+  assert.match(html,/\/api\/locations\/municipalities/);
+  assert.match(html,/Rascunhos de NFS-e/);
+  assert.match(html,/v-clientes/);
+  assert.match(html,/v-comercial/);
+  assert.match(html,/Converter em NFS-e/);
+});

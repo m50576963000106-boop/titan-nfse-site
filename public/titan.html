@@ -381,6 +381,9 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 }
 
 .g-emit{grid-template-columns:1.35fr 1fr;align-items:start}
+.municipality-results{display:none;position:absolute;z-index:15;left:0;right:0;top:100%;margin-top:4px;max-height:220px;overflow:auto;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 12px 24px rgba(9,22,44,.14)}
+.municipality-results.on{display:block}.municipality-option{display:block;width:100%;padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);font-size:12px}.municipality-option:hover{background:var(--cream)}
+.draft-list{display:grid;gap:8px}.draft-item{padding:10px;border:1px solid var(--line);border-radius:var(--r);background:#fff}.draft-item b{display:block;font-size:12px}.draft-item span{font-size:10.5px;color:var(--ink-3)}
 .sticky{position:sticky;top:74px}
 .span2{grid-column:span 2}
 .bar-imp{height:5px;background:#eceaE3;border-radius:3px;overflow:hidden;margin:10px 0 6px}
@@ -506,6 +509,10 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
         Notas emitidas
       </button>
+      <button class="sb-link" data-permission="emit" onclick="go('comercial',this)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5M8 17h7"/></svg>
+        Orçamentos e O.S.
+      </button>
       <button class="sb-link" data-permission="import" onclick="go('importar',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
         Importar do Portal
@@ -514,6 +521,10 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
       <button class="sb-link" data-permission="company_settings" onclick="go('emitente',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M15 9h.01M9 13h.01M15 13h.01M9 17h.01M15 17h.01"/></svg>
         Emitente
+      </button>
+      <button class="sb-link" data-permission="customers" onclick="go('clientes',this)">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>
+        Clientes
       </button>
       <button class="sb-link" data-permission="certificate" onclick="go('cert',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -644,6 +655,11 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
         <p>Os dados abaixo montam a DPS (Declaração de Prestação de Serviço). A Sefin Nacional responde de forma síncrona — não há lote nem protocolo de espera.</p>
       </div>
 
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-h"><h2>Trajeto da nota</h2><span class="pill p-off right mono" id="pipe-env">produção restrita</span></div>
+        <div class="card-b"><div class="pipe" id="pipe"></div><div id="result"></div><div class="foot-note">A linha acompanha cada etapa da emissão e informa exatamente onde uma rejeição ocorreu.</div></div>
+      </div>
+
       <div class="grid g-emit">
         <div class="stack">
 
@@ -718,11 +734,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
                 </div>
                 <div class="field mb0">
                   <label for="s-mun">Município de incidência</label>
-                  <select id="s-mun" class="inp" onchange="lerParametros()">
-                    <option value="4106902">4106902 — Curitiba/PR</option>
-                    <option value="4104204">4104204 — Campo Largo/PR</option>
-                    <option value="4119905">4119905 — Ponta Grossa/PR</option>
-                  </select>
+                  <input id="s-mun" type="hidden" value="4106902"><div style="position:relative"><input id="s-mun-search" class="inp" autocomplete="off" placeholder="Pesquise o município" oninput="pesquisarMunicipio('s')"><div id="s-mun-results" class="municipality-results"></div></div>
                 </div>
               </div>
             </div>
@@ -776,21 +788,35 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
           </div>
         </div>
 
-        <!-- PIPELINE: elemento-assinatura -->
         <div class="card sticky">
           <div class="card-h">
-            <h2>Trajeto da nota</h2>
-            <span class="pill p-off right mono" id="pipe-env">produção restrita</span>
+            <h2>Rascunhos de NFS-e</h2><button class="btn btn-s right" type="button" onclick="salvarRascunho()">Salvar rascunho</button>
           </div>
           <div class="card-b">
-            <div class="pipe" id="pipe"></div>
-            <div id="result"></div>
-            <div class="foot-note">
-              Cada etapa mostra o que o backend está fazendo de verdade. Quando o governo rejeita, a linha para exatamente onde o problema está — com o código de erro que a Sefin devolveu.
-            </div>
+            <div id="draft-list" class="draft-list"><div class="empty-state">Carregando rascunhos...</div></div>
+            <div class="foot-note">Rascunhos não geram DPS nem enviam informação à Sefin.</div>
           </div>
         </div>
       </div>
+    </section>
+
+    <section class="view" id="v-clientes">
+      <div class="page-h"><h1>Clientes</h1><p>Cadastre, revise e reutilize tomadores nas emissões.</p></div>
+      <div class="grid g2" style="align-items:start"><div class="card"><div class="card-h"><h2>Cadastro de cliente</h2></div><div class="card-b">
+        <div class="field"><label>CNPJ / CPF</label><div class="input-action"><input id="cl-doc" class="inp mono" placeholder="CPF ou CNPJ"><button class="btn btn-s" type="button" onclick="consultarClienteCadastro()">Buscar CNPJ</button></div></div>
+        <div class="field"><label>Razão social / nome</label><input id="cl-nome" class="inp" placeholder="Nome do cliente"></div><div class="row r2"><div class="field"><label>E-mail</label><input id="cl-mail" class="inp" type="email"></div><div class="field"><label>Telefone</label><input id="cl-fone" class="inp"></div></div>
+        <div class="field"><label>Endereço</label><input id="cl-end" class="inp" placeholder="Logradouro, número, bairro, CEP"></div><div class="row r2"><div class="field mb0"><label>Código IBGE</label><input id="cl-mun" class="inp mono" inputmode="numeric" maxlength="7"></div><div class="field mb0"><label>CEP</label><input id="cl-cep" class="inp mono" inputmode="numeric"></div></div>
+        <div class="setup-actions"><span class="foot-note" style="margin:0">A busca preenche os dados públicos; confirme antes de salvar.</span><button class="btn btn-a right" type="button" onclick="salvarCliente()">Salvar cliente</button></div>
+      </div></div><div class="card"><div class="card-h"><h2>Clientes cadastrados</h2><button class="btn btn-s right" onclick="carregarClientesCadastro()">Atualizar</button></div><div class="card-b"><div id="client-list" class="draft-list"></div></div></div></div>
+    </section>
+
+    <section class="view" id="v-comercial">
+      <div class="page-h"><h1>Orçamentos e ordens de serviço</h1><p>Monte o documento comercial e converta seus dados em uma NFS-e para revisão e emissão explícita.</p></div>
+      <div class="grid g2" style="align-items:start"><div class="card"><div class="card-h"><h2>Novo documento</h2></div><div class="card-b">
+        <div class="row r2"><div class="field"><label>Tipo</label><select id="co-kind" class="inp"><option value="quote">Orçamento</option><option value="service_order">Ordem de serviço</option></select></div><div class="field"><label>Situação</label><select id="co-status" class="inp"><option value="draft">Em elaboração</option><option value="approved">Aprovado</option></select></div></div>
+        <div class="field"><label>Título</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente</label><input id="co-customer" class="inp" placeholder="Razão social / nome"></div><div class="field"><label>Valor (R$)</label><input id="co-value" class="inp num" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" placeholder="Escopo e condições do serviço"></textarea></div>
+        <div class="setup-actions"><span class="foot-note" style="margin:0">A conversão não emite automaticamente a nota.</span><button class="btn btn-a right" type="button" onclick="salvarComercial()">Salvar documento</button></div>
+      </div></div><div class="card"><div class="card-h"><h2>Documentos comerciais</h2><button class="btn btn-s right" onclick="carregarComerciais()">Atualizar</button></div><div class="card-b"><div id="commercial-list" class="draft-list"></div></div></div></div>
     </section>
 
     <!-- ---------- NOTAS ---------- -->
@@ -868,7 +894,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
               </div>
               <div class="field">
                 <label for="e-mun">Município (código IBGE)</label>
-                <input id="e-mun" class="inp mono" inputmode="numeric" maxlength="7" placeholder="0000000" onchange="checarHabilitacao()" required>
+                <input id="e-mun" type="hidden"><div style="position:relative"><input id="e-mun-search" class="inp" autocomplete="off" placeholder="Pesquise o município pelo nome" oninput="pesquisarMunicipio('e')"><div id="e-mun-results" class="municipality-results"></div></div>
               </div>
             </div>
             <div class="field mb0">
@@ -1265,6 +1291,9 @@ function go(v,el){
   if(v==='importar')carregarImportStatus();
   if(v==='servicos'){carregarPerfisServico();buscarCatalogoServico()}
   if(v==='master')carregarMaster();
+  if(v==='emitir'){carregarRascunhos();exibirMunicipioPorCodigo('s',qs('#s-mun').value)}
+  if(v==='clientes')carregarClientesCadastro();
+  if(v==='comercial')carregarComerciais();
 }
 qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
 
@@ -1305,6 +1334,24 @@ function preencherCliente(cliente){
   qs('#customer-results').classList.remove('on');
 }
 
+let municipioTimer;
+async function pesquisarMunicipio(tipo){
+  const input=qs(`#${tipo}-mun-search`),box=qs(`#${tipo}-mun-results`),term=input.value.trim();
+  clearTimeout(municipioTimer);
+  if(term.length<2){box.classList.remove('on');return}
+  municipioTimer=setTimeout(async()=>{
+    box.innerHTML='<div class="empty-state" style="padding:12px">Buscando municípios...</div>';box.classList.add('on');
+    try{const rows=await api('/api/locations/municipalities?search='+encodeURIComponent(term));box.innerHTML=rows.length?rows.map(row=>`<button type="button" class="municipality-option" onclick='selecionarMunicipio("${tipo}",${JSON.stringify(row)})'><b>${esc(row.name)}/${esc(row.state)}</b><br><span class="mono">${esc(row.code)}</span></button>`).join(''):'<div class="empty-state" style="padding:12px">Nenhum município encontrado.</div>'}catch(error){box.innerHTML=`<div class="empty-state" style="padding:12px">${esc(error.message)}</div>`}
+  },250);
+}
+function selecionarMunicipio(tipo,row){
+  qs(`#${tipo}-mun`).value=row.code;qs(`#${tipo}-mun-search`).value=`${row.name}/${row.state} — ${row.code}`;qs(`#${tipo}-mun-results`).classList.remove('on');
+  if(tipo==='s')lerParametros();else checarHabilitacao();
+}
+async function exibirMunicipioPorCodigo(tipo,code){
+  if(!code)return;try{const rows=await api('/api/locations/municipalities?search='+encodeURIComponent(code));const row=rows.find(item=>item.code===String(code));if(row)selecionarMunicipio(tipo,row);else qs(`#${tipo}-mun-search`).value=code}catch{qs(`#${tipo}-mun-search`).value=code}
+}
+
 function formatarCnpj(value){
   const digits=String(value||'').replace(/\D/g,'');
   return digits.length===14?digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5'):value;
@@ -1321,6 +1368,7 @@ async function consultarCnpjEmitente(){
     qs('#e-cnpj').value=formatarCnpj(empresa.federalTaxId);
     qs('#e-rs').value=empresa.legalName||'';
     qs('#e-mun').value=empresa.municipalityCode||'';
+    exibirMunicipioPorCodigo('e',empresa.municipalityCode);
     qs('#e-end').value=empresa.address||'';
     empresaAtual={...(empresaAtual||{}),rs:empresa.legalName||'',cnpj:empresa.federalTaxId||cnpj,mun:empresa.municipalityCode||'',municipio:[empresa.municipality,empresa.state].filter(Boolean).join('/'),endereco:empresa.address||'',postalCode:empresa.postalCode||'',street:empresa.street||'',number:empresa.number||'',complement:empresa.complement||'',district:empresa.district||'',state:empresa.state||''};
     hint.textContent=`Dados preenchidos: ${[empresa.municipality,empresa.state].filter(Boolean).join('/')||'município não informado'}. Revise a inscrição municipal e o regime tributário.`;
@@ -1606,7 +1654,7 @@ function lerParametros(){
 
 /* ---------- habilitação ---------- */
 function checarHabilitacao(){
-  const reg=qs('#e-reg').value, mun=qs('#e-mun').selectedOptions[0].text.split('— ')[1];
+  const reg=qs('#e-reg').value, mun=qs('#e-mun-search').value||qs('#e-mun').value||'não informado';
   const simples=reg.includes('Simples')||reg==='MEI';
   const box=qs('#hab');
 
@@ -1725,6 +1773,29 @@ async function emitir(falhar){
   }
 }
 
+/* ---------- rascunhos de emissão ---------- */
+function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{name:qs('#t-nome').value,taxId:qs('#t-doc').value,email:qs('#t-mail').value,phone:qs('#t-zap').value,municipalityCode:qs('#t-municipio').value,postalCode:qs('#t-cep').value,street:qs('#t-end').value,number:qs('#t-num').value,district:qs('#t-bairro').value,complement:qs('#t-comp').value},service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,description:qs('#s-desc').value,amount:qs('#s-val').value,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value}}}
+function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';lerParametros();}
+let rascunhos=[];
+async function carregarRascunhos(){try{rascunhos=await api('/api/workspace/drafts');const box=qs('#draft-list');box.innerHTML=rascunhos.length?rascunhos.map((item,index)=>`<div class="draft-item"><b>${esc(item.title)}</b><span>${new Date(item.updated_at).toLocaleString('pt-BR')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="abrirRascunho(${index})">Abrir</button><button class="ico-btn danger" title="Excluir" onclick="excluirRascunho('${item.id}')">×</button></div></div>`).join(''):'<div class="empty-state">Nenhum rascunho salvo.</div>'}catch(error){qs('#draft-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
+async function salvarRascunho(){const title=prompt('Nome do rascunho',qs('#t-nome').value?`NFS-e — ${qs('#t-nome').value}`:'Nova NFS-e');if(!title)return;try{await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title,payload:dadosRascunho()})});await carregarRascunhos()}catch(error){alert(error.message)}}
+function abrirRascunho(index){aplicarRascunho(rascunhos[index].payload||{});window.scrollTo(0,0)}
+async function excluirRascunho(id){if(!confirm('Excluir este rascunho?'))return;try{await api('/api/workspace/drafts/'+id,{method:'DELETE'});await carregarRascunhos()}catch(error){alert(error.message)}}
+
+/* ---------- cadastro de clientes ---------- */
+let clientesCadastro=[];
+function preencherClienteCadastro(cliente){qs('#cl-doc').value=cliente.tax_id||'';qs('#cl-nome').value=cliente.legal_name||'';qs('#cl-mail').value=cliente.email||'';qs('#cl-fone').value=cliente.phone||'';qs('#cl-end').value=cliente.address||'';qs('#cl-mun').value=cliente.municipality_code||'';qs('#cl-cep').value=cliente.postal_code||'';}
+async function consultarClienteCadastro(){const cnpj=qs('#cl-doc').value.replace(/\D/g,'');if(cnpj.length!==14){alert('A consulta pública está disponível para CNPJ de 14 dígitos.');return}try{preencherClienteCadastro(await api('/api/customers/cnpj/'+cnpj))}catch(error){alert(error.message)}}
+async function salvarCliente(){const taxId=qs('#cl-doc').value.replace(/\D/g,''),legalName=qs('#cl-nome').value.trim();if(!taxId||!legalName){alert('Informe nome e CPF/CNPJ do cliente.');return}try{await api('/api/customers',{method:'POST',body:JSON.stringify({taxId,legalName,email:qs('#cl-mail').value.trim()||undefined,phone:qs('#cl-fone').value.trim()||undefined,address:qs('#cl-end').value.trim()||undefined,postalCode:qs('#cl-cep').value.replace(/\D/g,'')||undefined,municipalityCode:qs('#cl-mun').value.replace(/\D/g,'')||undefined})});await carregarClientesCadastro();alert('Cliente salvo.') }catch(error){alert(error.message)}}
+async function carregarClientesCadastro(){try{clientesCadastro=await api('/api/customers?search=');qs('#client-list').innerHTML=clientesCadastro.length?clientesCadastro.map((item,index)=>`<div class="draft-item"><b>${esc(item.legal_name)}</b><span>${esc(item.tax_id)} · ${esc(item.address||'sem endereço')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="usarClienteNaEmissao(${index})">Usar na emissão</button></div></div>`).join(''):'<div class="empty-state">Nenhum cliente cadastrado.</div>'}catch(error){qs('#client-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
+function usarClienteNaEmissao(index){preencherCliente(clientesCadastro[index]);go('emitir',qs('.sb-link[onclick*="emitir"]'));}
+
+/* ---------- orçamentos e ordens de serviço ---------- */
+let comerciais=[];
+async function carregarComerciais(){try{comerciais=await api('/api/workspace/commercial');const box=qs('#commercial-list');box.innerHTML=comerciais.length?comerciais.map((item,index)=>`<div class="draft-item"><b>${esc(item.kind==='quote'?'Orçamento':'O.S.')} · ${esc(item.title)}</b><span>${esc(item.customer_name||'Sem cliente')} · R$ ${brl(item.amount||0)} · ${esc(item.status)}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="converterComercial(${index})">Converter em NFS-e</button></div></div>`).join(''):'<div class="empty-state">Nenhum orçamento ou O.S. cadastrado.</div>'}catch(error){qs('#commercial-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
+async function salvarComercial(){const title=qs('#co-title').value.trim(),customerName=qs('#co-customer').value.trim(),description=qs('#co-description').value.trim(),amount=dinheiro(qs('#co-value').value);if(!title||!description||amount<=0){alert('Informe título, descrição e valor.');return}try{await api('/api/workspace/commercial',{method:'POST',body:JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:{borrower:{name:customerName},service:{description,amount:qs('#co-value').value}}})});qs('#co-title').value='';qs('#co-customer').value='';qs('#co-description').value='';qs('#co-value').value='0,00';await carregarComerciais()}catch(error){alert(error.message)}}
+async function converterComercial(index){const item=comerciais[index];try{const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'}),p=result.payload||{},b=p.borrower||{},s=p.service||{};qs('#t-nome').value=b.name||'';qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';lerParametros();go('emitir',qs('.sb-link[onclick*="emitir"]'));alert('Dados transferidos para a emissão. Confira CPF/CNPJ, município e demais campos antes de autorizar a NFS-e.')}catch(error){alert(error.message)}}
+
 
 /* ---------- importação ADN ---------- */
 let impRodando=false;
@@ -1836,10 +1907,10 @@ function aplicarEmpresa(){
   qs('#e-cnpj').value=empresaAtual.cnpj;
   qs('#e-im').value=empresaAtual.im;
   qs('#e-reg').value=empresaAtual.reg;
-  qs('#e-mun').value=empresaAtual.mun;
+  qs('#e-mun').value=empresaAtual.mun;exibirMunicipioPorCodigo('e',empresaAtual.mun);
   qs('#e-end').value=empresaAtual.endereco;
   qs('#e-series').value=empresaAtual.series||1;qs('#e-next').value=empresaAtual.next||1;qs('#e-simple-ap').value=String(empresaAtual.simpleAp||1);qs('#e-simple-total').value=empresaAtual.simpleTotal===''?'':String(empresaAtual.simpleTotal).replace('.',',');qs('#e-special').value=String(empresaAtual.special||0);
-  if(qs(`#s-mun option[value="${empresaAtual.mun}"]`))qs('#s-mun').value=empresaAtual.mun;
+  if(empresaAtual.mun)qs('#s-mun').value=empresaAtual.mun;
   qs('#resumo-regime').textContent=empresaAtual.reg;
   qs('#kpi-empresas').textContent='1';
   qs('#kpi-cadastro').textContent='Concluído';
