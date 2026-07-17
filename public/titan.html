@@ -327,6 +327,10 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 }
 .ico-btn:hover{background:var(--navy);color:var(--gold);border-color:var(--navy)}
 .ico-btn.danger:hover{background:var(--err);color:#fff;border-color:var(--err)}
+.modal-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(11,22,41,.72);display:none;align-items:center;justify-content:center;padding:18px}
+.modal-backdrop.on{display:flex}
+.modal-card{width:100%;max-width:540px;background:var(--paper);border-radius:8px;box-shadow:0 24px 70px rgba(0,0,0,.3);overflow:hidden}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:start;gap:12px}.modal-head h2{font-size:18px}.modal-body{padding:20px}.modal-actions{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
 
 /* ---------- PIPELINE (elemento-assinatura) ---------- */
 .pipe{background:var(--navy);border-radius:var(--r);padding:6px 0;overflow:hidden}
@@ -518,10 +522,6 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
       <button class="sb-link" data-permission="services" onclick="go('servicos',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>
         Serviços e retenções
-      </button>
-      <button class="sb-link" data-master-only="true" onclick="go('marca',this)">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-        Identidade visual
       </button>
       <div class="sb-sec">Técnico</div>
       <button class="sb-link" data-master-only="true" onclick="go('logs',this)">
@@ -1056,66 +1056,6 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
       </div>
     </section>
 
-    <!-- ---------- IDENTIDADE VISUAL ---------- -->
-    <section class="view" id="v-marca">
-      <div class="page-h">
-        <h1>Identidade visual</h1>
-        <p>Onde a marca do seu cliente pode e não pode aparecer.</p>
-      </div>
-
-      <div class="alert a-err" style="margin-bottom:16px">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>
-        <div><b>O layout nacional não prevê o logo do prestador.</b> A Nota Técnica nº 008/2026 fixou o modelo do DANFSe: o cabeçalho traz a logomarca oficial da NFS-e Nacional e a inscrição “DANFSe v2.0”, os blocos seguem a disposição normativa e o QR Code tem tamanho mínimo de 1,52 cm. A marca do cliente fica nos canais de entrega, fora do documento fiscal.</div>
-      </div>
-
-      <div class="grid g2" style="align-items:start">
-        <div class="card">
-          <div class="card-h"><h2>Logo do cliente</h2></div>
-          <div class="card-b">
-            <div class="drop">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b8f99" stroke-width="1.6" style="margin:0 auto"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-              <div class="big">Arraste o PNG ou SVG</div>
-              <div class="sm">fundo transparente · mínimo 400 px de largura</div>
-            </div>
-            <div class="row r2" style="margin-top:14px">
-              <div class="field mb0">
-                <label for="m-cor">Cor de destaque</label>
-                <input id="m-cor" class="inp mono" value="#0b1629">
-              </div>
-              <div class="field mb0">
-                <label for="m-nome">Nome de exibição</label>
-                <input id="m-nome" class="inp" placeholder="Nome de exibição">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-h">
-            <h2>Onde ele aparece</h2>
-            <span class="pill p-ok right">3 lugares</span>
-          </div>
-          <div class="card-b" style="padding:14px 16px">
-            <div class="stack" style="gap:10px">
-              <div class="dest">
-                <div class="box-mini">MAIL</div>
-                <div><div class="t">E-mail que leva a nota</div><div class="s">Cabeçalho da mensagem, com o XML e o DANFSe anexos. É o que o tomador abre primeiro.</div></div>
-              </div>
-              <div class="dest">
-                <div class="box-mini">WEB</div>
-                <div><div class="t">Portal do tomador</div><div class="s">A página onde ele baixa a nota. Marca do prestador no topo, DANFSe padrão dentro.</div></div>
-              </div>
-              <div class="dest">
-                <div class="box-mini">ZAP</div>
-                <div><div class="t">Recibo de WhatsApp</div><div class="s">Documento comercial, não fiscal. Aqui o logo é livre — só não pode se passar por nota.</div></div>
-              </div>
-            </div>
-            <div class="foot-note">O logo vai no envelope, não na nota. O DANFSe é documento fiscal padronizado; o que o cliente lembra é o e-mail e o portal — e esses são seus.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- ---------- LOGS ---------- -->
     <section class="view" id="v-logs">
       <div class="page-h">
@@ -1168,6 +1108,19 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
   </main>
 </div>
 
+<div class="modal-backdrop" id="cancel-modal" role="dialog" aria-modal="true" aria-labelledby="cancel-title">
+  <div class="modal-card">
+    <div class="modal-head"><div><h2 id="cancel-title">Cancelar NFS-e</h2><p style="font-size:12px;color:var(--ink-3);margin-top:4px">O cancelamento será enviado oficialmente à Sefin Nacional.</p></div></div>
+    <div class="modal-body">
+      <div class="alert a-err" style="margin-bottom:14px"><div><b>Esta ação tem efeito fiscal e não pode ser desfeita.</b><br>Nota <span id="cancel-note" class="mono"></span></div></div>
+      <div class="field"><label for="cancel-code">Motivo do cancelamento</label><select id="cancel-code" class="inp"><option value="1">1 — Erro na emissão</option><option value="2">2 — Serviço não prestado</option><option value="9">9 — Outros</option></select></div>
+      <div class="field"><label for="cancel-reason">Justificativa detalhada</label><textarea id="cancel-reason" class="inp" minlength="15" maxlength="255" rows="4" placeholder="Explique o motivo com pelo menos 15 caracteres"></textarea><div class="hint">Obrigatória · de 15 a 255 caracteres</div></div>
+      <label style="display:flex;gap:9px;align-items:flex-start;font-size:12px"><input id="cancel-confirm" type="checkbox" style="margin-top:2px"> Confirmo que conferi a nota e desejo registrar o cancelamento oficial.</label>
+    </div>
+    <div class="modal-actions"><button class="btn btn-s" onclick="fecharCancelamento()">Voltar</button><button class="btn btn-p" id="cancel-submit" onclick="confirmarCancelamento()" style="background:var(--err);border-color:var(--err)">Cancelar NFS-e oficialmente</button></div>
+  </div>
+</div>
+
 <script src="/config.js"></script>
 <script>
 const qs=(s,r=document)=>r.querySelector(s);
@@ -1215,6 +1168,14 @@ async function api(path,options={}){
     throw new Error(details||data.error||data.message||'Falha de comunicação com o servidor.');
   }
   return data;
+}
+
+async function apiBlob(path,options={}){
+  if(!API_URL)throw new Error('O servidor seguro ainda não foi vinculado a este endereço.');
+  const token=sessionStorage.getItem(STORAGE_TOKEN),companyId=sessionStorage.getItem(STORAGE_COMPANY_ID);
+  const response=await fetch(API_URL+path,{...options,headers:{...(token?{Authorization:'Bearer '+token}:{}),...(companyId?{'X-Company-Id':companyId}:{}),...(options.headers||{})}});
+  if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||'Não foi possível obter o documento.');}
+  return response.blob();
 }
 
 /* ---------- login / navegação ---------- */
@@ -1290,8 +1251,8 @@ async function carregarEmpresaServidor(){
 async function carregarNotasServidor(){
   const rows=await api('/api/invoices');
   notas.splice(0,notas.length,...rows.map(row=>({
-    n:row.dps_number,d:new Date(row.created_at).toLocaleDateString('pt-BR'),t:row.borrower_name,
-    s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='rejected'||row.status==='error'?'err':'proc'
+    id:row.id,key:row.access_key,n:row.dps_number,d:new Date(row.created_at).toLocaleDateString('pt-BR'),t:row.borrower_name,
+    s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='canceled'?'canc':row.status==='rejected'||row.status==='error'?'err':'proc'
   })));
   tabelas();
 }
@@ -1545,14 +1506,37 @@ function tabelas(){
       <td>${pill(x.st)}</td>
       <td>
         <div class="acts">
-          <button class="ico-btn" title="Baixar XML"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
-          <button class="ico-btn" title="Ver DANFSe"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ico-btn" title="Baixar XML" onclick="baixarXml('${x.id}','${x.n}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
+          <button class="ico-btn" title="Abrir DANFSe em PDF" onclick="abrirDanfse('${x.id}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
           <button class="ico-btn" title="Enviar por WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5a8.4 8.4 0 0 1-.9-3.9 8.4 8.4 0 0 1 8.4-9 8.4 8.4 0 0 1 8.6 8.4Z"/></svg></button>
-          <button class="ico-btn danger" title="Cancelar nota" ${x.st!=='ok'?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></button>
+          <button class="ico-btn danger" title="Cancelar nota" onclick="abrirCancelamento('${x.id}','${x.n}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></button>
         </div>
       </td>
     </tr>`).join('');
 }
+
+async function baixarXml(id,numero){
+  try{const blob=await apiBlob('/api/invoices/'+id+'/xml'),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='nfse-'+numero+'.xml';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(error){alert(error.message)}
+}
+
+async function abrirDanfse(id){
+  const tab=window.open('','_blank');
+  if(!tab){alert('Permita a abertura de nova guia para visualizar o DANFSe.');return}
+  tab.document.write('<title>Preparando DANFSe...</title><p style="font-family:sans-serif;padding:24px">Gerando DANFSe...</p>');
+  try{const blob=await apiBlob('/api/invoices/'+id+'/pdf'),url=URL.createObjectURL(blob);tab.location.href=url;setTimeout(()=>URL.revokeObjectURL(url),120000)}catch(error){tab.close();alert(error.message)}
+}
+
+let invoiceCancelamento=null;
+function abrirCancelamento(id,numero){invoiceCancelamento=id;qs('#cancel-note').textContent='DPS '+numero;qs('#cancel-code').value='1';qs('#cancel-reason').value='';qs('#cancel-confirm').checked=false;qs('#cancel-modal').classList.add('on');qs('#cancel-reason').focus()}
+function fecharCancelamento(){invoiceCancelamento=null;qs('#cancel-modal').classList.remove('on')}
+async function confirmarCancelamento(){
+  const reasonCode=qs('#cancel-code').value,reason=qs('#cancel-reason').value.trim();
+  if(reason.length<15){alert('Detalhe o motivo do cancelamento com pelo menos 15 caracteres.');return}
+  if(!qs('#cancel-confirm').checked){alert('Marque a confirmação antes de cancelar oficialmente.');return}
+  const button=qs('#cancel-submit');button.disabled=true;button.textContent='Enviando cancelamento...';
+  try{await api('/api/invoices/'+invoiceCancelamento+'/cancel',{method:'POST',headers:{'X-Confirm-Cancellation':'CANCELAR_NFSE_REAL'},body:JSON.stringify({reasonCode,reason})});fecharCancelamento();await carregarNotasServidor();alert('Cancelamento autorizado e registrado na Sefin Nacional.')}catch(error){alert(error.message)}finally{button.disabled=false;button.textContent='Cancelar NFS-e oficialmente'}
+}
+qs('#cancel-modal').addEventListener('click',event=>{if(event.target===qs('#cancel-modal'))fecharCancelamento()});
 
 /* ---------- parâmetros municipais ---------- */
 function lerParametros(){
@@ -1799,7 +1783,6 @@ function aplicarEmpresa(){
   qs('#e-end').value=empresaAtual.endereco;
   qs('#e-series').value=empresaAtual.series||1;qs('#e-next').value=empresaAtual.next||1;qs('#e-simple-ap').value=String(empresaAtual.simpleAp||1);qs('#e-simple-total').value=empresaAtual.simpleTotal===''?'':String(empresaAtual.simpleTotal).replace('.',',');qs('#e-special').value=String(empresaAtual.special||0);
   if(qs(`#s-mun option[value="${empresaAtual.mun}"]`))qs('#s-mun').value=empresaAtual.mun;
-  qs('#m-nome').value=empresaAtual.rs;
   qs('#resumo-regime').textContent=empresaAtual.reg;
   qs('#kpi-empresas').textContent='1';
   qs('#kpi-cadastro').textContent='Concluído';

@@ -18,3 +18,12 @@ test("mantém emissão real restrita sem sucesso simulado", async () => {
   assert.doesNotMatch(html, /Simulação concluída/);
   assert.match(html, /A simulação artificial foi removida/);
 });
+
+test("oferece documentos e cancelamento oficial sem identidade visual", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/\/api\/invoices\/'\+id\+'\/xml/);
+  assert.match(html,/\/api\/invoices\/'\+id\+'\/pdf/);
+  assert.match(html,/X-Confirm-Cancellation/);
+  assert.match(html,/Cancelar NFS-e oficialmente/);
+  assert.doesNotMatch(html,/Identidade visual|v-marca/);
+});
