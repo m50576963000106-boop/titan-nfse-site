@@ -879,7 +879,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
               </label>
               <div class="field" style="margin-top:14px">
                 <label for="c-pw">Senha do certificado</label>
-                <input id="c-pw" class="inp" type="password" placeholder="••••••••••">
+                <input id="c-pw" name="certificate_passphrase" class="inp" type="password" autocomplete="new-password" data-lpignore="true" placeholder="••••••••••">
                 <div class="hint">Guardada com AES-256-GCM. A chave mestra fica fora do banco e fora do <span class="mono">.env</span> da aplicação.</div>
               </div>
               <button class="btn btn-p" id="btn-cert" style="width:100%" onclick="enviarCertificado()">Enviar ao cofre seguro</button>
@@ -1110,7 +1110,10 @@ function go(v,el){
   if(el)el.classList.add('active');
   qs('#sb').classList.remove('open');
   window.scrollTo(0,0);
-  if(v==='cert')carregarCertificado();
+  if(v==='cert'){
+    qs('#c-pw').value='';
+    carregarCertificado();
+  }
 }
 qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
 
