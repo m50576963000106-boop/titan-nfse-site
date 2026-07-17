@@ -668,14 +668,21 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
                 <div class="hint">Selecione um cadastro já obtido do Portal Nacional ou do histórico de emissões.</div>
               </div>
               <div class="row r2">
-                <div class="field mb0">
-                  <label for="t-mail">E-mail</label>
-                  <input id="t-mail" class="inp" type="email" placeholder="financeiro@cliente.com.br">
+              <div class="field mb0">
+                <label for="t-mail">E-mail</label>
+                <input id="t-mail" class="inp" type="email" placeholder="financeiro@cliente.com.br">
                 </div>
                 <div class="field mb0">
                   <label for="t-zap">WhatsApp</label>
-                  <input id="t-zap" class="inp" placeholder="(00) 00000-0000">
-                </div>
+                <input id="t-zap" class="inp" placeholder="(00) 00000-0000">
+              </div>
+            </div>
+              <div class="field" style="margin-top:14px">
+                <label>Endereço do tomador</label>
+                <div class="row r2"><div class="field"><label for="t-cep">CEP</label><input id="t-cep" class="inp mono" inputmode="numeric" placeholder="00000-000"></div><div class="field"><label for="t-municipio">Município (código IBGE)</label><input id="t-municipio" class="inp mono" inputmode="numeric" maxlength="7" placeholder="0000000"></div></div>
+                <div class="row r2"><div class="field"><label for="t-end">Logradouro</label><input id="t-end" class="inp" placeholder="Rua, avenida ou rodovia"></div><div class="field"><label for="t-num">Número</label><input id="t-num" class="inp" placeholder="Número"></div></div>
+                <div class="row r2"><div class="field mb0"><label for="t-bairro">Bairro</label><input id="t-bairro" class="inp" placeholder="Bairro"></div><div class="field mb0"><label for="t-comp">Complemento</label><input id="t-comp" class="inp" placeholder="Sala, bloco, referência"></div></div>
+                <div class="hint">A busca por CNPJ preenche nome, contato, cidade e endereço. Revise os dados antes de emitir.</div>
               </div>
             </div>
           </div>
@@ -840,8 +847,8 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
             <div class="row r2">
               <div class="field">
                 <label for="e-cnpj">CNPJ</label>
-                <input id="e-cnpj" class="inp mono" placeholder="00.000.000/0000-00" required>
-                <div class="hint">Formato numérico ou alfanumérico detectado automaticamente.</div>
+                <div class="input-action"><input id="e-cnpj" class="inp mono" placeholder="00.000.000/0000-00" required><button class="btn btn-s" id="btn-e-cnpj" type="button" onclick="consultarCnpjEmitente()">Buscar CNPJ</button></div>
+                <div class="hint" id="e-cnpj-hint">Consulta gratuita pela BrasilAPI: preenche razão social, cidade e endereço.</div>
               </div>
               <div class="field">
                 <label for="e-im">Inscrição municipal</label>
@@ -861,12 +868,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
               </div>
               <div class="field">
                 <label for="e-mun">Município (código IBGE)</label>
-                <select id="e-mun" class="inp" onchange="checarHabilitacao()">
-                  <option value="4106902">4106902 — Curitiba/PR</option>
-                  <option value="4104204">4104204 — Campo Largo/PR</option>
-                  <option value="3550308">3550308 — São Paulo/SP</option>
-                  <option value="4113700">4113700 — Londrina/PR</option>
-                </select>
+                <input id="e-mun" class="inp mono" inputmode="numeric" maxlength="7" placeholder="0000000" onchange="checarHabilitacao()" required>
               </div>
             </div>
             <div class="field mb0">
@@ -1270,7 +1272,7 @@ async function carregarEmpresaServidor(){
   const row=await api('/api/company');
   if(!row){empresaAtual=null;return}
   const regimes={regular:'Lucro Presumido',mei:'MEI',simples:'Simples Nacional — ME'};
-  empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.municipality_code,endereco:'',series:Number(row.dps_series)||1,next:String(row.next_dps_number||1),simpleAp:Number(row.simple_assessment_regime)||1,simpleTotal:row.simple_total_tax_rate==null?'':Number(row.simple_total_tax_rate),special:Number(row.special_tax_regime)||0};
+  empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.municipality_code,endereco:row.address||'',postalCode:row.postal_code||'',street:row.street||'',number:row.number||'',complement:row.complement||'',district:row.district||'',state:row.state||'',series:Number(row.dps_series)||1,next:String(row.next_dps_number||1),simpleAp:Number(row.simple_assessment_regime)||1,simpleTotal:row.simple_total_tax_rate==null?'':Number(row.simple_total_tax_rate),special:Number(row.special_tax_regime)||0};
   localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresaAtual));
 }
 
@@ -1294,8 +1296,36 @@ function preencherCliente(cliente){
   qs('#t-mail').value=cliente.email||'';
   qs('#t-zap').value=cliente.phone||'';
   qs('#t-tipo').selectedIndex=(cliente.tax_id||'').replace(/\D/g,'').length===11?1:0;
-  if(cliente.municipality_code&&qs(`#s-mun option[value="${cliente.municipality_code}"]`))qs('#s-mun').value=cliente.municipality_code;
+  qs('#t-cep').value=cliente.postal_code||'';
+  qs('#t-municipio').value=cliente.municipality_code||'';
+  qs('#t-end').value=cliente.street||'';
+  qs('#t-num').value=cliente.number||'';
+  qs('#t-bairro').value=cliente.district||'';
+  qs('#t-comp').value=cliente.complement||'';
   qs('#customer-results').classList.remove('on');
+}
+
+function formatarCnpj(value){
+  const digits=String(value||'').replace(/\D/g,'');
+  return digits.length===14?digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5'):value;
+}
+qs('#e-cnpj').addEventListener('blur',()=>{qs('#e-cnpj').value=formatarCnpj(qs('#e-cnpj').value)});
+
+async function consultarCnpjEmitente(){
+  const cnpj=qs('#e-cnpj').value.replace(/\D/g,'');
+  if(cnpj.length!==14){alert('Informe os 14 dígitos do CNPJ para fazer a consulta pública.');qs('#e-cnpj').focus();return}
+  const button=qs('#btn-e-cnpj'),hint=qs('#e-cnpj-hint');
+  button.disabled=true;button.textContent='Buscando...';hint.textContent='Consultando a base pública de CNPJ...';
+  try{
+    const empresa=await api('/api/company/lookup/cnpj/'+cnpj);
+    qs('#e-cnpj').value=formatarCnpj(empresa.federalTaxId);
+    qs('#e-rs').value=empresa.legalName||'';
+    qs('#e-mun').value=empresa.municipalityCode||'';
+    qs('#e-end').value=empresa.address||'';
+    empresaAtual={...(empresaAtual||{}),rs:empresa.legalName||'',cnpj:empresa.federalTaxId||cnpj,mun:empresa.municipalityCode||'',municipio:[empresa.municipality,empresa.state].filter(Boolean).join('/'),endereco:empresa.address||'',postalCode:empresa.postalCode||'',street:empresa.street||'',number:empresa.number||'',complement:empresa.complement||'',district:empresa.district||'',state:empresa.state||''};
+    hint.textContent=`Dados preenchidos: ${[empresa.municipality,empresa.state].filter(Boolean).join('/')||'município não informado'}. Revise a inscrição municipal e o regime tributário.`;
+  }catch(error){hint.textContent=error.message;alert(error.message)}
+  finally{button.disabled=false;button.textContent='Buscar CNPJ'}
 }
 
 function selecionarCliente(index){
@@ -1650,7 +1680,7 @@ async function emitir(falhar){
   const cst=qs('#s-cst').value.trim();
   const payload={
     competenceDate:qs('#s-comp').value,
-    borrower:{name:qs('#t-nome').value.trim(),taxId:qs('#t-doc').value,email:qs('#t-mail').value.trim()||undefined},
+    borrower:{name:qs('#t-nome').value.trim(),taxId:qs('#t-doc').value,email:qs('#t-mail').value.trim()||undefined,municipalityCode:qs('#t-municipio').value.replace(/\D/g,'')||undefined,postalCode:qs('#t-cep').value.replace(/\D/g,'')||undefined,street:qs('#t-end').value.trim()||undefined,number:qs('#t-num').value.trim()||undefined,district:qs('#t-bairro').value.trim()||undefined},
     service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,municipalTaxCode:perfil?.municipal_code||undefined,description:qs('#s-desc').value.trim(),amount:valor,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,issRate:perfil?.iss_rate==null?undefined:Number(perfil.iss_rate),pisCofinsCst:cst||undefined,pisCofinsWithholding:qs('#s-ret-pc').value||undefined,retCp:dinheiro(qs('#s-ret-cp').value),retIrrf:dinheiro(qs('#s-ret-irrf').value),retCsll:dinheiro(qs('#s-ret-csll').value)}
   };
   if(!payload.competenceDate||!payload.borrower.name||!payload.borrower.taxId||!payload.service.nationalTaxCode||!payload.service.description||!Number.isFinite(valor)||valor<=0){
@@ -1761,8 +1791,9 @@ async function salvarCadastro(){
     im:qs('#e-im').value.trim(),
     reg:qs('#e-reg').value,
     mun:qs('#e-mun').value,
-    municipio:qs('#e-mun').selectedOptions[0].text.split('— ')[1],
+    municipio:empresaAtual?.municipio||qs('#e-mun').value,
     endereco:qs('#e-end').value.trim(),
+    postalCode:empresaAtual?.postalCode||'',street:empresaAtual?.street||'',number:empresaAtual?.number||'',complement:empresaAtual?.complement||'',district:empresaAtual?.district||'',state:empresaAtual?.state||'',
     series:Number(qs('#e-series').value),next:qs('#e-next').value.replace(/\D/g,''),simpleAp:Number(qs('#e-simple-ap').value),simpleTotal:qs('#e-simple-total').value.trim()===''?'':dinheiro(qs('#e-simple-total').value),special:Number(qs('#e-special').value)
   };
   if(!empresa.rs||!empresa.cnpj){
@@ -1773,7 +1804,7 @@ async function salvarCadastro(){
   const regime=empresa.reg==='MEI'?'mei':empresa.reg.includes('Simples')?'simples':'regular';
   if(ambienteAtual==='production'&&regime==='simples'&&empresa.simpleTotal===''){alert('Informe o percentual aproximado total de tributos do Simples para habilitar emissões fiscais.');return}
   try{
-    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im||undefined,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,simpleTotalTaxRate:regime==='simples'&&empresa.simpleTotal!==''?empresa.simpleTotal:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next})});
+    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im||undefined,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,simpleTotalTaxRate:regime==='simples'&&empresa.simpleTotal!==''?empresa.simpleTotal:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next,address:empresa.endereco||undefined,postalCode:empresa.postalCode||undefined,street:empresa.street||undefined,number:empresa.number||undefined,complement:empresa.complement||undefined,district:empresa.district||undefined,state:empresa.state||undefined})});
     empresaAtual=empresa;
     localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresa));
   }catch(error){alert(error.message);return}

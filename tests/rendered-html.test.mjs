@@ -39,3 +39,11 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(route,/\["admin", "adm"\]/);
   assert.match(route,/portal: "admin"/);
 });
+
+test("consulta CNPJ preenche emitente e endereço do tomador", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/consultarCnpjEmitente\(\)/);
+  assert.match(html,/\/api\/company\/lookup\/cnpj\//);
+  assert.match(html,/id="t-municipio"/);
+  assert.match(html,/postalCode:qs\('#t-cep'\)/);
+});
