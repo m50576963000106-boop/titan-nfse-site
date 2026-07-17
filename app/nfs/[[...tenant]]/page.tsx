@@ -9,11 +9,11 @@ export default async function TenantPortal({ params, searchParams }: Props) {
   const { tenant = [] } = await params;
   const query = await searchParams;
   const target = tenant[0] ?? "";
-  const isAdmin = tenant.length === 1 && target.toLowerCase() === "adm";
+  const isAdmin = tenant.length === 1 && ["admin", "adm"].includes(target.toLowerCase());
   const isCompany = tenant.length === 1 && /^\d{14}$/.test(target);
   if (!isAdmin && !isCompany) notFound();
 
-  const frameQuery = new URLSearchParams(isAdmin ? { portal: "adm" } : { tenant: target });
+  const frameQuery = new URLSearchParams(isAdmin ? { portal: "admin" } : { tenant: target });
   const invite = Array.isArray(query.invite) ? query.invite[0] : query.invite;
   if (invite) frameQuery.set("invite", invite);
 

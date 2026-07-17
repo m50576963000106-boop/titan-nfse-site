@@ -36,5 +36,6 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(html,/não possui acesso liberado para o CNPJ/);
   assert.match(html,/new URL\('\/nfs\/'\+federalTaxId/);
   assert.match(route,/\^\\d\{14\}\$/);
-  assert.match(route,/portal: "adm"/);
+  assert.match(route,/\["admin", "adm"\]/);
+  assert.match(route,/portal: "admin"/);
 });
