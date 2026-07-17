@@ -243,6 +243,19 @@ textarea.inp{resize:vertical;min-height:64px}
 .r2{grid-template-columns:1fr 1fr}
 .r3{grid-template-columns:1fr 1fr 1fr}
 .r21{grid-template-columns:2fr 1fr}
+.customer-search{position:relative}
+.customer-results{
+  display:none;position:absolute;z-index:20;left:0;right:0;top:100%;margin-top:3px;
+  max-height:260px;overflow:auto;background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:0 12px 30px rgba(11,22,41,.14)
+}
+.customer-results.on{display:block}
+.customer-option{width:100%;padding:10px 12px;text-align:left;background:transparent;border:0;border-bottom:1px solid #f0eee6}
+.customer-option:last-child{border-bottom:0}
+.customer-option:hover{background:#fbfaf7}
+.customer-option b{display:block;font-size:12.5px;margin-bottom:3px}
+.customer-option span{font-size:10.5px;color:var(--ink-3)}
+.input-action{display:flex;gap:7px}.input-action .inp{min-width:0}.input-action .btn{flex:none}
 
 .btn{
   padding:9px 15px;border-radius:var(--r);font-weight:600;font-size:13px;
@@ -624,22 +637,24 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
         <div class="stack">
 
           <div class="card">
-            <div class="card-h"><h2>Tomador do serviço</h2></div>
+            <div class="card-h"><h2>Tomador do serviço</h2><button class="btn btn-s right" onclick="abrirClientesPortal()">Clientes do Portal</button></div>
             <div class="card-b">
               <div class="row r21">
                 <div class="field">
                   <label for="t-doc">CPF / CNPJ</label>
-                  <input id="t-doc" class="inp" placeholder="CPF ou CNPJ do tomador">
-                  <div class="hint">Aceita CNPJ alfanumérico (IN RFB nº 2.229/2024).</div>
+                  <div class="input-action"><input id="t-doc" class="inp" placeholder="CPF ou CNPJ do tomador"><button class="btn btn-s" id="btn-cnpj" type="button" onclick="consultarCnpj()">Buscar CNPJ</button></div>
+                  <div class="hint" id="cnpj-hint">Consulta gratuita pela BrasilAPI. CPF e CNPJ alfanumérico podem ser preenchidos manualmente.</div>
                 </div>
                 <div class="field">
                   <label for="t-tipo">Tipo</label>
                   <select id="t-tipo" class="inp"><option>Pessoa jurídica</option><option>Pessoa física</option><option>Exterior</option></select>
                 </div>
               </div>
-              <div class="field">
+              <div class="field customer-search">
                 <label for="t-nome">Razão social / nome</label>
-                <input id="t-nome" class="inp" placeholder="Nome ou razão social">
+                <input id="t-nome" class="inp" placeholder="Digite para buscar na carteira e no Portal Nacional" autocomplete="off">
+                <div class="customer-results" id="customer-results"></div>
+                <div class="hint">Selecione um cadastro já obtido do Portal Nacional ou do histórico de emissões.</div>
               </div>
               <div class="row r2">
                 <div class="field mb0">
@@ -1056,6 +1071,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
 const qs=(s,r=document)=>r.querySelector(s);
 const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
 const brl=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const API_URL=(window.TITAN_API_URL||'').replace(/\/$/,'');
 const STORAGE_TOKEN='titan_nfse_session_v1';
 
@@ -1133,6 +1149,65 @@ async function carregarNotasServidor(){
   })));
   tabelas();
 }
+
+/* ---------- clientes / consulta CNPJ ---------- */
+let clientesEncontrados=[];
+let buscaClienteTimer;
+const origemCliente={portal_nacional:'Portal Nacional',cnpj_api:'BrasilAPI',emission_history:'Histórico de notas',manual:'Cadastro manual'};
+
+function preencherCliente(cliente){
+  qs('#t-doc').value=cliente.tax_id||'';
+  qs('#t-nome').value=cliente.legal_name||cliente.trade_name||'';
+  qs('#t-mail').value=cliente.email||'';
+  qs('#t-zap').value=cliente.phone||'';
+  qs('#t-tipo').selectedIndex=(cliente.tax_id||'').replace(/\D/g,'').length===11?1:0;
+  if(cliente.municipality_code&&qs(`#s-mun option[value="${cliente.municipality_code}"]`))qs('#s-mun').value=cliente.municipality_code;
+  qs('#customer-results').classList.remove('on');
+}
+
+function selecionarCliente(index){
+  const cliente=clientesEncontrados[index];
+  if(cliente)preencherCliente(cliente);
+}
+
+async function buscarClientes(force=false){
+  const query=qs('#t-nome').value.trim();
+  const box=qs('#customer-results');
+  if(!force&&query.length<2){box.classList.remove('on');return}
+  box.innerHTML='<div class="empty-state" style="padding:15px">Buscando cadastros...</div>';box.classList.add('on');
+  try{
+    clientesEncontrados=await api('/api/customers?search='+encodeURIComponent(query));
+    if(!clientesEncontrados.length){box.innerHTML='<div class="empty-state" style="padding:15px">Nenhum cliente encontrado na carteira.</div>';return}
+    box.innerHTML=clientesEncontrados.map((cliente,index)=>`
+      <button type="button" class="customer-option" onclick="selecionarCliente(${index})">
+        <b>${esc(cliente.legal_name)}</b>
+        <span>${esc(cliente.tax_id)} · ${esc(origemCliente[cliente.source]||cliente.source)}</span>
+      </button>`).join('');
+  }catch(error){box.innerHTML=`<div class="empty-state" style="padding:15px">${esc(error.message)}</div>`}
+}
+
+function abrirClientesPortal(){
+  qs('#t-nome').focus();
+  buscarClientes(true);
+}
+
+async function consultarCnpj(){
+  const cnpj=qs('#t-doc').value.replace(/\D/g,'');
+  if(cnpj.length!==14){alert('Informe os 14 dígitos do CNPJ para fazer a consulta pública.');return}
+  const button=qs('#btn-cnpj'),hint=qs('#cnpj-hint');
+  button.disabled=true;button.textContent='Buscando...';hint.textContent='Consultando a base pública de CNPJ...';
+  try{
+    const cliente=await api('/api/customers/cnpj/'+cnpj);
+    preencherCliente(cliente);
+    hint.textContent='Dados localizados e adicionados à carteira de clientes.';
+  }catch(error){hint.textContent=error.message;alert(error.message)}
+  finally{button.disabled=false;button.textContent='Buscar CNPJ'}
+}
+
+qs('#t-nome').addEventListener('input',()=>{clearTimeout(buscaClienteTimer);buscaClienteTimer=setTimeout(()=>buscarClientes(false),250)});
+qs('#t-nome').addEventListener('focus',()=>{if(qs('#t-nome').value.trim().length>=2)buscarClientes(false)});
+qs('#t-nome').addEventListener('blur',()=>setTimeout(()=>qs('#customer-results').classList.remove('on'),180));
+qs('#t-doc').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();consultarCnpj()}});
 
 async function carregarCertificado(){
   const status=qs('#cert-status');
