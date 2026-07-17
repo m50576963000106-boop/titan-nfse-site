@@ -1288,11 +1288,12 @@ function mascararCnpjLogin(el){
   el.value=d.replace(/^(\d{2})(\d{3})?(\d{3})?(\d{4})?(\d{2})?.*/,(m,a,b,c,dd,e)=>[a,b&&'.'+b,c&&'.'+c,dd&&'/'+dd,e&&'-'+e].filter(Boolean).join(''));
 }
 async function iniciarCadastro(){
+  const precisaCnpj=!PORTAL_ADMIN&&!PORTAL_CNPJ;
   const cnpj=qs('#li-cnpj').value.replace(/\D/g,'');
   const email=qs('#li-mail').value.trim();
   const senha=qs('#li-pw').value;
-  if(cnpj.length!==14||!email||senha.length<10){
-    alert('Informe o CNPJ (14 dígitos), um e-mail válido e a senha (mínimo 10 caracteres).');
+  if((precisaCnpj&&cnpj.length!==14)||!email||senha.length<10){
+    alert(precisaCnpj?'Informe o CNPJ (14 dígitos), um e-mail válido e a senha (mínimo 10 caracteres).':'Informe um e-mail válido e a senha (mínimo 10 caracteres).');
     return;
   }
   let login;
@@ -2103,8 +2104,10 @@ carregarEstado();
 render();
 aplicarAcesso();
 prepararConvite();
-if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do usuário master para empresas, usuários, perfis e planos.'}
-else if(PORTAL_CNPJ){qs('.login-sub').textContent=`Entre com o usuário liberado para o CNPJ ${PORTAL_CNPJ.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5')}.`}
+const temConvite=!!new URLSearchParams(location.search).get('invite');
+function ocultarCampoCnpjLogin(){qs('#li-cnpj')?.closest('.login-field')?.style.setProperty('display','none');}
+if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do usuário master — entre com e-mail e senha.';if(!temConvite)ocultarCampoCnpjLogin();}
+else if(PORTAL_CNPJ){qs('.login-sub').textContent=`Entre com o usuário liberado para o CNPJ ${PORTAL_CNPJ.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5')}.`;if(!temConvite)ocultarCampoCnpjLogin();}
 
 /* ---------- SUPORTE / ASSISTENTE TITAN ---------- */
 const supNorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
