@@ -472,7 +472,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
       <label for="li-pw">Senha</label>
       <input id="li-pw" type="password" placeholder="Crie uma senha de teste" autocomplete="new-password">
     </div>
-    <button class="btn-gold" style="margin-top:8px" onclick="iniciarCadastro()">Continuar para a empresa</button>
+    <button id="login-action" class="btn-gold" style="margin-top:8px" onclick="iniciarCadastro()">Continuar para a empresa</button>
     <div class="login-foot">
       O ambiente ativo é consultado diretamente no backend seguro.<br>
       <b id="login-env" style="color:#c9a84c">Verificando ambiente...</b>
@@ -490,44 +490,51 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
     </div>
     <nav class="sb-nav">
       <div class="sb-sec">Operação</div>
-      <button class="sb-link active" onclick="go('painel',this)">
+      <button class="sb-link active" data-permission="dashboard" onclick="go('painel',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
         Painel
       </button>
-      <button class="sb-link" onclick="go('emitir',this)">
+      <button class="sb-link" data-permission="emit" onclick="go('emitir',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
         Emitir NFS-e
       </button>
-      <button class="sb-link" onclick="go('notas',this)">
+      <button class="sb-link" data-permission="invoices" onclick="go('notas',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
         Notas emitidas
       </button>
-      <button class="sb-link" onclick="go('importar',this)">
+      <button class="sb-link" data-permission="import" onclick="go('importar',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
         Importar do Portal
       </button>
       <div class="sb-sec">Cadastro</div>
-      <button class="sb-link" onclick="go('emitente',this)">
+      <button class="sb-link" data-permission="company_settings" onclick="go('emitente',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M15 9h.01M9 13h.01M15 13h.01M9 17h.01M15 17h.01"/></svg>
         Emitente
       </button>
-      <button class="sb-link" onclick="go('cert',this)">
+      <button class="sb-link" data-permission="certificate" onclick="go('cert',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         Certificado A1
       </button>
-      <button class="sb-link" onclick="go('servicos',this)">
+      <button class="sb-link" data-permission="services" onclick="go('servicos',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>
         Serviços e retenções
       </button>
-      <button class="sb-link" onclick="go('marca',this)">
+      <button class="sb-link" data-master-only="true" onclick="go('marca',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
         Identidade visual
       </button>
       <div class="sb-sec">Técnico</div>
-      <button class="sb-link" onclick="go('logs',this)">
+      <button class="sb-link" data-master-only="true" onclick="go('logs',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
         Logs da API
       </button>
+      <div id="master-menu" style="display:none">
+        <div class="sb-sec">Administração</div>
+        <button class="sb-link" onclick="go('master',this)">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/><path d="M9 12l2 2 4-4"/></svg>
+          Gestão master
+        </button>
+      </div>
     </nav>
     <div class="sb-foot">
       <div style="font-size:10px;color:#4e5f7d;line-height:1.6">
@@ -1131,6 +1138,33 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
       </div>
     </section>
 
+    <section class="view" id="v-master">
+      <div class="page-h">
+        <div><h1>Gestão master</h1><p>Empresas, convites, perfis de acesso e liberações por plano.</p></div>
+        <span class="pill p-ok">MASTER</span>
+      </div>
+      <div class="grid2">
+        <div class="card"><div class="card-h"><div><h3>Convidar usuário</h3><p>Vincule CNPJ, e-mail e perfil. O link vale por 7 dias.</p></div></div><div class="card-b">
+          <div class="form-grid">
+            <div class="field"><label>CNPJ</label><input id="master-cnpj" placeholder="00.000.000/0000-00"></div>
+            <div class="field"><label>E-mail do usuário</label><input id="master-email" type="email" placeholder="usuario@empresa.com.br"></div>
+            <div class="field"><label>Perfil</label><select id="master-profile"></select></div>
+            <div class="field"><label>Plano</label><select id="master-plan"><option value="teste">Teste</option><option value="basico">Básico</option><option value="profissional">Profissional</option><option value="completo">Completo</option></select></div>
+          </div>
+          <button class="btn btn-p" onclick="criarConvite()">Gerar link de convite</button>
+          <div id="master-link" class="alert a-info" style="display:none;margin-top:12px;word-break:break-all"></div>
+        </div></div>
+        <div class="card"><div class="card-h"><div><h3>Criar perfil</h3><p>As permissões podem evoluir conforme os planos.</p></div></div><div class="card-b">
+          <div class="form-grid"><div class="field"><label>Nome</label><input id="profile-name" placeholder="Ex.: Financeiro"></div><div class="field"><label>Plano mínimo</label><select id="profile-plan"><option>teste</option><option>basico</option><option>profissional</option><option>completo</option></select></div></div>
+          <div id="profile-permissions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0"></div>
+          <button class="btn btn-p" onclick="criarPerfilAcesso()">Criar perfil</button>
+        </div></div>
+      </div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Empresas e usuários liberados</h3><p id="master-summary">Carregando...</p></div></div><div class="table-wrap"><table><thead><tr><th>Empresa / CNPJ</th><th>Plano</th><th>Usuários</th><th>Situação</th></tr></thead><tbody id="master-companies"></tbody></table></div></div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Liberações por usuário</h3><p>Troque o perfil ou suspenda o vínculo sem excluir o cadastro.</p></div></div><div class="table-wrap"><table><thead><tr><th>Usuário</th><th>Empresa</th><th>Perfil liberado</th><th>Ação</th></tr></thead><tbody id="master-users"></tbody></table></div></div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Convites recentes</h3></div></div><div class="table-wrap"><table><thead><tr><th>E-mail</th><th>Empresa</th><th>Perfil</th><th>Status</th></tr></thead><tbody id="master-invites"></tbody></table></div></div>
+    </section>
+
   </main>
 </div>
 
@@ -1142,6 +1176,8 @@ const brl=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDi
 const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const API_URL=(window.TITAN_API_URL||'').replace(/\/$/,'');
 const STORAGE_TOKEN='titan_nfse_session_v1';
+const STORAGE_SESSION='titan_nfse_access_v1';
+const STORAGE_COMPANY_ID='titan_nfse_company_id_v1';
 const dataBrasil=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 qs('#s-comp').value=dataBrasil();
 let ambienteAtual='restricted';
@@ -1171,7 +1207,7 @@ async function api(path,options={}){
   const isForm=options.body instanceof FormData;
   const response=await fetch(API_URL+path,{
     ...options,
-    headers:{...(!isForm?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})}
+    headers:{...(!isForm?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(sessionStorage.getItem(STORAGE_COMPANY_ID)?{'X-Company-Id':sessionStorage.getItem(STORAGE_COMPANY_ID)}:{}),...(options.headers||{})}
   });
   const data=await response.json().catch(()=>({}));
   if(!response.ok){
@@ -1194,10 +1230,13 @@ async function iniciarCadastro(){
     alert('Preencha o nome, um e-mail válido e uma senha com pelo menos 10 caracteres.');
     return;
   }
+  let login;
   try{
     await carregarAmbiente();
-    const login=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email,password:senha})});
+    login=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email,password:senha})});
     sessionStorage.setItem(STORAGE_TOKEN,login.token);
+    sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:login.user||{},companies:login.companies||[]}));
+    if(login.companies?.[0]?.id)sessionStorage.setItem(STORAGE_COMPANY_ID,login.companies[0].id);
     localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome,email}));
     await carregarEmpresaServidor();
     await carregarNotasServidor();
@@ -1205,6 +1244,7 @@ async function iniciarCadastro(){
   }catch(error){alert(error.message);return}
   qs('#login').classList.add('hide');
   qs('#app').classList.add('on');
+  aplicarAcesso(login);
   carregarEstado();
   render();
   if(empresaAtual){
@@ -1214,6 +1254,14 @@ async function iniciarCadastro(){
   }
 }
 function entrar(){iniciarCadastro()}
+function aplicarAcesso(login){
+  const access=login||JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}'),user=access.user||{};
+  qs('#master-menu').style.display=user.isMaster?'block':'none';
+  const companyId=sessionStorage.getItem(STORAGE_COMPANY_ID),company=(access.companies||[]).find(c=>c.id===companyId)||(access.companies||[])[0],permissions=company?.permissions||[];
+  qsa('[data-permission]').forEach(el=>el.style.display=user.isMaster||permissions.includes(el.dataset.permission)?'flex':'none');
+  qsa('[data-master-only]').forEach(el=>el.style.display=user.isMaster?'flex':'none');
+  if(access.companies?.length){qs('#tenant').innerHTML=access.companies.map(c=>`<option value="${c.id}" ${c.id===companyId?'selected':''}>${esc(c.trade_name||c.legal_name)}</option>`).join('')}
+}
 function go(v,el){
   qsa('.view').forEach(x=>x.classList.remove('on'));
   qs('#v-'+v).classList.add('on');
@@ -1227,6 +1275,7 @@ function go(v,el){
   }
   if(v==='importar')carregarImportStatus();
   if(v==='servicos'){carregarPerfisServico();buscarCatalogoServico()}
+  if(v==='master')carregarMaster();
 }
 qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
 
@@ -1436,8 +1485,10 @@ certDrop.addEventListener('drop',e=>{
 function trocarAmbiente(){
   alert(`Ambiente definido pelo backend seguro: ${ambienteAtual==='production'?'Produção oficial':'Produção restrita'}. A troca é feita somente por administrador no servidor.`);
 }
-function trocarEmpresa(){
-  aplicarEmpresa();
+async function trocarEmpresa(){
+  const id=qs('#tenant').value;if(!id)return;
+  sessionStorage.setItem(STORAGE_COMPANY_ID,id);aplicarAcesso();
+  try{await carregarEmpresaServidor();await carregarNotasServidor();carregarEstado();render()}catch(error){alert(error.message)}
 }
 
 /* ---------- contagem CGSN 189/2026 ---------- */
@@ -1738,7 +1789,7 @@ function aplicarEmpresa(){
   const opt=document.createElement('option');
   opt.value=empresaAtual.cnpj;
   opt.textContent=empresaAtual.rs;
-  qs('#tenant').replaceChildren(opt);
+  if(!JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}').companies?.length)qs('#tenant').replaceChildren(opt);
   qs('#painel-sub').textContent=`${empresaAtual.rs} · CNPJ ${empresaAtual.cnpj} · ${empresaAtual.municipio} · ${empresaAtual.reg}`;
   qs('#e-rs').value=empresaAtual.rs;
   qs('#e-cnpj').value=empresaAtual.cnpj;
@@ -1753,6 +1804,69 @@ function aplicarEmpresa(){
   qs('#kpi-empresas').textContent='1';
   qs('#kpi-cadastro').textContent='Concluído';
   qs('#kpi-cadastro').className='pill p-ok';
+}
+
+/* ---------- gestão master / convites ---------- */
+let masterData=null;
+const permissionLabels={dashboard:'Painel',emit:'Emitir NFS-e',invoices:'Notas emitidas',import:'Importar Portal',customers:'Clientes',services:'Serviços',certificate:'Certificado A1',company_settings:'Configuração da empresa'};
+
+async function carregarMaster(){
+  try{
+    masterData=await api('/api/master/overview');
+    qs('#master-summary').textContent=`${masterData.companies.length} empresa(s) · ${masterData.users.length} vínculo(s) · ${masterData.profiles.length} perfil(is)`;
+    qs('#master-profile').innerHTML=masterData.profiles.map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(p.plan_code)}</option>`).join('');
+    qs('#profile-permissions').innerHTML=masterData.permissions.map(p=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${p}" checked> ${esc(permissionLabels[p]||p)}</label>`).join('');
+    qs('#master-companies').innerHTML=masterData.companies.map(c=>`<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(c.federal_tax_id)}</span></td><td>${esc(c.plan_code)}</td><td>${c.users}</td><td><span class="pill ${c.emission_enabled?'p-ok':'p-warn'}">${c.emission_enabled?'Emissão liberada':'Cadastro pendente'}</span></td></tr>`).join('')||'<tr><td colspan="4">Nenhuma empresa.</td></tr>';
+    qs('#master-users').innerHTML=masterData.users.filter(u=>u.company_id).map(u=>`<tr><td><b>${esc(u.name)}</b><br>${esc(u.email)} ${u.is_master?'<span class="pill p-ok">MASTER</span>':''}</td><td>${esc(u.legal_name||'—')}</td><td><select id="access-${u.id}-${u.company_id}">${masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u.profile_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></td><td><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',true)">Salvar</button> ${u.is_master?'':`<button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',false)">Suspender</button>`}</td></tr>`).join('')||'<tr><td colspan="4">Nenhum vínculo.</td></tr>';
+    qs('#master-invites').innerHTML=masterData.invitations.map(i=>`<tr><td>${esc(i.email)}</td><td>${esc(i.legal_name)}<br><span class="mono">${esc(i.federal_tax_id)}</span></td><td>${esc(i.profile_name||'—')}</td><td>${i.accepted_at?'Aceito':new Date(i.expires_at)<new Date()?'Expirado':'Pendente'}</td></tr>`).join('')||'<tr><td colspan="4">Nenhum convite.</td></tr>';
+  }catch(error){alert(error.message)}
+}
+
+async function criarConvite(){
+  const federalTaxId=qs('#master-cnpj').value.replace(/\D/g,''),email=qs('#master-email').value.trim(),profileId=qs('#master-profile').value,planCode=qs('#master-plan').value;
+  if(federalTaxId.length!==14||!email||!profileId){alert('Informe CNPJ, e-mail e perfil.');return}
+  try{
+    const result=await api('/api/master/invitations',{method:'POST',body:JSON.stringify({federalTaxId,email,profileId,planCode})});
+    const link=new URL(result.invitePath,location.origin).href;
+    const box=qs('#master-link');box.style.display='flex';box.innerHTML=`<div><b>Convite pronto</b><br><span id="invite-url">${esc(link)}</span><br><button class="btn btn-s" style="margin-top:8px" onclick="navigator.clipboard.writeText(qs('#invite-url').textContent)">Copiar link</button></div>`;
+    await carregarMaster();
+  }catch(error){alert(error.message)}
+}
+
+async function criarPerfilAcesso(){
+  const name=qs('#profile-name').value.trim(),planCode=qs('#profile-plan').value,permissions=qsa('#profile-permissions input:checked').map(x=>x.value);
+  if(!name||!permissions.length){alert('Informe o nome e ao menos uma permissão.');return}
+  try{await api('/api/master/profiles',{method:'POST',body:JSON.stringify({name,planCode,permissions})});qs('#profile-name').value='';await carregarMaster()}catch(error){alert(error.message)}
+}
+
+async function salvarAcesso(userId,companyId,active){
+  const profileId=qs(`#access-${userId}-${companyId}`).value;
+  try{await api('/api/master/users/'+userId+'/access',{method:'PUT',body:JSON.stringify({companyId,profileId,active})});await carregarMaster()}catch(error){alert(error.message)}
+}
+
+async function prepararConvite(){
+  const token=new URLSearchParams(location.search).get('invite');
+  if(!token)return;
+  try{
+    const invite=await api('/api/auth/invitations/'+encodeURIComponent(token));
+    qs('.onboard-step').textContent='Convite de acesso';
+    qs('.login-h').textContent='Criar seu acesso';
+    qs('.login-sub').textContent=`Você foi convidado para ${invite.trade_name||invite.legal_name} · CNPJ ${invite.federal_tax_id} · perfil ${invite.profile_name}.`;
+    qs('#li-mail').value=invite.email;qs('#li-mail').readOnly=true;
+    qs('#li-pw').placeholder='Crie uma senha com 10+ caracteres';
+    const button=qs('#login-action');button.textContent='Aceitar convite e entrar';button.onclick=()=>aceitarConvite(token);
+  }catch(error){qs('.login-sub').textContent=error.message;qs('#login-action').disabled=true}
+}
+
+async function aceitarConvite(token){
+  const name=qs('#li-name').value.trim(),password=qs('#li-pw').value;
+  if(name.length<2||password.length<10){alert('Informe seu nome e uma senha com pelo menos 10 caracteres.');return}
+  try{
+    const accepted=await api('/api/auth/invitations/'+encodeURIComponent(token)+'/accept',{method:'POST',body:JSON.stringify({name,password})});
+    sessionStorage.setItem(STORAGE_TOKEN,accepted.token);sessionStorage.setItem(STORAGE_COMPANY_ID,accepted.companyId);sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:accepted.user,companies:accepted.companies||[]}));
+    localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:name,email:accepted.user.email}));history.replaceState({},'',location.pathname);
+    await carregarEmpresaServidor();await carregarNotasServidor();aplicarAcesso({user:accepted.user,companies:accepted.companies});qs('#login').classList.add('hide');qs('#app').classList.add('on');carregarEstado();render();go('painel',qs('.sb-link[onclick*="painel"]'));
+  }catch(error){alert(error.message)}
 }
 
 function carregarEstado(){
@@ -1770,6 +1884,8 @@ function render(){
 }
 carregarEstado();
 render();
+aplicarAcesso();
+prepararConvite();
 </script>
 </body>
 </html>
