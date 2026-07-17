@@ -863,25 +863,26 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 
       <div class="grid g2" style="align-items:start">
         <div class="card">
-          <div class="card-h"><h2>Certificado em uso</h2><span class="pill p-off right">Não configurado</span></div>
-          <div class="empty-state">Nenhum certificado A1 foi adicionado. O upload real ficará bloqueado até existir um cofre seguro no backend.</div>
+          <div class="card-h"><h2>Certificado em uso</h2><span class="pill p-off right" id="cert-status">Verificando</span></div>
+          <div class="empty-state" id="cert-details">Consultando o cofre seguro...</div>
         </div>
 
         <div class="stack">
           <div class="card">
             <div class="card-h"><h2>Adicionar certificado</h2></div>
             <div class="card-b">
-              <div class="drop">
+              <label class="drop" for="c-file" id="cert-drop" style="display:block;cursor:pointer">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b8f99" stroke-width="1.6" style="margin:0 auto"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
                 <div class="big">Arraste o arquivo .pfx ou .p12</div>
-                <div class="sm">ou clique para escolher — máx. 8 MB</div>
-              </div>
+                <div class="sm" id="cert-file-name">ou clique para escolher — máx. 8 MB</div>
+                <input id="c-file" type="file" accept=".pfx,.p12,application/x-pkcs12" hidden>
+              </label>
               <div class="field" style="margin-top:14px">
                 <label for="c-pw">Senha do certificado</label>
                 <input id="c-pw" class="inp" type="password" placeholder="••••••••••">
                 <div class="hint">Guardada com AES-256-GCM. A chave mestra fica fora do banco e fora do <span class="mono">.env</span> da aplicação.</div>
               </div>
-              <button class="btn btn-p" style="width:100%" disabled>Disponível após configurar o backend seguro</button>
+              <button class="btn btn-p" id="btn-cert" style="width:100%" onclick="enviarCertificado()">Enviar ao cofre seguro</button>
             </div>
           </div>
 
@@ -1061,9 +1062,10 @@ const STORAGE_TOKEN='titan_nfse_session_v1';
 async function api(path,options={}){
   if(!API_URL)throw new Error('O servidor seguro ainda não foi vinculado a este endereço.');
   const token=sessionStorage.getItem(STORAGE_TOKEN);
+  const isForm=options.body instanceof FormData;
   const response=await fetch(API_URL+path,{
     ...options,
-    headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})}
+    headers:{...(!isForm?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})}
   });
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.error||data.message||'Falha de comunicação com o servidor.');
@@ -1108,6 +1110,7 @@ function go(v,el){
   if(el)el.classList.add('active');
   qs('#sb').classList.remove('open');
   window.scrollTo(0,0);
+  if(v==='cert')carregarCertificado();
 }
 qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
 
@@ -1127,6 +1130,51 @@ async function carregarNotasServidor(){
   })));
   tabelas();
 }
+
+async function carregarCertificado(){
+  const status=qs('#cert-status');
+  const details=qs('#cert-details');
+  status.className='pill p-off right';status.textContent='Verificando';
+  try{
+    const cert=await api('/api/invoices/certificate');
+    if(!cert.configured){
+      status.textContent='Não configurado';
+      details.textContent='Selecione abaixo o certificado A1 da empresa para habilitar a emissão real na Produção Restrita.';
+      return;
+    }
+    status.className='pill '+(cert.expired?'p-err':'p-ok')+' right';
+    status.textContent=cert.expired?'Vencido':'Válido';
+    const validade=new Date(cert.validTo).toLocaleDateString('pt-BR');
+    details.innerHTML=`<b>${String(cert.subject).replaceAll('<','&lt;')}</b><br>Válido até ${validade}. Armazenado criptografado no cofre seguro.`;
+  }catch(error){status.textContent='Indisponível';details.textContent=error.message}
+}
+
+async function enviarCertificado(){
+  const file=qs('#c-file').files[0];
+  const password=qs('#c-pw').value;
+  if(!file){alert('Escolha o arquivo .pfx ou .p12.');return}
+  if(file.size>8*1024*1024){alert('O certificado ultrapassa o limite de 8 MB.');return}
+  const button=qs('#btn-cert');button.disabled=true;button.textContent='Validando e criptografando...';
+  try{
+    const form=new FormData();form.append('certificate',file);form.append('password',password);
+    await api('/api/invoices/certificate',{method:'POST',body:form});
+    qs('#c-pw').value='';qs('#c-file').value='';qs('#cert-file-name').textContent='ou clique para escolher — máx. 8 MB';
+    await carregarCertificado();
+    alert('Certificado A1 validado e guardado com segurança. A emissão de teste está habilitada.');
+  }catch(error){alert(error.message)}
+  finally{button.disabled=false;button.textContent='Enviar ao cofre seguro'}
+}
+
+qs('#c-file').addEventListener('change',e=>{
+  qs('#cert-file-name').textContent=e.target.files[0]?.name||'ou clique para escolher — máx. 8 MB';
+});
+const certDrop=qs('#cert-drop');
+certDrop.addEventListener('dragover',e=>{e.preventDefault();certDrop.style.borderColor='var(--gold)'});
+certDrop.addEventListener('dragleave',()=>certDrop.style.borderColor='');
+certDrop.addEventListener('drop',e=>{
+  e.preventDefault();certDrop.style.borderColor='';
+  if(e.dataTransfer.files[0]){qs('#c-file').files=e.dataTransfer.files;qs('#cert-file-name').textContent=e.dataTransfer.files[0].name}
+});
 
 /* ---------- ambiente ---------- */
 let prod=false;
