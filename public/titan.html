@@ -1084,7 +1084,10 @@ async function api(path,options={}){
     headers:{...(!isForm?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})}
   });
   const data=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(data.error||data.message||'Falha de comunicação com o servidor.');
+  if(!response.ok){
+    const details=Array.isArray(data.details)?data.details.map(item=>`${item.field||'campo'}: ${item.message}`).join('; '):'';
+    throw new Error(details||data.error||data.message||'Falha de comunicação com o servidor.');
+  }
   return data;
 }
 
@@ -1130,6 +1133,7 @@ function go(v,el){
     qs('#c-pw').value='';
     carregarCertificado();
   }
+  if(v==='importar')carregarImportStatus();
 }
 qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
 
@@ -1410,6 +1414,7 @@ async function emitir(falhar){
     return;
   }
   const valor=Number(qs('#s-val').value.replace(/\./g,'').replace(',','.'));
+  const documento=qs('#t-doc').value.replace(/\D/g,'');
   const payload={
     competenceDate:new Date().toISOString().slice(0,10),
     borrower:{name:qs('#t-nome').value.trim(),taxId:qs('#t-doc').value,email:qs('#t-mail').value.trim()||undefined},
@@ -1418,6 +1423,8 @@ async function emitir(falhar){
   if(!payload.borrower.name||!payload.borrower.taxId||!payload.service.description||!Number.isFinite(valor)||valor<=0){
     alert('Preencha tomador, CPF/CNPJ, descrição e valor do serviço.');return;
   }
+  if(documento.length!==11&&documento.length!==14){alert('O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 dígitos.');qs('#t-doc').focus();return}
+  if(qs('#t-mail').value&&!qs('#t-mail').checkValidity()){alert('Informe um e-mail válido para o tomador.');qs('#t-mail').focus();return}
   if(rodando)return;
   rodando=true;
   qs('#btn-emit').disabled=true;
@@ -1454,14 +1461,21 @@ async function emitir(falhar){
 
 /* ---------- importação ADN ---------- */
 let impRodando=false;
+async function carregarImportStatus(){
+  try{
+    const state=await api('/api/import');
+    qs('#i-nsu').value=state.lastNsu||'0';
+    if(state.documents>0){
+      qs('#imp-vazio').innerHTML=`Base local: <b>${state.documents}</b> DF-e e <b>${state.customers}</b> clientes vindos do Portal Nacional. Último NSU: <span class="mono">${esc(state.lastNsu)}</span>.`;
+    }
+  }catch(error){qs('#imp-vazio').textContent=error.message}
+}
 async function importar(){
   if(!empresaAtual){
     alert('Cadastre e salve a empresa antes de configurar a importação.');
     go('emitente',qs('.sb-link[onclick*="emitente"]'));
     return;
   }
-  alert('A importação real permanece bloqueada até o certificado A1 e o backend seguro serem configurados.');
-  return;
   if(impRodando)return;
   impRodando=true;
   qs('#btn-imp').disabled=true;
@@ -1470,33 +1484,35 @@ async function importar(){
   qs('#imp-fim').innerHTML='';
   qs('#imp-lotes').innerHTML='';
 
-  const lotes=[[1,'prestador'],[1,'prestador'],[1,'tomador'],[1,'prestador'],[1,'tomador'],[1,'misto']];
-  let nsu=+qs('#i-nsu').value||0, tot=0, prest=0, tom=0;
-
-  for(let i=0;i<lotes.length;i++){
-    const [n,tipo]=lotes[i];
-    await new Promise(r=>setTimeout(r,520));
-    nsu+=n; tot+=n;
-    if(tipo==='prestador')prest+=n; else if(tipo==='tomador')tom+=n; else {prest+=1;}
-    qs('#imp-nsu').textContent='NSU '+nsu;
-    qs('#imp-tot').textContent=tot+' documentos';
-    qs('#imp-bar').style.width=Math.min(100,(i+1)/lotes.length*100)+'%';
-    qs('#imp-lotes').insertAdjacentHTML('afterbegin',
-      `<div class="lote"><span class="mono">GET /dfe/${nsu-n}</span><b>${n} documento</b></div>`);
+  const nsu=Math.max(0,Number(qs('#i-nsu').value)||0);
+  qs('#imp-nsu').textContent='NSU '+nsu;
+  qs('#imp-tot').textContent='consultando ADN';
+  qs('#imp-bar').style.width='35%';
+  try{
+    const result=await api('/api/import/sync',{method:'POST',body:JSON.stringify({nsu,maxPages:5})});
+    qs('#imp-nsu').textContent='NSU '+result.lastNsu;
+    qs('#imp-tot').textContent=result.imported+' documentos novos';
+    qs('#imp-bar').style.width='100%';
+    qs('#i-nsu').value=result.lastNsu;
+    qs('#imp-lotes').innerHTML=result.batches.map(batch=>`<div class="lote"><span class="mono">GET /DFe/${esc(batch.fromNsu)} → ${esc(batch.toNsu)}</span><b>${batch.documents} documento(s)</b></div>`).reverse().join('');
+    const found=result.imported>0;
+    qs('#imp-fim').innerHTML=`
+      <div class="result ${found?'ok':''}" style="margin-top:12px">
+        <div class="flex" style="margin-bottom:9px"><span class="pill ${found?'p-ok':'p-off'}">${found?'Importação concluída':'ADN consultado — nenhum documento novo'}</span></div>
+        <div class="kv"><span>Notas como prestador</span><b>${result.provider}</b></div>
+        <div class="kv"><span>Notas como tomador</span><b>${result.borrower}</b></div>
+        <div class="kv"><span>Clientes processados</span><b>${result.customers}</b></div>
+        <div class="kv"><span>Status oficial</span><b>${esc(result.status)}</b></div>
+        <div class="kv"><span>Último NSU</span><b class="mono" style="font-size:11.5px">${esc(result.lastNsu)}</b></div>
+        <div class="foot-note">Resposta real da API de Contribuintes do ADN em Produção Restrita.</div>
+      </div>`;
+  }catch(error){
+    qs('#imp-bar').style.width='100%';
+    qs('#imp-fim').innerHTML=`<div class="result no" style="margin-top:12px"><span class="pill p-err">Importação recusada</span><div class="chave" style="color:#7d1c1f">${esc(error.message)}</div></div>`;
+  }finally{
+    impRodando=false;
+    qs('#btn-imp').disabled=false;
   }
-
-  qs('#imp-fim').innerHTML=`
-    <div class="result ok" style="margin-top:12px">
-      <div class="flex" style="margin-bottom:9px"><span class="pill p-ok">Importação concluída</span></div>
-      <div class="kv"><span>Notas como prestador</span><b>${prest}</b></div>
-      <div class="kv"><span>Notas como tomador</span><b>${tom}</b></div>
-      <div class="kv"><span>Tomadores cadastrados</span><b>47</b></div>
-      <div class="kv"><span>Eventos vinculados</span><b>6</b></div>
-      <div class="kv"><span>Último NSU</span><b class="mono" style="font-size:11.5px">${nsu}</b></div>
-      <div class="foot-note" style="color:#155c39">Guarde o último NSU. A próxima sincronização parte dele, não do zero.</div>
-    </div>`;
-  impRodando=false;
-  qs('#btn-imp').disabled=false;
 }
 
 
