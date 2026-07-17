@@ -866,7 +866,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
       <div class="page-h"><h1>Orçamentos e ordens de serviço</h1><p>Monte o documento comercial e converta seus dados em uma NFS-e para revisão e emissão explícita.</p></div>
       <div class="grid g2" style="align-items:start"><div class="card"><div class="card-h"><h2>Novo documento</h2></div><div class="card-b">
         <div class="row r2"><div class="field"><label>Tipo</label><select id="co-kind" class="inp"><option value="quote">Orçamento</option><option value="service_order">Ordem de serviço</option></select></div><div class="field"><label>Situação</label><select id="co-status" class="inp"><option value="draft">Em elaboração</option><option value="approved">Aprovado</option></select></div></div>
-        <div class="field"><label>Título</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente</label><input id="co-customer" class="inp" placeholder="Razão social / nome"></div><div class="field"><label>Valor (R$)</label><input id="co-value" class="inp num" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" placeholder="Escopo e condições do serviço"></textarea></div>
+        <div class="field"><label>Título</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente</label><div class="flex" style="gap:6px"><input id="co-customer" class="inp" list="co-customer-list" placeholder="Buscar cliente cadastrado ou digitar" autocomplete="off" style="flex:1"><button type="button" class="btn btn-s" style="flex:none" title="Gerenciar clientes cadastrados" onclick="abrirClientes()">+</button></div><datalist id="co-customer-list"></datalist></div><div class="field"><label>Valor (R$)</label><input id="co-value" class="inp num" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" placeholder="Escopo e condições do serviço"></textarea></div>
         <div class="setup-actions"><span class="foot-note" style="margin:0">A conversão não emite automaticamente a nota.</span><button class="btn btn-a right" type="button" onclick="salvarComercial()">Salvar documento</button></div>
       </div></div><div class="card"><div class="card-h"><h2>Documentos comerciais</h2><button class="btn btn-s right" onclick="carregarComerciais()">Atualizar</button></div><div class="card-b"><div id="commercial-list" class="draft-list"></div></div></div></div>
     </section>
@@ -1180,7 +1180,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
           <button class="btn btn-p" onclick="criarPerfilAcesso()">Criar perfil</button>
         </div></div>
       </div>
-      <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Empresas e usuários liberados</h3><p id="master-summary">Carregando...</p></div></div><div class="table-wrap"><table><thead><tr><th>Empresa / CNPJ</th><th>Plano</th><th>Usuários</th><th>Situação</th></tr></thead><tbody id="master-companies"></tbody></table></div></div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Empresas e usuários liberados</h3><p id="master-summary">Carregando...</p></div></div><div class="table-wrap"><table><thead><tr><th>Empresa / CNPJ</th><th>Plano</th><th>Usuários</th><th>Situação</th><th>Ações rápidas</th></tr></thead><tbody id="master-companies"></tbody></table></div></div>
       <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Liberações por usuário</h3><p>Troque o perfil ou suspenda o vínculo sem excluir o cadastro.</p></div></div><div class="table-wrap"><table><thead><tr><th>Usuário</th><th>Empresa</th><th>Perfil liberado</th><th>Ação</th></tr></thead><tbody id="master-users"></tbody></table></div></div>
       <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Convites recentes</h3></div></div><div class="table-wrap"><table><thead><tr><th>E-mail</th><th>Empresa</th><th>Perfil</th><th>Status</th></tr></thead><tbody id="master-invites"></tbody></table></div></div>
     </section>
@@ -1354,7 +1354,7 @@ function go(v,el){
   if(v==='master')carregarMaster();
   if(v==='emitir'){carregarRascunhos();exibirMunicipioPorCodigo('s',qs('#s-mun').value)}
   if(v==='clientes')carregarClientesCadastro();
-  if(v==='comercial')carregarComerciais();
+  if(v==='comercial'){carregarComerciais();popularClientesComercial();}
 }
 qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
 
@@ -1868,6 +1868,8 @@ async function consultarClienteCadastro(){const cnpj=qs('#cl-doc').value.replace
 async function salvarCliente(){const taxId=qs('#cl-doc').value.replace(/\D/g,''),legalName=qs('#cl-nome').value.trim();if(!taxId||!legalName){alert('Informe nome e CPF/CNPJ do cliente.');return}try{await api('/api/customers',{method:'POST',body:JSON.stringify({taxId,legalName,email:qs('#cl-mail').value.trim()||undefined,phone:qs('#cl-fone').value.trim()||undefined,address:qs('#cl-end').value.trim()||undefined,postalCode:qs('#cl-cep').value.replace(/\D/g,'')||undefined,municipalityCode:qs('#cl-mun').value.replace(/\D/g,'')||undefined})});await carregarClientesCadastro();alert('Cliente salvo.') }catch(error){alert(error.message)}}
 async function carregarClientesCadastro(){try{clientesCadastro=await api('/api/customers?search=');qs('#client-list').innerHTML=clientesCadastro.length?clientesCadastro.map((item,index)=>`<div class="draft-item"><b>${esc(item.legal_name)}</b><span>${esc(item.tax_id)} · ${esc(item.address||'sem endereço')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="usarClienteNaEmissao(${index})">Usar na emissão</button></div></div>`).join(''):'<div class="empty-state">Nenhum cliente cadastrado.</div>'}catch(error){qs('#client-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
 function usarClienteNaEmissao(index){preencherCliente(clientesCadastro[index]);go('emitir',qs('.sb-link[onclick*="emitir"]'));}
+function abrirClientes(){go('clientes',qs('.sb-link[onclick*="clientes"]'));}
+async function popularClientesComercial(){try{if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');const dl=qs('#co-customer-list');if(dl)dl.innerHTML=clientesCadastro.map(c=>`<option value="${esc(c.legal_name)}">${esc(c.tax_id||'')}</option>`).join('');}catch(e){}}
 
 /* ---------- orçamentos e ordens de serviço ---------- */
 let comerciais=[];
@@ -2000,13 +2002,19 @@ function aplicarEmpresa(){
 let masterData=null;
 const permissionLabels={dashboard:'Painel',emit:'Emitir NFS-e',invoices:'Notas emitidas',import:'Importar Portal',customers:'Clientes',services:'Serviços',certificate:'Certificado A1',company_settings:'Configuração da empresa'};
 
+async function masterAbrir(companyId,view){
+  sessionStorage.setItem(STORAGE_COMPANY_ID,companyId);
+  const sel=qs('#tenant');if(sel&&[...sel.options].some(o=>o.value===companyId))sel.value=companyId;
+  try{await carregarEmpresaServidor();await carregarNotasServidor();}catch(e){}
+  go(view,qs('.sb-link[onclick*="'+view+'"]'));
+}
 async function carregarMaster(){
   try{
     masterData=await api('/api/master/overview');
     qs('#master-summary').textContent=`${masterData.companies.length} empresa(s) · ${masterData.users.length} vínculo(s) · ${masterData.profiles.length} perfil(is)`;
     qs('#master-profile').innerHTML=masterData.profiles.map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(p.plan_code)}</option>`).join('');
     qs('#profile-permissions').innerHTML=masterData.permissions.map(p=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${p}" checked> ${esc(permissionLabels[p]||p)}</label>`).join('');
-    qs('#master-companies').innerHTML=masterData.companies.map(c=>`<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(c.federal_tax_id)}</span></td><td>${esc(c.plan_code)}</td><td>${c.users}</td><td><span class="pill ${c.emission_enabled?'p-ok':'p-warn'}">${c.emission_enabled?'Emissão liberada':'Cadastro pendente'}</span></td></tr>`).join('')||'<tr><td colspan="4">Nenhuma empresa.</td></tr>';
+    qs('#master-companies').innerHTML=masterData.companies.map(c=>`<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(c.federal_tax_id)}</span></td><td>${esc(c.plan_code)}</td><td>${c.users}</td><td><span class="pill ${c.emission_enabled?'p-ok':'p-warn'}">${c.emission_enabled?'Emissão liberada':'Cadastro pendente'}</span></td><td><div class="acts"><button class="btn btn-s" onclick="masterAbrir('${c.id}','importar')">Importar</button><button class="btn btn-s" onclick="masterAbrir('${c.id}','servicos')">Serviços</button><button class="btn btn-s" onclick="masterAbrir('${c.id}','emitente')">Config</button></div></td></tr>`).join('')||'<tr><td colspan="5">Nenhuma empresa.</td></tr>';
     qs('#master-users').innerHTML=masterData.users.filter(u=>u.company_id).map(u=>`<tr><td><b>${esc(u.name)}</b><br>${esc(u.email)} ${u.is_master?'<span class="pill p-ok">MASTER</span>':''}</td><td>${esc(u.legal_name||'—')}</td><td><select id="access-${u.id}-${u.company_id}">${masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u.profile_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></td><td><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',true)">Salvar</button> ${u.is_master?'':`<button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',false)">Suspender</button>`}</td></tr>`).join('')||'<tr><td colspan="4">Nenhum vínculo.</td></tr>';
     qs('#master-invites').innerHTML=masterData.invitations.map(i=>`<tr><td>${esc(i.email)}</td><td>${esc(i.legal_name)}<br><span class="mono">${esc(i.federal_tax_id)}</span></td><td>${esc(i.profile_name||'—')}</td><td>${i.accepted_at?'Aceito':new Date(i.expires_at)<new Date()?'Expirado':'Pendente'}</td></tr>`).join('')||'<tr><td colspan="4">Nenhum convite.</td></tr>';
   }catch(error){alert(error.message)}
