@@ -344,7 +344,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .stage:first-child::before{top:50%}
 .stage:last-child::before{bottom:50%}
 .dot{
-  width:15px;height:15px;border-radius:50%;position:relative;z-index:1;
+  width:11px;height:11px;border-radius:50%;position:relative;z-index:1;
   background:var(--navy-1);border:1.5px solid var(--line-dark);
   display:grid;place-items:center;justify-self:center;
   transition:background .2s,border-color .2s;
@@ -370,7 +370,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .stage.fail .dot{background:var(--err);border-color:var(--err)}
 .stage.fail .dot svg{opacity:1;color:#fff}
 .stage.fail .stage-t{color:#e8a6a4;font-weight:650}
-.pipe{display:flex;align-items:flex-start;gap:0;padding:12px;background:var(--navy);overflow-x:auto}.stage{display:flex;flex:1;min-width:105px;flex-direction:column;align-items:center;gap:6px;padding:0 8px;text-align:center}.stage::before{display:none}.stage:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 16px);right:calc(-50% + 16px);top:7px;height:1px;background:var(--line-dark)}.stage-t{font-size:10.5px;line-height:1.25;min-height:27px}.stage-d{display:none}.stage-ms{min-height:13px}.pipe-detail{min-height:32px;margin-top:8px;padding:8px 10px;border-radius:var(--r);background:#f6f4ef;color:var(--ink-2);font:10.5px var(--mono);line-height:1.45}.stage:hover .stage-t,.stage:focus .stage-t{color:var(--cream)}
+.pipe{display:flex;align-items:flex-start;gap:0;padding:7px;background:var(--navy);overflow-x:auto}.stage{display:flex;flex:1;min-width:78px;flex-direction:column;align-items:center;gap:4px;padding:0 5px;text-align:center}.stage::before{display:none}.stage:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 13px);right:calc(-50% + 13px);top:6px;height:1px;background:var(--line-dark)}.stage-t{font-size:9px;line-height:1.2;min-height:18px}.stage-d{display:none}.stage-ms{min-height:10px;font-size:9px}.pipe-detail{min-height:18px;margin-top:5px;padding:5px 9px;border-radius:var(--r);background:#f6f4ef;color:var(--ink-2);font:9.5px var(--mono);line-height:1.35}.stage:hover .stage-t,.stage:focus .stage-t{color:var(--cream)}
 
 .result{margin-top:14px;padding:16px;border-radius:var(--r);border:1px solid}
 .result.ok{background:var(--ok-bg);border-color:#bfdccb}
@@ -520,22 +520,22 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v3.6h-6.1V20h-3.8V7.6H4V4Z" fill="#c9a84c"/></svg>
       <div style="font-weight:800;letter-spacing:-.02em;color:#f5f4ef;font-size:15px">TITAN <span style="color:#c9a84c;font-weight:600">NFS-e</span></div>
     </div>
-    <div class="onboard-step">Primeiro acesso · etapa 1 de 2</div>
+    <div class="onboard-step">Acesso ao emissor</div>
     <div class="login-h">Acessar o TITAN NFS-e</div>
-    <div class="login-sub">Entre com o usuário responsável para acessar a empresa e o ambiente fiscal configurado.</div>
+    <div class="login-sub">Informe o CNPJ da empresa, seu e-mail e a senha para entrar no ambiente fiscal liberado.</div>
     <div class="login-field">
-      <label for="li-name">Nome do responsável</label>
-      <input id="li-name" type="text" placeholder="Nome completo" autocomplete="name">
+      <label for="li-cnpj">CNPJ da empresa</label>
+      <input id="li-cnpj" type="text" inputmode="numeric" placeholder="00.000.000/0000-00" autocomplete="off" oninput="mascararCnpjLogin(this)">
     </div>
     <div class="login-field">
       <label for="li-mail">E-mail</label>
-      <input id="li-mail" class="inp" type="email" placeholder="responsavel@empresa.com.br" autocomplete="username">
+      <input id="li-mail" class="inp" type="email" placeholder="voce@empresa.com.br" autocomplete="username">
     </div>
     <div class="login-field">
       <label for="li-pw">Senha</label>
-      <input id="li-pw" type="password" placeholder="Crie uma senha de teste" autocomplete="new-password">
+      <input id="li-pw" type="password" placeholder="Sua senha" autocomplete="current-password">
     </div>
-    <button id="login-action" class="btn-gold" style="margin-top:8px" onclick="iniciarCadastro()">Continuar para a empresa</button>
+    <button id="login-action" class="btn-gold" style="margin-top:8px" onclick="iniciarCadastro()">Entrar</button>
     <div class="login-foot">
       O ambiente ativo é consultado diretamente no backend seguro.<br>
       <b id="login-env" style="color:#c9a84c">Verificando ambiente...</b>
@@ -705,7 +705,6 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
     <section class="view" id="v-emitir">
       <div class="page-h">
         <h1>Emitir NFS-e</h1>
-        <p>Os dados abaixo montam a DPS (Declaração de Prestação de Serviço). A Sefin Nacional responde de forma síncrona — não há lote nem protocolo de espera.</p>
       </div>
 
       <div class="card" style="margin-bottom:14px">
@@ -1284,12 +1283,16 @@ function selecionarDestinoPortal(access){
   if(companies[0]?.id)sessionStorage.setItem(STORAGE_COMPANY_ID,companies[0].id);
 }
 
+function mascararCnpjLogin(el){
+  const d=el.value.replace(/\D/g,'').slice(0,14);
+  el.value=d.replace(/^(\d{2})(\d{3})?(\d{3})?(\d{4})?(\d{2})?.*/,(m,a,b,c,dd,e)=>[a,b&&'.'+b,c&&'.'+c,dd&&'/'+dd,e&&'-'+e].filter(Boolean).join(''));
+}
 async function iniciarCadastro(){
-  const nome=qs('#li-name').value.trim();
+  const cnpj=qs('#li-cnpj').value.replace(/\D/g,'');
   const email=qs('#li-mail').value.trim();
   const senha=qs('#li-pw').value;
-  if(!nome||!email||senha.length<10){
-    alert('Preencha o nome, um e-mail válido e uma senha com pelo menos 10 caracteres.');
+  if(cnpj.length!==14||!email||senha.length<10){
+    alert('Informe o CNPJ (14 dígitos), um e-mail válido e a senha (mínimo 10 caracteres).');
     return;
   }
   let login;
@@ -1297,9 +1300,14 @@ async function iniciarCadastro(){
     await carregarAmbiente();
     login=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email,password:senha})});
     selecionarDestinoPortal(login);
+    if(!PORTAL_ADMIN&&!PORTAL_CNPJ){
+      const alvo=(login.companies||[]).find(item=>String(item.federal_tax_id||'').replace(/\D/g,'')===cnpj);
+      if(!alvo)throw new Error('Seu usuário não tem acesso liberado para este CNPJ.');
+      sessionStorage.setItem(STORAGE_COMPANY_ID,alvo.id);
+    }
     sessionStorage.setItem(STORAGE_TOKEN,login.token);
     sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:login.user||{},companies:login.companies||[]}));
-    localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome,email}));
+    localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:login.user?.name||'',email,cnpj}));
     await carregarEmpresaServidor();
     await carregarNotasServidor();
     carregarServicos().catch(()=>{});
@@ -1677,10 +1685,26 @@ async function baixarXml(id,numero){
 }
 
 async function abrirDanfse(id){
-  const tab=window.open('','_blank');
-  if(!tab){alert('Permita a abertura de nova guia para visualizar o DANFSe.');return}
-  tab.document.write('<title>Preparando DANFSe...</title><p style="font-family:sans-serif;padding:24px">Gerando DANFSe...</p>');
-  try{const blob=await apiBlob('/api/invoices/'+id+'/pdf'),url=URL.createObjectURL(blob);tab.location.href=url;setTimeout(()=>URL.revokeObjectURL(url),120000)}catch(error){tab.close();alert(error.message)}
+  const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  // Desktop: abre aba de "carregando" no gesto do clique e troca pelo PDF.
+  // Mobile: window.open+blob costuma ser bloqueado — baixa/abre via <a download>.
+  let tab=null;
+  if(!isMobile){
+    tab=window.open('','_blank');
+    if(tab)tab.document.write('<title>Preparando DANFSe...</title><p style="font-family:sans-serif;padding:24px">Gerando DANFSe...</p>');
+  }
+  try{
+    const blob=await apiBlob('/api/invoices/'+id+'/pdf');
+    const url=URL.createObjectURL(blob);
+    if(tab){
+      tab.location.href=url;
+    }else{
+      const a=document.createElement('a');
+      a.href=url;a.target='_blank';a.rel='noopener';a.download='DANFSe-'+id+'.pdf';
+      document.body.appendChild(a);a.click();a.remove();
+    }
+    setTimeout(()=>URL.revokeObjectURL(url),120000);
+  }catch(error){if(tab)tab.close();alert(error.message)}
 }
 
 let invoiceCancelamento=null;
@@ -2022,12 +2046,14 @@ async function prepararConvite(){
     qs('.login-sub').textContent=`Você foi convidado para ${invite.trade_name||invite.legal_name} · CNPJ ${invite.federal_tax_id} · perfil ${invite.profile_name}.`;
     qs('#li-mail').value=invite.email;qs('#li-mail').readOnly=true;
     qs('#li-pw').placeholder='Crie uma senha com 10+ caracteres';
+    const campo=qs('#li-cnpj');
+    if(campo){campo.oninput=null;campo.value='';campo.setAttribute('inputmode','text');campo.placeholder='Nome completo';const lab=qs('label[for="li-cnpj"]');if(lab)lab.textContent='Seu nome completo';}
     const button=qs('#login-action');button.textContent='Aceitar convite e entrar';button.onclick=()=>aceitarConvite(token);
   }catch(error){qs('.login-sub').textContent=error.message;qs('#login-action').disabled=true}
 }
 
 async function aceitarConvite(token){
-  const name=qs('#li-name').value.trim(),password=qs('#li-pw').value;
+  const name=qs('#li-cnpj').value.trim(),password=qs('#li-pw').value;
   if(name.length<2||password.length<10){alert('Informe seu nome e uma senha com pelo menos 10 caracteres.');return}
   try{
     const accepted=await api('/api/auth/invitations/'+encodeURIComponent(token)+'/accept',{method:'POST',body:JSON.stringify({name,password})});
@@ -2041,7 +2067,7 @@ function carregarEstado(){
   try{empresaAtual=JSON.parse(localStorage.getItem(STORAGE_EMPRESA)||'null')}catch{empresaAtual=null}
   try{
     const usuario=JSON.parse(localStorage.getItem(STORAGE_USUARIO)||'null');
-    if(usuario){qs('#li-name').value=usuario.nome||'';qs('#li-mail').value=usuario.email||'';}
+    if(usuario){const c=qs('#li-cnpj');if(c){c.value=usuario.cnpj||'';mascararCnpjLogin(c);}qs('#li-mail').value=usuario.email||'';}
   }catch{}
   aplicarEmpresa();
 }
