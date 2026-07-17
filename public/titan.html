@@ -370,6 +370,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .stage.fail .dot{background:var(--err);border-color:var(--err)}
 .stage.fail .dot svg{opacity:1;color:#fff}
 .stage.fail .stage-t{color:#e8a6a4;font-weight:650}
+.pipe{display:flex;align-items:flex-start;gap:0;padding:12px;background:var(--navy);overflow-x:auto}.stage{display:flex;flex:1;min-width:105px;flex-direction:column;align-items:center;gap:6px;padding:0 8px;text-align:center}.stage::before{display:none}.stage:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 16px);right:calc(-50% + 16px);top:7px;height:1px;background:var(--line-dark)}.stage-t{font-size:10.5px;line-height:1.25;min-height:27px}.stage-d{display:none}.stage-ms{min-height:13px}.pipe-detail{min-height:32px;margin-top:8px;padding:8px 10px;border-radius:var(--r);background:#f6f4ef;color:var(--ink-2);font:10.5px var(--mono);line-height:1.45}.stage:hover .stage-t,.stage:focus .stage-t{color:var(--cream)}
 
 .result{margin-top:14px;padding:16px;border-radius:var(--r);border:1px solid}
 .result.ok{background:var(--ok-bg);border-color:#bfdccb}
@@ -491,10 +492,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 <div id="app">
 
   <aside class="sidebar" id="sb">
-    <div class="sb-mark">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v3.6h-6.1V20h-3.8V7.6H4V4Z" fill="#c9a84c"/></svg>
-      <div style="font-weight:800;letter-spacing:-.02em;color:#f5f4ef;font-size:14px">TITAN <span style="color:#c9a84c;font-weight:600">NFS-e</span></div>
-    </div>
+    <a class="sb-mark" href="/nfs" aria-label="Página inicial TITAN NFS-e" style="text-decoration:none"><img src="/titan-logo.png" alt="TITAN" style="width:30px;height:30px;object-fit:cover;object-position:center 56%;border-radius:50%"><div style="font-weight:800;letter-spacing:-.02em;color:#f5f4ef;font-size:14px">TITAN <span style="color:#c9a84c;font-weight:600">NFS-e</span></div></a>
     <nav class="sb-nav">
       <div class="sb-sec">Operação</div>
       <button class="sb-link active" data-permission="dashboard" onclick="go('painel',this)">
@@ -657,7 +655,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 
       <div class="card" style="margin-bottom:14px">
         <div class="card-h"><h2>Trajeto da nota</h2><span class="pill p-off right mono" id="pipe-env">produção restrita</span></div>
-        <div class="card-b"><div class="pipe" id="pipe"></div><div id="result"></div><div class="foot-note">A linha acompanha cada etapa da emissão e informa exatamente onde uma rejeição ocorreu.</div></div>
+        <div class="card-b"><div class="pipe" id="pipe"></div><div id="pipe-detail" class="pipe-detail">Passe o mouse ou use Tab sobre uma etapa para ver o detalhe.</div><div id="result"></div></div>
       </div>
 
       <div class="grid g-emit">
@@ -1703,13 +1701,15 @@ const xSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 
 function pipeReset(){
   qs('#pipe').innerHTML=etapas.map((e,i)=>`
-    <div class="stage" id="st${i}">
+    <div class="stage" id="st${i}" tabindex="0" onmouseenter="mostrarDetalheEtapa(${i})" onfocus="mostrarDetalheEtapa(${i})">
       <div class="dot">${ckSvg}</div>
       <div><div class="stage-t">${e.t}</div><span class="stage-d">${e.d}</span></div>
       <div class="stage-ms" id="ms${i}"></div>
     </div>`).join('');
   qs('#result').innerHTML='';
+  mostrarDetalheEtapa(0);
 }
+function mostrarDetalheEtapa(index){const e=etapas[index];const detail=qs('#pipe-detail');if(detail)detail.textContent=`${e.t} — ${e.d}`}
 
 let rodando=false;
 async function emitir(falhar){

@@ -9,6 +9,13 @@ export default async function TenantPortal({ params, searchParams }: Props) {
   const { tenant = [] } = await params;
   const query = await searchParams;
   const target = tenant[0] ?? "";
+  if (tenant.length === 0) {
+    return (
+      <main className="prototype-shell">
+        <iframe className="prototype-frame" src="/nfs.html" title="TITAN NFS-e" />
+      </main>
+    );
+  }
   const isAdmin = tenant.length === 1 && ["admin", "adm"].includes(target.toLowerCase());
   const isCompany = tenant.length === 1 && /^\d{14}$/.test(target);
   if (!isAdmin && !isCompany) notFound();

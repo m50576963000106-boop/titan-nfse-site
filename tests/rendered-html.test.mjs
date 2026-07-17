@@ -57,3 +57,13 @@ test("oferece municípios pesquisáveis, rascunhos, clientes e documentos comerc
   assert.match(html,/v-comercial/);
   assert.match(html,/Converter em NFS-e/);
 });
+
+test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async()=>{
+  const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(landing,/Quero contratar o emissor/);
+  assert.match(landing,/\/api\/contact/);
+  assert.match(landing,/titan-logo\.png/);
+  assert.match(html,/pipe-detail/);
+  assert.match(html,/mostrarDetalheEtapa/);
+});
