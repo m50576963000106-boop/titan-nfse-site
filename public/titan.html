@@ -881,10 +881,10 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
       <div class="card" style="margin-bottom:14px">
         <div class="card-b" style="padding:12px">
           <div class="flex wrap">
-            <input class="inp" placeholder="Buscar por tomador, chave ou nº da nota" style="flex:1;min-width:200px">
-            <select class="inp" style="width:auto"><option>Todas as situações</option><option>Autorizada</option><option>Processando</option><option>Rejeitada</option><option>Cancelada</option></select>
-            <select class="inp" style="width:auto"><option>Julho/2026</option><option>Junho/2026</option><option>Maio/2026</option></select>
-            <button class="btn">Exportar XMLs</button>
+            <input id="nt-search" class="inp" placeholder="Buscar por tomador, chave ou nº da nota" style="flex:1;min-width:200px">
+            <select id="nt-status" class="inp" style="width:auto"><option value="">Todas as situações</option><option value="authorized">Autorizada</option><option value="sending">Processando</option><option value="rejected">Rejeitada</option><option value="canceled">Cancelada</option></select>
+            <select id="nt-period" class="inp" style="width:auto"><option value="">Todas as competências</option><option value="2026-07">Julho/2026</option><option value="2026-06">Junho/2026</option><option value="2026-05">Maio/2026</option></select>
+            <button class="btn" onclick="exportarXmls(this)">Exportar XMLs</button>
           </div>
         </div>
       </div>
@@ -1680,6 +1680,21 @@ function tabelas(){
     </tr>`).join('');
 }
 
+async function exportarXmls(btn){
+  const search=qs('#nt-search')?.value.trim()||'';
+  const status=qs('#nt-status')?.value||'';
+  const month=qs('#nt-period')?.value||'';
+  const params=new URLSearchParams();
+  if(search)params.set('search',search);
+  if(status)params.set('status',status);
+  if(month)params.set('month',month);
+  const original=btn?btn.textContent:'';if(btn){btn.disabled=true;btn.textContent='Gerando zip...';}
+  try{
+    const blob=await apiBlob('/api/invoices/export/xml'+(params.toString()?'?'+params.toString():''));
+    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='nfse-xmls.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+  }catch(error){alert(error.message)}
+  finally{if(btn){btn.disabled=false;btn.textContent=original;}}
+}
 async function baixarXml(id,numero){
   try{const blob=await apiBlob('/api/invoices/'+id+'/xml'),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='nfse-'+numero+'.xml';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(error){alert(error.message)}
 }
