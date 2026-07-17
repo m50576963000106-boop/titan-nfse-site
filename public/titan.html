@@ -458,8 +458,8 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
       <div style="font-weight:800;letter-spacing:-.02em;color:#f5f4ef;font-size:15px">TITAN <span style="color:#c9a84c;font-weight:600">NFS-e</span></div>
     </div>
     <div class="onboard-step">Primeiro acesso · etapa 1 de 2</div>
-    <div class="login-h">Criar acesso de teste</div>
-    <div class="login-sub">Informe o responsável. Na próxima etapa você cadastra a primeira empresa e deixa o ambiente pronto para os testes.</div>
+    <div class="login-h">Acessar o TITAN NFS-e</div>
+    <div class="login-sub">Entre com o usuário responsável para acessar a empresa e o ambiente fiscal configurado.</div>
     <div class="login-field">
       <label for="li-name">Nome do responsável</label>
       <input id="li-name" type="text" placeholder="Nome completo" autocomplete="name">
@@ -474,8 +474,8 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
     </div>
     <button class="btn-gold" style="margin-top:8px" onclick="iniciarCadastro()">Continuar para a empresa</button>
     <div class="login-foot">
-      Teste controlado — os dados ficam somente neste navegador e não são enviados à Receita Federal.<br>
-      Ambiente bloqueado em <b style="color:#c9a84c">Produção Restrita</b>.
+      O ambiente ativo é consultado diretamente no backend seguro.<br>
+      <b id="login-env" style="color:#c9a84c">Verificando ambiente...</b>
     </div>
   </div>
 </div>
@@ -532,7 +532,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
     <div class="sb-foot">
       <div style="font-size:10px;color:#4e5f7d;line-height:1.6">
         Sefin Nacional · v1.00.02<br>
-        <span class="mono" style="font-size:9px">sefin.producaorestrita<br>.nfse.gov.br</span>
+        <span class="mono" id="sefin-host" style="font-size:9px">verificando...</span>
       </div>
     </div>
   </aside>
@@ -879,7 +879,8 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
             <div class="card-b">
               <div class="row r2"><div class="field"><label for="e-series">Série da DPS</label><input id="e-series" class="inp mono" type="number" min="1" max="99999" value="1"><div class="hint">Campo série: 1 a 99999.</div></div><div class="field"><label for="e-next">Próximo número da DPS</label><input id="e-next" class="inp mono" inputmode="numeric" value="1"><div class="hint">Sequencial de até 15 dígitos.</div></div></div>
               <div class="row r2"><div class="field"><label for="e-simple-ap">Regime de apuração do Simples</label><select id="e-simple-ap" class="inp"><option value="1">1 — Regime de caixa</option><option value="2">2 — Regime de competência</option><option value="3">3 — Regime especial informado</option></select></div><div class="field"><label for="e-special">Regime especial de tributação</label><select id="e-special" class="inp"><option value="0">0 — Nenhum</option><option value="1">1 — Microempresa municipal</option><option value="2">2 — Estimativa</option><option value="3">3 — Sociedade de profissionais</option><option value="4">4 — Cooperativa</option><option value="5">5 — MEI</option><option value="6">6 — ME/EPP do Simples Nacional</option></select></div></div>
-              <div class="kv"><span>Tipo de ambiente</span><b>2 — Produção Restrita</b></div><div class="kv"><span>Tipo do emitente</span><b>1 — Prestador</b></div><div class="kv"><span>Versão do leiaute</span><b>1.01</b></div>
+              <div class="field"><label for="e-simple-total">Percentual aproximado total de tributos do Simples (%)</label><input id="e-simple-total" class="inp num" inputmode="decimal" placeholder="Informe conforme a apuração da empresa"><div class="hint">Obrigatório para ME/EPP em Produção; compõe o campo pTotTribSN da DPS.</div></div>
+              <div class="kv"><span>Tipo de ambiente</span><b id="config-env">Verificando...</b></div><div class="kv"><span>Tipo do emitente</span><b>1 — Prestador</b></div><div class="kv"><span>Versão do leiaute</span><b>1.01</b></div>
               <div class="foot-note">Alterar o próximo número pode gerar duplicidade de DPS. Use somente para alinhar a sequência já utilizada pela empresa.</div>
             </div>
           </div>
@@ -1143,6 +1144,26 @@ const API_URL=(window.TITAN_API_URL||'').replace(/\/$/,'');
 const STORAGE_TOKEN='titan_nfse_session_v1';
 const dataBrasil=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 qs('#s-comp').value=dataBrasil();
+let ambienteAtual='restricted';
+
+function atualizarAmbiente(){
+  const producao=ambienteAtual==='production';
+  const nome=producao?'Produção oficial':'Produção restrita';
+  qs('#login-env').textContent=producao?'PRODUÇÃO OFICIAL — emissões têm validade fiscal':'PRODUÇÃO RESTRITA — documentos sem validade fiscal';
+  qs('#env').querySelector('.txt').textContent=nome;
+  qs('#pipe-env').textContent=nome.toLowerCase();
+  qs('#config-env').textContent=producao?'1 — Produção oficial':'2 — Produção Restrita';
+  qs('#sefin-host').innerHTML=producao?'sefin.nfse.gov.br':'sefin.producaorestrita<br>.nfse.gov.br';
+  etapas[etapas.length-1].d=`resposta síncrona da ${nome}`;
+}
+
+async function carregarAmbiente(){
+  const response=await fetch(API_URL+'/health');
+  const health=await response.json();
+  ambienteAtual=health.environment==='production'?'production':'restricted';
+  atualizarAmbiente();
+}
+carregarAmbiente().catch(()=>{qs('#login-env').textContent='Servidor fiscal indisponível';});
 
 async function api(path,options={}){
   if(!API_URL)throw new Error('O servidor seguro ainda não foi vinculado a este endereço.');
@@ -1174,6 +1195,7 @@ async function iniciarCadastro(){
     return;
   }
   try{
+    await carregarAmbiente();
     const login=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email,password:senha})});
     sessionStorage.setItem(STORAGE_TOKEN,login.token);
     localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome,email}));
@@ -1212,7 +1234,7 @@ async function carregarEmpresaServidor(){
   const row=await api('/api/company');
   if(!row){empresaAtual=null;return}
   const regimes={regular:'Lucro Presumido',mei:'MEI',simples:'Simples Nacional — ME'};
-  empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.municipality_code,endereco:'',series:Number(row.dps_series)||1,next:String(row.next_dps_number||1),simpleAp:Number(row.simple_assessment_regime)||1,special:Number(row.special_tax_regime)||0};
+  empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.municipality_code,endereco:'',series:Number(row.dps_series)||1,next:String(row.next_dps_number||1),simpleAp:Number(row.simple_assessment_regime)||1,simpleTotal:row.simple_total_tax_rate==null?'':Number(row.simple_total_tax_rate),special:Number(row.special_tax_regime)||0};
   localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresaAtual));
 }
 
@@ -1373,7 +1395,7 @@ async function carregarCertificado(){
     const cert=await api('/api/invoices/certificate');
     if(!cert.configured){
       status.textContent='Não configurado';
-      details.textContent='Selecione abaixo o certificado A1 da empresa para habilitar a emissão real na Produção Restrita.';
+      details.textContent='Selecione abaixo o certificado A1 da empresa para habilitar a integração fiscal.';
       return;
     }
     status.className='pill '+(cert.expired?'p-err':'p-ok')+' right';
@@ -1394,7 +1416,7 @@ async function enviarCertificado(){
     await api('/api/invoices/certificate',{method:'POST',body:form});
     qs('#c-pw').value='';qs('#c-file').value='';qs('#cert-file-name').textContent='ou clique para escolher — máx. 8 MB';
     await carregarCertificado();
-    alert('Certificado A1 validado e guardado com segurança. A emissão de teste está habilitada.');
+    alert('Certificado A1 validado e guardado com segurança. A integração fiscal está habilitada.');
   }catch(error){alert(error.message)}
   finally{button.disabled=false;button.textContent='Enviar ao cofre seguro'}
 }
@@ -1411,9 +1433,8 @@ certDrop.addEventListener('drop',e=>{
 });
 
 /* ---------- ambiente ---------- */
-let prod=false;
 function trocarAmbiente(){
-  alert('O ambiente de produção está bloqueado durante o teste inicial.');
+  alert(`Ambiente definido pelo backend seguro: ${ambienteAtual==='production'?'Produção oficial':'Produção restrita'}. A troca é feita somente por administrador no servidor.`);
 }
 function trocarEmpresa(){
   aplicarEmpresa();
@@ -1536,7 +1557,7 @@ const etapas=[
   {t:'Assinar com o A1',d:'XMLDSig · SHA-256 · cadeia ICP-Brasil anexada',ms:96},
   {t:'Compactar GZip + Base64',d:'4.1 KB → 1.2 KB · dpsXmlGZipB64',ms:8},
   {t:'Enviar à Sefin Nacional',d:'POST /nfse · mTLS com certificado A1',ms:420},
-  {t:'Validar autorização oficial',d:'resposta síncrona da Produção Restrita',ms:54}
+  {t:'Validar autorização oficial',d:'resposta síncrona da Sefin Nacional',ms:54}
 ];
 const ckSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M20 6 9 17l-5-5"/></svg>';
 const xSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4"><path d="M18 6 6 18M6 6l12 12"/></svg>';
@@ -1559,7 +1580,7 @@ async function emitir(falhar){
     return;
   }
   if(falhar){
-    alert('A simulação artificial foi removida. O sistema agora exibe somente respostas reais da Produção Restrita.');
+    alert('A simulação artificial foi removida. O sistema exibe somente respostas reais da Sefin Nacional.');
     return;
   }
   const valor=Number(qs('#s-val').value.replace(/\./g,'').replace(',','.'));
@@ -1576,6 +1597,10 @@ async function emitir(falhar){
   }
   if(documento.length!==11&&documento.length!==14){alert('O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 dígitos.');qs('#t-doc').focus();return}
   if(qs('#t-mail').value&&!qs('#t-mail').checkValidity()){alert('Informe um e-mail válido para o tomador.');qs('#t-mail').focus();return}
+  if(ambienteAtual==='production'){
+    const aviso=`ATENÇÃO: esta emissão terá validade fiscal.\n\nEmpresa: ${empresaAtual.rs}\nDPS: série ${empresaAtual.series}, número ${empresaAtual.next}\nTomador: ${payload.borrower.name}\nValor: R$ ${brl(valor)}\n\nConfirma a emissão na Produção oficial?`;
+    if(!confirm(aviso))return;
+  }
   if(rodando)return;
   rodando=true;
   qs('#btn-emit').disabled=true;
@@ -1588,16 +1613,16 @@ async function emitir(falhar){
     st.className='stage done';
     }
     const last=qs('#st'+(etapas.length-1));last.className='stage run';
-    const result=await api('/api/invoices/emit',{method:'POST',body:JSON.stringify(payload)});
+    const result=await api('/api/invoices/emit',{method:'POST',headers:ambienteAtual==='production'?{'X-Confirm-Production':'EMITIR_NFSE_REAL'}:{},body:JSON.stringify(payload)});
     last.className='stage done';
     qs('#result').innerHTML=`
         <div class="result ok">
           <div class="flex" style="margin-bottom:8px">
-            <span class="pill p-ok">Autorizada na Produção Restrita</span>
+            <span class="pill p-ok">Autorizada na ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}</span>
           </div>
-          <div class="eyebrow" style="margin-bottom:2px">Chave da NFS-e de teste</div>
+          <div class="eyebrow" style="margin-bottom:2px">Chave da NFS-e</div>
           <div class="chave">${result.accessKey||'Autorização recebida'}</div>
-          <div class="foot-note" style="color:#155c39">Documento sem validade fiscal, emitido no ambiente oficial de testes.</div>
+          <div class="foot-note" style="color:#155c39">${ambienteAtual==='production'?'Documento fiscal autorizado pela Sefin Nacional.':'Documento sem validade fiscal, emitido no ambiente oficial de testes.'}</div>
         </div>`;
     await carregarNotasServidor();
   }catch(error){
@@ -1655,7 +1680,7 @@ async function importar(){
         <div class="kv"><span>Clientes processados</span><b>${result.customers}</b></div>
         <div class="kv"><span>Status oficial</span><b>${esc(result.status)}</b></div>
         <div class="kv"><span>Último NSU</span><b class="mono" style="font-size:11.5px">${esc(result.lastNsu)}</b></div>
-        <div class="foot-note">Resposta real da API de Contribuintes do ADN em Produção Restrita.</div>
+        <div class="foot-note">Resposta real da API de Contribuintes do ADN em ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}.</div>
       </div>`;
   }catch(error){
     qs('#imp-bar').style.width='100%';
@@ -1677,22 +1702,23 @@ async function salvarCadastro(){
     mun:qs('#e-mun').value,
     municipio:qs('#e-mun').selectedOptions[0].text.split('— ')[1],
     endereco:qs('#e-end').value.trim(),
-    series:Number(qs('#e-series').value),next:qs('#e-next').value.replace(/\D/g,''),simpleAp:Number(qs('#e-simple-ap').value),special:Number(qs('#e-special').value)
+    series:Number(qs('#e-series').value),next:qs('#e-next').value.replace(/\D/g,''),simpleAp:Number(qs('#e-simple-ap').value),simpleTotal:qs('#e-simple-total').value.trim()===''?'':dinheiro(qs('#e-simple-total').value),special:Number(qs('#e-special').value)
   };
-  if(!empresa.rs||!empresa.cnpj||!empresa.im||!empresa.endereco){
-    alert('Preencha razão social, CNPJ, inscrição municipal e endereço para salvar.');
+  if(!empresa.rs||!empresa.cnpj){
+    alert('Preencha razão social e CNPJ para salvar.');
     return;
   }
   if(!Number.isInteger(empresa.series)||empresa.series<1||empresa.series>99999||!empresa.next){alert('Informe uma série entre 1 e 99999 e o próximo número da DPS.');return}
   const regime=empresa.reg==='MEI'?'mei':empresa.reg.includes('Simples')?'simples':'regular';
+  if(ambienteAtual==='production'&&regime==='simples'&&empresa.simpleTotal===''){alert('Informe o percentual aproximado total de tributos do Simples para habilitar emissões fiscais.');return}
   try{
-    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next})});
+    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im||undefined,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,simpleTotalTaxRate:regime==='simples'&&empresa.simpleTotal!==''?empresa.simpleTotal:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next})});
     empresaAtual=empresa;
     localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresa));
   }catch(error){alert(error.message);return}
   aplicarEmpresa();
   checarHabilitacao();
-  alert('Cadastro salvo no servidor seguro. O ambiente está pronto para a Produção Restrita.');
+  alert(`Cadastro salvo no servidor seguro. Ambiente: ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}.`);
   go('painel',qs('.sb-link[onclick*="painel"]'));
 }
 
@@ -1720,7 +1746,7 @@ function aplicarEmpresa(){
   qs('#e-reg').value=empresaAtual.reg;
   qs('#e-mun').value=empresaAtual.mun;
   qs('#e-end').value=empresaAtual.endereco;
-  qs('#e-series').value=empresaAtual.series||1;qs('#e-next').value=empresaAtual.next||1;qs('#e-simple-ap').value=String(empresaAtual.simpleAp||1);qs('#e-special').value=String(empresaAtual.special||0);
+  qs('#e-series').value=empresaAtual.series||1;qs('#e-next').value=empresaAtual.next||1;qs('#e-simple-ap').value=String(empresaAtual.simpleAp||1);qs('#e-simple-total').value=empresaAtual.simpleTotal===''?'':String(empresaAtual.simpleTotal).replace('.',',');qs('#e-special').value=String(empresaAtual.special||0);
   if(qs(`#s-mun option[value="${empresaAtual.mun}"]`))qs('#s-mun').value=empresaAtual.mun;
   qs('#m-nome').value=empresaAtual.rs;
   qs('#resumo-regime').textContent=empresaAtual.reg;
