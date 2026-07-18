@@ -43,6 +43,8 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(html,/admin-company-search/);
   assert.match(html,/selecionarEmpresaAdmin/);
   assert.match(html,/abrirEmpresaEmissao/);
+  assert.match(html,/async function selecionarEmpresaAdmin\(companyId\)[\s\S]{0,260}abrirEmpresaEmissao\(companyId\)/);
+  assert.match(html,/Preparando o ambiente fiscal da empresa/);
   assert.match(html,/data-master-tab="usuarios"/);
   assert.match(html,/data-master-tab="perfis"/);
 });

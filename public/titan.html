@@ -2381,6 +2381,7 @@ function alternarSeletorEmpresaAdmin(event){
 function fecharSeletorEmpresaAdmin(){qs('#admin-company-menu')?.classList.remove('on');qs('#admin-company-trigger')?.setAttribute('aria-expanded','false')}
 async function selecionarEmpresaAdmin(companyId){
   sessionStorage.setItem(STORAGE_COMPANY_ID,companyId);fecharSeletorEmpresaAdmin();renderEmpresasAdmin();
+  await abrirEmpresaEmissao(companyId);
 }
 qs('#admin-company-switch')?.addEventListener('click',event=>event.stopPropagation());document.addEventListener('click',fecharSeletorEmpresaAdmin);document.addEventListener('keydown',event=>{if(event.key==='Escape')fecharSeletorEmpresaAdmin()});
 
@@ -2390,12 +2391,14 @@ function masterTab(tab,button){
   if(button)button.classList.add('active');window.scrollTo(0,0);
 }
 async function abrirEmpresaEmissao(companyId){
+  const novaAba=window.open('about:blank','_blank');
+  if(novaAba){novaAba.opener=null;novaAba.document.title='Abrindo empresa — TITAN NFS-e';novaAba.document.body.innerHTML='<p style="font:14px Inter,Arial,sans-serif;padding:24px;color:#0b1629">Preparando o ambiente fiscal da empresa...</p>'}
   try{
     const result=await api('/api/master/companies/'+companyId+'/session',{method:'POST'}),company=(result.companies||[])[0];
     const bytes=new TextEncoder().encode(JSON.stringify(result));let binary='';bytes.forEach(byte=>binary+=String.fromCharCode(byte));
     const handoff=btoa(binary),url=`/nfs/${String(company.federal_tax_id||'').replace(/\D/g,'')}#handoff=${encodeURIComponent(handoff)}`;
-    window.open(url,'_blank','noopener');
-  }catch(error){alert(error.message)}
+    if(novaAba)novaAba.location.replace(url);else alert('O navegador bloqueou a nova aba. Libere pop-ups para este site e tente novamente.');
+  }catch(error){if(novaAba)novaAba.close();alert(error.message)}
 }
 function abrirEmpresaSelecionada(){const id=sessionStorage.getItem(STORAGE_COMPANY_ID)||empresasAdmin[0]?.id;if(!id){alert('Selecione uma empresa.');return}abrirEmpresaEmissao(id)}
 async function carregarMaster(){
