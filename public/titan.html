@@ -104,7 +104,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 .reset-field{margin-bottom:14px}.reset-field label{display:block;margin-bottom:6px;color:#8b9ab2;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}.reset-input-wrap{position:relative}
 .reset-input-wrap input{width:100%;padding:12px 44px 12px 12px;background:#0d1a2d;border:1px solid #3a4b68;border-radius:6px;color:var(--cream)}.reset-input-wrap input:focus{border-color:var(--gold);outline:2px solid rgba(201,168,76,.16)}
 .password-toggle{position:absolute;right:8px;top:50%;width:32px;height:32px;transform:translateY(-50%);display:grid;place-items:center;color:#b9c5d7;border-radius:5px}.password-toggle:hover{background:#1d2c44;color:var(--gold)}.password-toggle svg{width:18px;height:18px}
-.reset-hint{min-height:20px;margin:4px 0 16px;color:#8fa0ba;font-size:11px;line-height:1.45}.reset-hint.error{color:#ee9a92}.reset-hint.ok{color:#9dd3b2}.reset-action{width:100%;padding:12px;background:var(--gold);color:var(--navy);font-weight:800;border-radius:6px}.reset-action:disabled{opacity:.45;cursor:not-allowed}.reset-back{display:block;margin-top:16px;text-align:center;color:var(--gold);font-size:12px;font-weight:700;text-decoration:none}.reset-back:hover{text-decoration:underline}
+.reset-hint{min-height:20px;margin:4px 0 16px;color:#8fa0ba;font-size:11px;line-height:1.45}.reset-hint.error{color:#ee9a92}.reset-hint.ok{color:#9dd3b2}.reset-action{width:100%;padding:12px;background:var(--gold);color:var(--navy);font-weight:800;border-radius:6px}.reset-action:disabled{opacity:.45;cursor:not-allowed}.reset-back{display:block;margin-top:16px;text-align:center;color:var(--gold);font-size:12px;font-weight:700;text-decoration:none}.reset-back:hover{text-decoration:underline}.reset-support{margin-top:14px;color:#9aa9c1;font-size:11px;line-height:1.5;text-align:center}.reset-support a{color:var(--gold);font-weight:700;text-decoration:none}.reset-support a:hover{text-decoration:underline}
 
 /* ---------- SHELL ---------- */
 #app{display:none;min-height:100vh}
@@ -743,6 +743,7 @@ main{margin-left:258px;padding-top:72px}
     <div id="reset-hint" class="reset-hint">O link será validado antes de liberar os campos.</div>
     <button id="reset-action" class="reset-action" type="button" disabled>Definir senha</button>
     <a class="reset-back" href="/nfs/entrar">Voltar para o login</a>
+    <div class="reset-support">A redefinição exige um link temporário gerado pelo gestor Master.<br><a href="/nfs/ajuda">Precisa de ajuda?</a></div>
   </div>
 </section>
 
@@ -2686,9 +2687,10 @@ async function salvarAcesso(userId,companyId,active){
 async function gerarRedefinicaoSenha(userId){
   try{
     const result=await api('/api/master/users/'+userId+'/password-reset',{method:'POST'});
-    const link=new URL(result.resetPath,location.origin).href,box=qs('#master-link');box.style.display='flex';box.innerHTML=`<div><b>Link de redefinição válido por ${result.expiresInMinutes} minutos</b><br><span id="reset-url">${esc(link)}</span><br><button class="btn btn-s" style="margin-top:8px" onclick="navigator.clipboard.writeText(qs('#reset-url').textContent)">Copiar link</button></div>`;
+    const link=new URL(result.resetPath,location.origin).href,box=qs('#master-link');box.style.display='flex';box.innerHTML=`<div><b>Link de redefinição válido por ${result.expiresInMinutes} minutos</b><br><a id="reset-url" href="${esc(link)}" target="_blank" rel="noopener" style="word-break:break-all;color:var(--gold-dim);font-weight:700">${esc(link)}</a><br><button class="btn btn-s" style="margin-top:8px" onclick="copiarTextoSeguro(qs('#reset-url').href,this)">Copiar link</button><a class="btn btn-s" style="margin:8px 0 0 6px;text-decoration:none" href="${esc(link)}" target="_blank" rel="noopener">Abrir redefinição</a></div>`;
   }catch(error){alert(error.message)}
 }
+async function copiarTextoSeguro(value,button){try{await navigator.clipboard.writeText(value);if(button){const original=button.textContent;button.textContent='Copiado';window.setTimeout(()=>button.textContent=original,1400)}}catch{prompt('Copie o link de redefinição:',value)}}
 
 async function prepararConvite(){
   const token=new URLSearchParams(location.search).get('invite');
@@ -2720,10 +2722,11 @@ async function aceitarConvite(token){
 async function prepararRedefinicao(token){
   qs('#login').classList.add('hide');qs('#reset-screen').classList.add('on');
   const action=qs('#reset-action'),hint=qs('#reset-hint'),account=qs('#reset-account'),password=qs('#reset-password'),confirmation=qs('#reset-password-confirm');
-  if(!token){account.textContent='Nenhum link temporário foi informado.';hint.textContent='Abra o link gerado pelo gestor master para liberar a redefinição.';hint.classList.add('error');return}
+  const normalizedToken=String(token||'').trim().replace(/^['"]|['"]$/g,'');
+  if(!normalizedToken){account.textContent='Link temporário necessário';hint.textContent='A tela foi aberta sem o token de segurança. No Master, acesse Usuários > Redefinir senha e abra o link gerado para esta conta.';hint.classList.add('error');action.style.display='none';password.closest('.reset-field').style.display='none';confirmation.closest('.reset-field').style.display='none';return}
   try{
-    const info=await api('/api/auth/password-resets/'+encodeURIComponent(token));
-    account.textContent=`Conta: ${info.email||'usuário TITAN'}`;hint.textContent='Link válido por 30 minutos e de uso único. Defina uma senha com pelo menos 10 caracteres.';password.disabled=false;confirmation.disabled=false;action.disabled=false;action.onclick=()=>confirmarRedefinicao(token);password.focus();
+    const info=await api('/api/auth/password-resets/'+encodeURIComponent(normalizedToken));
+    account.textContent=`Conta: ${info.email||'usuário TITAN'}`;hint.textContent='Link válido por 30 minutos e de uso único. Defina uma senha com pelo menos 10 caracteres.';password.disabled=false;confirmation.disabled=false;action.disabled=false;action.onclick=()=>confirmarRedefinicao(normalizedToken);password.focus();
   }catch(error){account.textContent='Não foi possível validar este link.';hint.textContent=error.message;hint.classList.add('error');action.disabled=true}
 }
 async function confirmarRedefinicao(token){

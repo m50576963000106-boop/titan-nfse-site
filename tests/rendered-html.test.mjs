@@ -140,6 +140,9 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.match(html,/id="cad-nbs-search"/);
   assert.match(html,/id="reset-screen"/);
   assert.match(html,/function alternarSenha/);
+  assert.match(html,/Link temporário necessário/);
+  assert.match(html,/copiarTextoSeguro/);
+  assert.match(html,/Abrir redefinição/);
   assert.match(html,/Definir senha/);
   assert.match(html,/id="e-email"/);
   assert.match(html,/id="e-phone"/);
