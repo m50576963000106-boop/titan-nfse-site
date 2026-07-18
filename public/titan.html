@@ -710,6 +710,7 @@ main{margin-left:258px;padding-top:72px}
       <input id="li-pw-confirm" type="password" placeholder="Repita a nova senha" autocomplete="new-password">
     </div>
     <button id="login-action" class="btn-gold" style="margin-top:8px" onclick="iniciarCadastro()">Entrar</button>
+    <div id="login-error" class="login-sub" role="alert" style="display:none;margin-top:10px;color:#a33b35"></div>
     <a id="login-context-link" class="login-context-link" href="/nfs/admin">Sou administrador master</a>
     <a id="login-first-link" class="login-context-link" href="/nfs/primeiro-acesso">Primeiro acesso · definir senha</a>
     <a id="login-reset-link" class="login-context-link" href="/nfs/redefinir-senha">Tenho um link · redefinir senha</a>
@@ -1584,8 +1585,8 @@ async function iniciarCadastro(){
     carregarServicos().catch(()=>{});
   }catch(error){
     if(error?.status===401){
-      const continuar=confirm('Senha inválida. Deseja redefinir a senha?');
-      if(continuar)location.href='/nfs/redefinir-senha';
+      const box=qs('#login-error');
+      if(box){box.style.display='block';box.innerHTML='<b>Senha inválida. Deseja redefinir a senha?</b><div class="flex wrap" style="margin-top:8px"><button class="btn btn-s" type="button" onclick="abrirRedefinicao()">Redefinir senha</button><button class="btn btn-s" type="button" onclick="limparFalhaLogin()">Tentar novamente</button></div>'}
       return;
     }
     const falhaRede=error instanceof TypeError;
@@ -1607,6 +1608,8 @@ async function iniciarCadastro(){
     go('emitente',qs('.sb-link[onclick*="emitente"]'));
   }
 }
+function abrirRedefinicao(){window.top.location.href='/nfs/redefinir-senha';}
+function limparFalhaLogin(){const box=qs('#login-error');if(box){box.style.display='none';box.innerHTML='';}qs('#li-pw')?.focus();}
 function entrar(){iniciarCadastro()}
 function aplicarAcesso(login){
   const access=login||JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}'),user=access.user||{};
@@ -2654,7 +2657,7 @@ async function confirmarRedefinicao(token){
   const password=qs('#li-pw').value,confirmation=qs('#li-pw-confirm').value;
   if(password.length<10){alert('A nova senha precisa ter pelo menos 10 caracteres.');return}
   if(password!==confirmation){alert('A confirmação da senha não confere.');return}
-  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password})});alert('Senha redefinida. Entre novamente com a nova senha.');location.href='/nfs/entrar'}catch(error){alert(error.message)}
+  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password})});alert('Senha redefinida. Entre novamente com a nova senha.');window.top.location.href='/nfs/entrar'}catch(error){alert(error.message)}
 }
 
 function carregarEstado(){
