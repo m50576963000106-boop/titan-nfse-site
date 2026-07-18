@@ -38,6 +38,10 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(route,/\^\\d\{14\}\$/);
   assert.match(route,/\["admin", "adm"\]/);
   assert.match(route,/portal: "admin"/);
+  assert.match(html,/portal do administrador é exclusivo para cadastros e liberações/);
+  assert.match(html,/data-admin-hidden="true"/);
+  assert.match(html,/admin-company-search/);
+  assert.match(html,/selecionarEmpresaAdmin/);
 });
 
 test("consulta CNPJ preenche emitente e endereço do tomador", async()=>{
@@ -64,6 +68,10 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
   assert.match(landing,/Quero contratar o emissor/);
   assert.match(landing,/\/api\/contact/);
   assert.match(landing,/titan-nfse-logo\.png/);
+  assert.match(landing,/Emita suas notas fiscais com o poder e a velocidade do/);
+  assert.match(landing,/Tudo o que sua empresa precisa/);
+  assert.match(landing,/href="\/nfs\/admin"/);
+  assert.match(landing,/href="\/titan\.html"/);
   assert.match(html,/pipe-detail/);
   assert.match(html,/mostrarDetalheEtapa/);
   assert.match(html,/journey-card/);
@@ -76,7 +84,7 @@ test("integra documentos comerciais, clientes e gestão exclusiva do master",asy
   assert.match(html,/co-customer-list/);
   assert.match(html,/selecionarClienteComercial/);
   assert.match(html,/document_number/);
-  assert.match(html,/master-company-context/);
+  assert.match(html,/admin-company-switch/);
   assert.match(html,/Esta área é exclusiva do administrador master/);
   assert.match(html,/titan-nfse-logo\.png/);
 });

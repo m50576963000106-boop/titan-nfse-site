@@ -147,6 +147,15 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
   border:none;background:none;font-weight:600;font-size:13px;
   max-width:240px;cursor:pointer;
 }
+.admin-company-switch{display:none;position:relative;margin-left:auto;width:min(420px,48vw)}
+.admin-company-trigger{width:100%;min-height:46px;padding:7px 42px 7px 13px;border:1px solid #445572;border-radius:6px;background:var(--navy-1);color:#fff;text-align:left;position:relative}
+.admin-company-trigger small{display:block;color:#9fb0ca;font-size:10px;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+.admin-company-trigger b{display:block;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600}
+.admin-company-trigger::after{content:'▼';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:12px}
+.admin-company-menu{display:none;position:absolute;z-index:80;top:calc(100% + 7px);left:0;right:0;padding:9px 0 0;background:#fff;border:1px solid #ced7e5;border-radius:6px;box-shadow:0 16px 34px rgba(11,22,41,.18);overflow:hidden}
+.admin-company-menu.on{display:block}.admin-company-search{margin:0 10px 9px;width:calc(100% - 20px);padding:9px 11px;border:1px solid #ced7e5;border-radius:4px;outline:none}.admin-company-search:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.14)}
+.admin-company-options{max-height:260px;overflow:auto}.admin-company-option{display:block;width:100%;padding:11px 13px;text-align:left;border-top:1px solid #edf0f4;background:#fff}.admin-company-option:hover{background:#f8f7f2}.admin-company-option.active{border-left:4px solid var(--gold);padding-left:9px;background:#eaf6ef}.admin-company-option b{display:block;font-size:12px}.admin-company-option span{display:block;margin-top:2px;color:#60708a;font-size:10.5px}
+.portal-admin .tenant,.portal-admin .env{display:none}.portal-admin .admin-company-switch{display:block}.portal-admin .sb-link[data-admin-hidden="true"],.portal-admin .sb-sec[data-admin-hidden="true"]{display:none!important}
 .env{
   display:flex;align-items:center;gap:7px;margin-left:auto;
   padding:5px 10px;border-radius:100px;font-size:10.5px;font-weight:700;
@@ -473,6 +482,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
   .view{padding:20px 14px 60px}
   .burger{display:grid;place-items:center;width:32px;height:32px;flex:none}
   .tenant select{max-width:120px}
+  .admin-company-switch{width:min(320px,calc(100vw - 102px))}.admin-company-trigger small{font-size:8.5px}.admin-company-trigger b{font-size:10.5px}
   .env span.txt{display:none}
   .page-h h1{font-size:20px}
   .g4{grid-template-columns:1fr}
@@ -584,24 +594,24 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
   <aside class="sidebar" id="sb">
     <a class="sb-mark" href="/nfs" aria-label="Página inicial TITAN NFS-e" style="text-decoration:none"><span class="sb-logo"><img src="/titan-nfse-logo.png" alt="TITAN NFS-e"></span></a>
     <nav class="sb-nav">
-      <div class="sb-sec">Operação</div>
-      <button class="sb-link active" data-permission="dashboard" onclick="go('painel',this)">
+      <div class="sb-sec" data-admin-hidden="true">Operação</div>
+      <button class="sb-link active" data-admin-hidden="true" data-permission="dashboard" onclick="go('painel',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
         Painel
       </button>
-      <button class="sb-link" data-permission="emit" onclick="go('emitir',this)">
+      <button class="sb-link" data-admin-hidden="true" data-permission="emit" onclick="go('emitir',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
         Emitir NFS-e
       </button>
-      <button class="sb-link" data-permission="invoices" onclick="go('notas',this)">
+      <button class="sb-link" data-admin-hidden="true" data-permission="invoices" onclick="go('notas',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
         Notas emitidas
       </button>
-      <button class="sb-link" data-permission="emit" onclick="go('comercial',this)">
+      <button class="sb-link" data-admin-hidden="true" data-permission="emit" onclick="go('comercial',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5M8 17h7"/></svg>
         Orçamentos e O.S.
       </button>
-      <button class="sb-link" data-permission="import" onclick="go('importar',this)">
+      <button class="sb-link" data-admin-hidden="true" data-permission="import" onclick="go('importar',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
         Importar do Portal
       </button>
@@ -622,8 +632,8 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>
         Serviços e retenções
       </button>
-      <div class="sb-sec">Técnico</div>
-      <button class="sb-link" data-master-only="true" onclick="go('logs',this)">
+      <div class="sb-sec" data-admin-hidden="true">Técnico</div>
+      <button class="sb-link" data-admin-hidden="true" data-master-only="true" onclick="go('logs',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
         Logs da API
       </button>
@@ -652,6 +662,13 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
       <select id="tenant" onchange="trocarEmpresa()">
         <option value="">Nenhuma empresa cadastrada</option>
       </select>
+    </div>
+    <div class="admin-company-switch" id="admin-company-switch">
+      <button class="admin-company-trigger" id="admin-company-trigger" type="button" aria-expanded="false" onclick="alternarSeletorEmpresaAdmin(event)"><small>Empresa ativa (cadastro)</small><b id="admin-company-current">Carregando empresas...</b></button>
+      <div class="admin-company-menu" id="admin-company-menu">
+        <input class="admin-company-search" id="admin-company-search" placeholder="Buscar por nome ou CNPJ..." autocomplete="off" oninput="renderEmpresasAdmin()">
+        <div class="admin-company-options" id="admin-company-options"></div>
+      </div>
     </div>
     <button class="env" id="env" onclick="trocarAmbiente()">
       <span class="env-dot"></span><span class="txt">Produção restrita</span>
@@ -1199,7 +1216,6 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
         <div><h1>Gestão master</h1><p>Empresas, convites, perfis de acesso e liberações por plano.</p></div>
         <span class="pill p-ok">MASTER</span>
       </div>
-      <div class="master-context"><div class="field"><label for="master-company-context">Acessar contexto de uma empresa</label><select id="master-company-context" class="inp"><option value="">Selecione uma empresa pelo nome ou CNPJ</option></select></div><button class="btn btn-a" type="button" onclick="abrirContextoMaster()">Abrir painel da empresa</button></div>
       <div class="grid g2">
         <div class="card"><div class="card-h"><div><h3>Convidar usuário</h3><p>Vincule CNPJ, e-mail e perfil. O link vale por 7 dias.</p></div></div><div class="card-b">
           <div class="row r2">
@@ -1217,7 +1233,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
           <button class="btn btn-p" onclick="criarPerfilAcesso()">Criar perfil</button>
         </div></div>
       </div>
-      <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Empresas e usuários liberados</h3><p id="master-summary">Carregando...</p></div></div><div class="table-wrap"><table><thead><tr><th>Empresa / CNPJ</th><th>Plano</th><th>Usuários</th><th>Situação</th><th>Ações rápidas</th></tr></thead><tbody id="master-companies"></tbody></table></div></div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Empresas e usuários liberados</h3><p id="master-summary">Carregando...</p></div></div><div class="table-wrap"><table><thead><tr><th>Empresa / CNPJ</th><th>Plano</th><th>Usuários</th><th>Situação</th><th>Ações cadastrais</th></tr></thead><tbody id="master-companies"></tbody></table></div></div>
       <div class="master-bottom-grid"><div class="card"><div class="card-h"><div><h3>Liberações por usuário</h3><p>Troque o perfil ou suspenda o vínculo sem excluir o cadastro.</p></div></div><div class="table-wrap"><table><thead><tr><th>Usuário / empresa</th><th>Perfil liberado</th><th>Ação</th></tr></thead><tbody id="master-users"></tbody></table></div></div>
       <div class="card"><div class="card-h"><div><h3>Convites recentes</h3><p>Status dos links gerados pelo administrador.</p></div></div><div class="table-wrap"><table><thead><tr><th>E-mail / empresa</th><th>Perfil</th><th>Status</th></tr></thead><tbody id="master-invites"></tbody></table></div></div></div>
     </section>
@@ -1252,6 +1268,7 @@ const PORTAL_QUERY=new URLSearchParams(location.search);
 const PORTAL_PATH=location.pathname.match(/^\/nfs\/(admin|adm|\d{14})\/?$/i)?.[1]||'';
 const PORTAL_ADMIN=['admin','adm'].includes((PORTAL_QUERY.get('portal')||PORTAL_PATH).toLowerCase());
 const PORTAL_CNPJ=(PORTAL_QUERY.get('tenant')||(/^\d{14}$/.test(PORTAL_PATH)?PORTAL_PATH:'')).replace(/\D/g,'');
+document.body.classList.toggle('portal-admin',PORTAL_ADMIN);
 const dataBrasil=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 qs('#s-comp').value=dataBrasil();
 let ambienteAtual='restricted';
@@ -1375,8 +1392,11 @@ function aplicarAcesso(login){
     qs('#tenant').innerHTML=visible.map(c=>`<option value="${c.id}" ${c.id===companyId?'selected':''}>${esc(c.trade_name||c.legal_name)}</option>`).join('');
     qs('#tenant').disabled=Boolean(PORTAL_CNPJ);
   }
+  if(PORTAL_ADMIN)configurarEmpresasAdmin(access.companies||[]);
 }
 function go(v,el){
+  const adminViews=['master','emitente','clientes','cert','servicos'];
+  if(PORTAL_ADMIN&&!adminViews.includes(v)){alert('O portal do administrador é exclusivo para cadastros e liberações.');return}
   if(v==='master'){
     const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');
     if(!access.user?.isMaster){alert('Esta área é exclusiva do administrador master.');return}
@@ -2101,7 +2121,34 @@ function aplicarEmpresa(){
 
 /* ---------- gestão master / convites ---------- */
 let masterData=null;
+let empresasAdmin=[];
 const permissionLabels={dashboard:'Painel',emit:'Emitir NFS-e',invoices:'Notas emitidas',import:'Importar Portal',customers:'Clientes',services:'Serviços',certificate:'Certificado A1',company_settings:'Configuração da empresa'};
+
+function configurarEmpresasAdmin(companies){
+  empresasAdmin=(companies||[]).map(c=>({id:String(c.id),legal_name:c.legal_name||c.trade_name||'Empresa sem nome',trade_name:c.trade_name||'',federal_tax_id:String(c.federal_tax_id||'')}));
+  const current=sessionStorage.getItem(STORAGE_COMPANY_ID);if(PORTAL_ADMIN&&empresasAdmin.length&&!empresasAdmin.some(c=>c.id===current))sessionStorage.setItem(STORAGE_COMPANY_ID,empresasAdmin[0].id);
+  renderEmpresasAdmin();
+}
+function renderEmpresasAdmin(){
+  const box=qs('#admin-company-options');if(!box)return;
+  const term=(qs('#admin-company-search')?.value||'').toLocaleLowerCase('pt-BR').replace(/\D/g,'')||'';
+  const raw=(qs('#admin-company-search')?.value||'').trim().toLocaleLowerCase('pt-BR');
+  const current=sessionStorage.getItem(STORAGE_COMPANY_ID);
+  const filtered=empresasAdmin.filter(c=>!raw||String(c.legal_name).toLocaleLowerCase('pt-BR').includes(raw)||String(c.trade_name).toLocaleLowerCase('pt-BR').includes(raw)||String(c.federal_tax_id).replace(/\D/g,'').includes(term));
+  box.innerHTML=filtered.length?filtered.map(c=>`<button type="button" class="admin-company-option ${c.id===current?'active':''}" onclick="selecionarEmpresaAdmin('${c.id}')"><b>${esc(c.trade_name||c.legal_name)}</b><span>CNPJ: ${esc(formatarCnpj(c.federal_tax_id))}</span></button>`).join(''):'<div class="empty-state" style="padding:16px">Nenhuma empresa encontrada.</div>';
+  const selected=empresasAdmin.find(c=>c.id===current)||empresasAdmin[0];
+  const label=qs('#admin-company-current');if(label)label.textContent=selected?(selected.trade_name||selected.legal_name):'Nenhuma empresa cadastrada';
+}
+function alternarSeletorEmpresaAdmin(event){
+  event?.stopPropagation();const menu=qs('#admin-company-menu'),open=!menu.classList.contains('on');menu.classList.toggle('on',open);qs('#admin-company-trigger').setAttribute('aria-expanded',String(open));if(open){qs('#admin-company-search').value='';renderEmpresasAdmin();setTimeout(()=>qs('#admin-company-search').focus(),0)}
+}
+function fecharSeletorEmpresaAdmin(){qs('#admin-company-menu')?.classList.remove('on');qs('#admin-company-trigger')?.setAttribute('aria-expanded','false')}
+async function selecionarEmpresaAdmin(companyId){
+  sessionStorage.setItem(STORAGE_COMPANY_ID,companyId);fecharSeletorEmpresaAdmin();renderEmpresasAdmin();
+  const sel=qs('#tenant');if(sel&&[...sel.options].some(o=>o.value===companyId))sel.value=companyId;
+  try{await carregarEmpresaServidor();await carregarNotasServidor();render();const current=qs('.view.on')?.id;if(current==='v-clientes')await carregarClientesCadastro();if(current==='v-cert')await carregarCertificado();if(current==='v-servicos'){await carregarPerfisServico();await buscarCatalogoServico()}}catch(error){alert(error.message)}
+}
+qs('#admin-company-switch')?.addEventListener('click',event=>event.stopPropagation());document.addEventListener('click',fecharSeletorEmpresaAdmin);document.addEventListener('keydown',event=>{if(event.key==='Escape')fecharSeletorEmpresaAdmin()});
 
 async function masterAbrir(companyId,view){
   sessionStorage.setItem(STORAGE_COMPANY_ID,companyId);
@@ -2109,19 +2156,14 @@ async function masterAbrir(companyId,view){
   try{await carregarEmpresaServidor();await carregarNotasServidor();}catch(e){}
   go(view,qs('.sb-link[onclick*="'+view+'"]'));
 }
-function abrirContextoMaster(){
-  const companyId=qs('#master-company-context')?.value;
-  if(!companyId){alert('Selecione uma empresa para abrir o contexto.');return}
-  masterAbrir(companyId,'painel');
-}
 async function carregarMaster(){
   try{
     masterData=await api('/api/master/overview');
     qs('#master-summary').textContent=`${masterData.companies.length} empresa(s) · ${masterData.users.length} vínculo(s) · ${masterData.profiles.length} perfil(is)`;
-    qs('#master-company-context').innerHTML='<option value="">Selecione uma empresa pelo nome ou CNPJ</option>'+masterData.companies.map(c=>`<option value="${c.id}">${esc(c.trade_name||c.legal_name)} · ${esc(formatarCnpj(c.federal_tax_id))}</option>`).join('');
+    configurarEmpresasAdmin(masterData.companies);
     qs('#master-profile').innerHTML=masterData.profiles.map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(p.plan_code)}</option>`).join('');
     qs('#profile-permissions').innerHTML=masterData.permissions.map(p=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${p}" checked> ${esc(permissionLabels[p]||p)}</label>`).join('');
-    qs('#master-companies').innerHTML=masterData.companies.map(c=>`<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(c.federal_tax_id)}</span></td><td>${esc(c.plan_code)}</td><td>${c.users}</td><td><span class="pill ${c.emission_enabled?'p-ok':'p-warn'}">${c.emission_enabled?'Emissão liberada':'Cadastro pendente'}</span></td><td><div class="acts"><button class="btn btn-s" onclick="masterAbrir('${c.id}','importar')">Importar</button><button class="btn btn-s" onclick="masterAbrir('${c.id}','servicos')">Serviços</button><button class="btn btn-s" onclick="masterAbrir('${c.id}','emitente')">Config</button></div></td></tr>`).join('')||'<tr><td colspan="5">Nenhuma empresa.</td></tr>';
+    qs('#master-companies').innerHTML=masterData.companies.map(c=>`<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(c.federal_tax_id)}</span></td><td>${esc(c.plan_code)}</td><td>${c.users}</td><td><span class="pill ${c.emission_enabled?'p-ok':'p-warn'}">${c.emission_enabled?'Emissão liberada':'Cadastro pendente'}</span></td><td><div class="acts"><button class="btn btn-s" onclick="masterAbrir('${c.id}','clientes')">Clientes</button><button class="btn btn-s" onclick="masterAbrir('${c.id}','servicos')">Serviços</button><button class="btn btn-s" onclick="masterAbrir('${c.id}','emitente')">Emitente</button></div></td></tr>`).join('')||'<tr><td colspan="5">Nenhuma empresa.</td></tr>';
     qs('#master-users').innerHTML=masterData.users.filter(u=>u.company_id).map(u=>`<tr><td><b>${esc(u.name)}</b> ${u.is_master?'<span class="pill p-ok">MASTER</span>':''}<br><span>${esc(u.email)}</span><br><small style="color:var(--gold-dim)">${esc(u.legal_name||'—')}</small></td><td><select class="inp" id="access-${u.id}-${u.company_id}" style="padding:5px">${masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u.profile_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></td><td><div class="acts"><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',true)">Salvar</button> ${u.is_master?'':`<button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',false)">Suspender</button>`}</div></td></tr>`).join('')||'<tr><td colspan="3">Nenhum vínculo.</td></tr>';
     qs('#master-invites').innerHTML=masterData.invitations.map(i=>{const status=i.accepted_at?['p-ok','Aceito']:new Date(i.expires_at)<new Date()?['p-err','Expirado']:['p-warn','Pendente'];return `<tr><td><b>${esc(i.email)}</b><br><small>${esc(i.legal_name)}</small><br><span class="mono">${esc(i.federal_tax_id)}</span></td><td>${esc(i.profile_name||'—')}</td><td><span class="pill ${status[0]}">${status[1]}</span></td></tr>`}).join('')||'<tr><td colspan="3">Nenhum convite.</td></tr>';
   }catch(error){alert(error.message)}
