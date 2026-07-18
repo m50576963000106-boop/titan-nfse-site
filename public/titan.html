@@ -465,9 +465,85 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .right{margin-left:auto}
 .mb0{margin-bottom:0}
 
+/* ---------- PAINEL 2026 ---------- */
+.sidebar{width:258px;box-shadow:8px 0 26px rgba(11,22,41,.08)}
+.sb-mark{height:82px;padding:12px 18px}
+.sb-logo{height:56px}
+.sb-nav{padding:14px 12px}
+.sb-sec{padding:16px 10px 7px;color:#62718a}
+.sb-link{padding:10px 11px;border-radius:8px;font-size:13px}
+.sb-link.active{background:linear-gradient(90deg,var(--navy-2),#162744);box-shadow:inset 3px 0 0 var(--gold)}
+.sb-foot{padding:14px 16px;background:#091322}
+.sidebar-health{padding:11px 12px;border:1px solid var(--line-dark);border-radius:9px;background:var(--navy-1);margin-bottom:11px}
+.sidebar-health-top{display:flex;align-items:center;gap:8px;color:#d7deea;font-size:11px;font-weight:650}
+.sidebar-health-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);box-shadow:0 0 0 3px rgba(139,143,153,.12)}
+.sidebar-health-dot.ok{background:var(--ok);box-shadow:0 0 0 3px rgba(31,122,76,.18)}
+.sidebar-health-dot.warn{background:var(--warn);box-shadow:0 0 0 3px rgba(168,117,26,.18)}
+.sidebar-health-info{display:block;margin:5px 0 8px;color:#7787a1;font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-health-bar{height:3px;border-radius:3px;background:#263754;overflow:hidden}
+.sidebar-health-bar i{display:block;width:16%;height:100%;background:var(--ink-3);transition:width .25s,background .25s}
+.topbar{left:258px;height:72px;padding:0 24px;gap:10px;background:rgba(245,244,239,.95)}
+main{margin-left:258px;padding-top:72px}
+.view{padding:28px 28px 64px;max-width:1380px;margin:0 auto}
+.card,.kpi{border-radius:10px;box-shadow:0 1px 2px rgba(11,22,41,.025)}
+.global-search{position:relative;width:min(360px,30vw);flex:none}
+.global-search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-3);pointer-events:none}
+.global-search input{width:100%;height:40px;padding:0 38px;border:1px solid var(--line);border-radius:9px;background:var(--paper);font-size:12.5px;outline:none}
+.global-search input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.13)}
+.tenant{margin-left:auto;border-radius:9px;height:40px}
+.env{margin-left:0;height:34px}
+.top-icon{width:36px;height:36px;border:1px solid var(--line);border-radius:9px;background:var(--paper);display:grid;place-items:center;position:relative;color:var(--ink-2);flex:none}
+.top-icon:hover{border-color:var(--gold);color:var(--ink)}
+.top-badge{display:none;position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:20px;background:var(--err);color:#fff;font-size:9px;font-weight:750;line-height:17px;text-align:center;border:2px solid var(--cream)}
+.top-badge.on{display:block}
+.top-user{display:flex;align-items:center;gap:8px;padding-left:2px;min-width:0}
+.top-user-copy{display:block;max-width:130px;line-height:1.2}
+.top-user-copy b,.top-user-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top-user-copy b{font-size:11px}.top-user-copy small{font-size:9.5px;color:var(--ink-3);margin-top:3px}
+.avatar{width:34px;height:34px}
+.portal-admin .global-search{display:none}
+
+.dash-hero{display:flex;align-items:center;justify-content:space-between;gap:22px;margin-bottom:23px}
+.dash-hero-copy h1{font-size:27px;line-height:1.18;letter-spacing:-.035em;margin-top:4px}
+.dash-hero-copy p{color:var(--ink-2);font-size:12.5px;margin-top:7px;max-width:68ch}
+.dash-primary{display:inline-flex;align-items:center;gap:8px;padding:11px 17px;border-radius:9px;background:var(--navy);color:#fff;font-weight:700;white-space:nowrap;box-shadow:0 8px 18px rgba(11,22,41,.13)}
+.dash-primary:hover{background:var(--navy-2)}
+.dash-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.dash-stat{display:flex;align-items:flex-start;gap:12px;padding:17px;background:var(--paper);border:1px solid var(--line);border-radius:10px;min-width:0}
+.dash-stat-icon{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;flex:none;background:#eef2f8;color:#345078}
+.dash-stat:nth-child(2) .dash-stat-icon{background:#f8f1dd;color:var(--gold-dim)}
+.dash-stat:nth-child(3) .dash-stat-icon{background:var(--ok-bg);color:var(--ok)}
+.dash-stat.attention .dash-stat-icon{background:var(--err-bg);color:var(--err)}
+.dash-stat-copy{min-width:0}.dash-stat-copy span{display:block;color:var(--ink-3);font-size:9.5px;font-weight:750;letter-spacing:.07em;text-transform:uppercase}
+.dash-stat-copy strong{display:block;margin-top:6px;font-size:21px;line-height:1;font-weight:780;letter-spacing:-.035em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.dash-stat-copy small{display:block;margin-top:6px;color:var(--ink-3);font-size:10.5px}
+.dash-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,.85fr);gap:16px;margin-bottom:16px}
+.dash-card-h{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.dash-card-h h2{font-size:13px;font-weight:700}.dash-card-h p{font-size:10.5px;color:var(--ink-3);margin-top:2px}
+.dash-chart{height:205px;display:flex;align-items:flex-end;gap:12px;padding:32px 18px 15px;background:linear-gradient(180deg,#fff,#fdfcf9)}
+.dash-chart .bar-wrap{min-width:0}.dash-chart .bar{background:linear-gradient(180deg,#243c63,var(--navy));border-radius:5px 5px 2px 2px}
+.dash-chart .bar.last{background:linear-gradient(180deg,#d9b95c,var(--gold-dim))}.dash-chart .bar-v{font-size:9.5px}
+.dash-pending{padding:5px 16px 12px}
+.pending-row{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #f0eee6}
+.pending-row:last-child{border:none}.pending-ico{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--warn-bg);color:var(--warn)}
+.pending-row.ok .pending-ico{background:var(--ok-bg);color:var(--ok)}.pending-copy b{display:block;font-size:11.5px}.pending-copy span{display:block;font-size:9.8px;color:var(--ink-3);margin-top:2px}.pending-count{font-size:12px;font-weight:750}
+.dash-bottom{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:16px}
+.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:16px}
+.quick-action{padding:13px 11px;border:1px solid var(--line);border-radius:9px;background:#fbfaf7;text-align:left;min-height:92px;transition:transform .12s,border-color .12s,box-shadow .12s}
+.quick-action:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 7px 16px rgba(11,22,41,.07)}
+.quick-action svg{color:var(--gold-dim)}.quick-action b{display:block;font-size:11.5px;margin-top:8px}.quick-action span{display:block;font-size:9.5px;color:var(--ink-3);margin-top:3px;line-height:1.35}
+.activity-list{padding:2px 16px 10px}.activity-row{display:grid;grid-template-columns:9px 1fr auto;gap:10px;align-items:start;padding:11px 0;border-bottom:1px solid #f0eee6}
+.activity-row:last-child{border:none}.activity-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;background:var(--ink-3)}.activity-dot.ok{background:var(--ok)}.activity-dot.err{background:var(--err)}.activity-dot.warn{background:var(--warn)}
+.activity-copy b{display:block;font-size:11px}.activity-copy span{display:block;font-size:9.8px;color:var(--ink-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.activity-value{font-size:10.5px;font-weight:700;white-space:nowrap}
+.dash-empty{padding:28px 16px;text-align:center;color:var(--ink-3);font-size:11.5px;line-height:1.5}
+.pending-row{width:100%;background:transparent;text-align:left;font-family:inherit}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
 /* mobile */
 .burger{display:none}
 @media(max-width:900px){
+  .dash-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dash-grid,.dash-bottom{grid-template-columns:1fr}
   .g4{grid-template-columns:1fr 1fr}
   .g3,.g2,.r3,.r2,.r21,.g-emit,.commercial-grid,.master-bottom-grid{grid-template-columns:1fr}
   .span2{grid-column:auto}
@@ -485,6 +561,18 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
   .admin-company-switch{width:min(320px,calc(100vw - 102px))}.admin-company-trigger small{font-size:8.5px}.admin-company-trigger b{font-size:10.5px}
   .env span.txt{display:none}
   .page-h h1{font-size:20px}
+  .dash-hero{align-items:flex-start;flex-direction:column;gap:14px}
+  .dash-hero-copy h1{font-size:23px}
+  .dash-primary{width:100%;justify-content:center}
+  .dash-stats,.quick-grid{grid-template-columns:1fr}
+  .dash-stat{padding:14px}
+  .dash-chart{height:170px;gap:7px;padding-left:12px;padding-right:12px}
+  .dash-card-h{padding:13px 14px}
+  .activity-copy span{white-space:normal}
+  .top-user-copy{display:none}
+  .global-search{width:min(210px,38vw)}
+  .global-search input{padding-left:32px;padding-right:8px}
+  .top-icon{width:32px;height:32px}
   .g4{grid-template-columns:1fr}
   .kpi .val{font-size:22px}
   .cgsn-days{font-size:40px}
@@ -657,6 +745,10 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
     <button class="burger" onclick="document.getElementById('sb').classList.toggle('open')" aria-label="Menu">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
     </button>
+    <label class="global-search" aria-label="Buscar no portal">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="global-search" type="search" placeholder="Buscar módulo, cliente ou nota..." autocomplete="off" oninput="buscarNoPortal(this.value)" onkeydown="if(event.key==='Enter')abrirResultadoBusca()">
+    </label>
     <div class="tenant">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b8f99" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
       <select id="tenant" onchange="trocarEmpresa()">
@@ -670,80 +762,96 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
         <div class="admin-company-options" id="admin-company-options"></div>
       </div>
     </div>
+    <button class="top-icon" type="button" title="Abrir assistente" aria-label="Abrir assistente" onclick="supToggle()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
+    </button>
+    <button class="top-icon" type="button" title="Notificações" aria-label="Notificações" onclick="mostrarNotificacoes()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+      <span class="top-badge" id="top-notification-badge">0</span>
+    </button>
+    <div class="top-user">
+      <div class="top-user-copy"><b id="top-user-name">Usuário TITAN</b><small id="top-user-role">Acesso liberado</small></div>
+      <div class="avatar" id="avatar">--</div>
+    </div>
     <button class="env" id="env" onclick="trocarAmbiente()">
       <span class="env-dot"></span><span class="txt">Produção restrita</span>
     </button>
-    <div class="avatar" id="avatar">--</div>
   </header>
 
   <main>
 
     <!-- ---------- PAINEL ---------- -->
     <section class="view on" id="v-painel">
-      <div class="page-h">
-        <h1>Painel</h1>
-        <p id="painel-sub">Cadastre a primeira empresa para iniciar os testes.</p>
+      <div class="dash-hero">
+        <div class="dash-hero-copy">
+          <div class="eyebrow">Visão geral</div>
+          <h1 id="dash-greeting">Olá, usuário 👋</h1>
+          <p id="painel-sub">Cadastre a primeira empresa para iniciar os testes.</p>
+        </div>
+        <button class="dash-primary" type="button" onclick="go('emitir',qs('.sb-link[onclick*=&quot;emitir&quot;]'))">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+          Nova NFS-e
+        </button>
       </div>
 
-      <div class="cgsn" style="margin-bottom:16px">
-        <div class="cgsn-days"><span id="cd-num">47</span><span>dias restantes</span></div>
+      <div class="dash-stats" aria-label="Resumo da empresa">
+        <div class="dash-stat">
+          <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></div>
+          <div class="dash-stat-copy"><span>Notas no mês</span><strong id="dash-notas">0</strong><small id="dash-notas-sub">Nenhuma emissão registrada</small></div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg></div>
+          <div class="dash-stat-copy"><span>Faturamento bruto</span><strong id="dash-faturamento">R$ 0,00</strong><small id="dash-faturamento-sub">Sem movimento</small></div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/><circle cx="12" cy="12" r="9"/></svg></div>
+          <div class="dash-stat-copy"><span>Autorizadas</span><strong id="dash-autorizadas">0</strong><small id="dash-autorizadas-sub">Aguardando a primeira nota</small></div>
+        </div>
+        <div class="dash-stat attention">
+          <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></div>
+          <div class="dash-stat-copy"><span>Requer atenção</span><strong id="dash-pendencias">0</strong><small id="dash-pendencias-sub">Tudo em dia</small></div>
+        </div>
+      </div>
+
+      <div class="cgsn" style="margin-bottom:16px;padding:13px 16px;gap:14px">
+        <div class="cgsn-days" style="font-size:34px"><span id="cd-num">47</span><span>dias restantes</span></div>
         <div class="cgsn-txt">
-          <h3>Emissor Nacional obrigatório para ME e EPP do Simples</h3>
-          <p>A partir de <b style="color:#c9a84c">1º de setembro de 2026</b>, toda ME ou EPP optante do Simples Nacional deverá emitir NFS-e de padrão nacional exclusivamente pelo Emissor Nacional — web ou API. Base: Resolução CGSN nº 189/2026 (DOU 28/04/2026), que alterou o art. 59 da Resolução CGSN nº 140/2018.<br>
-          <span style="color:#66768f">A carteira está vazia e pronta para receber o primeiro cliente.</span></p>
+          <h3>Emissor Nacional para ME e EPP do Simples</h3>
+          <p>A partir de <b style="color:#c9a84c">1º de setembro de 2026</b>, a emissão será feita exclusivamente pelo padrão nacional. <span style="color:#66768f">Consulte a situação do certificado e do cadastro para manter a carteira pronta.</span></p>
         </div>
       </div>
 
-      <div class="grid g4" style="margin-bottom:16px">
-        <div class="kpi">
-          <div class="lbl">Notas no mês</div>
-          <div class="val">0</div>
-          <div class="delta">nenhuma nota registrada</div>
+      <div class="dash-grid">
+        <div class="card">
+          <div class="dash-card-h"><div><h2>Faturamento por competência</h2><p>Últimos meses</p></div><span class="pill p-off right" id="dash-chart-status">Sem movimento</span></div>
+          <div class="dash-chart chart" id="chart"></div>
         </div>
-        <div class="kpi">
-          <div class="lbl">Faturamento bruto</div>
-          <div class="val"><small>R$</small> 0<small>,00</small></div>
-          <div class="delta">sem movimento</div>
-        </div>
-        <div class="kpi alert">
-          <div class="lbl">Rejeitadas</div>
-          <div class="val">0</div>
-          <div class="delta">nenhuma rejeição</div>
-        </div>
-        <div class="kpi">
-          <div class="lbl">Resposta da Sefin</div>
-          <div class="val">—</div>
-          <div class="delta">sem requisições</div>
+        <div class="card">
+          <div class="dash-card-h"><div><h2>Central de pendências</h2><p>Itens que precisam de atenção</p></div></div>
+          <div class="dash-pending" id="dash-pending-list"></div>
         </div>
       </div>
 
-      <div class="grid g3" style="margin-bottom:16px">
-        <div class="card span2">
-          <div class="card-h">
-            <h2>Faturamento por competência</h2>
-            <span class="pill p-off right">Sem movimento</span>
-          </div>
-          <div class="card-b">
-            <div class="chart" id="chart"></div>
+      <div class="dash-bottom">
+        <div class="card">
+          <div class="dash-card-h"><div><h2>Ações rápidas</h2><p>Acesse as funções mais usadas</p></div></div>
+          <div class="quick-grid">
+            <button class="quick-action" type="button" onclick="go('emitir',qs('.sb-link[onclick*=&quot;emitir&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><b>Emitir NFS-e</b><span>Nova nota fiscal de serviço</span></button>
+            <button class="quick-action" type="button" onclick="go('clientes',qs('.sb-link[onclick*=&quot;clientes&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21c.7-4 3-6 7-6s6.3 2 7 6M19 8v6M16 11h6"/></svg><b>Novo cliente</b><span>Cadastre ou consulte por CNPJ</span></button>
+            <button class="quick-action" type="button" onclick="go('comercial',qs('.sb-link[onclick*=&quot;comercial&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5M8 17h7"/></svg><b>Orçamento / O.S.</b><span>Prepare um documento comercial</span></button>
+            <button class="quick-action" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"/></svg><b>Ver notas</b><span>Histórico e ações fiscais</span></button>
+            <button class="quick-action" type="button" onclick="go('importar',qs('.sb-link[onclick*=&quot;importar&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><b>Importar portal</b><span>Sincronize documentos do ADN</span></button>
+            <button class="quick-action" type="button" onclick="go('cert',qs('.sb-link[onclick*=&quot;cert&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><b>Certificado A1</b><span>Confira a validade do certificado</span></button>
           </div>
         </div>
         <div class="card">
-          <div class="card-h"><h2>Situação da carteira</h2></div>
-          <div class="card-b" style="padding:8px 16px">
-            <div class="kv"><span>Empresas cadastradas</span><b id="kpi-empresas">0</b></div>
-            <div class="kv"><span>Certificado A1 válido</span><b class="pill p-off">Pendente</b></div>
-            <div class="kv"><span>Emissor Nacional</span><b class="pill p-off">Não verificado</b></div>
-            <div class="kv"><span>Cadastro inicial</span><b class="pill p-warn" id="kpi-cadastro">Pendente</b></div>
-            <div class="kv"><span>Notas a cancelar</span><b>0</b></div>
-          </div>
+          <div class="dash-card-h"><div><h2>Atividade recente</h2><p>Últimos eventos da empresa</p></div><button class="btn btn-s right" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))">Ver todas</button></div>
+          <div class="activity-list" id="dash-activity"></div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-h">
-          <h2>Últimas emissões</h2>
-          <button class="btn btn-s right" onclick="go('notas',qs('.sb-link:nth-of-type(3)'))">Ver todas</button>
-        </div>
+      <div class="card" style="margin-top:16px">
+        <div class="dash-card-h"><div><h2>Últimas emissões</h2><p>Notas mais recentes desta empresa</p></div><button class="btn btn-s right" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))">Abrir histórico</button></div>
         <div class="tbl-scroll">
           <table>
             <thead><tr><th>Emissão</th><th>Tomador</th><th>Serviço</th><th style="text-align:right">Valor</th><th>Situação</th></tr></thead>
@@ -751,6 +859,8 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
           </table>
         </div>
       </div>
+
+      <div class="sr-only" aria-hidden="true"><span id="kpi-empresas">0</span><span id="kpi-cadastro" class="pill p-warn">Pendente</span></div>
     </section>
 
     <!-- ---------- EMITIR ---------- -->
@@ -1292,6 +1402,29 @@ async function carregarAmbiente(){
 }
 carregarAmbiente().catch(()=>{qs('#login-env').textContent='Servidor fiscal indisponível';});
 
+let buscaPortalView='';
+function buscarNoPortal(value){
+  const input=qs('#global-search'),query=String(value||'').trim().toLocaleLowerCase('pt-BR');
+  buscaPortalView='';
+  if(!input)return;
+  const aliases=[['nota','notas'],['nfse','emitir'],['emissão','emitir'],['emissao','emitir'],['cliente','clientes'],['tomador','clientes'],['orçamento','comercial'],['orcamento','comercial'],['ordem','comercial'],['serviço','servicos'],['servico','servicos'],['certificado','cert'],['importar','importar'],['empresa','emitente'],['emitente','emitente'],['master','master']];
+  const alias=aliases.find(([term])=>query.includes(term));
+  const links=[...qsa('.sb-link')].filter(el=>getComputedStyle(el).display!=='none');
+  const match=alias?links.find(el=>(el.getAttribute('onclick')||'').includes(`go('${alias[1]}'`)):links.find(el=>supNorm(el.textContent).includes(supNorm(query)));
+  if(match){buscaPortalView=(match.getAttribute('onclick')||'').match(/go\('([^']+)'/)?.[1]||'';input.title=`Pressione Enter para abrir ${match.textContent.trim()}`;}
+  else input.title=query.length>1?'Nenhum módulo encontrado':'';
+}
+function abrirResultadoBusca(){
+  const input=qs('#global-search');
+  if(buscaPortalView){const el=[...qsa('.sb-link')].find(b=>(b.getAttribute('onclick')||'').includes(`go('${buscaPortalView}'`));go(buscaPortalView,el);}
+  else if(input?.value.trim())mostrarNotificacoes('Nenhum módulo correspondente foi encontrado.');
+  if(input){input.value='';input.title='';}buscaPortalView='';
+}
+function mostrarNotificacoes(message){
+  const pending=Number(qs('#dash-pendencias')?.textContent||0);
+  alert(message|| (pending?`Você tem ${pending} item(ns) que precisam de atenção no painel.`:'Não há novas notificações no momento.'));
+}
+
 async function api(path,options={}){
   if(!API_URL)throw new Error('O servidor seguro ainda não foi vinculado a este endereço.');
   const token=sessionStorage.getItem(STORAGE_TOKEN);
@@ -1431,10 +1564,10 @@ async function carregarEmpresaServidor(){
 async function carregarNotasServidor(){
   const rows=await api('/api/invoices');
   notas.splice(0,notas.length,...rows.map(row=>({
-    id:row.id,key:row.access_key,n:row.dps_number,d:new Date(row.created_at).toLocaleDateString('pt-BR'),t:row.borrower_name,
+    id:row.id,key:row.access_key,n:row.dps_number,date:row.created_at,d:new Date(row.created_at).toLocaleDateString('pt-BR'),t:row.borrower_name,
     s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='canceled'?'canc':row.status==='rejected'||row.status==='error'?'err':'proc'
   })));
-  tabelas();
+  tabelas();chart();renderDashboard();
 }
 
 /* ---------- clientes / consulta CNPJ ---------- */
@@ -1691,11 +1824,22 @@ function contagem(){
 /* ---------- gráfico ---------- */
 const meses=[];
 function chart(){
+  meses.splice(0,meses.length);
+  const now=new Date();
+  for(let offset=5;offset>=0;offset--){
+    const d=new Date(now.getFullYear(),now.getMonth()-offset,1),key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const total=notas.filter(n=>{const dt=new Date(n.date||'');return !Number.isNaN(dt.valueOf())&&`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`===key&&n.st!=='canc'&&n.st!=='err'}).reduce((sum,n)=>sum+Number(n.v||0),0);
+    meses.push([d.toLocaleDateString('pt-BR',{month:'short'}).replace('.',''),total]);
+  }
   if(!meses.length){
     qs('#chart').innerHTML='<div class="empty-state" style="width:100%;align-self:center">O gráfico aparecerá depois da primeira emissão de teste.</div>';
     return;
   }
-  const max=Math.max(...meses.map(m=>m[1]))*1.12;
+  const max=Math.max(...meses.map(m=>m[1]),1)*1.12;
+  const hasMovement=meses.some(m=>m[1]>0);
+  qs('#dash-chart-status')?.classList.toggle('p-ok',hasMovement);
+  qs('#dash-chart-status')?.classList.toggle('p-off',!hasMovement);
+  if(qs('#dash-chart-status'))qs('#dash-chart-status').textContent=hasMovement?'Com movimento':'Sem movimento';
   qs('#chart').innerHTML=meses.map(([m,v],i)=>`
     <div class="bar-wrap">
       <div class="bar ${i===meses.length-1?'last':''}" style="height:${(v/max*100).toFixed(1)}%">
@@ -1740,6 +1884,45 @@ function tabelas(){
         </div>
       </td>
     </tr>`).join('');
+}
+
+function dashUserName(){
+  const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}'),user=access.user||{};
+  const saved=JSON.parse(localStorage.getItem(STORAGE_USUARIO)||'{}');
+  return user.name||user.full_name||saved.nome||'usuário';
+}
+function dashDateLabel(date){
+  const d=new Date(date||'');
+  return Number.isNaN(d.valueOf())?'agora':d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','');
+}
+function renderDashboard(){
+  const name=dashUserName().trim().split(/\s+/)[0]||'usuário';
+  const greeting=qs('#dash-greeting');if(greeting)greeting.textContent=`Olá, ${name} 👋`;
+  const now=new Date(),monthNotes=notas.filter(n=>{const d=new Date(n.date||'');return !Number.isNaN(d.valueOf())&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()});
+  const valid=notas.filter(n=>n.st!=='canc'&&n.st!=='err'),authorized=notas.filter(n=>n.st==='ok'),rejected=notas.filter(n=>n.st==='err'),processing=notas.filter(n=>n.st==='proc');
+  const total=valid.reduce((sum,n)=>sum+Number(n.v||0),0);
+  const monthTotal=monthNotes.filter(n=>n.st!=='canc'&&n.st!=='err').reduce((sum,n)=>sum+Number(n.v||0),0);
+  const set=(id,value)=>{const el=qs(id);if(el)el.textContent=value};
+  set('#dash-notas',String(monthNotes.length));set('#dash-notas-sub',monthNotes.length?`${authorized.length} autorizada(s) no histórico`:'Nenhuma emissão registrada');
+  set('#dash-faturamento',`R$ ${brl(monthTotal)}`);set('#dash-faturamento-sub',monthTotal?`Total do mês · ${valid.length} nota(s) válidas`:'Sem movimento');
+  set('#dash-autorizadas',String(authorized.length));set('#dash-autorizadas-sub',authorized.length?`R$ ${brl(total)} no histórico`:'Aguardando a primeira nota');
+  const pendingCount=rejected.length+processing.length+(!empresaAtual?1:0);set('#dash-pendencias',String(pendingCount));set('#dash-pendencias-sub',pendingCount?`${rejected.length+processing.length} nota(s) para revisar`:'Tudo em dia');
+  const pending=qs('#dash-pending-list');
+  if(pending){
+    const rows=[];
+    if(!empresaAtual)rows.push(`<button class="pending-row" type="button" onclick="go('emitente',qs('.sb-link[onclick*=&quot;emitente&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>Cadastro do emitente</b><span>Informe os dados fiscais da empresa</span></span><strong class="pending-count">Pendente</strong></button>`);
+    else rows.push(`<button class="pending-row ok" type="button" onclick="go('emitente',qs('.sb-link[onclick*=&quot;emitente&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><span class="pending-copy"><b>Cadastro do emitente</b><span>${esc(empresaAtual.rs||'Empresa ativa')}</span></span><strong class="pending-count">Concluído</strong></button>`);
+    rows.push(`<button class="pending-row" type="button" onclick="go('cert',qs('.sb-link[onclick*=&quot;cert&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Verifique validade e vínculo do CNPJ</span></span><strong class="pending-count">Verificar</strong></button>`);
+    if(rejected.length)rows.push(`<button class="pending-row" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>Notas rejeitadas</b><span>Confira o retorno da Sefin Nacional</span></span><strong class="pending-count">${rejected.length}</strong></button>`);
+    if(processing.length)rows.push(`<button class="pending-row" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="pending-copy"><b>Emissões em processamento</b><span>Acompanhe o retorno oficial</span></span><strong class="pending-count">${processing.length}</strong></button>`);
+    if(!rejected.length&&!processing.length&&!(!empresaAtual))rows.push(`<div class="dash-empty">Nenhuma pendência fiscal encontrada.<br>O próximo passo é emitir uma nova NFS-e.</div>`);
+    pending.innerHTML=rows.join('');
+  }
+  const activity=qs('#dash-activity');
+  if(activity){
+    const items=notas.slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,4);
+    activity.innerHTML=items.length?items.map(n=>`<div class="activity-row"><span class="activity-dot ${n.st==='ok'?'ok':n.st==='err'?'err':n.st==='proc'?'warn':''}"></span><span class="activity-copy"><b>${esc(n.st==='ok'?'NFS-e autorizada':n.st==='err'?'Emissão rejeitada':n.st==='canc'?'Nota cancelada':'Emissão em processamento')}</b><span>${esc(n.t||'Tomador não informado')} · ${esc(n.s||'Serviço')}</span></span><strong class="activity-value">${esc(dashDateLabel(n.date))}</strong></div>`).join(''):'<div class="dash-empty">Nenhuma atividade ainda.<br>As emissões e eventos aparecerão aqui.</div>';
+  }
 }
 
 async function exportarXmls(btn){
@@ -2092,12 +2275,16 @@ function aplicarEmpresa(){
   if(usuario?.nome){
     qs('#avatar').textContent=usuario.nome.split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase();
   }
+  const topName=qs('#top-user-name'),topRole=qs('#top-user-role');
+  if(topName)topName.textContent=usuario?.nome||'Usuário TITAN';
+  if(topRole)topRole.textContent=usuario?.email||'Acesso liberado';
   if(!empresaAtual){
     qs('#tenant').innerHTML='<option value="">Nenhuma empresa cadastrada</option>';
     qs('#painel-sub').textContent='Cadastre a primeira empresa para iniciar os testes.';
     qs('#kpi-empresas').textContent='0';
     qs('#kpi-cadastro').textContent='Pendente';
     qs('#kpi-cadastro').className='pill p-warn';
+    renderDashboard();
     return;
   }
   const opt=document.createElement('option');
@@ -2117,6 +2304,7 @@ function aplicarEmpresa(){
   qs('#kpi-empresas').textContent='1';
   qs('#kpi-cadastro').textContent='Concluído';
   qs('#kpi-cadastro').className='pill p-ok';
+  renderDashboard();
 }
 
 /* ---------- gestão master / convites ---------- */
@@ -2231,7 +2419,7 @@ function carregarEstado(){
 
 /* ---------- init ---------- */
 function render(){
-  contagem();chart();tabelas();pipeReset();checarHabilitacao();lerParametros();
+  contagem();chart();tabelas();renderDashboard();pipeReset();checarHabilitacao();lerParametros();
 }
 carregarEstado();
 render();
