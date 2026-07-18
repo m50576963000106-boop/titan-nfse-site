@@ -754,7 +754,7 @@ main{margin-left:258px;padding-top:72px}
        <button class="sb-link" onclick="abrirGestao()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Usuários e permissões<span class="nav-alert">⚠</span></button>
       <button class="sb-link" data-permission="certificate" onclick="go('cert',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Certificado digital</button>
       <button class="sb-link" data-permission="company_settings" onclick="go('emitente',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>Preferências</button>
-      <div id="master-menu" style="display:none"><div class="sb-sec">Administração</div><button class="sb-link" onclick="abrirGestao()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/></svg>Gestão master</button><button class="sb-link" onclick="moduloIndisponivel('Logs e auditoria')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>Logs e auditoria<span class="nav-alert">⚠</span></button></div>
+      <div id="master-menu" style="display:none"><div class="sb-sec">Administração</div><button class="sb-link" onclick="abrirGestao()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/></svg>Gestão master</button><button class="sb-link" data-master-tab="logs" onclick="abrirGestao('logs')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg>Logs e auditoria</button></div>
     </nav>
     <nav class="sb-nav admin-sidebar">
       <div class="sb-sec">Gestão</div>
@@ -1377,7 +1377,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
       </div>
       <div class="alert a-info" style="margin-top:14px">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        <div>O endpoint <span class="mono">/danfse/{chave}</span> foi desligado em 15/07/2026, após a prorrogação publicada na versão 1.01 da NT 008/2026. Gerar o DANFSe v2.0 passou a ser obrigação do sistema emissor — layout, tipografia, QR Code e marca d'água de cancelamento seguem a especificação.</div>
+        <div>O DANFSe v2.0 deve ser gerado pelo sistema emissor conforme a NT 008/2026 v1.02. O prazo de adequação foi prorrogado para 03/08/2026; layout, tipografia, QR Code e marca d'água de cancelamento seguem a especificação nacional.</div>
       </div>
     </section>
 
@@ -1386,7 +1386,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
         <div><h1>Gestão master</h1><p>Controle de usuários, empresas, convites e perfis de acesso.</p></div>
         <span class="pill p-ok">MASTER</span>
       </div>
-      <div class="master-tabs" role="tablist"><button class="master-tab active" type="button" data-master-tab="usuarios" onclick="masterTab('usuarios',this)">Usuários</button><button class="master-tab" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)">Perfis de acesso</button></div>
+      <div class="master-tabs" role="tablist"><button class="master-tab active" type="button" data-master-tab="usuarios" onclick="masterTab('usuarios',this)">Usuários</button><button class="master-tab" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)">Perfis de acesso</button><button class="master-tab" type="button" data-master-tab="logs" onclick="masterTab('logs',this)">Logs e auditoria</button></div>
 
       <div class="master-panel active" id="master-panel-usuarios">
         <div class="card"><div class="card-h"><div><h3>Convidar novo usuário</h3><p>O usuário cria a senha pelo link e depois entra com CNPJ e senha. Link válido por 7 dias.</p></div></div><div class="card-b">
@@ -1405,6 +1405,13 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
           <div id="profile-permissions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0"></div><div class="flex wrap"><button class="btn btn-p" id="profile-save" onclick="salvarPerfilAcesso()">Criar perfil</button><button class="btn" id="profile-cancel" style="display:none" onclick="cancelarEdicaoPerfil()">Cancelar edição</button></div>
         </div></div>
         <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Perfis existentes</h3><p>Revise permissões e plano mínimo.</p></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Plano mínimo</th><th>Permissões</th><th>Ação</th></tr></thead><tbody id="master-profiles"></tbody></table></div></div>
+      </div>
+
+      <div class="master-panel" id="master-panel-logs">
+        <div class="card"><div class="card-h"><div><h3>Auditoria imutável</h3><p>Registros de acessos, convites, permissões e eventos fiscais. O histórico é gravado no servidor e não pode ser alterado.</p></div><button class="btn btn-s" type="button" onclick="exportarMasterLogs()">Exportar CSV</button></div><div class="card-b">
+          <div class="row r3"><div class="field"><label for="master-log-from">De</label><input id="master-log-from" class="inp" type="date" onchange="carregarMasterLogs()"></div><div class="field"><label for="master-log-to">Até</label><input id="master-log-to" class="inp" type="date" onchange="carregarMasterLogs()"></div><div class="field"><label>&nbsp;</label><button class="btn btn-s" type="button" onclick="carregarMasterLogs()">Atualizar registros</button></div></div>
+        </div></div>
+        <div class="card" style="margin-top:16px"><div class="table-wrap"><table><thead><tr><th>Data</th><th>Ator</th><th>Ação</th><th>Recurso</th><th>Detalhes</th></tr></thead><tbody id="master-logs"><tr><td colspan="5">Selecione a aba para carregar.</td></tr></tbody></table></div></div>
       </div>
     </section>
 
@@ -1581,7 +1588,7 @@ async function iniciarCadastro(){
   carregarEstado();
   render();
     if(PORTAL_ADMIN){
-      go('master',qs('.admin-sidebar .sb-link'));
+      go('master',qs('.admin-sidebar .sb-link'));const requestedAdminTab=PORTAL_QUERY.get('tab');if(requestedAdminTab&&['usuarios','perfis','logs'].includes(requestedAdminTab))setTimeout(()=>masterTab(requestedAdminTab),0);
     }else if(PORTAL_HELP){
       go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]'));setTimeout(()=>supOpen(),80);
     }else if(empresaAtual){
@@ -1618,7 +1625,7 @@ window.addEventListener('pageshow',garantirBarreiraInicial);
 function alternarGrupoMenu(id,button){const menu=qs('#'+id),open=!menu.classList.contains('on');menu.classList.toggle('on',open);button.classList.toggle('expanded',open)}
 function abrirRascunhos(button){go('emitir',button);setTimeout(()=>qs('#draft-list')?.scrollIntoView({behavior:'smooth',block:'center'}),80)}
 function abrirComercial(kind,button){go('comercial',button);if(qs('#co-kind')){qs('#co-kind').value=kind;atualizarNumeroComercial();}}
-function abrirGestao(){const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');if(!access.user?.isMaster){moduloIndisponivel('Usuários e permissões — acesso exclusivo do gestor');return}window.open('/nfs/admin','_blank','noopener')}
+function abrirGestao(tab){const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');if(!access.user?.isMaster){moduloIndisponivel('Usuários e permissões — acesso exclusivo do gestor');return}const suffix=tab?`?tab=${encodeURIComponent(tab)}`:'';window.open('/nfs/admin'+suffix,'_blank','noopener')}
 function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);location.reload()}
 function go(v,el){
   if(!sessionStorage.getItem(STORAGE_TOKEN)){qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide');return}
@@ -2485,7 +2492,9 @@ qs('#admin-company-switch')?.addEventListener('click',event=>event.stopPropagati
 function masterTab(tab,button){
   qsa('.master-panel').forEach(panel=>panel.classList.toggle('active',panel.id===`master-panel-${tab}`));
   qsa('[data-master-tab]').forEach(item=>item.classList.toggle('active',item.dataset.masterTab===tab));
-  if(button)button.classList.add('active');window.scrollTo(0,0);
+  if(button)button.classList.add('active');
+  if(tab==='logs')carregarMasterLogs();
+  window.scrollTo(0,0);
 }
 async function abrirEmpresaEmissao(companyId){
   const novaAba=window.open('about:blank','_blank');
@@ -2511,6 +2520,25 @@ async function carregarMaster(){
     qs('#master-profiles').innerHTML=masterData.profiles.map(p=>{const permissions=Array.isArray(p.permissions)?p.permissions:[];return `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.plan_code)}</td><td>${esc(permissions.map(permission=>permissionLabels[permission]||permission).join(', ')||'Sem permissões')}</td><td><button class="btn btn-s" onclick="editarPerfilAcesso('${p.id}')">Editar</button></td></tr>`}).join('')||'<tr><td colspan="4">Nenhum perfil.</td></tr>';
     renderEmpresasAdmin();
   }catch(error){alert(error.message)}
+}
+
+let masterLogs=[];
+async function carregarMasterLogs(){
+  const box=qs('#master-logs');if(!box)return;
+  box.innerHTML='<tr><td colspan="5">Carregando registros...</td></tr>';
+  const params=new URLSearchParams();const from=qs('#master-log-from')?.value,to=qs('#master-log-to')?.value;
+  if(from)params.set('from',from);if(to)params.set('to',to);params.set('limit','500');
+  try{
+    const result=await api('/api/master/logs?'+params.toString());masterLogs=result.logs||[];
+    box.innerHTML=masterLogs.length?masterLogs.map(item=>`<tr><td class="mono">${esc(new Date(item.created_at).toLocaleString('pt-BR'))}</td><td>${esc(item.actor_email||'—')}</td><td><b>${esc(item.action)}</b></td><td>${esc(item.resource_type)}${item.resource_id?`<br><span class="mono">${esc(item.resource_id)}</span>`:''}</td><td><span class="mono">${esc(JSON.stringify(item.details||{}))}</span></td></tr>`).join(''):'<tr><td colspan="5">Nenhum registro no período.</td></tr>';
+  }catch(error){box.innerHTML=`<tr><td colspan="5">${esc(error.message)}</td></tr>`}
+}
+function exportarMasterLogs(){
+  if(!masterLogs.length){alert('Carregue os registros antes de exportar.');return}
+  const header=['data','ator','acao','recurso','id','detalhes'];
+  const rows=masterLogs.map(item=>[new Date(item.created_at).toISOString(),item.actor_email,item.action,item.resource_type,item.resource_id||'',JSON.stringify(item.details||{})]);
+  const csv=[header,...rows].map(row=>row.map(value=>`"${String(value??'').replaceAll('"','""')}"`).join(';')).join('\n');
+  const blob=new Blob([`\ufeff${csv}`],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`titan-auditoria-${new Date().toISOString().slice(0,10)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 async function criarConvite(){
