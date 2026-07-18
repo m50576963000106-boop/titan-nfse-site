@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 type Props = {
   params: Promise<{ tenant?: string[] }>;
-  searchParams: Promise<{ invite?: string | string[] }>;
+  searchParams: Promise<{ invite?: string | string[]; first?: string | string[] }>;
 };
 
 export default async function TenantPortal({ params, searchParams }: Props) {
@@ -19,11 +19,12 @@ export default async function TenantPortal({ params, searchParams }: Props) {
   const isAdmin = tenant.length === 1 && ["admin", "adm"].includes(target.toLowerCase());
   const isClientLogin = tenant.length === 1 && target.toLowerCase() === "entrar";
   const isHelp = tenant.length === 1 && target.toLowerCase() === "ajuda";
+  const isFirstAccess = tenant.length === 1 && ["primeiro-acesso", "primeiroacesso"].includes(target.toLowerCase());
   const isCompany = tenant.length === 1 && /^\d{14}$/.test(target);
-  if (!isAdmin && !isClientLogin && !isHelp && !isCompany) notFound();
+  if (!isAdmin && !isClientLogin && !isHelp && !isFirstAccess && !isCompany) notFound();
 
   const frameQuery = new URLSearchParams(
-    isAdmin ? { portal: "admin" } : isCompany ? { tenant: target } : { portal: isHelp ? "help" : "client" },
+    isAdmin ? { portal: "admin" } : isCompany ? { tenant: target } : { portal: isHelp ? "help" : isFirstAccess ? "first" : "client" },
   );
   const invite = Array.isArray(query.invite) ? query.invite[0] : query.invite;
   if (invite) frameQuery.set("invite", invite);
@@ -38,6 +39,8 @@ export default async function TenantPortal({ params, searchParams }: Props) {
             ? "TITAN Backoffice — Administração"
             : isHelp
               ? "TITAN NFS-e — Central de ajuda Martyn"
+            : isFirstAccess
+              ? "TITAN NFS-e — Primeiro acesso"
             : isCompany
               ? `TITAN NFS-e — CNPJ ${target}`
               : "TITAN NFS-e — Acesso do cliente"

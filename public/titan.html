@@ -706,6 +706,7 @@ main{margin-left:258px;padding-top:72px}
     </div>
     <button id="login-action" class="btn-gold" style="margin-top:8px" onclick="iniciarCadastro()">Entrar</button>
     <a id="login-context-link" class="login-context-link" href="/nfs/admin">Sou administrador master</a>
+    <a id="login-first-link" class="login-context-link" href="/nfs/primeiro-acesso">Primeiro acesso · definir senha</a>
     <div class="login-foot">
       O ambiente ativo é consultado diretamente no backend seguro.<br>
       <b id="login-env" style="color:#c9a84c">Verificando ambiente...</b>
@@ -1438,9 +1439,11 @@ const PORTAL_PATH=location.pathname.match(/^\/nfs\/(admin|adm|\d{14})\/?$/i)?.[1
 const PORTAL_MODE=(PORTAL_QUERY.get('portal')||PORTAL_PATH).toLowerCase();
 const PORTAL_ADMIN=['admin','adm'].includes(PORTAL_MODE);
 const PORTAL_HELP=PORTAL_MODE==='help';
+const PORTAL_FIRST=PORTAL_MODE==='first';
 const PORTAL_CNPJ=(PORTAL_QUERY.get('tenant')||(/^\d{14}$/.test(PORTAL_PATH)?PORTAL_PATH:'')).replace(/\D/g,'');
 document.body.classList.toggle('portal-admin',PORTAL_ADMIN);
 document.body.classList.toggle('portal-help',PORTAL_HELP);
+document.body.classList.toggle('portal-first',PORTAL_FIRST);
 const dataBrasil=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 qs('#s-comp').value=dataBrasil();
 let ambienteAtual='restricted';
@@ -1602,12 +1605,23 @@ function aplicarAcesso(login){
   if(PORTAL_ADMIN)configurarEmpresasAdmin(access.companies||[]);
 }
 function moduloIndisponivel(nome){alert(`⚠ ${nome}\n\nMódulo em preparação. Nenhuma operação foi realizada.`)}
+function limparSessaoLocal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide')}
+function garantirBarreiraInicial(){
+  const token=sessionStorage.getItem(STORAGE_TOKEN);
+  let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{}
+  // A rota por CNPJ só aceita uma sessão operacional autenticada; nunca
+  // reutilize uma sessão master para abrir uma empresa diretamente.
+  if(PORTAL_CNPJ&&access.user?.isMaster)limparSessaoLocal();
+  if(!token){qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide');}
+}
+window.addEventListener('pageshow',garantirBarreiraInicial);
 function alternarGrupoMenu(id,button){const menu=qs('#'+id),open=!menu.classList.contains('on');menu.classList.toggle('on',open);button.classList.toggle('expanded',open)}
 function abrirRascunhos(button){go('emitir',button);setTimeout(()=>qs('#draft-list')?.scrollIntoView({behavior:'smooth',block:'center'}),80)}
 function abrirComercial(kind,button){go('comercial',button);if(qs('#co-kind')){qs('#co-kind').value=kind;atualizarNumeroComercial();}}
 function abrirGestao(){const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');if(!access.user?.isMaster){moduloIndisponivel('Usuários e permissões — acesso exclusivo do gestor');return}window.open('/nfs/admin','_blank','noopener')}
 function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);location.reload()}
 function go(v,el){
+  if(!sessionStorage.getItem(STORAGE_TOKEN)){qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide');return}
   if(PORTAL_ADMIN&&v!=='master'){alert('O portal do gestor é exclusivo para usuários, perfis e liberações. Abra a empresa em uma nova aba para operar.');return}
   if(v==='master'){
     const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');
@@ -2580,6 +2594,7 @@ function render(){
   contagem();chart();tabelas();renderDashboard();pipeReset();checarHabilitacao();lerParametros();
 }
 carregarEstado();
+garantirBarreiraInicial();
 render();
 aplicarAcesso();
 prepararConvite();
@@ -2587,7 +2602,12 @@ const handoffGestor=lerHandoffGestor();if(handoffGestor)entrarViaGestor(handoffG
 const temConvite=!!new URLSearchParams(location.search).get('invite');
 function ocultarCampoCnpjLogin(){qs('#li-cnpj')?.closest('.login-field')?.style.setProperty('display','none');}
 function ocultarCampoEmailLogin(){qs('#li-mail')?.closest('.login-field')?.style.setProperty('display','none');}
-if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/nfs/entrar';if(!temConvite)ocultarCampoCnpjLogin();}
+if(PORTAL_FIRST&&!temConvite){
+  qs('.login-h').textContent='Primeiro acesso';
+  qs('.login-sub').textContent='Para definir sua senha, abra o convite enviado pelo gestor master. O link identifica a empresa e expira após o uso.';
+  qs('#login-action').disabled=true;qs('#login-action').textContent='Aguardando convite';
+  qs('#login-context-link').textContent='Voltar ao acesso do cliente';qs('#login-context-link').href='/nfs/entrar';ocultarCampoEmailLogin();
+}else if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/nfs/entrar';if(!temConvite)ocultarCampoCnpjLogin();}
 else if(!temConvite){ocultarCampoEmailLogin();qs('.login-sub').textContent='Entre com o CNPJ da empresa e sua senha individual.';if(PORTAL_CNPJ){qs('#li-cnpj').value=formatarCnpj(PORTAL_CNPJ);qs('#li-cnpj').readOnly=true;qs('.login-sub').textContent=`Informe sua senha para acessar o CNPJ ${formatarCnpj(PORTAL_CNPJ)}.`;}}
 
 /* ---------- SUPORTE / ASSISTENTE TITAN ---------- */
