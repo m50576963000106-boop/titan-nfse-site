@@ -95,6 +95,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
   margin-top:22px;padding-top:18px;border-top:1px solid var(--line-dark);
   font-size:11px;color:#5e6e8a;line-height:1.6;
 }
+.login-context-link{display:block;margin-top:14px;color:#c9a84c;font-size:12px;font-weight:700;text-align:center;text-decoration:none}
+.login-context-link:hover{color:#e0c76f;text-decoration:underline}
 
 /* ---------- SHELL ---------- */
 #app{display:none;min-height:100vh}
@@ -694,6 +696,7 @@ main{margin-left:258px;padding-top:72px}
       <input id="li-pw" type="password" placeholder="Sua senha" autocomplete="current-password">
     </div>
     <button id="login-action" class="btn-gold" style="margin-top:8px" onclick="iniciarCadastro()">Entrar</button>
+    <a id="login-context-link" class="login-context-link" href="/nfs/admin">Sou administrador master</a>
     <div class="login-foot">
       O ambiente ativo é consultado diretamente no backend seguro.<br>
       <b id="login-env" style="color:#c9a84c">Verificando ambiente...</b>
@@ -1413,12 +1416,19 @@ function atualizarAmbiente(){
 }
 
 async function carregarAmbiente(){
-  const response=await fetch(API_URL+'/health');
+  const response=await fetchSeguro(API_URL+'/health');
   const health=await response.json();
   ambienteAtual=health.environment==='production'?'production':'restricted';
   atualizarAmbiente();
 }
 carregarAmbiente().catch(()=>{qs('#login-env').textContent='Servidor fiscal indisponível';});
+
+async function fetchSeguro(url,options={},timeoutMs=45000){
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
+  try{return await fetch(url,{...options,signal:options.signal||controller.signal})}
+  catch(error){if(error?.name==='AbortError')throw new Error('O servidor fiscal demorou para responder. Aguarde alguns segundos e tente novamente.');throw error}
+  finally{clearTimeout(timer)}
+}
 
 let buscaPortalView='';
 function buscarNoPortal(value){
@@ -1447,7 +1457,7 @@ async function api(path,options={}){
   if(!API_URL)throw new Error('O servidor seguro ainda não foi vinculado a este endereço.');
   const token=sessionStorage.getItem(STORAGE_TOKEN);
   const isForm=options.body instanceof FormData;
-  const response=await fetch(API_URL+path,{
+  const response=await fetchSeguro(API_URL+path,{
     ...options,
     headers:{...(!isForm?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{}),...(sessionStorage.getItem(STORAGE_COMPANY_ID)?{'X-Company-Id':sessionStorage.getItem(STORAGE_COMPANY_ID)}:{}),...(options.headers||{})}
   });
@@ -1462,7 +1472,7 @@ async function api(path,options={}){
 async function apiBlob(path,options={}){
   if(!API_URL)throw new Error('O servidor seguro ainda não foi vinculado a este endereço.');
   const token=sessionStorage.getItem(STORAGE_TOKEN),companyId=sessionStorage.getItem(STORAGE_COMPANY_ID);
-  const response=await fetch(API_URL+path,{...options,headers:{...(token?{Authorization:'Bearer '+token}:{}),...(companyId?{'X-Company-Id':companyId}:{}),...(options.headers||{})}});
+  const response=await fetchSeguro(API_URL+path,{...options,headers:{...(token?{Authorization:'Bearer '+token}:{}),...(companyId?{'X-Company-Id':companyId}:{}),...(options.headers||{})}});
   if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||'Não foi possível obter o documento.');}
   return response.blob();
 }
@@ -1502,7 +1512,7 @@ async function iniciarCadastro(){
   }
   let login;
   try{
-    await carregarAmbiente();
+    carregarAmbiente().catch(()=>{});
     login=await api('/api/auth/login',{method:'POST',body:JSON.stringify(PORTAL_ADMIN?{email,password:senha}:{federalTaxId:cnpj,password:senha})});
     selecionarDestinoPortal(login);
     if(!PORTAL_ADMIN){
@@ -1516,7 +1526,11 @@ async function iniciarCadastro(){
     await carregarEmpresaServidor();
     await carregarNotasServidor();
     carregarServicos().catch(()=>{});
-  }catch(error){alert(error.message);return}
+  }catch(error){
+    const falhaRede=error instanceof TypeError;
+    const message=falhaRede?'Não foi possível conectar ao servidor fiscal. Aguarde alguns segundos e tente novamente.':error.message;
+    alert(message+(!PORTAL_ADMIN?'\n\nSe você é o administrador master, entre por titanbackoffice.com.br/nfs/admin.':''));return
+  }
   qs('#login').classList.add('hide');
   qs('#app').classList.add('on');
   aplicarAcesso(login);
@@ -2529,7 +2543,7 @@ const handoffGestor=lerHandoffGestor();if(handoffGestor)entrarViaGestor(handoffG
 const temConvite=!!new URLSearchParams(location.search).get('invite');
 function ocultarCampoCnpjLogin(){qs('#li-cnpj')?.closest('.login-field')?.style.setProperty('display','none');}
 function ocultarCampoEmailLogin(){qs('#li-mail')?.closest('.login-field')?.style.setProperty('display','none');}
-if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';if(!temConvite)ocultarCampoCnpjLogin();}
+if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/nfs/entrar';if(!temConvite)ocultarCampoCnpjLogin();}
 else if(!temConvite){ocultarCampoEmailLogin();qs('.login-sub').textContent='Entre com o CNPJ da empresa e sua senha individual.';if(PORTAL_CNPJ){qs('#li-cnpj').value=formatarCnpj(PORTAL_CNPJ);qs('#li-cnpj').readOnly=true;qs('.login-sub').textContent=`Informe sua senha para acessar o CNPJ ${formatarCnpj(PORTAL_CNPJ)}.`;}}
 
 /* ---------- SUPORTE / ASSISTENTE TITAN ---------- */

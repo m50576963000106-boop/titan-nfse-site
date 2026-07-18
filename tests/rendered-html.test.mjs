@@ -76,11 +76,24 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
   assert.match(landing,/Emita suas notas fiscais com o poder e a velocidade do/);
   assert.match(landing,/Tudo o que sua empresa precisa/);
   assert.match(landing,/href="\/nfs\/admin"/);
-  assert.match(landing,/href="\/titan\.html"/);
+  assert.match(landing,/href="\/nfs\/entrar"/);
   assert.match(html,/pipe-detail/);
   assert.match(html,/mostrarDetalheEtapa/);
   assert.match(html,/journey-card/);
   assert.doesNotMatch(html,/Os dados abaixo montam/);
+});
+
+test("redireciona a raiz e separa os acessos de cliente e administrador",async()=>{
+  const home=await readFile(resolve(root,"app/page.tsx"),"utf8");
+  const index=await readFile(resolve(root,"public/index.html"),"utf8");
+  const route=await readFile(resolve(root,"app/nfs/[[...tenant]]/page.tsx"),"utf8");
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(home,/redirect\("\/nfs"\)/);
+  assert.match(index,/location\.replace\('\/nfs'\)/);
+  assert.match(route,/target\.toLowerCase\(\) === "entrar"/);
+  assert.match(html,/Sou administrador master/);
+  assert.match(html,/qs\('#login-context-link'\)\.textContent='Sou cliente'/);
+  assert.match(html,/servidor fiscal demorou para responder/i);
 });
 
 test("integra documentos comerciais, clientes e gestão exclusiva do master",async()=>{

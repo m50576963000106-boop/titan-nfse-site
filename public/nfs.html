@@ -31,7 +31,7 @@
         <a class="btn btn-dark" href="#contratar">Contratar plano</a>
         <div class="login-menu" id="login-menu">
           <a class="login-option" href="/nfs/admin"><span>Administrador<small>Cadastros, empresas e acessos</small></span><i data-lucide="shield-check"></i></a>
-          <a class="login-option" href="/titan.html"><span>Cliente<small>Emissão e gestão da NFS-e</small></span><i data-lucide="building-2"></i></a>
+          <a class="login-option" href="/nfs/entrar"><span>Cliente<small>Entrar com CNPJ e senha</small></span><i data-lucide="building-2"></i></a>
         </div>
       </div>
     </nav>
@@ -67,7 +67,7 @@
   <script>
     window.addEventListener('DOMContentLoaded',()=>window.lucide?.createIcons());
     const token=sessionStorage.getItem('titan_nfse_session_v1');
-    try{const access=JSON.parse(sessionStorage.getItem('titan_nfse_access_v1')||'{}');if(token&&access.user){const c=access.companies?.[0];location.replace(access.user.isMaster?'/nfs/admin':c?.federal_tax_id?'/nfs/'+c.federal_tax_id:'/titan.html')}}catch{}
+    try{const access=JSON.parse(sessionStorage.getItem('titan_nfse_access_v1')||'{}');if(token&&access.user){const c=access.companies?.[0];location.replace(access.user.isMaster?'/nfs/admin':c?.federal_tax_id?'/nfs/'+c.federal_tax_id:'/nfs/entrar')}}catch{}
     const loginButton=document.querySelector('#login-button'),loginMenu=document.querySelector('#login-menu');
     function closeLoginMenu(){loginMenu.classList.remove('open');loginButton.setAttribute('aria-expanded','false')}
     loginButton.addEventListener('click',event=>{event.stopPropagation();const open=loginMenu.classList.toggle('open');loginButton.setAttribute('aria-expanded',String(open))});

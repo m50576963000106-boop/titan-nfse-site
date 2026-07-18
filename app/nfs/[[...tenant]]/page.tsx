@@ -17,10 +17,13 @@ export default async function TenantPortal({ params, searchParams }: Props) {
     );
   }
   const isAdmin = tenant.length === 1 && ["admin", "adm"].includes(target.toLowerCase());
+  const isClientLogin = tenant.length === 1 && target.toLowerCase() === "entrar";
   const isCompany = tenant.length === 1 && /^\d{14}$/.test(target);
-  if (!isAdmin && !isCompany) notFound();
+  if (!isAdmin && !isClientLogin && !isCompany) notFound();
 
-  const frameQuery = new URLSearchParams(isAdmin ? { portal: "admin" } : { tenant: target });
+  const frameQuery = new URLSearchParams(
+    isAdmin ? { portal: "admin" } : isCompany ? { tenant: target } : { portal: "client" },
+  );
   const invite = Array.isArray(query.invite) ? query.invite[0] : query.invite;
   if (invite) frameQuery.set("invite", invite);
 
@@ -29,7 +32,13 @@ export default async function TenantPortal({ params, searchParams }: Props) {
       <iframe
         className="prototype-frame"
         src={`/titan.html?${frameQuery.toString()}`}
-        title={isAdmin ? "TITAN Backoffice — Administração" : `TITAN NFS-e — CNPJ ${target}`}
+        title={
+          isAdmin
+            ? "TITAN Backoffice — Administração"
+            : isCompany
+              ? `TITAN NFS-e — CNPJ ${target}`
+              : "TITAN NFS-e — Acesso do cliente"
+        }
       />
     </main>
   );
