@@ -130,6 +130,15 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 .sb-link.active{background:var(--navy-2);color:var(--cream);font-weight:600}
 .sb-link.active .ic{color:var(--gold)}
 .ic{width:16px;height:16px;flex:none;color:#66768f}
+.admin-sidebar{display:none}
+.portal-admin .user-sidebar{display:none!important}
+.portal-admin .admin-sidebar{display:block}
+.sb-submenu{display:none;margin:2px 0 7px 18px;padding-left:7px;border-left:1px solid var(--line-dark)}
+.sb-submenu.on{display:block}
+.sb-submenu .sb-link{padding:7px 8px;font-size:12px}
+.sb-chevron{margin-left:auto;font-size:11px;color:#5f708c;transition:transform .15s}
+.sb-link.expanded .sb-chevron{transform:rotate(90deg)}
+.nav-alert{margin-left:auto;color:var(--gold);font-size:11px;font-weight:800}
 .sb-foot{padding:12px;border-top:1px solid var(--line-dark)}
 
 .topbar{
@@ -426,6 +435,16 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .master-context .field{margin:0}.master-context label{color:#9dabc2}.master-context .inp{background:var(--navy-1);border-color:var(--line-dark);color:var(--cream)}
 .master-bottom-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:14px;align-items:start}
 .master-bottom-grid .card{min-width:0}
+.master-tabs{display:flex;gap:5px;margin-bottom:16px;padding:5px;background:#eceae3;border:1px solid var(--line);border-radius:9px;width:max-content;max-width:100%}
+.master-tab{padding:9px 16px;border-radius:7px;color:var(--ink-2);font-weight:650;font-size:12.5px}
+.master-tab:hover{background:rgba(255,255,255,.55)}
+.master-tab.active{background:var(--navy);color:var(--cream);box-shadow:0 4px 10px rgba(11,22,41,.12)}
+.master-panel{display:none}.master-panel.active{display:block}
+.master-company-box{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:16px;padding:16px 18px;background:var(--navy);color:var(--cream);border-radius:10px}
+.master-company-copy{min-width:0}.master-company-copy b,.master-company-copy span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.master-company-copy span{margin-top:4px;color:#9dabc2;font-size:11px}
+.master-company-box .btn{flex:none}
+.tax-conditional{display:none;margin-top:2px;padding:13px;border:1px solid #e8d9b0;border-radius:8px;background:#fdfaf2}
+.tax-conditional.on{display:block}
 .table-wrap{overflow:auto}
 .card-h h3{font-size:13px}.card-h p{font-size:11px;color:var(--ink-3);margin-top:2px}
 .sticky{position:sticky;top:74px}
@@ -655,7 +674,7 @@ main{margin-left:258px;padding-top:72px}
     </div>
     <div class="onboard-step">Acesso ao emissor</div>
     <div class="login-h">Acessar o TITAN NFS-e</div>
-    <div class="login-sub">Informe o CNPJ da empresa, seu e-mail e a senha para entrar no ambiente fiscal liberado.</div>
+    <div class="login-sub">Informe o CNPJ da empresa e sua senha para entrar no ambiente fiscal liberado.</div>
     <div class="login-field">
       <label for="li-cnpj">CNPJ da empresa</label>
       <input id="li-cnpj" type="text" inputmode="numeric" placeholder="00.000.000/0000-00" autocomplete="off" oninput="mascararCnpjLogin(this)">
@@ -681,57 +700,51 @@ main{margin-left:258px;padding-top:72px}
 
   <aside class="sidebar" id="sb">
     <a class="sb-mark" href="/nfs" aria-label="Página inicial TITAN NFS-e" style="text-decoration:none"><span class="sb-logo"><img src="/titan-nfse-logo.png" alt="TITAN NFS-e"></span></a>
-    <nav class="sb-nav">
-      <div class="sb-sec" data-admin-hidden="true">Operação</div>
-      <button class="sb-link active" data-admin-hidden="true" data-permission="dashboard" onclick="go('painel',this)">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-        Painel
-      </button>
-      <button class="sb-link" data-admin-hidden="true" data-permission="emit" onclick="go('emitir',this)">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-        Emitir NFS-e
-      </button>
-      <button class="sb-link" data-admin-hidden="true" data-permission="invoices" onclick="go('notas',this)">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
-        Notas emitidas
-      </button>
-      <button class="sb-link" data-admin-hidden="true" data-permission="emit" onclick="go('comercial',this)">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5M8 17h7"/></svg>
-        Orçamentos e O.S.
-      </button>
-      <button class="sb-link" data-admin-hidden="true" data-permission="import" onclick="go('importar',this)">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        Importar do Portal
-      </button>
-      <div class="sb-sec">Cadastro</div>
-      <button class="sb-link" data-permission="company_settings" onclick="go('emitente',this)">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M15 9h.01M9 13h.01M15 13h.01M9 17h.01M15 17h.01"/></svg>
-        Emitente
-      </button>
-      <button class="sb-link" data-permission="customers" onclick="go('clientes',this)">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>
-        Clientes
-      </button>
-      <button class="sb-link" data-permission="certificate" onclick="go('cert',this)">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Certificado A1
-      </button>
-      <button class="sb-link" data-permission="services" onclick="go('servicos',this)">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>
-        Serviços e retenções
-      </button>
-      <div class="sb-sec" data-admin-hidden="true">Técnico</div>
-      <button class="sb-link" data-admin-hidden="true" data-master-only="true" onclick="go('logs',this)">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-        Logs da API
-      </button>
-      <div id="master-menu" style="display:none">
-        <div class="sb-sec">Administração</div>
-        <button class="sb-link" onclick="go('master',this)">
-          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/><path d="M9 12l2 2 4-4"/></svg>
-          Gestão master
-        </button>
-      </div>
+    <nav class="sb-nav user-sidebar">
+      <div class="sb-sec">Visão geral</div>
+      <button class="sb-link active" data-permission="dashboard" onclick="go('painel',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</button>
+      <button class="sb-link" data-permission="dashboard" onclick="abrirPendencias(this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/><circle cx="12" cy="12" r="9"/></svg>Pendências</button>
+      <button class="sb-link" onclick="moduloIndisponivel('Agenda e vencimentos')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Agenda e vencimentos<span class="nav-alert">⚠</span></button>
+
+      <div class="sb-sec">Notas fiscais</div>
+      <button class="sb-link" data-permission="emit" onclick="go('emitir',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Emitir NFS-e</button>
+      <button class="sb-link" data-permission="invoices" onclick="go('notas',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>Notas emitidas</button>
+      <button class="sb-link" data-permission="emit" onclick="abrirRascunhos(this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg>Rascunhos</button>
+      <button class="sb-link" onclick="moduloIndisponivel('Notas recorrentes')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg>Notas recorrentes<span class="nav-alert">⚠</span></button>
+      <button class="sb-link" data-permission="import" onclick="go('importar',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Importar do Portal</button>
+
+      <div class="sb-sec">Vendas e serviços</div>
+      <button class="sb-link" data-permission="emit" onclick="abrirComercial('quote',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg>Orçamentos</button>
+      <button class="sb-link" data-permission="emit" onclick="abrirComercial('service_order',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg>Ordens de serviço</button>
+      <button class="sb-link" onclick="moduloIndisponivel('Contratos recorrentes')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 8h8M8 12h8"/></svg>Contratos recorrentes<span class="nav-alert">⚠</span></button>
+
+      <div class="sb-sec">Financeiro</div>
+      <button class="sb-link" type="button" onclick="alternarGrupoMenu('financeiro-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg>Financeiro<span class="nav-alert">⚠</span><span class="sb-chevron">›</span></button>
+      <div class="sb-submenu" id="financeiro-menu"><button class="sb-link" onclick="moduloIndisponivel('Contas a receber')">Contas a receber<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Cobranças')">Cobranças<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Conciliação bancária')">Conciliação bancária<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Fluxo de caixa')">Fluxo de caixa<span class="nav-alert">⚠</span></button></div>
+
+      <div class="sb-sec">Cadastros</div>
+      <button class="sb-link" data-permission="customers" onclick="go('clientes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Clientes</button>
+      <button class="sb-link" data-permission="company_settings" onclick="go('emitente',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>Emitente</button>
+      <button class="sb-link" data-permission="services" onclick="go('servicos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>Serviços</button>
+      <button class="sb-link" data-permission="services" onclick="abrirRetencoes(this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 8h8M8 12h8M8 16h8"/></svg>Retenções tributárias</button>
+
+      <div class="sb-sec">Integrações</div>
+      <button class="sb-link" type="button" onclick="alternarGrupoMenu('integracoes-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Integrações<span class="sb-chevron">›</span></button>
+      <div class="sb-submenu" id="integracoes-menu"><button class="sb-link" data-permission="import" onclick="go('importar',this)">Portal Nacional</button><button class="sb-link" onclick="moduloIndisponivel('Integração por e-mail')">E-mail<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Integração com WhatsApp')">WhatsApp<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Open Finance')">Open Finance<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('API e webhooks')">API e webhooks<span class="nav-alert">⚠</span></button></div>
+
+      <div class="sb-sec">Configurações</div>
+      <button class="sb-link" onclick="abrirGestao()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Usuários e permissões<span class="nav-alert">⚠</span></button>
+      <button class="sb-link" data-permission="certificate" onclick="go('cert',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Certificado digital</button>
+      <button class="sb-link" data-permission="company_settings" onclick="go('emitente',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>Preferências</button>
+      <div id="master-menu" style="display:none"><div class="sb-sec">Administração</div><button class="sb-link" onclick="abrirGestao()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/></svg>Gestão master</button><button class="sb-link" onclick="moduloIndisponivel('Logs e auditoria')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>Logs e auditoria<span class="nav-alert">⚠</span></button></div>
+    </nav>
+    <nav class="sb-nav admin-sidebar">
+      <div class="sb-sec">Gestão</div>
+      <button class="sb-link active" type="button" data-master-tab="usuarios" onclick="masterTab('usuarios',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21c.7-4 3-6 7-6s6.3 2 7 6M19 8v6M16 11h6"/></svg>Usuários</button>
+      <button class="sb-link" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/><path d="M9 12l2 2 4-4"/></svg>Perfis de acesso</button>
+      <div class="sb-sec">Sistema</div>
+      <button class="sb-link" type="button" onclick="moduloIndisponivel('Configurações gerais')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Configurações<span class="nav-alert">⚠</span></button>
+      <button class="sb-link" type="button" onclick="sairPortal()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17l5-5-5-5M15 12H3M15 3h6v18h-6"/></svg>Sair</button>
     </nav>
     <div class="sb-foot">
       <div style="font-size:10px;color:#4e5f7d;line-height:1.6">
@@ -937,6 +950,7 @@ main{margin-left:258px;padding-top:72px}
                 </select>
                 <div class="hint">Catálogo oficial PRODREST v1.01 de 22/01/2026.</div>
               </div>
+              <div class="field"><label for="s-nbs">Código NBS</label><input id="s-nbs" class="inp mono" maxlength="12" inputmode="numeric" placeholder="9 dígitos (opcional)"><div class="hint">Informe o código NBS sem pontuação quando aplicável ao serviço.</div></div>
               <div class="field">
                 <label for="s-desc">Descrição</label>
                 <textarea id="s-desc" class="inp" placeholder="Descreva o serviço prestado"></textarea>
@@ -963,13 +977,10 @@ main{margin-left:258px;padding-top:72px}
               </div>
               <div class="row r2">
                 <div class="field"><label for="s-cst">CST PIS/COFINS</label><input id="s-cst" class="inp mono" maxlength="2" placeholder="00 a 99"></div>
-                <div class="field"><label for="s-ret-pc">Retenção PIS/COFINS/CSLL</label><select id="s-ret-pc" class="inp"><option value="">Não informar</option><option value="0">0 — Não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — PIS/COFINS/CSLL retidos</option><option value="4">4 — PIS/COFINS retidos, CSLL não</option><option value="5">5 — Somente PIS retido</option><option value="6">6 — Somente COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — Somente CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div>
+                <div class="field"><label for="s-ret-pc">Retenção PIS/COFINS/CSLL</label><select id="s-ret-pc" class="inp" onchange="atualizarRetencaoPisCofins('s')"><option value="">Não informar</option><option value="0">0 — PIS/COFINS/CSLL não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — PIS/COFINS/CSLL retidos</option><option value="4">4 — PIS/COFINS retidos e CSLL não</option><option value="5">5 — Somente PIS retido</option><option value="6">6 — Somente COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — Somente CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div>
               </div>
-              <div class="row r3">
-                <div class="field mb0"><label for="s-ret-cp">CP retida (R$)</label><input id="s-ret-cp" class="inp num" value="0,00"></div>
-                <div class="field mb0"><label for="s-ret-irrf">IRRF retido (R$)</label><input id="s-ret-irrf" class="inp num" value="0,00"></div>
-                <div class="field mb0"><label for="s-ret-csll">CSLL retida (R$)</label><input id="s-ret-csll" class="inp num" value="0,00"></div>
-              </div>
+              <div class="tax-conditional" id="s-pis-cofins-fields"><div class="row r3"><div class="field"><label for="s-pc-base">Base PIS/COFINS (R$)</label><input id="s-pc-base" class="inp num" value="0,00" oninput="calcularPisCofins('s')"></div><div class="field"><label for="s-pis-rate">Alíquota PIS (%)</label><input id="s-pis-rate" class="inp num" value="0,00" oninput="calcularPisCofins('s')"></div><div class="field"><label for="s-cofins-rate">Alíquota COFINS (%)</label><input id="s-cofins-rate" class="inp num" value="0,00" oninput="calcularPisCofins('s')"></div></div><div class="row r3"><div class="field mb0"><label for="s-pis-amount">vPis (R$)</label><input id="s-pis-amount" class="inp num" value="0,00"></div><div class="field mb0"><label for="s-cofins-amount">vCofins (R$)</label><input id="s-cofins-amount" class="inp num" value="0,00"></div><div class="field mb0"><label for="s-ret-csll">vRetCSLL total (R$)</label><input id="s-ret-csll" class="inp num" value="0,00"><div class="hint">Total retido conforme o tipo selecionado.</div></div></div></div>
+              <div class="row r2"><div class="field mb0"><label for="s-ret-cp">CP retida (R$)</label><input id="s-ret-cp" class="inp num" value="0,00"></div><div class="field mb0"><label for="s-ret-irrf">IRRF retido (R$)</label><input id="s-ret-irrf" class="inp num" value="0,00"></div></div>
             </div>
           </div>
 
@@ -1288,10 +1299,12 @@ main{margin-left:258px;padding-top:72px}
             <div class="field"><label for="cad-search">Buscar no Anexo B nacional</label><div class="input-action"><input id="cad-search" class="inp" placeholder="Código ou descrição"><button class="btn btn-s" onclick="buscarCatalogoServico()">Buscar</button></div></div>
             <div class="field"><label for="cad-code">Código de tributação nacional</label><select id="cad-code" class="inp" onchange="selecionarCodigoCadastro()"><option value="">Pesquise o catálogo oficial</option></select></div>
             <div class="field"><label for="cad-desc">Descrição padrão do serviço</label><textarea id="cad-desc" class="inp" placeholder="Descrição que será levada à DPS"></textarea></div>
-            <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal</label><input id="cad-mun-code" class="inp" maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="Até 3 dígitos (opcional)"><div class="hint">Não repita aqui o código nacional 15.06.01.</div></div><div class="field"><label for="cad-rate">Alíquota ISS (%)</label><input id="cad-rate" class="inp num" placeholder="Lida do município"></div></div>
+            <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal</label><input id="cad-mun-code" class="inp" maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="Até 3 dígitos (opcional)"><div class="hint">Não repita aqui o código nacional 15.06.01.</div></div><div class="field"><label for="cad-nbs">Código NBS</label><input id="cad-nbs" class="inp mono" maxlength="12" inputmode="numeric" placeholder="9 dígitos (opcional)"></div></div>
+            <div class="field"><label for="cad-rate">Alíquota ISS (%)</label><input id="cad-rate" class="inp num" placeholder="Lida do município"></div>
             <div class="row r2"><div class="field"><label for="cad-trib-iss">Tributação ISSQN</label><select id="cad-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação</option><option value="4">4 — Não incidência</option></select></div><div class="field"><label for="cad-ret-iss">Retenção ISSQN</label><select id="cad-ret-iss" class="inp"><option value="1">1 — Não retido</option><option value="2">2 — Tomador</option><option value="3">3 — Intermediário</option></select></div></div>
-            <div class="row r2"><div class="field"><label for="cad-cst">CST PIS/COFINS</label><input id="cad-cst" class="inp mono" maxlength="2" placeholder="Opcional"></div><div class="field"><label for="cad-ret-pc">tpRetPisCofins</label><select id="cad-ret-pc" class="inp"><option value="">Não informar</option><option value="0">0 — Não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — Todos retidos</option><option value="4">4 — PIS/COFINS retidos</option><option value="5">5 — PIS retido</option><option value="6">6 — COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div></div>
-            <div class="row r3"><div class="field"><label for="cad-cp">vRetCP (R$)</label><input id="cad-cp" class="inp num" value="0,00"></div><div class="field"><label for="cad-irrf">vRetIRRF (R$)</label><input id="cad-irrf" class="inp num" value="0,00"></div><div class="field"><label for="cad-csll">vRetCSLL (R$)</label><input id="cad-csll" class="inp num" value="0,00"></div></div>
+            <div class="row r2"><div class="field"><label for="cad-cst">CST PIS/COFINS</label><input id="cad-cst" class="inp mono" maxlength="2" placeholder="Opcional"></div><div class="field"><label for="cad-ret-pc">tpRetPisCofins</label><select id="cad-ret-pc" class="inp" onchange="atualizarRetencaoPisCofins('cad')"><option value="">Não informar</option><option value="0">0 — PIS/COFINS/CSLL não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — PIS/COFINS/CSLL retidos</option><option value="4">4 — PIS/COFINS retidos e CSLL não</option><option value="5">5 — Somente PIS retido</option><option value="6">6 — Somente COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — Somente CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div></div>
+            <div class="tax-conditional" id="cad-pis-cofins-fields"><div class="row r3"><div class="field"><label for="cad-pc-base">Base PIS/COFINS (R$)</label><input id="cad-pc-base" class="inp num" value="0,00" oninput="calcularPisCofins('cad')"></div><div class="field"><label for="cad-pis-rate">Alíquota PIS (%)</label><input id="cad-pis-rate" class="inp num" value="0,00" oninput="calcularPisCofins('cad')"></div><div class="field"><label for="cad-cofins-rate">Alíquota COFINS (%)</label><input id="cad-cofins-rate" class="inp num" value="0,00" oninput="calcularPisCofins('cad')"></div></div><div class="row r3"><div class="field"><label for="cad-pis-amount">vPis (R$)</label><input id="cad-pis-amount" class="inp num" value="0,00"></div><div class="field"><label for="cad-cofins-amount">vCofins (R$)</label><input id="cad-cofins-amount" class="inp num" value="0,00"></div><div class="field"><label for="cad-csll">vRetCSLL total (R$)</label><input id="cad-csll" class="inp num" value="0,00"></div></div></div>
+            <div class="row r2"><div class="field"><label for="cad-cp">vRetCP (R$)</label><input id="cad-cp" class="inp num" value="0,00"></div><div class="field"><label for="cad-irrf">vRetIRRF (R$)</label><input id="cad-irrf" class="inp num" value="0,00"></div></div>
             <button class="btn btn-p" style="width:100%" onclick="salvarPerfilServico()">Salvar cadastro</button>
             <div class="foot-note">Fonte normativa: ANEXO B e leiaute DPS/NFS-e PRODREST v1.01.</div>
           </div>
@@ -1323,29 +1336,29 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
 
     <section class="view" id="v-master">
       <div class="page-h master-head">
-        <div><h1>Gestão master</h1><p>Empresas, convites, perfis de acesso e liberações por plano.</p></div>
+        <div><h1>Gestão master</h1><p>Controle de usuários, empresas, convites e perfis de acesso.</p></div>
         <span class="pill p-ok">MASTER</span>
       </div>
-      <div class="grid g2">
-        <div class="card"><div class="card-h"><div><h3>Convidar usuário</h3><p>Vincule CNPJ, e-mail e perfil. O link vale por 7 dias.</p></div></div><div class="card-b">
-          <div class="row r2">
-            <div class="field"><label>CNPJ</label><input id="master-cnpj" class="inp" placeholder="00.000.000/0000-00"></div>
-            <div class="field"><label>E-mail do usuário</label><input id="master-email" class="inp" type="email" placeholder="usuario@empresa.com.br"></div>
-            <div class="field"><label>Perfil</label><select id="master-profile" class="inp"></select></div>
-            <div class="field"><label>Plano</label><select id="master-plan" class="inp"><option value="teste">Teste</option><option value="basico">Básico</option><option value="profissional">Profissional</option><option value="completo">Completo</option></select></div>
-          </div>
-          <button class="btn btn-p" onclick="criarConvite()">Gerar link de convite</button>
-          <div id="master-link" class="alert a-info" style="display:none;margin-top:12px;word-break:break-all"></div>
+      <div class="master-tabs" role="tablist"><button class="master-tab active" type="button" data-master-tab="usuarios" onclick="masterTab('usuarios',this)">Usuários</button><button class="master-tab" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)">Perfis de acesso</button></div>
+
+      <div class="master-panel active" id="master-panel-usuarios">
+        <div class="card"><div class="card-h"><div><h3>Convidar novo usuário</h3><p>O usuário cria a senha pelo link e depois entra com CNPJ e senha. Link válido por 7 dias.</p></div></div><div class="card-b">
+          <div class="row r2"><div class="field"><label>CNPJ da empresa</label><input id="master-cnpj" class="inp" placeholder="00.000.000/0000-00"></div><div class="field"><label>E-mail do usuário</label><input id="master-email" class="inp" type="email" placeholder="usuario@empresa.com.br"></div><div class="field"><label>Perfil</label><select id="master-profile" class="inp"></select></div><div class="field"><label>Plano</label><select id="master-plan" class="inp"><option value="teste">Teste</option><option value="basico">Básico</option><option value="profissional">Profissional</option><option value="completo">Completo</option></select></div></div>
+          <button class="btn btn-p" onclick="criarConvite()">Gerar link de convite</button><div id="master-link" class="alert a-info" style="display:none;margin-top:12px;word-break:break-all"></div>
         </div></div>
-        <div class="card"><div class="card-h"><div><h3>Criar perfil</h3><p>As permissões podem evoluir conforme os planos.</p></div></div><div class="card-b">
-          <div class="row r2"><div class="field"><label>Nome</label><input id="profile-name" class="inp" placeholder="Ex.: Financeiro"></div><div class="field"><label>Plano mínimo</label><select id="profile-plan" class="inp"><option>teste</option><option>basico</option><option>profissional</option><option>completo</option></select></div></div>
-          <div id="profile-permissions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0"></div>
-          <button class="btn btn-p" onclick="criarPerfilAcesso()">Criar perfil</button>
-        </div></div>
+        <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Empresas cadastradas</h3><p id="master-summary">Carregando...</p></div></div><div class="table-wrap"><table><thead><tr><th>Empresa / CNPJ</th><th>Plano</th><th>Usuários</th><th>Situação</th><th>Ação</th></tr></thead><tbody id="master-companies"></tbody></table></div></div>
+        <div class="master-bottom-grid"><div class="card"><div class="card-h"><div><h3>Usuários liberados</h3><p>Altere o perfil ou suspenda somente o vínculo desta empresa.</p></div></div><div class="table-wrap"><table><thead><tr><th>Usuário / empresa</th><th>Perfil</th><th>Situação</th><th>Ações</th></tr></thead><tbody id="master-users"></tbody></table></div></div>
+        <div class="card"><div class="card-h"><div><h3>Convites recentes</h3><p>Status dos links gerados pelo gestor.</p></div></div><div class="table-wrap"><table><thead><tr><th>E-mail / empresa</th><th>Perfil</th><th>Status</th></tr></thead><tbody id="master-invites"></tbody></table></div></div></div>
+        <div class="master-company-box" id="master-company-box"><div class="master-company-copy"><b>Selecione uma empresa no canto superior direito</b><span>A empresa será aberta em uma nova aba operacional.</span></div><button class="btn btn-a" type="button" onclick="abrirEmpresaSelecionada()">Abrir para emissão ↗</button></div>
       </div>
-      <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Empresas e usuários liberados</h3><p id="master-summary">Carregando...</p></div></div><div class="table-wrap"><table><thead><tr><th>Empresa / CNPJ</th><th>Plano</th><th>Usuários</th><th>Situação</th><th>Ações cadastrais</th></tr></thead><tbody id="master-companies"></tbody></table></div></div>
-      <div class="master-bottom-grid"><div class="card"><div class="card-h"><div><h3>Liberações por usuário</h3><p>Troque o perfil ou suspenda o vínculo sem excluir o cadastro.</p></div></div><div class="table-wrap"><table><thead><tr><th>Usuário / empresa</th><th>Perfil liberado</th><th>Ação</th></tr></thead><tbody id="master-users"></tbody></table></div></div>
-      <div class="card"><div class="card-h"><div><h3>Convites recentes</h3><p>Status dos links gerados pelo administrador.</p></div></div><div class="table-wrap"><table><thead><tr><th>E-mail / empresa</th><th>Perfil</th><th>Status</th></tr></thead><tbody id="master-invites"></tbody></table></div></div></div>
+
+      <div class="master-panel" id="master-panel-perfis">
+        <div class="card"><div class="card-h"><div><h3 id="profile-form-title">Criar novo perfil</h3><p>As permissões definem quais módulos o usuário poderá acessar.</p></div></div><div class="card-b">
+          <input id="profile-id" type="hidden"><div class="row r2"><div class="field"><label>Nome do perfil</label><input id="profile-name" class="inp" placeholder="Ex.: Financeiro"></div><div class="field"><label>Plano mínimo</label><select id="profile-plan" class="inp"><option value="teste">Teste</option><option value="basico">Básico</option><option value="profissional">Profissional</option><option value="completo">Completo</option></select></div></div>
+          <div id="profile-permissions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0"></div><div class="flex wrap"><button class="btn btn-p" id="profile-save" onclick="salvarPerfilAcesso()">Criar perfil</button><button class="btn" id="profile-cancel" style="display:none" onclick="cancelarEdicaoPerfil()">Cancelar edição</button></div>
+        </div></div>
+        <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Perfis existentes</h3><p>Revise permissões e plano mínimo.</p></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Plano mínimo</th><th>Permissões</th><th>Ação</th></tr></thead><tbody id="master-profiles"></tbody></table></div></div>
+      </div>
     </section>
 
   </main>
@@ -1475,27 +1488,26 @@ function mascararCnpjLogin(el){
   el.value=d.replace(/^(\d{2})(\d{3})?(\d{3})?(\d{4})?(\d{2})?.*/,(m,a,b,c,dd,e)=>[a,b&&'.'+b,c&&'.'+c,dd&&'/'+dd,e&&'-'+e].filter(Boolean).join(''));
 }
 async function iniciarCadastro(){
-  const precisaCnpj=!PORTAL_ADMIN&&!PORTAL_CNPJ;
-  const cnpj=qs('#li-cnpj').value.replace(/\D/g,'');
+  const cnpj=PORTAL_CNPJ||qs('#li-cnpj').value.replace(/\D/g,'');
   const email=qs('#li-mail').value.trim();
   const senha=qs('#li-pw').value;
-  if((precisaCnpj&&cnpj.length!==14)||!email||senha.length<10){
-    alert(precisaCnpj?'Informe o CNPJ (14 dígitos), um e-mail válido e a senha (mínimo 10 caracteres).':'Informe um e-mail válido e a senha (mínimo 10 caracteres).');
+  if((PORTAL_ADMIN&&!email)||(!PORTAL_ADMIN&&cnpj.length!==14)||senha.length<10){
+    alert(PORTAL_ADMIN?'Informe o e-mail administrativo e a senha (mínimo 10 caracteres).':'Informe o CNPJ e a senha (mínimo 10 caracteres).');
     return;
   }
   let login;
   try{
     await carregarAmbiente();
-    login=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email,password:senha})});
+    login=await api('/api/auth/login',{method:'POST',body:JSON.stringify(PORTAL_ADMIN?{email,password:senha}:{federalTaxId:cnpj,password:senha})});
     selecionarDestinoPortal(login);
-    if(!PORTAL_ADMIN&&!PORTAL_CNPJ){
+    if(!PORTAL_ADMIN){
       const alvo=(login.companies||[]).find(item=>String(item.federal_tax_id||'').replace(/\D/g,'')===cnpj);
       if(!alvo)throw new Error('Seu usuário não tem acesso liberado para este CNPJ.');
       sessionStorage.setItem(STORAGE_COMPANY_ID,alvo.id);
     }
     sessionStorage.setItem(STORAGE_TOKEN,login.token);
     sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:login.user||{},companies:login.companies||[]}));
-    localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:login.user?.name||'',email,cnpj}));
+    localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:login.user?.name||'',email:login.user?.email||email,cnpj}));
     await carregarEmpresaServidor();
     await carregarNotasServidor();
     carregarServicos().catch(()=>{});
@@ -1506,7 +1518,7 @@ async function iniciarCadastro(){
   carregarEstado();
   render();
   if(PORTAL_ADMIN){
-    go('master',qs('.sb-link[onclick*="master"]'));
+    go('master',qs('.admin-sidebar .sb-link'));
   }else if(empresaAtual){
     go('painel',qs('.sb-link[onclick*="painel"]'));
   }else{
@@ -1527,9 +1539,16 @@ function aplicarAcesso(login){
   }
   if(PORTAL_ADMIN)configurarEmpresasAdmin(access.companies||[]);
 }
+function moduloIndisponivel(nome){alert(`⚠ ${nome}\n\nMódulo em preparação. Nenhuma operação foi realizada.`)}
+function alternarGrupoMenu(id,button){const menu=qs('#'+id),open=!menu.classList.contains('on');menu.classList.toggle('on',open);button.classList.toggle('expanded',open)}
+function abrirPendencias(button){go('painel',button);setTimeout(()=>qs('#dash-pending-list')?.scrollIntoView({behavior:'smooth',block:'center'}),80)}
+function abrirRascunhos(button){go('emitir',button);setTimeout(()=>qs('#draft-list')?.scrollIntoView({behavior:'smooth',block:'center'}),80)}
+function abrirComercial(kind,button){go('comercial',button);if(qs('#co-kind')){qs('#co-kind').value=kind;atualizarNumeroComercial();}}
+function abrirRetencoes(button){go('servicos',button);setTimeout(()=>qs('#cad-ret-pc')?.scrollIntoView({behavior:'smooth',block:'center'}),80)}
+function abrirGestao(){const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');if(!access.user?.isMaster){moduloIndisponivel('Usuários e permissões — acesso exclusivo do gestor');return}window.open('/nfs/admin','_blank','noopener')}
+function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);location.reload()}
 function go(v,el){
-  const adminViews=['master','emitente','clientes','cert','servicos'];
-  if(PORTAL_ADMIN&&!adminViews.includes(v)){alert('O portal do administrador é exclusivo para cadastros e liberações.');return}
+  if(PORTAL_ADMIN&&v!=='master'){alert('O portal do gestor é exclusivo para usuários, perfis e liberações. Abra a empresa em uma nova aba para operar.');return}
   if(v==='master'){
     const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');
     if(!access.user?.isMaster){alert('Esta área é exclusiva do administrador master.');return}
@@ -1693,6 +1712,24 @@ function formatarDinheiro(input){
 }
 qsa('input.num').forEach(input=>{input.addEventListener('blur',()=>formatarDinheiro(input));input.addEventListener('focus',()=>input.select())});
 
+function atualizarRetencaoPisCofins(prefix){
+  const tipo=qs(`#${prefix}-ret-pc`)?.value||'';
+  const bloco=qs(`#${prefix}-pis-cofins-fields`);
+  if(bloco)bloco.classList.toggle('on',tipo!==''&&tipo!=='0');
+  if(tipo===''||tipo==='0'){
+    [`${prefix}-pc-base`,`${prefix}-pis-rate`,`${prefix}-cofins-rate`,`${prefix}-pis-amount`,`${prefix}-cofins-amount`,prefix==='s'?'s-ret-csll':'cad-csll'].forEach(id=>{const input=qs('#'+id);if(input)input.value='0,00'});
+  }
+}
+
+function calcularPisCofins(prefix){
+  const base=dinheiro(qs(`#${prefix}-pc-base`)?.value);
+  const pis=dinheiro(qs(`#${prefix}-pis-rate`)?.value);
+  const cofins=dinheiro(qs(`#${prefix}-cofins-rate`)?.value);
+  const format=value=>value.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  qs(`#${prefix}-pis-amount`).value=format(base*pis/100);
+  qs(`#${prefix}-cofins-amount`).value=format(base*cofins/100);
+}
+
 async function carregarServicos(){
   const [catalogo]=await Promise.all([api('/api/services/catalog?limit=400'),carregarPerfisServico()]);
   catalogoServicos=catalogo.services;
@@ -1710,10 +1747,10 @@ async function carregarPerfisServico(){
 }
 
 function novoPerfilServico(){
-  ['cad-id','cad-name','cad-type','cad-search','cad-desc','cad-mun-code','cad-rate','cad-cst'].forEach(id=>qs('#'+id).value='');
-  ['cad-cp','cad-irrf','cad-csll'].forEach(id=>qs('#'+id).value='0,00');
+  ['cad-id','cad-name','cad-type','cad-search','cad-desc','cad-mun-code','cad-nbs','cad-rate','cad-cst'].forEach(id=>qs('#'+id).value='');
+  ['cad-pc-base','cad-pis-rate','cad-cofins-rate','cad-pis-amount','cad-cofins-amount','cad-cp','cad-irrf','cad-csll'].forEach(id=>qs('#'+id).value='0,00');
   qs('#cad-code').innerHTML='<option value="">Pesquise o catálogo oficial</option>';
-  qs('#cad-trib-iss').value='1';qs('#cad-ret-iss').value='1';qs('#cad-ret-pc').value='';qs('#svc-form-title').textContent='Novo serviço padrão';
+  qs('#cad-trib-iss').value='1';qs('#cad-ret-iss').value='1';qs('#cad-ret-pc').value='';atualizarRetencaoPisCofins('cad');qs('#svc-form-title').textContent='Novo serviço padrão';
 }
 
 async function buscarCatalogoServico(){
@@ -1730,19 +1767,23 @@ function selecionarCodigoCadastro(){
 
 function editarPerfilServico(index){
   const item=perfisServico[index];if(!item)return;
-  qs('#cad-id').value=item.id;qs('#cad-name').value=item.name;qs('#cad-type').value=item.service_type;qs('#cad-desc').value=item.description;qs('#cad-mun-code').value=item.municipal_code||'';qs('#cad-rate').value=item.iss_rate==null?'':String(item.iss_rate).replace('.',',');
+  qs('#cad-id').value=item.id;qs('#cad-name').value=item.name;qs('#cad-type').value=item.service_type;qs('#cad-desc').value=item.description;qs('#cad-mun-code').value=item.municipal_code||'';qs('#cad-nbs').value=item.nbs_code||'';qs('#cad-rate').value=item.iss_rate==null?'':String(item.iss_rate).replace('.',',');
   qs('#cad-trib-iss').value=item.iss_taxation;qs('#cad-ret-iss').value=item.iss_withholding;qs('#cad-cst').value=item.pis_cofins_cst||'';qs('#cad-ret-pc').value=item.pis_cofins_withholding||'';
+  qs('#cad-pc-base').value=String(item.pis_cofins_base||0).replace('.',',');qs('#cad-pis-rate').value=String(item.pis_rate||0).replace('.',',');qs('#cad-cofins-rate').value=String(item.cofins_rate||0).replace('.',',');qs('#cad-pis-amount').value=String(item.pis_amount||0).replace('.',',');qs('#cad-cofins-amount').value=String(item.cofins_amount||0).replace('.',',');
   qs('#cad-cp').value=String(item.ret_cp||0).replace('.',',');qs('#cad-irrf').value=String(item.ret_irrf||0).replace('.',',');qs('#cad-csll').value=String(item.ret_csll||0).replace('.',',');
   catalogoCadastro=catalogoServicos.filter(service=>service.code===item.national_code);qs('#cad-code').innerHTML=`<option value="${item.national_code}">${item.national_code} — ${esc(catalogoCadastro[0]?.description||item.description)}</option>`;
-  qs('#svc-form-title').textContent='Editar serviço padrão';
+  atualizarRetencaoPisCofins('cad');qs('#svc-form-title').textContent='Editar serviço padrão';
 }
 
 async function salvarPerfilServico(){
   const cst=qs('#cad-cst').value.trim();
   const rate=qs('#cad-rate').value.trim();
-  const payload={id:qs('#cad-id').value||undefined,name:qs('#cad-name').value.trim(),serviceType:qs('#cad-type').value.trim(),nationalCode:qs('#cad-code').value,description:qs('#cad-desc').value.trim(),municipalCode:qs('#cad-mun-code').value.trim()||undefined,issTaxation:qs('#cad-trib-iss').value,issWithholding:qs('#cad-ret-iss').value,issRate:rate?dinheiro(rate):undefined,pisCofinsCst:cst||undefined,pisCofinsWithholding:qs('#cad-ret-pc').value||undefined,retCp:dinheiro(qs('#cad-cp').value),retIrrf:dinheiro(qs('#cad-irrf').value),retCsll:dinheiro(qs('#cad-csll').value)};
+  const tipo=qs('#cad-ret-pc').value;
+  const reteve=tipo!==''&&tipo!=='0';
+  const payload={id:qs('#cad-id').value||undefined,name:qs('#cad-name').value.trim(),serviceType:qs('#cad-type').value.trim(),nationalCode:qs('#cad-code').value,description:qs('#cad-desc').value.trim(),municipalCode:qs('#cad-mun-code').value.trim()||undefined,nbsCode:qs('#cad-nbs').value.replace(/\D/g,'')||undefined,issTaxation:qs('#cad-trib-iss').value,issWithholding:qs('#cad-ret-iss').value,issRate:rate?dinheiro(rate):undefined,pisCofinsCst:cst||undefined,pisCofinsWithholding:tipo||undefined,pisCofinsBase:reteve?dinheiro(qs('#cad-pc-base').value):undefined,pisRate:reteve?dinheiro(qs('#cad-pis-rate').value):undefined,cofinsRate:reteve?dinheiro(qs('#cad-cofins-rate').value):undefined,pisAmount:reteve?dinheiro(qs('#cad-pis-amount').value):undefined,cofinsAmount:reteve?dinheiro(qs('#cad-cofins-amount').value):undefined,retCp:dinheiro(qs('#cad-cp').value),retIrrf:dinheiro(qs('#cad-irrf').value),retCsll:reteve?dinheiro(qs('#cad-csll').value):0};
   if(!payload.name||!payload.serviceType||!payload.nationalCode||!payload.description){alert('Informe nome, tipo, código nacional e descrição.');return}
   if(payload.municipalCode&&!/^\d{1,3}$/.test(payload.municipalCode)){alert('O código municipal, quando usado, deve conter de 1 a 3 dígitos.');return}
+  if(payload.nbsCode&&!/^\d{9}$/.test(payload.nbsCode)){alert('O código NBS deve conter exatamente 9 dígitos.');return}
   try{await api('/api/services/profiles',{method:'POST',body:JSON.stringify(payload)});await carregarPerfisServico();novoPerfilServico();alert('Serviço padrão salvo. Ele já está disponível na emissão.')}catch(error){alert(error.message)}
 }
 
@@ -1753,8 +1794,10 @@ async function excluirPerfilServico(id){
 
 function aplicarPerfilServico(){
   const item=perfisServico.find(profile=>profile.id===qs('#s-profile').value);if(!item)return;
-  qs('#s-cod').value=item.national_code;qs('#s-desc').value=item.description;qs('#s-trib-iss').value=item.iss_taxation;qs('#s-ret-iss').value=item.iss_withholding;qs('#s-cst').value=item.pis_cofins_cst||'';qs('#s-ret-pc').value=item.pis_cofins_withholding||'';
+  qs('#s-cod').value=item.national_code;qs('#s-nbs').value=item.nbs_code||'';qs('#s-desc').value=item.description;qs('#s-trib-iss').value=item.iss_taxation;qs('#s-ret-iss').value=item.iss_withholding;qs('#s-cst').value=item.pis_cofins_cst||'';qs('#s-ret-pc').value=item.pis_cofins_withholding||'';
+  qs('#s-pc-base').value=String(item.pis_cofins_base||0).replace('.',',');qs('#s-pis-rate').value=String(item.pis_rate||0).replace('.',',');qs('#s-cofins-rate').value=String(item.cofins_rate||0).replace('.',',');qs('#s-pis-amount').value=String(item.pis_amount||0).replace('.',',');qs('#s-cofins-amount').value=String(item.cofins_amount||0).replace('.',',');
   qs('#s-ret-cp').value=String(item.ret_cp||0).replace('.',',');qs('#s-ret-irrf').value=String(item.ret_irrf||0).replace('.',',');qs('#s-ret-csll').value=String(item.ret_csll||0).replace('.',',');lerParametros();
+  atualizarRetencaoPisCofins('s');
 }
 
 async function carregarCertificado(){
@@ -2065,15 +2108,19 @@ async function emitir(falhar){
   const documento=qs('#t-doc').value.replace(/\D/g,'');
   const perfil=perfisServico.find(item=>item.id===qs('#s-profile').value);
   const cst=qs('#s-cst').value.trim();
+  const nbs=qs('#s-nbs').value.replace(/\D/g,'');
+  const tipoPisCofins=qs('#s-ret-pc').value;
+  const retevePisCofins=tipoPisCofins!==''&&tipoPisCofins!=='0';
   const payload={
     competenceDate:qs('#s-comp').value,
     borrower:{name:qs('#t-nome').value.trim(),taxId:qs('#t-doc').value,email:qs('#t-mail').value.trim()||undefined,municipalityCode:qs('#t-municipio').value.replace(/\D/g,'')||undefined,postalCode:qs('#t-cep').value.replace(/\D/g,'')||undefined,street:qs('#t-end').value.trim()||undefined,number:qs('#t-num').value.trim()||undefined,district:qs('#t-bairro').value.trim()||undefined},
-    service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,municipalTaxCode:perfil?.municipal_code||undefined,description:qs('#s-desc').value.trim(),amount:valor,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,issRate:perfil?.iss_rate==null?undefined:Number(perfil.iss_rate),pisCofinsCst:cst||undefined,pisCofinsWithholding:qs('#s-ret-pc').value||undefined,retCp:dinheiro(qs('#s-ret-cp').value),retIrrf:dinheiro(qs('#s-ret-irrf').value),retCsll:dinheiro(qs('#s-ret-csll').value)}
+    service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,municipalTaxCode:perfil?.municipal_code||undefined,nbsCode:nbs||undefined,description:qs('#s-desc').value.trim(),amount:valor,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,issRate:perfil?.iss_rate==null?undefined:Number(perfil.iss_rate),pisCofinsCst:cst||undefined,pisCofinsWithholding:tipoPisCofins||undefined,pisCofinsBase:retevePisCofins?dinheiro(qs('#s-pc-base').value):undefined,pisRate:retevePisCofins?dinheiro(qs('#s-pis-rate').value):undefined,cofinsRate:retevePisCofins?dinheiro(qs('#s-cofins-rate').value):undefined,pisAmount:retevePisCofins?dinheiro(qs('#s-pis-amount').value):undefined,cofinsAmount:retevePisCofins?dinheiro(qs('#s-cofins-amount').value):undefined,retCp:dinheiro(qs('#s-ret-cp').value),retIrrf:dinheiro(qs('#s-ret-irrf').value),retCsll:retevePisCofins?dinheiro(qs('#s-ret-csll').value):0}
   };
   if(!payload.competenceDate||!payload.borrower.name||!payload.borrower.taxId||!payload.service.nationalTaxCode||!payload.service.description||!Number.isFinite(valor)||valor<=0){
     alert('Preencha competência, tomador, CPF/CNPJ, código nacional, descrição e valor do serviço.');return;
   }
   if(documento.length!==11&&documento.length!==14){alert('O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 dígitos.');qs('#t-doc').focus();return}
+  if(nbs&&!/^\d{9}$/.test(nbs)){alert('O código NBS deve conter exatamente 9 dígitos.');qs('#s-nbs').focus();return}
   if(qs('#t-mail').value&&!qs('#t-mail').checkValidity()){alert('Informe um e-mail válido para o tomador.');qs('#t-mail').focus();return}
   if(ambienteAtual==='production'){
     const aviso=`ATENÇÃO: esta emissão terá validade fiscal.\n\nEmpresa: ${empresaAtual.rs}\nDPS: série ${empresaAtual.series}, número ${empresaAtual.next}\nTomador: ${payload.borrower.name}\nValor: R$ ${brl(valor)}\n\nConfirma a emissão na Produção oficial?`;
@@ -2113,8 +2160,8 @@ async function emitir(falhar){
 }
 
 /* ---------- rascunhos de emissão ---------- */
-function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{name:qs('#t-nome').value,taxId:qs('#t-doc').value,email:qs('#t-mail').value,phone:qs('#t-zap').value,municipalityCode:qs('#t-municipio').value,postalCode:qs('#t-cep').value,street:qs('#t-end').value,number:qs('#t-num').value,district:qs('#t-bairro').value,complement:qs('#t-comp').value},service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,description:qs('#s-desc').value,amount:qs('#s-val').value,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value}}}
-function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';lerParametros();}
+function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{name:qs('#t-nome').value,taxId:qs('#t-doc').value,email:qs('#t-mail').value,phone:qs('#t-zap').value,municipalityCode:qs('#t-municipio').value,postalCode:qs('#t-cep').value,street:qs('#t-end').value,number:qs('#t-num').value,district:qs('#t-bairro').value,complement:qs('#t-comp').value},service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,nbsCode:qs('#s-nbs').value,description:qs('#s-desc').value,amount:qs('#s-val').value,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,pisCofinsCst:qs('#s-cst').value,pisCofinsWithholding:qs('#s-ret-pc').value,pisCofinsBase:qs('#s-pc-base').value,pisRate:qs('#s-pis-rate').value,cofinsRate:qs('#s-cofins-rate').value,pisAmount:qs('#s-pis-amount').value,cofinsAmount:qs('#s-cofins-amount').value,retCp:qs('#s-ret-cp').value,retIrrf:qs('#s-ret-irrf').value,retCsll:qs('#s-ret-csll').value}}}
+function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;qs('#s-nbs').value=s.nbsCode||'';qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');lerParametros();}
 let rascunhos=[];
 async function carregarRascunhos(){try{rascunhos=await api('/api/workspace/drafts');const box=qs('#draft-list');box.innerHTML=rascunhos.length?rascunhos.map((item,index)=>`<div class="draft-item"><b>${esc(item.title)}</b><span>${new Date(item.updated_at).toLocaleString('pt-BR')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="abrirRascunho(${index})">Abrir</button><button class="ico-btn danger" title="Excluir" onclick="excluirRascunho('${item.id}')">×</button></div></div>`).join(''):'<div class="empty-state">Nenhum rascunho salvo.</div>'}catch(error){qs('#draft-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
 async function salvarRascunho(){const title=prompt('Nome do rascunho',qs('#t-nome').value?`NFS-e — ${qs('#t-nome').value}`:'Nova NFS-e');if(!title)return;try{await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title,payload:dadosRascunho()})});await carregarRascunhos()}catch(error){alert(error.message)}}
@@ -2313,7 +2360,7 @@ let empresasAdmin=[];
 const permissionLabels={dashboard:'Painel',emit:'Emitir NFS-e',invoices:'Notas emitidas',import:'Importar Portal',customers:'Clientes',services:'Serviços',certificate:'Certificado A1',company_settings:'Configuração da empresa'};
 
 function configurarEmpresasAdmin(companies){
-  empresasAdmin=(companies||[]).map(c=>({id:String(c.id),legal_name:c.legal_name||c.trade_name||'Empresa sem nome',trade_name:c.trade_name||'',federal_tax_id:String(c.federal_tax_id||'')}));
+  empresasAdmin=(companies||[]).map(c=>({id:String(c.id),legal_name:c.legal_name||c.trade_name||'Empresa sem nome',trade_name:c.trade_name||'',federal_tax_id:String(c.federal_tax_id||''),emission_enabled:Boolean(c.emission_enabled),plan_code:c.plan_code||'teste'}));
   const current=sessionStorage.getItem(STORAGE_COMPANY_ID);if(PORTAL_ADMIN&&empresasAdmin.length&&!empresasAdmin.some(c=>c.id===current))sessionStorage.setItem(STORAGE_COMPANY_ID,empresasAdmin[0].id);
   renderEmpresasAdmin();
 }
@@ -2326,6 +2373,7 @@ function renderEmpresasAdmin(){
   box.innerHTML=filtered.length?filtered.map(c=>`<button type="button" class="admin-company-option ${c.id===current?'active':''}" onclick="selecionarEmpresaAdmin('${c.id}')"><b>${esc(c.trade_name||c.legal_name)}</b><span>CNPJ: ${esc(formatarCnpj(c.federal_tax_id))}</span></button>`).join(''):'<div class="empty-state" style="padding:16px">Nenhuma empresa encontrada.</div>';
   const selected=empresasAdmin.find(c=>c.id===current)||empresasAdmin[0];
   const label=qs('#admin-company-current');if(label)label.textContent=selected?(selected.trade_name||selected.legal_name):'Nenhuma empresa cadastrada';
+  const activeBox=qs('#master-company-box');if(activeBox&&selected)activeBox.innerHTML=`<div class="master-company-copy"><b>${esc(selected.trade_name||selected.legal_name)}</b><span>CNPJ ${esc(formatarCnpj(selected.federal_tax_id))} · ${selected.emission_enabled?'Emissão liberada':'Emissão pendente'}</span></div><button class="btn btn-a" type="button" ${selected.emission_enabled?'':'disabled'} onclick="abrirEmpresaEmissao('${selected.id}')">Abrir para emissão ↗</button>`;
 }
 function alternarSeletorEmpresaAdmin(event){
   event?.stopPropagation();const menu=qs('#admin-company-menu'),open=!menu.classList.contains('on');menu.classList.toggle('on',open);qs('#admin-company-trigger').setAttribute('aria-expanded',String(open));if(open){qs('#admin-company-search').value='';renderEmpresasAdmin();setTimeout(()=>qs('#admin-company-search').focus(),0)}
@@ -2333,17 +2381,23 @@ function alternarSeletorEmpresaAdmin(event){
 function fecharSeletorEmpresaAdmin(){qs('#admin-company-menu')?.classList.remove('on');qs('#admin-company-trigger')?.setAttribute('aria-expanded','false')}
 async function selecionarEmpresaAdmin(companyId){
   sessionStorage.setItem(STORAGE_COMPANY_ID,companyId);fecharSeletorEmpresaAdmin();renderEmpresasAdmin();
-  const sel=qs('#tenant');if(sel&&[...sel.options].some(o=>o.value===companyId))sel.value=companyId;
-  try{await carregarEmpresaServidor();await carregarNotasServidor();render();const current=qs('.view.on')?.id;if(current==='v-clientes')await carregarClientesCadastro();if(current==='v-cert')await carregarCertificado();if(current==='v-servicos'){await carregarPerfisServico();await buscarCatalogoServico()}}catch(error){alert(error.message)}
 }
 qs('#admin-company-switch')?.addEventListener('click',event=>event.stopPropagation());document.addEventListener('click',fecharSeletorEmpresaAdmin);document.addEventListener('keydown',event=>{if(event.key==='Escape')fecharSeletorEmpresaAdmin()});
 
-async function masterAbrir(companyId,view){
-  sessionStorage.setItem(STORAGE_COMPANY_ID,companyId);
-  const sel=qs('#tenant');if(sel&&[...sel.options].some(o=>o.value===companyId))sel.value=companyId;
-  try{await carregarEmpresaServidor();await carregarNotasServidor();}catch(e){}
-  go(view,qs('.sb-link[onclick*="'+view+'"]'));
+function masterTab(tab,button){
+  qsa('.master-panel').forEach(panel=>panel.classList.toggle('active',panel.id===`master-panel-${tab}`));
+  qsa('[data-master-tab]').forEach(item=>item.classList.toggle('active',item.dataset.masterTab===tab));
+  if(button)button.classList.add('active');window.scrollTo(0,0);
 }
+async function abrirEmpresaEmissao(companyId){
+  try{
+    const result=await api('/api/master/companies/'+companyId+'/session',{method:'POST'}),company=(result.companies||[])[0];
+    const bytes=new TextEncoder().encode(JSON.stringify(result));let binary='';bytes.forEach(byte=>binary+=String.fromCharCode(byte));
+    const handoff=btoa(binary),url=`/nfs/${String(company.federal_tax_id||'').replace(/\D/g,'')}#handoff=${encodeURIComponent(handoff)}`;
+    window.open(url,'_blank','noopener');
+  }catch(error){alert(error.message)}
+}
+function abrirEmpresaSelecionada(){const id=sessionStorage.getItem(STORAGE_COMPANY_ID)||empresasAdmin[0]?.id;if(!id){alert('Selecione uma empresa.');return}abrirEmpresaEmissao(id)}
 async function carregarMaster(){
   try{
     masterData=await api('/api/master/overview');
@@ -2351,9 +2405,11 @@ async function carregarMaster(){
     configurarEmpresasAdmin(masterData.companies);
     qs('#master-profile').innerHTML=masterData.profiles.map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(p.plan_code)}</option>`).join('');
     qs('#profile-permissions').innerHTML=masterData.permissions.map(p=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${p}" checked> ${esc(permissionLabels[p]||p)}</label>`).join('');
-    qs('#master-companies').innerHTML=masterData.companies.map(c=>`<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(c.federal_tax_id)}</span></td><td>${esc(c.plan_code)}</td><td>${c.users}</td><td><span class="pill ${c.emission_enabled?'p-ok':'p-warn'}">${c.emission_enabled?'Emissão liberada':'Cadastro pendente'}</span></td><td><div class="acts"><button class="btn btn-s" onclick="masterAbrir('${c.id}','clientes')">Clientes</button><button class="btn btn-s" onclick="masterAbrir('${c.id}','servicos')">Serviços</button><button class="btn btn-s" onclick="masterAbrir('${c.id}','emitente')">Emitente</button></div></td></tr>`).join('')||'<tr><td colspan="5">Nenhuma empresa.</td></tr>';
-    qs('#master-users').innerHTML=masterData.users.filter(u=>u.company_id).map(u=>`<tr><td><b>${esc(u.name)}</b> ${u.is_master?'<span class="pill p-ok">MASTER</span>':''}<br><span>${esc(u.email)}</span><br><small style="color:var(--gold-dim)">${esc(u.legal_name||'—')}</small></td><td><select class="inp" id="access-${u.id}-${u.company_id}" style="padding:5px">${masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u.profile_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></td><td><div class="acts"><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',true)">Salvar</button> ${u.is_master?'':`<button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',false)">Suspender</button>`}</div></td></tr>`).join('')||'<tr><td colspan="3">Nenhum vínculo.</td></tr>';
+    qs('#master-companies').innerHTML=masterData.companies.map(c=>`<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(formatarCnpj(c.federal_tax_id))}</span></td><td>${esc(c.plan_code)}</td><td>${c.users}</td><td><span class="pill ${c.emission_enabled?'p-ok':'p-warn'}">${c.emission_enabled?'Emissão liberada':'Cadastro pendente'}</span></td><td><button class="btn btn-s" ${c.emission_enabled?'':'disabled'} onclick="abrirEmpresaEmissao('${c.id}')">Abrir ↗</button></td></tr>`).join('')||'<tr><td colspan="5">Nenhuma empresa.</td></tr>';
+    qs('#master-users').innerHTML=masterData.users.filter(u=>u.company_id).map(u=>{const active=u.active!==false&&u.access_active!==false;return `<tr><td><b>${esc(u.name)}</b> ${u.is_master?'<span class="pill p-ok">MASTER</span>':''}<br><span>${esc(u.email)}</span><br><small style="color:var(--gold-dim)">${esc(u.legal_name||'—')} · ${esc(formatarCnpj(u.federal_tax_id||''))}</small></td><td><select class="inp" id="access-${u.id}-${u.company_id}" style="padding:5px" ${u.is_master?'disabled':''}>${masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u.profile_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></td><td><span class="pill ${active?'p-ok':'p-off'}">${active?'Liberado':'Suspenso'}</span></td><td><div class="acts">${u.is_master?'<span class="foot-note">Protegido</span>':`<button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',true)">${active?'Salvar':'Liberar'}</button><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',false)">Suspender</button>`}</div></td></tr>`}).join('')||'<tr><td colspan="4">Nenhum vínculo.</td></tr>';
     qs('#master-invites').innerHTML=masterData.invitations.map(i=>{const status=i.accepted_at?['p-ok','Aceito']:new Date(i.expires_at)<new Date()?['p-err','Expirado']:['p-warn','Pendente'];return `<tr><td><b>${esc(i.email)}</b><br><small>${esc(i.legal_name)}</small><br><span class="mono">${esc(i.federal_tax_id)}</span></td><td>${esc(i.profile_name||'—')}</td><td><span class="pill ${status[0]}">${status[1]}</span></td></tr>`}).join('')||'<tr><td colspan="3">Nenhum convite.</td></tr>';
+    qs('#master-profiles').innerHTML=masterData.profiles.map(p=>{const permissions=Array.isArray(p.permissions)?p.permissions:[];return `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.plan_code)}</td><td>${esc(permissions.map(permission=>permissionLabels[permission]||permission).join(', ')||'Sem permissões')}</td><td><button class="btn btn-s" onclick="editarPerfilAcesso('${p.id}')">Editar</button></td></tr>`}).join('')||'<tr><td colspan="4">Nenhum perfil.</td></tr>';
+    renderEmpresasAdmin();
   }catch(error){alert(error.message)}
 }
 
@@ -2370,11 +2426,14 @@ async function criarConvite(){
   }catch(error){alert(error.message)}
 }
 
-async function criarPerfilAcesso(){
+async function salvarPerfilAcesso(){
   const name=qs('#profile-name').value.trim(),planCode=qs('#profile-plan').value,permissions=qsa('#profile-permissions input:checked').map(x=>x.value);
   if(!name||!permissions.length){alert('Informe o nome e ao menos uma permissão.');return}
-  try{await api('/api/master/profiles',{method:'POST',body:JSON.stringify({name,planCode,permissions})});qs('#profile-name').value='';await carregarMaster()}catch(error){alert(error.message)}
+  const id=qs('#profile-id').value;
+  try{await api('/api/master/profiles'+(id?'/'+id:''),{method:id?'PUT':'POST',body:JSON.stringify({name,planCode,permissions})});cancelarEdicaoPerfil();await carregarMaster()}catch(error){alert(error.message)}
 }
+function editarPerfilAcesso(id){const profile=masterData?.profiles.find(item=>item.id===id);if(!profile)return;masterTab('perfis');qs('#profile-id').value=id;qs('#profile-name').value=profile.name;qs('#profile-plan').value=profile.plan_code;qsa('#profile-permissions input').forEach(input=>input.checked=(profile.permissions||[]).includes(input.value));qs('#profile-form-title').textContent='Editar perfil';qs('#profile-save').textContent='Salvar alterações';qs('#profile-cancel').style.display='inline-flex';window.scrollTo(0,0)}
+function cancelarEdicaoPerfil(){qs('#profile-id').value='';qs('#profile-name').value='';qs('#profile-plan').value='teste';qsa('#profile-permissions input').forEach(input=>input.checked=true);qs('#profile-form-title').textContent='Criar novo perfil';qs('#profile-save').textContent='Criar perfil';qs('#profile-cancel').style.display='none'}
 
 async function salvarAcesso(userId,companyId,active){
   const profileId=qs(`#access-${userId}-${companyId}`).value;
@@ -2403,7 +2462,7 @@ async function aceitarConvite(token){
   try{
     const accepted=await api('/api/auth/invitations/'+encodeURIComponent(token)+'/accept',{method:'POST',body:JSON.stringify({name,password})});
     sessionStorage.setItem(STORAGE_TOKEN,accepted.token);sessionStorage.setItem(STORAGE_COMPANY_ID,accepted.companyId);sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:accepted.user,companies:accepted.companies||[]}));
-    localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:name,email:accepted.user.email}));history.replaceState({},'',location.pathname);
+    localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:name,email:accepted.user.email,cnpj:accepted.companies?.[0]?.federal_tax_id||PORTAL_CNPJ}));history.replaceState({},'',location.pathname);
     await carregarEmpresaServidor();await carregarNotasServidor();aplicarAcesso({user:accepted.user,companies:accepted.companies});qs('#login').classList.add('hide');qs('#app').classList.add('on');carregarEstado();render();go('painel',qs('.sb-link[onclick*="painel"]'));
   }catch(error){alert(error.message)}
 }
@@ -2417,6 +2476,19 @@ function carregarEstado(){
   aplicarEmpresa();
 }
 
+function lerHandoffGestor(){
+  try{const encoded=new URLSearchParams(location.hash.slice(1)).get('handoff');if(!encoded)return null;const binary=atob(encoded),bytes=Uint8Array.from(binary,char=>char.charCodeAt(0));return JSON.parse(new TextDecoder().decode(bytes))}catch{return null}
+}
+async function entrarViaGestor(data){
+  try{
+    if(!data?.token||!data?.companyId||!data?.companies?.length)throw new Error('Acesso temporário inválido.');
+    sessionStorage.setItem(STORAGE_TOKEN,data.token);sessionStorage.setItem(STORAGE_COMPANY_ID,data.companyId);sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:data.user||{},companies:data.companies||[]}));
+    localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:data.user?.name||'Gestor TITAN',email:data.user?.email||'',cnpj:data.companies[0].federal_tax_id||''}));history.replaceState({},'',location.pathname+location.search);
+    await carregarAmbiente();await carregarEmpresaServidor();await carregarNotasServidor();carregarServicos().catch(()=>{});
+    qs('#login').classList.add('hide');qs('#app').classList.add('on');aplicarAcesso({user:data.user,companies:data.companies});carregarEstado();render();go('painel',qs('.user-sidebar .sb-link[onclick*="painel"]'));
+  }catch(error){alert(error.message)}
+}
+
 /* ---------- init ---------- */
 function render(){
   contagem();chart();tabelas();renderDashboard();pipeReset();checarHabilitacao();lerParametros();
@@ -2425,10 +2497,12 @@ carregarEstado();
 render();
 aplicarAcesso();
 prepararConvite();
+const handoffGestor=lerHandoffGestor();if(handoffGestor)entrarViaGestor(handoffGestor);
 const temConvite=!!new URLSearchParams(location.search).get('invite');
 function ocultarCampoCnpjLogin(){qs('#li-cnpj')?.closest('.login-field')?.style.setProperty('display','none');}
-if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do usuário master — entre com e-mail e senha.';if(!temConvite)ocultarCampoCnpjLogin();}
-else if(PORTAL_CNPJ){qs('.login-sub').textContent=`Entre com o usuário liberado para o CNPJ ${PORTAL_CNPJ.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5')}.`;if(!temConvite)ocultarCampoCnpjLogin();}
+function ocultarCampoEmailLogin(){qs('#li-mail')?.closest('.login-field')?.style.setProperty('display','none');}
+if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';if(!temConvite)ocultarCampoCnpjLogin();}
+else if(!temConvite){ocultarCampoEmailLogin();qs('.login-sub').textContent='Entre com o CNPJ da empresa e sua senha individual.';if(PORTAL_CNPJ){qs('#li-cnpj').value=formatarCnpj(PORTAL_CNPJ);qs('#li-cnpj').readOnly=true;qs('.login-sub').textContent=`Informe sua senha para acessar o CNPJ ${formatarCnpj(PORTAL_CNPJ)}.`;}}
 
 /* ---------- SUPORTE / ASSISTENTE TITAN ---------- */
 const supNorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');

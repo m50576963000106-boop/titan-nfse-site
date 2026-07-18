@@ -38,10 +38,13 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(route,/\^\\d\{14\}\$/);
   assert.match(route,/\["admin", "adm"\]/);
   assert.match(route,/portal: "admin"/);
-  assert.match(html,/portal do administrador é exclusivo para cadastros e liberações/);
-  assert.match(html,/data-admin-hidden="true"/);
+  assert.match(html,/portal do gestor é exclusivo para usuários, perfis e liberações/);
+  assert.match(html,/class="sb-nav admin-sidebar"/);
   assert.match(html,/admin-company-search/);
   assert.match(html,/selecionarEmpresaAdmin/);
+  assert.match(html,/abrirEmpresaEmissao/);
+  assert.match(html,/data-master-tab="usuarios"/);
+  assert.match(html,/data-master-tab="perfis"/);
 });
 
 test("consulta CNPJ preenche emitente e endereço do tomador", async()=>{
@@ -87,4 +90,15 @@ test("integra documentos comerciais, clientes e gestão exclusiva do master",asy
   assert.match(html,/admin-company-switch/);
   assert.match(html,/Esta área é exclusiva do administrador master/);
   assert.match(html,/titan-nfse-logo\.png/);
+});
+
+test("usa login por CNPJ e expõe NBS e retenções condicionais",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/federalTaxId/);
+  assert.match(html,/Entre com o CNPJ da empresa e sua senha individual/);
+  assert.match(html,/id="s-nbs"/);
+  assert.match(html,/id="cad-nbs"/);
+  assert.match(html,/id="s-pis-cofins-fields"/);
+  assert.match(html,/tipoPisCofins!==''&&tipoPisCofins!=='0'/);
+  assert.match(html,/pisCofinsBase/);
 });
