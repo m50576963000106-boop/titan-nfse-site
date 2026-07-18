@@ -29,6 +29,14 @@ const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
+    // Keep the public entry point canonical.  The static `index.html` also
+    // contains a client-side fallback, but an HTTP redirect is reliable when
+    // JavaScript is disabled, a stale page is cached, or the request comes
+    // from a non-browser client.
+    if (url.pathname === "/" || url.pathname === "/index.html") {
+      return Response.redirect(new URL("/nfs", request.url).toString(), 302);
+    }
+
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
       return handleImageOptimization(request, {
