@@ -104,3 +104,18 @@ test("usa login por CNPJ e expõe NBS e retenções condicionais",async()=>{
   assert.match(html,/tipoPisCofins!==''&&tipoPisCofins!=='0'/);
   assert.match(html,/pisCofinsBase/);
 });
+
+test("centraliza serviços, alimenta orçamentos e oferece assistente com ações",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.doesNotMatch(html,/>Pendências<\/button>/);
+  assert.doesNotMatch(html,/>Retenções tributárias<\/button>/);
+  assert.match(html,/>Meus serviços<\/button>/);
+  assert.match(html,/id="co-service"/);
+  assert.match(html,/profileId:svc\.id/);
+  assert.match(html,/carregarPerfisServico\(\)\.then\(popularServicosComercial\)/);
+  assert.match(html,/supExecutarFerramenta/);
+  assert.match(html,/supNotaDetalhe/);
+  assert.match(html,/Base oficial/);
+  assert.match(html,/01\/09\/2026/);
+  assert.match(html,/Comunicado oficial CGSN 189\/2026/);
+});

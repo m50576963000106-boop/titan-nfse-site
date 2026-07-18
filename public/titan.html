@@ -644,6 +644,7 @@ main{margin-left:258px;padding-top:72px}
 .sup-b.me{align-self:flex-end;background:var(--navy);color:var(--cream);border-bottom-right-radius:4px}
 .sup-b ul{margin:6px 0 2px;padding-left:16px}
 .sup-b li{margin:3px 0}
+.sup-b a{color:var(--gold-dim);font-weight:650;text-decoration:underline;text-underline-offset:2px}
 .sup-act{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px}
 .sup-act button{padding:6px 11px;border-radius:20px;background:var(--navy);color:var(--cream);font-size:12px;font-weight:600}
 .sup-act button:hover{background:var(--navy-2)}
@@ -653,6 +654,11 @@ main{margin-left:258px;padding-top:72px}
 .sup-chips{padding:10px 12px 2px;display:flex;flex-wrap:wrap;gap:6px;background:var(--cream);max-height:96px;overflow-y:auto}
 .sup-chip{padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:var(--paper);font-size:12px;font-weight:600;color:var(--ink-2)}
 .sup-chip:hover{border-color:var(--gold);color:var(--ink)}
+.sup-trust{padding:7px 13px;background:#f7f4e9;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:10px;color:var(--ink-2);display:flex;align-items:center;gap:6px}
+.sup-trust b{color:var(--ok)}
+.sup-note-card{margin-top:8px;padding:9px;border:1px solid var(--line);border-radius:8px;background:#fbfaf7}
+.sup-note-card b{display:block}.sup-note-card span{display:block;margin-top:3px;font-size:11px;color:var(--ink-2)}
+.sup-note-key{font-family:var(--mono);font-size:9px!important;overflow-wrap:anywhere}
 .sup-input{display:flex;gap:8px;padding:12px;background:var(--paper);border-top:1px solid var(--line)}
 .sup-input input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:22px;background:var(--cream);outline:none}
 .sup-input input:focus{border-color:var(--gold)}
@@ -703,7 +709,6 @@ main{margin-left:258px;padding-top:72px}
     <nav class="sb-nav user-sidebar">
       <div class="sb-sec">Visão geral</div>
       <button class="sb-link active" data-permission="dashboard" onclick="go('painel',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</button>
-      <button class="sb-link" data-permission="dashboard" onclick="abrirPendencias(this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/><circle cx="12" cy="12" r="9"/></svg>Pendências</button>
       <button class="sb-link" onclick="moduloIndisponivel('Agenda e vencimentos')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Agenda e vencimentos<span class="nav-alert">⚠</span></button>
 
       <div class="sb-sec">Notas fiscais</div>
@@ -725,8 +730,7 @@ main{margin-left:258px;padding-top:72px}
       <div class="sb-sec">Cadastros</div>
       <button class="sb-link" data-permission="customers" onclick="go('clientes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Clientes</button>
       <button class="sb-link" data-permission="company_settings" onclick="go('emitente',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>Emitente</button>
-      <button class="sb-link" data-permission="services" onclick="go('servicos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>Serviços</button>
-      <button class="sb-link" data-permission="services" onclick="abrirRetencoes(this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 8h8M8 12h8M8 16h8"/></svg>Retenções tributárias</button>
+      <button class="sb-link" data-permission="services" onclick="go('servicos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>Meus serviços</button>
 
       <div class="sb-sec">Integrações</div>
       <button class="sb-link" type="button" onclick="alternarGrupoMenu('integracoes-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Integrações<span class="sb-chevron">›</span></button>
@@ -941,7 +945,7 @@ main{margin-left:258px;padding-top:72px}
               <div class="field">
                 <label for="s-profile">Cadastro padrão</label>
                 <select id="s-profile" class="inp" onchange="aplicarPerfilServico()"><option value="">Preenchimento avulso</option></select>
-                <div class="hint">Perfis configurados em Serviços e retenções.</div>
+                <div class="hint">Cadastros configurados em Meus serviços.</div>
               </div>
               <div class="field">
                 <label for="s-cod">Código de tributação nacional — Anexo B</label>
@@ -1036,10 +1040,11 @@ main{margin-left:258px;padding-top:72px}
     </section>
 
     <section class="view" id="v-comercial">
-      <div class="page-h master-head"><div><h1>Orçamentos e ordens de serviço</h1><p>Monte o documento comercial e converta os dados em uma NFS-e para conferência.</p></div><button class="btn btn-s" type="button" onclick="abrirClientes()">Acessar clientes</button></div>
+      <div class="page-h master-head"><div><h1>Orçamentos e ordens de serviço</h1><p>Use clientes e serviços já cadastrados para montar o documento e depois convertê-lo em NFS-e.</p></div><button class="btn btn-s" type="button" onclick="abrirClientes()">Acessar clientes</button></div>
       <div class="commercial-grid"><div class="card commercial-form"><div class="card-h"><h2>Novo documento</h2></div><div class="card-b">
         <div class="field"><label>Número de controle (automático)</label><input id="co-number" class="inp commercial-control" value="Será gerado ao salvar" readonly></div>
         <div class="row r2"><div class="field"><label>Tipo</label><select id="co-kind" class="inp" onchange="atualizarNumeroComercial()"><option value="quote">Orçamento</option><option value="service_order">Ordem de serviço</option></select></div><div class="field"><label>Situação</label><select id="co-status" class="inp"><option value="draft">Em elaboração</option><option value="approved">Aprovado</option></select></div></div>
+        <div class="field"><label>Meu serviço</label><div class="input-action"><select id="co-service" class="inp" onchange="selecionarServicoComercial()"><option value="">Carregando serviços cadastrados...</option></select><button type="button" class="btn btn-s" title="Abrir Meus serviços" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint" id="co-service-hint">O cadastro leva descrição, códigos e retenções para a futura NFS-e.</div></div>
         <div class="field"><label>Título</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="co-customer" class="inp" list="co-customer-list" placeholder="Pesquise pela razão social ou nome" autocomplete="off" oninput="selecionarClienteComercial()"><button type="button" class="btn btn-s" title="Abrir cadastro de clientes" onclick="abrirClientes()">Clientes</button></div><datalist id="co-customer-list"></datalist><div class="hint" id="co-customer-hint">Selecione um cadastro para levar CNPJ e endereço à nota.</div></div><div class="field"><label>Valor (R$)</label><input id="co-value" class="inp num" inputmode="decimal" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" rows="4" placeholder="Escopo e condições do serviço"></textarea></div>
         <div class="setup-actions"><span class="foot-note" style="margin:0">A conversão prepara a emissão, mas não autoriza a nota.</span><button class="btn btn-a right" type="button" onclick="salvarComercial()">Salvar documento</button></div>
       </div></div><div class="card"><div class="card-h"><div><h2>Documentos comerciais</h2><p>Pesquise, acompanhe a situação e converta para NFS-e.</p></div></div><div class="card-b"><div class="commercial-controls"><input id="co-search" class="inp" placeholder="Buscar por número, título ou cliente" oninput="renderComerciais()"><select id="co-filter" class="inp" onchange="renderComerciais()"><option value="">Todos os status</option><option value="draft">Em elaboração</option><option value="approved">Aprovado</option><option value="converted">Convertido</option><option value="cancelled">Cancelado</option></select><button class="btn btn-s" onclick="carregarComerciais()">Atualizar</button></div><div id="commercial-list" class="draft-list"></div><div class="commercial-summary"><span id="commercial-count">0 documento(s)</span><span>A conversão exige revisão antes da emissão.</span></div></div></div></div>
@@ -1284,10 +1289,10 @@ main{margin-left:258px;padding-top:72px}
 
     <!-- ---------- SERVIÇOS E RETENÇÕES ---------- -->
     <section class="view" id="v-servicos">
-      <div class="page-h"><h1>Serviços e retenções</h1><p>Cadastros reutilizáveis baseados no Anexo B e nos domínios oficiais da DPS Nacional v1.01.</p></div>
+      <div class="page-h"><h1>Meus serviços</h1><p>Seu catálogo reutilizável para orçamentos, ordens de serviço e emissão, com códigos e retenções do padrão nacional.</p></div>
       <div class="grid g2" style="align-items:start">
         <div class="card">
-          <div class="card-h"><h2>Cadastros da empresa</h2><span class="pill p-gold right">338 códigos oficiais</span><button class="btn btn-s" onclick="novoPerfilServico()">Novo</button></div>
+          <div class="card-h"><h2>Serviços cadastrados</h2><span class="pill p-gold right">338 códigos oficiais</span><button class="btn btn-s" onclick="novoPerfilServico()">Novo</button></div>
           <div class="card-b" id="svc-list"><div class="empty-state">Nenhum serviço cadastrado.</div></div>
         </div>
         <div class="card">
@@ -1420,7 +1425,7 @@ function buscarNoPortal(value){
   const input=qs('#global-search'),query=String(value||'').trim().toLocaleLowerCase('pt-BR');
   buscaPortalView='';
   if(!input)return;
-  const aliases=[['nota','notas'],['nfse','emitir'],['emissão','emitir'],['emissao','emitir'],['cliente','clientes'],['tomador','clientes'],['orçamento','comercial'],['orcamento','comercial'],['ordem','comercial'],['serviço','servicos'],['servico','servicos'],['certificado','cert'],['importar','importar'],['empresa','emitente'],['emitente','emitente'],['master','master']];
+  const aliases=[['nota','notas'],['nfse','emitir'],['emissão','emitir'],['emissao','emitir'],['cliente','clientes'],['tomador','clientes'],['orçamento','comercial'],['orcamento','comercial'],['ordem','comercial'],['meus serviços','servicos'],['meus servicos','servicos'],['serviço','servicos'],['servico','servicos'],['certificado','cert'],['importar','importar'],['empresa','emitente'],['emitente','emitente'],['master','master']];
   const alias=aliases.find(([term])=>query.includes(term));
   const links=[...qsa('.sb-link')].filter(el=>getComputedStyle(el).display!=='none');
   const match=alias?links.find(el=>(el.getAttribute('onclick')||'').includes(`go('${alias[1]}'`)):links.find(el=>supNorm(el.textContent).includes(supNorm(query)));
@@ -1541,10 +1546,8 @@ function aplicarAcesso(login){
 }
 function moduloIndisponivel(nome){alert(`⚠ ${nome}\n\nMódulo em preparação. Nenhuma operação foi realizada.`)}
 function alternarGrupoMenu(id,button){const menu=qs('#'+id),open=!menu.classList.contains('on');menu.classList.toggle('on',open);button.classList.toggle('expanded',open)}
-function abrirPendencias(button){go('painel',button);setTimeout(()=>qs('#dash-pending-list')?.scrollIntoView({behavior:'smooth',block:'center'}),80)}
 function abrirRascunhos(button){go('emitir',button);setTimeout(()=>qs('#draft-list')?.scrollIntoView({behavior:'smooth',block:'center'}),80)}
 function abrirComercial(kind,button){go('comercial',button);if(qs('#co-kind')){qs('#co-kind').value=kind;atualizarNumeroComercial();}}
-function abrirRetencoes(button){go('servicos',button);setTimeout(()=>qs('#cad-ret-pc')?.scrollIntoView({behavior:'smooth',block:'center'}),80)}
 function abrirGestao(){const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');if(!access.user?.isMaster){moduloIndisponivel('Usuários e permissões — acesso exclusivo do gestor');return}window.open('/nfs/admin','_blank','noopener')}
 function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);location.reload()}
 function go(v,el){
@@ -1568,7 +1571,7 @@ function go(v,el){
   if(v==='master')carregarMaster();
   if(v==='emitir'){carregarRascunhos();exibirMunicipioPorCodigo('s',qs('#s-mun').value)}
   if(v==='clientes')carregarClientesCadastro();
-  if(v==='comercial'){carregarComerciais();popularClientesComercial();}
+  if(v==='comercial'){carregarComerciais();popularClientesComercial();carregarPerfisServico().then(popularServicosComercial);}
 }
 qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
 
@@ -2177,6 +2180,7 @@ async function carregarClientesCadastro(){try{clientesCadastro=await api('/api/c
 function usarClienteNaEmissao(index){preencherCliente(clientesCadastro[index]);go('emitir',qs('.sb-link[onclick*="emitir"]'));}
 function abrirClientes(){go('clientes',qs('.sb-link[onclick*="clientes"]'));}
 let clienteComercialSelecionado=null;
+let servicoComercialSelecionado=null;
 async function popularClientesComercial(){
   try{
     if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');
@@ -2190,6 +2194,22 @@ function selecionarClienteComercial(){
   clienteComercialSelecionado=clientesCadastro.find(c=>String(c.legal_name||'').trim().toLocaleLowerCase('pt-BR')===value)||null;
   const hint=qs('#co-customer-hint');if(!hint)return;
   hint.textContent=clienteComercialSelecionado?`${formatarCnpj(clienteComercialSelecionado.tax_id)} · ${clienteComercialSelecionado.address||'endereço não informado'}`:'Selecione um cadastro para levar CNPJ e endereço à nota.';
+}
+function popularServicosComercial(){
+  const select=qs('#co-service');if(!select)return;
+  const atual=select.value;
+  select.innerHTML='<option value="">Selecione um serviço cadastrado</option>'+perfisServico.map(item=>`<option value="${item.id}">${esc(item.name)} — ${esc(item.national_code)}</option>`).join('');
+  if(perfisServico.some(item=>item.id===atual))select.value=atual;
+  servicoComercialSelecionado=perfisServico.find(item=>item.id===select.value)||null;
+  const hint=qs('#co-service-hint');if(hint&&!perfisServico.length)hint.innerHTML='Nenhum serviço cadastrado. Abra <b>Meus serviços</b> para criar o primeiro.';
+}
+function selecionarServicoComercial(){
+  servicoComercialSelecionado=perfisServico.find(item=>item.id===qs('#co-service')?.value)||null;
+  const hint=qs('#co-service-hint');if(!servicoComercialSelecionado){if(hint)hint.textContent='Selecione um cadastro para usar seus códigos e retenções.';return}
+  const item=servicoComercialSelecionado;
+  if(!qs('#co-title').value.trim())qs('#co-title').value=item.name||item.service_type||'';
+  qs('#co-description').value=item.description||'';
+  if(hint)hint.textContent=`${item.national_code}${item.nbs_code?' · NBS '+item.nbs_code:''} · ${item.service_type}`;
 }
 
 /* ---------- orçamentos e ordens de serviço ---------- */
@@ -2214,19 +2234,24 @@ function renderComerciais(){
     const st=COMERCIAL_STATUS[item.status]||['p-off',item.status];
     const done=item.status==='converted'||item.status==='cancelled';
     const acao=done?`<button class="btn btn-s" disabled style="opacity:.5">${item.status==='converted'?'Convertido':'Cancelado'}</button>`:`<button class="btn btn-s" onclick="converterComercial(${index})">Converter em NFS-e</button>`;
-    return `<div class="doc-item"><div><div class="doc-head"><span class="doc-number">${numeroComercial(item)}</span><b>${esc(item.title)}</b><span class="pill ${st[0]}">${st[1]}</span></div><div class="doc-meta">${esc(item.customer_name||'Sem cliente')} · <b>R$ ${brl(Number(item.amount||0))}</b></div></div><div class="doc-act">${acao}</div></div>`;
+    const serviceName=item.payload?.service?.name||item.payload?.service?.serviceType||'Serviço não identificado';
+    return `<div class="doc-item"><div><div class="doc-head"><span class="doc-number">${numeroComercial(item)}</span><b>${esc(item.title)}</b><span class="pill ${st[0]}">${st[1]}</span></div><div class="doc-meta">${esc(item.customer_name||'Sem cliente')} · ${esc(serviceName)} · <b>R$ ${brl(Number(item.amount||0))}</b></div></div><div class="doc-act">${acao}</div></div>`;
   }).join('');
 }
 async function carregarComerciais(){try{comerciais=await api('/api/workspace/commercial');renderComerciais();atualizarNumeroComercial();}catch(error){qs('#commercial-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
 async function salvarComercial(){
   selecionarClienteComercial();
+  selecionarServicoComercial();
   const title=qs('#co-title').value.trim(),customerName=qs('#co-customer').value.trim(),description=qs('#co-description').value.trim(),amount=dinheiro(qs('#co-value').value);
+  if(!servicoComercialSelecionado){alert('Selecione um item de Meus serviços para criar o documento.');return}
   if(!title||!customerName||!description||amount<=0){alert('Informe título, cliente, descrição e valor.');return}
   const c=clienteComercialSelecionado;
+  const svc=servicoComercialSelecionado;
   const borrower=c?{name:c.legal_name,legal_name:c.legal_name,tax_id:c.tax_id,email:c.email,phone:c.phone,address:c.address,postal_code:c.postal_code,municipality_code:c.municipality_code,street:c.street,number:c.number,complement:c.complement,district:c.district}:{name:customerName,legal_name:customerName};
-  try{await api('/api/workspace/commercial',{method:'POST',body:JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:{borrower,service:{description,amount:qs('#co-value').value}}})});qs('#co-title').value='';qs('#co-customer').value='';qs('#co-description').value='';qs('#co-value').value='0,00';clienteComercialSelecionado=null;selecionarClienteComercial();await carregarComerciais()}catch(error){alert(error.message)}
+  const service={profileId:svc.id,name:svc.name,serviceType:svc.service_type,nationalTaxCode:svc.national_code,municipalTaxCode:svc.municipal_code||undefined,nbsCode:svc.nbs_code||undefined,description,amount:qs('#co-value').value,issTaxation:svc.iss_taxation,issWithholding:svc.iss_withholding,issRate:svc.iss_rate,pisCofinsCst:svc.pis_cofins_cst||undefined,pisCofinsWithholding:svc.pis_cofins_withholding||undefined,pisCofinsBase:svc.pis_cofins_base||undefined,pisRate:svc.pis_rate||undefined,cofinsRate:svc.cofins_rate||undefined,pisAmount:svc.pis_amount||undefined,cofinsAmount:svc.cofins_amount||undefined,retCp:svc.ret_cp||0,retIrrf:svc.ret_irrf||0,retCsll:svc.ret_csll||0};
+  try{await api('/api/workspace/commercial',{method:'POST',body:JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:{borrower,service}})});qs('#co-title').value='';qs('#co-customer').value='';qs('#co-service').value='';qs('#co-description').value='';qs('#co-value').value='0,00';clienteComercialSelecionado=null;servicoComercialSelecionado=null;selecionarClienteComercial();selecionarServicoComercial();await carregarComerciais()}catch(error){alert(error.message)}
 }
-async function converterComercial(index){const item=comerciais[index];try{const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'}),p=result.payload||{},b=p.borrower||{},s=p.service||{};preencherCliente({...b,legal_name:b.legal_name||b.name,tax_id:b.tax_id||b.taxId||''});qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';formatarDinheiro(qs('#s-val'));lerParametros();go('emitir',qs('.sb-link[onclick*="emitir"]'));alert('Dados transferidos para a emissão. Confira os dados fiscais antes de autorizar a NFS-e.')}catch(error){alert(error.message)}}
+async function converterComercial(index){const item=comerciais[index];try{const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'}),p=result.payload||{},b=p.borrower||{},s=p.service||{};preencherCliente({...b,legal_name:b.legal_name||b.name,tax_id:b.tax_id||b.taxId||''});if(s.profileId&&perfisServico.some(profile=>profile.id===s.profileId)){qs('#s-profile').value=s.profileId;aplicarPerfilServico()}else{if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;qs('#s-nbs').value=s.nbsCode||''}qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';formatarDinheiro(qs('#s-val'));lerParametros();go('emitir',qs('.sb-link[onclick*="emitir"]'));alert('Cliente, serviço e valor foram transferidos. Confira os dados fiscais antes de autorizar a NFS-e.')}catch(error){alert(error.message)}}
 
 
 /* ---------- importação ADN ---------- */
@@ -2357,7 +2382,7 @@ function aplicarEmpresa(){
 /* ---------- gestão master / convites ---------- */
 let masterData=null;
 let empresasAdmin=[];
-const permissionLabels={dashboard:'Painel',emit:'Emitir NFS-e',invoices:'Notas emitidas',import:'Importar Portal',customers:'Clientes',services:'Serviços',certificate:'Certificado A1',company_settings:'Configuração da empresa'};
+const permissionLabels={dashboard:'Painel',emit:'Emitir NFS-e',invoices:'Notas emitidas',import:'Importar Portal',customers:'Clientes',services:'Meus serviços',certificate:'Certificado A1',company_settings:'Configuração da empresa'};
 
 function configurarEmpresasAdmin(companies){
   empresasAdmin=(companies||[]).map(c=>({id:String(c.id),legal_name:c.legal_name||c.trade_name||'Empresa sem nome',trade_name:c.trade_name||'',federal_tax_id:String(c.federal_tax_id||''),emission_enabled:Boolean(c.emission_enabled),plan_code:c.plan_code||'teste'}));
@@ -2512,39 +2537,53 @@ const supNorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g
 function supFmtCnpj(v){v=String(v||'').replace(/\D/g,'');return v.length===14?v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5'):(v||'—')}
 const supAmb=()=>(typeof ambienteAtual!=='undefined'&&ambienteAtual==='production')?'Produção oficial':'Produção Restrita';
 
+const SUP_OFICIAL={
+  portal:'https://www.nfse.gov.br/EmissorNacional/',
+  faq:'https://www.gov.br/nfse/pt-br/copy_of_perguntas-frequentes/copy_of_faq-nfs-e',
+  docs:'https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/documentacao-atual',
+  canais:'https://www.gov.br/nfse/pt-br/canais-de-atendimento/canais-de-atendimento',
+  simples2026:'https://www.gov.br/nfse/pt-br/noticias/nfs-e-e-simples-nacional-obrigatoriedade-de-emissao-atraves-do-emissor-nacional'
+};
+const supFonte=(url,label='Fonte oficial')=>`<br><a href="${url}" target="_blank" rel="noopener">${label} ↗</a>`;
 const supTopics=[
- {id:'emitir',chip:'Como emitir',kw:['emitir','como emito','gerar nota','criar nota','nova nota','fazer nota','fazer uma nota','passo a passo','dps','emissor nacional'],
-  a:()=>`Para <b>emitir uma NFS-e</b>:<ul><li>Tenha uma <b>empresa ativa</b> e o <b>certificado A1</b> enviado;</li><li>Preencha o <b>tomador</b> (CNPJ/CPF), o <b>serviço</b> (código LC 116), a <b>descrição</b>, o <b>valor</b> e o <b>município de incidência</b>;</li><li>Clique em <b>Emitir NFS-e</b> — o "Trajeto da nota" mostra cada etapa até a autorização.</li></ul>`,
-  act:[['Abrir emissão','emitir']]},
+ {id:'nacional',chip:'Portal Nacional',kw:['o que e nfse nacional','portal nacional','padrao nacional','reforma tributaria','unificacao','mudanca nacional'],
+  a:()=>`A <b>NFS-e de padrão nacional</b> é o documento eletrônico que registra a prestação de serviços em formato padronizado e integra dados ao ambiente nacional. Atenção: padrão nacional e uso obrigatório do mesmo portal não são sempre a mesma coisa; fora das regras específicas, a forma de emissão depende do regime e da configuração do município.${supFonte(SUP_OFICIAL.faq,'FAQ oficial da NFS-e')}`},
+ {id:'acesso',chip:'Acesso oficial',kw:['acessar portal','login portal','gov.br','govbr','primeiro acesso','usuario e senha','aplicativo mobile','celular oficial','emissor web'],
+  a:()=>`Os canais oficiais são o <b>Emissor Web</b>, o aplicativo móvel e a integração por <b>API</b>. Conforme o perfil do contribuinte, o acesso pode usar <b>Gov.br</b>, <b>certificado digital</b> ou credenciais cadastradas no emissor. Para MEI, Gov.br Prata ou Ouro é o caminho mais simples quando disponível.${supFonte(SUP_OFICIAL.portal,'Abrir Emissor Nacional')}`},
+ {id:'emitir',chip:'Como emitir',kw:['emitir','como emito','gerar nota','criar nota','nova nota','fazer nota','fazer uma nota','passo a passo','dps','declaracao de prestacao','servico favorito'],
+  a:()=>`A <b>DPS</b> reúne os dados que serão validados para gerar a NFS-e. No TITAN: escolha um item de <b>Meus serviços</b>, informe o tomador, competência, valor e município e revise os tributos antes de autorizar. Os rascunhos não são enviados à Sefin até a emissão.${supFonte(SUP_OFICIAL.docs,'Documentação técnica atual')}`,
+  act:[['Abrir emissão','emitir'],['Meus serviços','servicos']]},
  {id:'rejeicao',chip:'Nota rejeitada',kw:['rejeit','erro','recus','negad','falhou','falha','nao consigo','nao consegui','nao emit','nao autoriz','problema','deu erro','codigo de erro','sefin recusou'],
-  a:()=>`Se a Sefin <b>rejeitou</b> a nota, as causas mais comuns são:<ul><li><b>Certificado A1</b> vencido ou ausente;</li><li><b>CNPJ/CPF do tomador</b> inválido;</li><li><b>Código de serviço</b> (LC 116) incorreto para a atividade;</li><li><b>Município</b> não conveniado ao padrão nacional;</li><li><b>DPS duplicada</b> (mesma série/número);</li><li>Dados do <b>emitente</b> incompletos.</li></ul>O "Trajeto da nota" aponta a etapa que falhou e o código devolvido pela Sefin.`,
-  act:[['Verificar certificado','cert'],['Rever emissão','emitir']]},
+  a:()=>`Uma rejeição é a resposta oficial da Sefin a uma validação da DPS. Confira o <b>código devolvido</b>, certificado, CNPJ/CPF, série e número da DPS, código nacional do serviço, município e dados fiscais do emitente. Não corrija por tentativa: use a mensagem da Sefin para localizar o campo exato.`,
+  act:[['Analisar minha conta','diag'],['Rever emissão','emitir']]},
  {id:'certificado',chip:'Certificado A1',kw:['certificado','a1','pfx','p12','assinatura digital','senha do certificado','vencido','expirado','icp'],
-  a:()=>`O <b>certificado digital A1</b> (.pfx/.p12) assina os XMLs. Envie o arquivo e a senha em <b>Certificado A1</b> — ele é guardado criptografado no cofre seguro. <b>Sem um A1 válido não há emissão.</b> Acompanhe a validade.`,
-  act:[['Ir para Certificado A1','cert']]},
- {id:'cancelar',chip:'Cancelar nota',kw:['cancel','anular','estornar','tornar sem efeito'],
-  a:()=>`Só é possível cancelar notas <b>Autorizadas</b>. Vá em <b>Notas emitidas</b>, clique no ícone de cancelar da linha, informe o <b>motivo</b> (mínimo 15 caracteres) e confirme — o cancelamento vira um <b>evento oficial</b> enviado à Sefin Nacional. O prazo segue a regra do município / padrão nacional.`,
+  a:()=>`No Portal Web, alguns contribuintes conseguem entrar por Gov.br ou credenciais próprias. Na <b>integração automatizada do TITAN</b>, o A1 (.pfx/.p12) identifica a empresa, assina a DPS e faz a comunicação segura. O arquivo fica criptografado e é usado somente no backend da empresa ativa.`,
+  act:[['Ir para Certificado digital','cert']]},
+ {id:'cancelar',chip:'Cancelar nota',kw:['cancel','anular','estornar','tornar sem efeito','substituir nota'],
+  a:()=>`Cancelamento e substituição são <b>eventos oficiais</b>. A possibilidade, o prazo e a necessidade de análise fiscal dependem dos parâmetros cadastrados pelo município e das regras nacionais aplicáveis. No TITAN, somente uma nota autorizada oferece a ação de cancelamento; informe um motivo claro e aguarde a autorização da Sefin.${supFonte(SUP_OFICIAL.docs,'Guia oficial do Emissor')}`,
   act:[['Abrir Notas emitidas','notas']]},
- {id:'danfse',chip:'DANFSe / PDF',kw:['danfse','pdf','imprimir','espelho','documento da nota','baixar nota','visualizar nota','abrir nota'],
-  a:()=>`O <b>DANFSe v2.0</b> é gerado pelo próprio TITAN. Em <b>Notas emitidas</b>, clique no ícone de <b>visualizar</b> (olho) da nota para abrir o PDF em nova aba. No <b>celular</b>, permita a abertura de nova aba/pop-up para o PDF aparecer. O endpoint público antigo foi desligado em 15/07/2026 — gerar o DANFSe passou a ser função do emissor.`,
+ {id:'danfse',chip:'XML e DANFSe',kw:['danfse','pdf','imprimir','espelho','documento da nota','baixar nota','visualizar nota','abrir nota','baixar xml','download xml'],
+  a:()=>`O <b>XML autorizado</b> é o documento fiscal eletrônico; o <b>DANFSe</b> é sua representação em PDF. Posso localizar uma nota e oferecer os dois arquivos. Exemplo: <i>“buscar notas de julho”</i> ou <i>“baixar XML da DPS 22”</i>.`,
   act:[['Abrir Notas emitidas','notas']]},
- {id:'habilitacao',chip:'Posso emitir?',kw:['habilita','posso emitir','obrigat','obrigado a emitir','sou obrigado','tenho que emitir','simples','mei','sou mei','me epp','quando comeco','prazo','regime'],
-  a:()=>`Regras de <b>habilitação</b>:<ul><li><b>MEI</b>: emite pelo padrão nacional em todo o país desde 2023;</li><li><b>ME/EPP do Simples</b>: emissão nacional <b>obrigatória a partir de 01/09/2026</b>;</li><li><b>Fora do Simples</b>: depende do convênio do município ao padrão nacional.</li></ul>`,
+ {id:'habilitacao',chip:'Obrigatoriedade',kw:['habilita','posso emitir','obrigat','obrigado a emitir','sou obrigado','tenho que emitir','simples','mei','sou mei','me epp','quando comeco','prazo','regime','janeiro de 2026'],
+  a:()=>`Regras oficiais atuais:<ul><li><b>MEI prestador de serviços</b>: padrão nacional obrigatório desde <b>01/09/2023</b> nas hipóteses de emissão;</li><li><b>ME/EPP optante pelo Simples Nacional</b>: uso obrigatório do Emissor Nacional a partir de <b>01/09/2026</b>, conforme a Resolução CGSN nº 189/2026;</li><li><b>Demais contribuintes</b>: a forma de emissão depende do regime, da legislação e da solução adotada pelo município.</li></ul>Não existe uma regra geral dizendo que todas as empresas passaram obrigatoriamente ao portal em 01/01/2026.${supFonte(SUP_OFICIAL.simples2026,'Comunicado oficial CGSN 189/2026')}`,
   act:[['Dados do emitente','emitente']]},
- {id:'importar',chip:'Importar do Portal',kw:['importar','portal','trazer notas','sincroniz','distribui','adn','baixar do portal'],
-  a:()=>`Em <b>Importar do Portal</b> você traz as notas e eventos <b>distribuídos pelo ADN</b> em que a empresa aparece como prestador, tomador ou intermediário.`,
+ {id:'importar',chip:'Importar do ADN',kw:['importar','trazer notas','sincroniz','distribui','adn','baixar do portal','notas recebidas'],
+  a:()=>`Em <b>Importar do Portal</b>, o TITAN consulta a distribuição do ADN para a empresa autenticada e traz documentos em que ela aparece como prestador, tomador ou intermediário. O certificado deve pertencer ao CNPJ da empresa ativa.`,
   act:[['Abrir Importar do Portal','importar']]},
  {id:'ambiente',chip:'Ambiente',kw:['ambiente','restrit','producao','teste','validade juridica','homolog','tpamb','oficial'],
-  a:()=>`Ambiente atual: <b>${supAmb()}</b>.<ul><li><b>Produção Restrita</b> (tpAmb=2): ambiente oficial de <b>testes</b>, sem validade jurídica;</li><li><b>Produção oficial</b>: notas com validade fiscal.</li></ul>A troca é feita <b>somente por administrador no servidor</b>.`},
+  a:()=>`Ambiente atual: <b>${supAmb()}</b>.<ul><li><b>Produção Restrita</b> (tpAmb=2): testes, sem validade fiscal;</li><li><b>Produção oficial</b> (tpAmb=1): documentos com validade fiscal quando autorizados.</li></ul>A troca é controlada no servidor para evitar emissões acidentais.`},
  {id:'clientes',chip:'Clientes / CNPJ',kw:['cliente','tomador','consultar cnpj','cadastro de cliente','brasilapi','buscar cnpj'],
-  a:()=>`Em <b>Clientes</b> você cadastra e consulta empresas por <b>CNPJ</b> (consulta gratuita BrasilAPI). Na emissão, use <b>Buscar CNPJ</b> para preencher o tomador automaticamente.`,
+  a:()=>`Em <b>Clientes</b> você cadastra os tomadores e pode consultar dados públicos por CNPJ. O cadastro é reutilizado na emissão, nos orçamentos e nas ordens de serviço.`,
   act:[['Abrir Clientes','clientes']]},
- {id:'servicos',chip:'Serviços e ISS',kw:['aliquota','retenc','issqn',' iss ','lc 116','codigo de servico','codigo do servico','tributo','nbs'],
-  a:()=>`Em <b>Serviços e retenções</b> você mantém os perfis de serviço (código <b>LC 116/2003</b>, NBS, alíquota e retenções). A alíquota efetiva do ISS pode vir dos <b>parâmetros municipais</b> na hora da emissão.`,
-  act:[['Abrir Serviços e retenções','servicos']]},
- {id:'comercial',chip:'Orçamentos e O.S.',kw:['orcamento','ordem de servico',' os ','rascunho','proposta','comercial'],
-  a:()=>`Em <b>Orçamentos e O.S.</b> você cria documentos comerciais e rascunhos que depois viram uma emissão.`,
-  act:[['Abrir Orçamentos e O.S.','comercial']]}
+ {id:'servicos',chip:'Meus serviços',kw:['meus servicos','aliquota','retenc','issqn',' iss ','codigo nacional','codigo de servico','codigo do servico','tributo','nbs','pis','cofins'],
+  a:()=>`Em <b>Meus serviços</b> você mantém descrição, código de tributação nacional, NBS, ISS e retenções PIS/COFINS. O mesmo cadastro alimenta orçamentos, O.S. e a futura NFS-e, evitando redigitação.`,
+  act:[['Abrir Meus serviços','servicos']]},
+ {id:'comercial',chip:'Orçamentos e O.S.',kw:['orcamento','ordem de servico',' os ','proposta','comercial'],
+  a:()=>`Para criar um orçamento ou O.S., selecione um <b>cliente</b> e um item de <b>Meus serviços</b>. Ao converter, o TITAN leva tomador, descrição, códigos e retenções à tela de emissão para revisão.`,
+  act:[['Abrir Orçamentos e O.S.','comercial']]},
+ {id:'suporte',chip:'Ajuda oficial',kw:['ajuda oficial','suporte oficial','atendimento receita','sebrae','falar com receita','documentacao oficial'],
+  a:()=>`Para orientação oficial, consulte a FAQ, os guias atuais e os canais de atendimento da NFS-e. Para MEI, o portal recomenda também o suporte do Sebrae.${supFonte(SUP_OFICIAL.canais,'Canais oficiais de atendimento')}`}
 ];
 
 function supGo(v){try{const el=[...document.querySelectorAll('.sb-link')].find(b=>(b.getAttribute('onclick')||'').includes("go('"+v+"'"));go(v,el);}catch(e){}if(window.innerWidth<=760)supClose();}
@@ -2554,6 +2593,42 @@ function supBubble(html,who){const l=qs('#sup-log');if(!l)return null;const d=do
 function supActs(list){if(!list||!list.length)return '';return '<div class="sup-act">'+list.map(([label,view])=>`<button type="button" onclick="supDo('${view}')">${esc(label)}</button>`).join('')+'</div>'}
 function supAnswerTopic(t){supBubble(t.a()+supActs(t.act),'bot')}
 function supMatch(text){const q=supNorm(text);let best=null,score=0;for(const t of supTopics){let s=0;for(const k of t.kw){if(q.includes(supNorm(k)))s+=k.trim().length}if(s>score){score=s;best=t}}return score>0?best:null;}
+
+const supMeses={janeiro:0,fevereiro:1,marco:2,abril:3,maio:4,junho:5,julho:6,agosto:7,setembro:8,outubro:9,novembro:10,dezembro:11};
+function supFiltrarNotas(text){
+  const q=supNorm(text),agora=new Date();let lista=[...notas],filtrou=false;
+  const chave=(String(text).match(/\d{45,60}/)||[])[0];
+  if(chave){lista=lista.filter(n=>String(n.key||'').replace(/\D/g,'')===chave);filtrou=true}
+  const numero=q.match(/(?:dps|nota|numero|nº|n°)\s*(?:numero|nº|n°|#)?\s*(\d{1,15})/);
+  if(numero&&!chave){lista=lista.filter(n=>String(n.n)===String(Number(numero[1]))||String(n.n)===numero[1]);filtrou=true}
+  const mes=Object.entries(supMeses).find(([nome])=>q.includes(nome));
+  if(mes){const ano=Number((q.match(/20\d{2}/)||[])[0]||agora.getFullYear());lista=lista.filter(n=>{const d=new Date(n.date||'');return !Number.isNaN(d.valueOf())&&d.getMonth()===mes[1]&&d.getFullYear()===ano});filtrou=true}
+  const dias=q.match(/ultim(?:o|os|a|as)\s+(\d{1,3})\s+dias?/);
+  if(dias){const inicio=Date.now()-Number(dias[1])*864e5;lista=lista.filter(n=>new Date(n.date||0).getTime()>=inicio);filtrou=true}
+  if(q.includes('hoje')){lista=lista.filter(n=>new Date(n.date||'').toDateString()===agora.toDateString());filtrou=true}
+  const status=q.includes('cancelad')?'canc':q.includes('rejeitad')||q.includes('erro')?'err':q.includes('process')?'proc':q.includes('autorizad')?'ok':null;
+  if(status){lista=lista.filter(n=>n.st===status);filtrou=true}
+  return {lista,filtrou,chave,numero:numero?.[1]||null};
+}
+function supNotaCard(n){
+  const status=sit[n.st]?.[1]||n.st,acoes=n.key?`<div class="sup-act"><button type="button" onclick="supNotaDetalhe('${n.id}')">Detalhes</button><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}')">Abrir PDF</button></div>`:'<span>Documento ainda sem XML autorizado.</span>';
+  return `<div class="sup-note-card"><b>DPS ${esc(n.n)} · ${esc(status)}</b><span>${esc(n.d)} · ${esc(n.t||'Tomador não informado')}</span><span>${esc(n.s||'Serviço')} · R$ ${brl(Number(n.v||0))}</span>${acoes}</div>`;
+}
+function supNotaDetalhe(id){
+  const n=notas.find(item=>item.id===id);if(!n){supBubble('Não encontrei mais essa nota na empresa ativa. Atualize o histórico e tente novamente.','bot');return}
+  supBubble(`<b>Detalhes da DPS ${esc(n.n)}</b><ul><li>Situação: <b>${esc(sit[n.st]?.[1]||n.st)}</b></li><li>Emissão: ${esc(n.d)}</li><li>Tomador: ${esc(n.t||'Não informado')}</li><li>Serviço: ${esc(n.s||'Não informado')}</li><li>Valor: R$ ${brl(Number(n.v||0))}</li></ul>${n.key?`<span class="sup-note-key">Chave: ${esc(n.key)}</span><div class="sup-act"><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}')">Abrir DANFSe</button></div>`:'<br>Esta emissão ainda não possui chave autorizada.'}`,'bot');
+}
+function supPareceFerramenta(q){return /(buscar|pesquisar|listar|mostrar|localizar|detalhe|baixar|download|xml|pdf|danfse|chave)/.test(q)&&/(nota|nfse|nfs-e|dps|xml|pdf|danfse|chave)/.test(q)}
+async function supExecutarFerramenta(text){
+  const holder=supBubble('Consultando as notas da empresa ativa…','bot');
+  try{
+    await carregarNotasServidor();
+    const {lista}=supFiltrarNotas(text),ordenada=lista.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+    if(!ordenada.length){holder.innerHTML='Nenhuma NFS-e corresponde à busca na empresa ativa.'+supActs([['Abrir histórico completo','notas']]);supScroll();return}
+    const exibir=ordenada.slice(0,6);
+    holder.innerHTML=`Encontrei <b>${ordenada.length}</b> nota(s).${ordenada.length>6?' Mostrando as 6 mais recentes.':''}`+exibir.map(supNotaCard).join('')+(ordenada.length>6?supActs([['Abrir histórico completo','notas']]):'');supScroll();
+  }catch(error){holder.innerHTML=`Não consegui consultar as notas agora: ${esc(error.message)}`;supScroll()}
+}
 
 function supAnalisar(){
   const rows=[];const push=(cls,txt)=>rows.push(`<div class="sup-diag"><span class="d d-${cls}"></span><span>${txt}</span></div>`);
@@ -2588,7 +2663,8 @@ function supChip(id){if(id==='diag'){supBubble('🔎 Analisar minha conta','me')
 function supSend(e){e.preventDefault();const inp=qs('#sup-in');const v=(inp.value||'').trim();if(!v)return false;inp.value='';supBubble(esc(v),'me');const q=supNorm(v);
   if(/(^|\s)(oi|ola|bom dia|boa tarde|boa noite|hello|hi)(\s|$)/.test(q)){supBubble('Olá! Como posso ajudar? Toque em um assunto abaixo ou descreva sua dúvida.','bot');return false}
   if(q.indexOf('analis')>-1||q.indexOf('diagnost')>-1||q.indexOf('minha conta')>-1||q.indexOf('meu status')>-1){supAnalisar();return false}
-  if(q.indexOf('humano')>-1||q.indexOf('atendente')>-1||q.indexOf('falar com')>-1||q.indexOf('pessoa')>-1){supBubble('Para <b>atendimento humano</b>, fale com o seu implantador do TITAN ou use o formulário <b>“Quero contratar o emissor”</b> na página inicial. Posso adiantar sua dúvida por aqui enquanto isso.','bot');return false}
+  if(supPareceFerramenta(q)){supExecutarFerramenta(v);return false}
+  if(q.indexOf('humano')>-1||q.indexOf('atendente')>-1||q.indexOf('falar com')>-1||q.indexOf('pessoa')>-1){supBubble(`Para atendimento do sistema, fale com o responsável pelo TITAN. Para orientação normativa ou indisponibilidade do ambiente nacional, consulte os canais oficiais. Posso adiantar sua dúvida por aqui enquanto isso.${supFonte(SUP_OFICIAL.canais,'Canais oficiais da NFS-e')}`,'bot');return false}
   const t=supMatch(v);
   if(t)supAnswerTopic(t);
   else supBubble('Ainda não sei responder isso com precisão. Toque em um dos atalhos abaixo, tente reformular, ou use <b>🔎 Analisar minha conta</b> para eu revisar seu cadastro, certificado e notas.','bot');
@@ -2596,7 +2672,7 @@ function supSend(e){e.preventDefault();const inp=qs('#sup-in');const v=(inp.valu
 }
 
 let supGreeted=false;
-function supGreet(){const emp=(typeof empresaAtual!=='undefined')?empresaAtual:null;let msg='Olá! Sou o <b>assistente do TITAN NFS-e</b>. Ajudo com emissão, certificado A1, rejeições da Sefin, cancelamento, DANFSe e mais.';let act;
+function supGreet(){const emp=(typeof empresaAtual!=='undefined')?empresaAtual:null;let msg='Olá! Sou o <b>assistente inteligente do TITAN NFS-e</b>. Respondo com base oficial e posso consultar suas notas, mostrar detalhes e entregar XML ou DANFSe.';let act;
   if(!emp||!emp.rs){msg+='<br><br>Notei que <b>ainda não há empresa ativa</b>. Quer começar pelo cadastro?';act=[['Cadastrar empresa','emitente']];}
   else{msg+=`<br><br>Empresa ativa: <b>${esc(emp.rs)}</b> · ${supAmb()}.`;act=[['🔎 Analisar minha conta','diag']];}
   supBubble(msg+supActs(act),'bot');}
@@ -2615,14 +2691,15 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&qs('#sup-panel')?.c
   <div class="sup-head">
     <div class="sup-head-id">
       <div class="sup-ava">TA</div>
-      <div><b>Assistente TITAN</b><span>Suporte do emissor NFS-e</span></div>
+      <div><b>Assistente TITAN</b><span>Portal Nacional + ações da empresa</span></div>
     </div>
     <button class="sup-x" type="button" onclick="supToggle()" aria-label="Fechar assistente">&times;</button>
   </div>
   <div class="sup-log" id="sup-log"></div>
+  <div class="sup-trust"><b>● Base oficial</b><span>· ações limitadas à empresa ativa e ao seu acesso</span></div>
   <div class="sup-chips" id="sup-chips"></div>
   <form class="sup-input" onsubmit="return supSend(event)">
-    <input id="sup-in" type="text" autocomplete="off" placeholder="Escreva sua dúvida…" aria-label="Sua mensagem">
+    <input id="sup-in" type="text" autocomplete="off" placeholder="Pergunte ou peça: buscar notas de julho" aria-label="Sua mensagem">
     <button type="submit" aria-label="Enviar mensagem">&#10148;</button>
   </form>
 </section>
