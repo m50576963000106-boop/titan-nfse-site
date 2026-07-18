@@ -129,6 +129,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
   transition:background .12s,color .12s;
 }
 .sb-link:hover{background:var(--navy-1);color:var(--cream)}
+.sb-link:disabled{opacity:.32;cursor:not-allowed;pointer-events:none}
 .sb-link.active{background:var(--navy-2);color:var(--cream);font-weight:600}
 .sb-link.active .ic{color:var(--gold)}
 .ic{width:16px;height:16px;flex:none;color:#66768f}
@@ -727,23 +728,23 @@ main{margin-left:258px;padding-top:72px}
     <nav class="sb-nav user-sidebar">
       <div class="sb-sec">Visão geral</div>
       <button class="sb-link active" data-permission="dashboard" onclick="go('painel',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</button>
-      <button class="sb-link" onclick="moduloIndisponivel('Agenda e vencimentos')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Agenda e vencimentos<span class="nav-alert">⚠</span></button>
+      <button class="sb-link" type="button" disabled aria-disabled="true" title="Em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Agenda e vencimentos</button>
 
       <div class="sb-sec">Notas fiscais</div>
       <button class="sb-link" data-permission="emit" onclick="go('emitir',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Emitir NFS-e</button>
       <button class="sb-link" data-permission="invoices" onclick="go('notas',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>Notas emitidas</button>
       <button class="sb-link" data-permission="emit" onclick="abrirRascunhos(this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg>Rascunhos</button>
-      <button class="sb-link" onclick="moduloIndisponivel('Notas recorrentes')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg>Notas recorrentes<span class="nav-alert">⚠</span></button>
+      <button class="sb-link" type="button" disabled aria-disabled="true" title="Em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg>Notas recorrentes</button>
       <button class="sb-link" data-permission="import" onclick="go('importar',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Importar do Portal</button>
 
       <div class="sb-sec">Vendas e serviços</div>
       <button class="sb-link" data-permission="emit" onclick="abrirComercial('quote',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg>Orçamentos</button>
       <button class="sb-link" data-permission="emit" onclick="abrirComercial('service_order',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg>Ordens de serviço</button>
-      <button class="sb-link" onclick="moduloIndisponivel('Contratos recorrentes')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 8h8M8 12h8"/></svg>Contratos recorrentes<span class="nav-alert">⚠</span></button>
+      <button class="sb-link" type="button" disabled aria-disabled="true" title="Em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 8h8M8 12h8"/></svg>Contratos recorrentes</button>
 
       <div class="sb-sec">Financeiro</div>
       <button class="sb-link" type="button" onclick="alternarGrupoMenu('financeiro-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg>Financeiro<span class="nav-alert">⚠</span><span class="sb-chevron">›</span></button>
-      <div class="sb-submenu" id="financeiro-menu"><button class="sb-link" onclick="moduloIndisponivel('Contas a receber')">Contas a receber<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Cobranças')">Cobranças<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Conciliação bancária')">Conciliação bancária<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Fluxo de caixa')">Fluxo de caixa<span class="nav-alert">⚠</span></button></div>
+      <div class="sb-submenu" id="financeiro-menu"><button class="sb-link" type="button" disabled aria-disabled="true">Contas a receber</button><button class="sb-link" type="button" disabled aria-disabled="true">Cobranças</button><button class="sb-link" type="button" disabled aria-disabled="true">Conciliação bancária</button><button class="sb-link" type="button" disabled aria-disabled="true">Fluxo de caixa</button></div>
 
       <div class="sb-sec">Cadastros</div>
       <button class="sb-link" data-permission="customers" onclick="go('clientes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Clientes</button>
@@ -752,11 +753,11 @@ main{margin-left:258px;padding-top:72px}
 
       <div class="sb-sec">Integrações</div>
       <button class="sb-link" type="button" onclick="alternarGrupoMenu('integracoes-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Integrações<span class="sb-chevron">›</span></button>
-      <div class="sb-submenu" id="integracoes-menu"><button class="sb-link" data-permission="import" onclick="go('importar',this)">Portal Nacional</button><button class="sb-link" onclick="moduloIndisponivel('Integração por e-mail')">E-mail<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Integração com WhatsApp')">WhatsApp<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Open Finance')">Open Finance<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('API e webhooks')">API e webhooks<span class="nav-alert">⚠</span></button></div>
+      <div class="sb-submenu" id="integracoes-menu"><button class="sb-link" type="button" disabled aria-disabled="true">E-mail</button><button class="sb-link" type="button" disabled aria-disabled="true">WhatsApp</button><button class="sb-link" type="button" disabled aria-disabled="true">Open Finance</button><button class="sb-link" type="button" disabled aria-disabled="true">API e webhooks</button></div>
 
        <div class="sb-sec">Configurações</div>
        <button class="sb-link" data-permission="dashboard" onclick="go('ajuda',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 4.3 1.5c-.8.8-2.1 1.3-2.1 2.7M12 17h.01"/></svg>Ajuda / Martyn</button>
-       <button class="sb-link" onclick="abrirGestao()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Usuários e permissões<span class="nav-alert">⚠</span></button>
+       <button class="sb-link" type="button" disabled aria-disabled="true" title="Acesse Gestão master"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Usuários e permissões</button>
       <button class="sb-link" data-permission="certificate" onclick="go('cert',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Certificado digital</button>
       <button class="sb-link" data-permission="company_settings" onclick="go('emitente',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>Preferências</button>
       <div id="master-menu" style="display:none"><div class="sb-sec">Administração</div><button class="sb-link" onclick="abrirGestao()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/></svg>Gestão master</button><button class="sb-link" data-master-tab="logs" onclick="abrirGestao('logs')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg>Logs e auditoria</button></div>
@@ -766,7 +767,7 @@ main{margin-left:258px;padding-top:72px}
       <button class="sb-link active" type="button" data-master-tab="usuarios" onclick="masterTab('usuarios',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21c.7-4 3-6 7-6s6.3 2 7 6M19 8v6M16 11h6"/></svg>Usuários</button>
       <button class="sb-link" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/><path d="M9 12l2 2 4-4"/></svg>Perfis de acesso</button>
       <div class="sb-sec">Sistema</div>
-      <button class="sb-link" type="button" onclick="moduloIndisponivel('Configurações gerais')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Configurações<span class="nav-alert">⚠</span></button>
+      <button class="sb-link" type="button" disabled aria-disabled="true" title="Preferências do usuário em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Configurações</button>
       <button class="sb-link" type="button" onclick="sairPortal()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17l5-5-5-5M15 12H3M15 3h6v18h-6"/></svg>Sair</button>
     </nav>
     <div class="sb-foot">
@@ -958,8 +959,8 @@ main{margin-left:258px;padding-top:72px}
             <div class="card-b">
               <div class="field">
                 <label for="s-comp">Data de competência</label>
-                <input id="s-comp" class="inp" type="date" required>
-                <div class="hint">Campo obrigatório da DPS. A data usa o fuso de Brasília.</div>
+                <input id="s-comp" class="inp" type="date" required onchange="atualizarCompetenciaFiscal()">
+                <div class="hint" id="s-comp-hint">Campo obrigatório da DPS. A data usa o fuso de Brasília.</div>
               </div>
               <div class="field">
                 <label for="s-profile">Cadastro padrão</label>
@@ -973,7 +974,7 @@ main{margin-left:258px;padding-top:72px}
                 </select>
                 <div class="hint">Catálogo oficial PRODREST v1.01 de 22/01/2026.</div>
               </div>
-              <div class="field"><label for="s-nbs">Código NBS</label><input id="s-nbs" class="inp mono" maxlength="12" inputmode="numeric" placeholder="9 dígitos (opcional)"><div class="hint">Informe o código NBS sem pontuação quando aplicável ao serviço.</div></div>
+              <div class="field"><label for="s-nbs">Código NBS <span class="required-mark">*</span></label><input id="s-nbs" class="inp mono" list="nbs-options" maxlength="9" inputmode="numeric" placeholder="Selecione ou informe 9 dígitos" required oninput="validarNbsDigitacao()"><datalist id="nbs-options"></datalist><div class="hint">Obrigatório: selecione um NBS cadastrado ou informe exatamente 9 dígitos.</div></div>
               <div class="field">
                 <label for="s-desc">Descrição</label>
                 <textarea id="s-desc" class="inp" placeholder="Descreva o serviço prestado"></textarea>
@@ -999,7 +1000,7 @@ main{margin-left:258px;padding-top:72px}
                 <div class="field"><label for="s-ret-iss">Retenção do ISSQN</label><select id="s-ret-iss" class="inp"><option value="1">1 — Não retido</option><option value="2">2 — Retido pelo tomador</option><option value="3">3 — Retido pelo intermediário</option></select></div>
               </div>
               <div class="row r2">
-                <div class="field"><label for="s-cst">CST PIS/COFINS</label><input id="s-cst" class="inp mono" maxlength="2" placeholder="00 a 99"></div>
+                <div class="field"><label for="s-cst">CST PIS/COFINS</label><select id="s-cst" class="inp"><option value="">Não informar</option><option>01</option><option>02</option><option>03</option><option>04</option><option>06</option><option>07</option><option>08</option><option>09</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>60</option><option>61</option><option>62</option><option>63</option><option>64</option><option>65</option><option>66</option><option>67</option><option>70</option><option>71</option><option>72</option><option>73</option><option>74</option><option>75</option><option>98</option><option>99</option></select></div>
                 <div class="field"><label for="s-ret-pc">Retenção PIS/COFINS/CSLL</label><select id="s-ret-pc" class="inp" onchange="atualizarRetencaoPisCofins('s')"><option value="">Não informar</option><option value="0">0 — PIS/COFINS/CSLL não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — PIS/COFINS/CSLL retidos</option><option value="4">4 — PIS/COFINS retidos e CSLL não</option><option value="5">5 — Somente PIS retido</option><option value="6">6 — Somente COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — Somente CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div>
               </div>
               <div class="tax-conditional" id="s-pis-cofins-fields"><div class="row r3"><div class="field"><label for="s-pc-base">Base PIS/COFINS (R$)</label><input id="s-pc-base" class="inp num" value="0,00" oninput="calcularPisCofins('s')"></div><div class="field"><label for="s-pis-rate">Alíquota PIS (%)</label><input id="s-pis-rate" class="inp num" value="0,00" oninput="calcularPisCofins('s')"></div><div class="field"><label for="s-cofins-rate">Alíquota COFINS (%)</label><input id="s-cofins-rate" class="inp num" value="0,00" oninput="calcularPisCofins('s')"></div></div><div class="row r3"><div class="field mb0"><label for="s-pis-amount">vPis (R$)</label><input id="s-pis-amount" class="inp num" value="0,00"></div><div class="field mb0"><label for="s-cofins-amount">vCofins (R$)</label><input id="s-cofins-amount" class="inp num" value="0,00"></div><div class="field mb0"><label for="s-ret-csll">vRetCSLL total (R$)</label><input id="s-ret-csll" class="inp num" value="0,00"><div class="hint">Total retido conforme o tipo selecionado.</div></div></div></div>
@@ -1020,10 +1021,7 @@ main{margin-left:258px;padding-top:72px}
               <div class="kv"><span>Regime</span><b id="resumo-regime">Aguardando cadastro</b></div>
               <div class="kv"><span>ISSQN a recolher pela nota</span><b>R$ 0,00</b></div>
               <div class="kv"><span>Retenção na fonte</span><b>Não</b></div>
-              <div class="alert a-info" style="margin-top:12px">
-                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                <div><b>Nenhuma alíquota é fixada neste sistema.</b> Os valores acima vêm de <span class="mono" style="font-size:11px">GET /parametros_municipais/4106902/040101</span>, consultado na abertura do formulário. O ISSQN do optante do Simples é recolhido no DAS, conforme a alíquota efetiva apurada na competência (LC 123/2006, art. 18) — a nota não gera guia própria.</div>
-              </div>
+              <div class="card" style="margin-top:12px;border:1px solid var(--line);box-shadow:none"><div class="card-h"><h3>Reforma tributária — IBS/CBS</h3><span class="pill p-gold right">Teste</span></div><div class="card-b"><div class="row r2"><div class="field mb0"><label for="s-ibs-rate">Alíquota IBS</label><input id="s-ibs-rate" class="inp num" value="0,15" inputmode="decimal"></div><div class="field mb0"><label for="s-cbs-rate">Alíquota CBS</label><input id="s-cbs-rate" class="inp num" value="0,15" inputmode="decimal"></div></div><div class="hint">Campos de preparação para a regulamentação IBS/CBS; o XML permanece limitado ao leiaute nacional vigente.</div></div></div>
             </div>
           </div>
 
@@ -1063,8 +1061,8 @@ main{margin-left:258px;padding-top:72px}
       <div class="commercial-grid"><div class="card commercial-form"><div class="card-h"><h2>Novo documento</h2></div><div class="card-b">
         <div class="field"><label>Número de controle (automático)</label><input id="co-number" class="inp commercial-control" value="Será gerado ao salvar" readonly></div>
         <div class="row r2"><div class="field"><label>Tipo</label><select id="co-kind" class="inp" onchange="atualizarNumeroComercial()"><option value="quote">Orçamento</option><option value="service_order">Ordem de serviço</option></select></div><div class="field"><label>Situação</label><select id="co-status" class="inp"><option value="draft">Em elaboração</option><option value="approved">Aprovado</option></select></div></div>
-        <div class="field"><label>Meu serviço</label><div class="input-action"><select id="co-service" class="inp" onchange="selecionarServicoComercial()"><option value="">Carregando serviços cadastrados...</option></select><button type="button" class="btn btn-s" title="Abrir Meus serviços" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint" id="co-service-hint">O cadastro leva descrição, códigos e retenções para a futura NFS-e.</div></div>
-        <div class="field"><label>Título</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="co-customer" class="inp" list="co-customer-list" placeholder="Pesquise pela razão social ou nome" autocomplete="off" oninput="selecionarClienteComercial()"><button type="button" class="btn btn-s" title="Abrir cadastro de clientes" onclick="abrirClientes()">Clientes</button></div><datalist id="co-customer-list"></datalist><div class="hint" id="co-customer-hint">Selecione um cadastro para levar CNPJ e endereço à nota.</div></div><div class="field"><label>Valor (R$)</label><input id="co-value" class="inp num" inputmode="decimal" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" rows="4" placeholder="Escopo e condições do serviço"></textarea></div>
+        <div class="field"><label>Meu serviço</label><div class="input-action"><select id="co-service" class="inp" onchange="selecionarServicoComercial()"><option value="">Carregando serviços cadastrados...</option></select><button type="button" class="btn btn-s" title="Abrir Meus serviços" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint" id="co-service-hint">Selecione e adicione vários serviços antes de salvar.</div></div>
+        <div class="field"><label>Título</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="co-customer" class="inp" list="co-customer-list" placeholder="Pesquise pela razão social ou nome" autocomplete="off" oninput="selecionarClienteComercial()"><button type="button" class="btn btn-s" title="Abrir cadastro de clientes" onclick="abrirClientes()">Clientes</button></div><datalist id="co-customer-list"></datalist><div class="hint" id="co-customer-hint">Selecione um cadastro para levar CNPJ e endereço à nota.</div></div><div class="field"><label>Valor (R$)</label><input id="co-value" class="inp num" inputmode="decimal" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" rows="4" placeholder="Escopo e condições do serviço"></textarea></div><div class="flex wrap" style="margin-top:8px"><button class="btn btn-s" type="button" onclick="adicionarItemComercial()">+ Adicionar serviço à lista</button><span class="foot-note">Os itens serão agrupados por NBS ao converter.</span></div><div id="co-items" class="draft-list" style="margin-top:10px"></div><div class="commercial-summary"><b>Total dos serviços</b><b id="co-total">R$ 0,00</b></div>
         <div class="setup-actions"><span class="foot-note" style="margin:0">A conversão prepara a emissão, mas não autoriza a nota.</span><button class="btn btn-a right" type="button" onclick="salvarComercial()">Salvar documento</button></div>
       </div></div><div class="card"><div class="card-h"><div><h2>Documentos comerciais</h2><p>Pesquise, acompanhe a situação e converta para NFS-e.</p></div></div><div class="card-b"><div class="commercial-controls"><input id="co-search" class="inp" placeholder="Buscar por número, título ou cliente" oninput="renderComerciais()"><select id="co-filter" class="inp" onchange="renderComerciais()"><option value="">Todos os status</option><option value="draft">Em elaboração</option><option value="approved">Aprovado</option><option value="converted">Convertido</option><option value="cancelled">Cancelado</option></select><button class="btn btn-s" onclick="carregarComerciais()">Atualizar</button></div><div id="commercial-list" class="draft-list"></div><div class="commercial-summary"><span id="commercial-count">0 documento(s)</span><span>A conversão exige revisão antes da emissão.</span></div></div></div></div>
     </section>
@@ -1151,6 +1149,7 @@ main{margin-left:258px;padding-top:72px}
               <label for="e-end">Endereço</label>
               <input id="e-end" class="inp" placeholder="Logradouro, número, bairro e CEP" required>
             </div>
+            <div class="field" style="margin-top:14px"><label for="e-logo">Logotipo para orçamentos e O.S.</label><input id="e-logo" class="inp" type="file" accept="image/png,image/jpeg" onchange="salvarLogoComercial(this)"><div class="hint">Aplicado somente nos PDFs comerciais; o DANFSe oficial continua com a marca nacional.</div><img id="e-logo-preview" alt="Prévia do logotipo comercial" style="display:none;max-width:180px;max-height:64px;margin-top:8px;border:1px solid var(--line);border-radius:6px;padding:4px;background:white"></div>
             <div class="setup-actions">
               <span class="foot-note" style="margin:0">Você poderá revisar estes dados antes de qualquer integração real.</span>
               <button class="btn btn-a right" type="button" onclick="salvarCadastro()">Salvar cadastro inicial</button>
@@ -1323,10 +1322,10 @@ main{margin-left:258px;padding-top:72px}
             <div class="field"><label for="cad-search">Buscar no Anexo B nacional</label><div class="input-action"><input id="cad-search" class="inp" placeholder="Código ou descrição"><button class="btn btn-s" onclick="buscarCatalogoServico()">Buscar</button></div></div>
             <div class="field"><label for="cad-code">Código de tributação nacional</label><select id="cad-code" class="inp" onchange="selecionarCodigoCadastro()"><option value="">Pesquise o catálogo oficial</option></select></div>
             <div class="field"><label for="cad-desc">Descrição padrão do serviço</label><textarea id="cad-desc" class="inp" placeholder="Descrição que será levada à DPS"></textarea></div>
-            <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal</label><input id="cad-mun-code" class="inp" maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="Até 3 dígitos (opcional)"><div class="hint">Não repita aqui o código nacional 15.06.01.</div></div><div class="field"><label for="cad-nbs">Código NBS</label><input id="cad-nbs" class="inp mono" maxlength="12" inputmode="numeric" placeholder="9 dígitos (opcional)"></div></div>
+            <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal</label><input id="cad-mun-code" class="inp" maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="Até 3 dígitos (opcional)"><div class="hint">Não repita aqui o código nacional 15.06.01.</div></div><div class="field"><label for="cad-nbs">Código NBS <span class="required-mark">*</span></label><input id="cad-nbs" class="inp mono" maxlength="9" inputmode="numeric" placeholder="9 dígitos obrigatórios"><div class="hint">O serviço só pode ser salvo com NBS válido.</div></div></div>
             <div class="field"><label for="cad-rate">Alíquota ISS (%)</label><input id="cad-rate" class="inp num" placeholder="Lida do município"></div>
             <div class="row r2"><div class="field"><label for="cad-trib-iss">Tributação ISSQN</label><select id="cad-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação</option><option value="4">4 — Não incidência</option></select></div><div class="field"><label for="cad-ret-iss">Retenção ISSQN</label><select id="cad-ret-iss" class="inp"><option value="1">1 — Não retido</option><option value="2">2 — Tomador</option><option value="3">3 — Intermediário</option></select></div></div>
-            <div class="row r2"><div class="field"><label for="cad-cst">CST PIS/COFINS</label><input id="cad-cst" class="inp mono" maxlength="2" placeholder="Opcional"></div><div class="field"><label for="cad-ret-pc">tpRetPisCofins</label><select id="cad-ret-pc" class="inp" onchange="atualizarRetencaoPisCofins('cad')"><option value="">Não informar</option><option value="0">0 — PIS/COFINS/CSLL não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — PIS/COFINS/CSLL retidos</option><option value="4">4 — PIS/COFINS retidos e CSLL não</option><option value="5">5 — Somente PIS retido</option><option value="6">6 — Somente COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — Somente CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div></div>
+            <div class="row r2"><div class="field"><label for="cad-cst">CST PIS/COFINS</label><select id="cad-cst" class="inp"><option value="">Não informar</option><option>01</option><option>02</option><option>03</option><option>04</option><option>06</option><option>07</option><option>08</option><option>09</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>60</option><option>61</option><option>62</option><option>63</option><option>64</option><option>65</option><option>66</option><option>67</option><option>70</option><option>71</option><option>72</option><option>73</option><option>74</option><option>75</option><option>98</option><option>99</option></select></div><div class="field"><label for="cad-ret-pc">tpRetPisCofins</label><select id="cad-ret-pc" class="inp" onchange="atualizarRetencaoPisCofins('cad')"><option value="">Não informar</option><option value="0">0 — PIS/COFINS/CSLL não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — PIS/COFINS/CSLL retidos</option><option value="4">4 — PIS/COFINS retidos e CSLL não</option><option value="5">5 — Somente PIS retido</option><option value="6">6 — Somente COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — Somente CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div></div>
             <div class="tax-conditional" id="cad-pis-cofins-fields"><div class="row r3"><div class="field"><label for="cad-pc-base">Base PIS/COFINS (R$)</label><input id="cad-pc-base" class="inp num" value="0,00" oninput="calcularPisCofins('cad')"></div><div class="field"><label for="cad-pis-rate">Alíquota PIS (%)</label><input id="cad-pis-rate" class="inp num" value="0,00" oninput="calcularPisCofins('cad')"></div><div class="field"><label for="cad-cofins-rate">Alíquota COFINS (%)</label><input id="cad-cofins-rate" class="inp num" value="0,00" oninput="calcularPisCofins('cad')"></div></div><div class="row r3"><div class="field"><label for="cad-pis-amount">vPis (R$)</label><input id="cad-pis-amount" class="inp num" value="0,00"></div><div class="field"><label for="cad-cofins-amount">vCofins (R$)</label><input id="cad-cofins-amount" class="inp num" value="0,00"></div><div class="field"><label for="cad-csll">vRetCSLL total (R$)</label><input id="cad-csll" class="inp num" value="0,00"></div></div></div>
             <div class="row r2"><div class="field"><label for="cad-cp">vRetCP (R$)</label><input id="cad-cp" class="inp num" value="0,00"></div><div class="field"><label for="cad-irrf">vRetIRRF (R$)</label><input id="cad-irrf" class="inp num" value="0,00"></div></div>
             <button class="btn btn-p" style="width:100%" onclick="salvarPerfilServico()">Salvar cadastro</button>
@@ -1521,7 +1520,7 @@ async function api(path,options={}){
   const data=await response.json().catch(()=>({}));
   if(!response.ok){
     const details=Array.isArray(data.details)?data.details.map(item=>`${item.field||'campo'}: ${item.message}`).join('; '):'';
-    throw new Error(details||data.error||data.message||'Falha de comunicação com o servidor.');
+    const error=new Error(details||data.error||data.message||'Falha de comunicação com o servidor.');error.status=response.status;throw error;
   }
   return data;
 }
@@ -1584,6 +1583,11 @@ async function iniciarCadastro(){
     await carregarNotasServidor();
     carregarServicos().catch(()=>{});
   }catch(error){
+    if(error?.status===401){
+      const continuar=confirm('Senha inválida. Deseja redefinir a senha?');
+      if(continuar)location.href='/nfs/redefinir-senha';
+      return;
+    }
     const falhaRede=error instanceof TypeError;
     const message=falhaRede?'Não foi possível conectar ao servidor fiscal. Aguarde alguns segundos e tente novamente.':error.message;
     alert(message+(!PORTAL_ADMIN?'\n\nSe você é o administrador master, entre por titanbackoffice.com.br/nfs/admin.':''));return
@@ -1665,6 +1669,7 @@ async function carregarEmpresaServidor(){
   if(!row){empresaAtual=null;return}
   const regimes={regular:'Lucro Presumido',mei:'MEI',simples:'Simples Nacional — ME'};
   empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.municipality_code,endereco:row.address||'',postalCode:row.postal_code||'',street:row.street||'',number:row.number||'',complement:row.complement||'',district:row.district||'',state:row.state||'',series:Number(row.dps_series)||1,next:String(row.next_dps_number||1),simpleAp:Number(row.simple_assessment_regime)||1,simpleTotal:row.simple_total_tax_rate==null?'':Number(row.simple_total_tax_rate),special:Number(row.special_tax_regime)||0};
+  const logo=qs('#e-logo-preview');if(logo&&row.commercial_logo_data){logo.src=row.commercial_logo_data;logo.style.display='block'}
   localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresaAtual));
 }
 
@@ -1737,6 +1742,10 @@ async function consultarCnpjEmitente(){
     hint.textContent=`Dados preenchidos: ${[empresa.municipality,empresa.state].filter(Boolean).join('/')||'município não informado'}. Revise a inscrição municipal e o regime tributário.`;
   }catch(error){hint.textContent=error.message;alert(error.message)}
   finally{button.disabled=false;button.textContent='Buscar CNPJ'}
+}
+async function salvarLogoComercial(input){
+  const file=input.files?.[0];if(!file)return;if(!/^image\/(png|jpeg)$/.test(file.type)||file.size>1_800_000){alert('Use uma imagem PNG ou JPEG de até 1,8 MB.');input.value='';return}
+  const reader=new FileReader();reader.onload=async()=>{try{const dataUrl=String(reader.result||'');const result=await api('/api/company/logo',{method:'PUT',body:JSON.stringify({dataUrl})});const preview=qs('#e-logo-preview');if(preview){preview.src=result.dataUrl;preview.style.display='block'}alert('Logotipo comercial salvo. Ele será usado nos PDFs de orçamentos e O.S.')}catch(error){alert(error.message)}};reader.readAsDataURL(file);
 }
 
 function selecionarCliente(index){
@@ -1828,10 +1837,21 @@ async function carregarServicos(){
 
 async function carregarPerfisServico(){
   try{perfisServico=await api('/api/services/profiles')}catch{perfisServico=[]}
+  const nbsOptions=qs('#nbs-options');if(nbsOptions)nbsOptions.innerHTML=[...new Map(perfisServico.filter(item=>item.nbs_code).map(item=>[item.nbs_code,item])).values()].map(item=>`<option value="${esc(item.nbs_code)}">${esc(item.nbs_code)} — ${esc(item.name)}</option>`).join('');
   qs('#s-profile').innerHTML='<option value="">Preenchimento avulso</option>'+perfisServico.map(item=>`<option value="${item.id}">${esc(item.name)}</option>`).join('');
   const list=qs('#svc-list');
   if(!perfisServico.length){list.innerHTML='<div class="empty-state">Nenhum serviço cadastrado. Clique em Novo para criar o primeiro perfil.</div>';return}
   list.innerHTML=perfisServico.map((item,index)=>`<div class="dest" style="margin-bottom:8px"><div class="box-mini">${esc(item.national_code)}</div><div style="min-width:0;flex:1"><div class="t">${esc(item.name)}</div><div class="s">${esc(item.service_type)} · ${esc(item.description)}<br>ISS: ${esc(item.iss_withholding==='1'?'não retido':item.iss_withholding==='2'?'tomador':'intermediário')}</div></div><button class="btn btn-s" onclick="editarPerfilServico(${index})">Editar</button><button class="ico-btn danger" onclick="excluirPerfilServico('${item.id}')">×</button></div>`).join('');
+}
+
+function validarNbsDigitacao(){
+  const input=qs('#s-nbs');if(!input)return;const value=input.value.replace(/\D/g,'');input.setCustomValidity(/^\d{9}$/.test(value)?'':'Informe um código NBS com exatamente 9 dígitos.');
+}
+function atualizarCompetenciaFiscal(){
+  const input=qs('#s-comp'),hint=qs('#s-comp-hint');if(!input||!hint||!input.value)return;
+  const selected=new Date(`${input.value}T12:00:00-03:00`),today=new Date();today.setHours(0,0,0,0);
+  if(selected<today)hint.textContent='Competência retroativa: a emissão usará a data de hoje no fluxo DPS/RPS e manterá esta competência no documento.';
+  else hint.textContent='Campo obrigatório da DPS. A data usa o fuso de Brasília.';
 }
 
 function novoPerfilServico(){
@@ -1869,7 +1889,7 @@ async function salvarPerfilServico(){
   const tipo=qs('#cad-ret-pc').value;
   const reteve=tipo!==''&&tipo!=='0';
   const payload={id:qs('#cad-id').value||undefined,name:qs('#cad-name').value.trim(),serviceType:qs('#cad-type').value.trim(),nationalCode:qs('#cad-code').value,description:qs('#cad-desc').value.trim(),municipalCode:qs('#cad-mun-code').value.trim()||undefined,nbsCode:qs('#cad-nbs').value.replace(/\D/g,'')||undefined,issTaxation:qs('#cad-trib-iss').value,issWithholding:qs('#cad-ret-iss').value,issRate:rate?dinheiro(rate):undefined,pisCofinsCst:cst||undefined,pisCofinsWithholding:tipo||undefined,pisCofinsBase:reteve?dinheiro(qs('#cad-pc-base').value):undefined,pisRate:reteve?dinheiro(qs('#cad-pis-rate').value):undefined,cofinsRate:reteve?dinheiro(qs('#cad-cofins-rate').value):undefined,pisAmount:reteve?dinheiro(qs('#cad-pis-amount').value):undefined,cofinsAmount:reteve?dinheiro(qs('#cad-cofins-amount').value):undefined,retCp:dinheiro(qs('#cad-cp').value),retIrrf:dinheiro(qs('#cad-irrf').value),retCsll:reteve?dinheiro(qs('#cad-csll').value):0};
-  if(!payload.name||!payload.serviceType||!payload.nationalCode||!payload.description){alert('Informe nome, tipo, código nacional e descrição.');return}
+  if(!payload.name||!payload.serviceType||!payload.nationalCode||!payload.description||!payload.nbsCode){alert('Informe nome, tipo, código nacional, descrição e NBS.');return}
   if(payload.municipalCode&&!/^\d{1,3}$/.test(payload.municipalCode)){alert('O código municipal, quando usado, deve conter de 1 a 3 dígitos.');return}
   if(payload.nbsCode&&!/^\d{9}$/.test(payload.nbsCode)){alert('O código NBS deve conter exatamente 9 dígitos.');return}
   try{await api('/api/services/profiles',{method:'POST',body:JSON.stringify(payload)});await carregarPerfisServico();novoPerfilServico();alert('Serviço padrão salvo. Ele já está disponível na emissão.')}catch(error){alert(error.message)}
@@ -2208,7 +2228,7 @@ async function emitir(falhar){
     alert('Preencha competência, tomador, CPF/CNPJ, código nacional, descrição e valor do serviço.');return;
   }
   if(documento.length!==11&&documento.length!==14){alert('O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 dígitos.');qs('#t-doc').focus();return}
-  if(nbs&&!/^\d{9}$/.test(nbs)){alert('O código NBS deve conter exatamente 9 dígitos.');qs('#s-nbs').focus();return}
+  if(!/^\d{9}$/.test(nbs)){alert('O código NBS é obrigatório e deve conter exatamente 9 dígitos.');qs('#s-nbs').focus();return}
   if(qs('#t-mail').value&&!qs('#t-mail').checkValidity()){alert('Informe um e-mail válido para o tomador.');qs('#t-mail').focus();return}
   if(ambienteAtual==='production'){
     const aviso=`ATENÇÃO: esta emissão terá validade fiscal.\n\nEmpresa: ${empresaAtual.rs}\nDPS: série ${empresaAtual.series}, número ${empresaAtual.next}\nTomador: ${payload.borrower.name}\nValor: R$ ${brl(valor)}\n\nConfirma a emissão na Produção oficial?`;
@@ -2299,6 +2319,7 @@ function selecionarServicoComercial(){
 
 /* ---------- orçamentos e ordens de serviço ---------- */
 let comerciais=[];
+let comercialItens=[];
 const COMERCIAL_STATUS={draft:['p-off','Em elaboração'],approved:['p-ok','Aprovado'],converted:['p-ok','Convertido em NFS-e'],cancelled:['p-err','Cancelado']};
 function numeroComercial(item){const prefix=item.kind==='service_order'?'O.S.':'ORÇ';return `${prefix} nº ${String(item.document_number||0).padStart(4,'0')}`}
 function atualizarNumeroComercial(){
@@ -2318,25 +2339,38 @@ function renderComerciais(){
   box.innerHTML=list.map(({item,index})=>{
     const st=COMERCIAL_STATUS[item.status]||['p-off',item.status];
     const done=item.status==='converted'||item.status==='cancelled';
-    const acao=done?`<button class="btn btn-s" disabled style="opacity:.5">${item.status==='converted'?'Convertido':'Cancelado'}</button>`:`<button class="btn btn-s" onclick="converterComercial(${index})">Converter em NFS-e</button>`;
-    const serviceName=item.payload?.service?.name||item.payload?.service?.serviceType||'Serviço não identificado';
+    const acao=`<button class="btn btn-s" onclick="abrirPdfComercial('${item.id}')">Abrir PDF</button>`+(done?`<button class="btn btn-s" disabled style="opacity:.5">${item.status==='converted'?'Convertido':'Cancelado'}</button>`:`<button class="btn btn-s" onclick="converterComercial(${index})">Converter em NFS-e</button>`);
+    const serviceList=Array.isArray(item.payload?.services)?item.payload.services:[item.payload?.service].filter(Boolean);
+    const serviceName=serviceList.length>1?`${serviceList.length} serviços`:serviceList[0]?.name||serviceList[0]?.serviceType||'Serviço não identificado';
     return `<div class="doc-item"><div><div class="doc-head"><span class="doc-number">${numeroComercial(item)}</span><b>${esc(item.title)}</b><span class="pill ${st[0]}">${st[1]}</span></div><div class="doc-meta">${esc(item.customer_name||'Sem cliente')} · ${esc(serviceName)} · <b>R$ ${brl(Number(item.amount||0))}</b></div></div><div class="doc-act">${acao}</div></div>`;
   }).join('');
 }
+async function abrirPdfComercial(id){try{const blob=await apiBlob('/api/workspace/commercial/'+id+'/pdf'),url=URL.createObjectURL(blob),tab=window.open(url,'_blank');if(!tab){const a=document.createElement('a');a.href=url;a.download='documento-comercial.pdf';a.click()}setTimeout(()=>URL.revokeObjectURL(url),120000)}catch(error){alert(error.message)}}
 async function carregarComerciais(){try{comerciais=await api('/api/workspace/commercial');renderComerciais();atualizarNumeroComercial();}catch(error){qs('#commercial-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
+function renderItensComerciais(){
+  const box=qs('#co-items'),total=qs('#co-total');if(!box)return;
+  const soma=comercialItens.reduce((value,item)=>value+Number(item.amount||0),0);if(total)total.textContent=`R$ ${brl(soma)}`;
+  box.innerHTML=comercialItens.length?comercialItens.map((item,index)=>`<div class="draft-item"><b>${esc(item.name||item.serviceType||'Serviço')}</b><span>NBS ${esc(item.nbsCode||'—')} · R$ ${brl(Number(item.amount||0))}</span><small>${esc(item.description||'')}</small><div class="acts"><button class="btn btn-s" type="button" onclick="removerItemComercial(${index})">Remover</button></div></div>`).join(''):'<div class="empty-state">Nenhum serviço adicionado ao documento.</div>';
+}
+function adicionarItemComercial(){
+  selecionarClienteComercial();selecionarServicoComercial();const svc=servicoComercialSelecionado,amount=dinheiro(qs('#co-value').value),description=qs('#co-description').value.trim();
+  if(!svc){alert('Selecione um serviço cadastrado.');return}
+  if(!svc.nbs_code||!/^[0-9]{9}$/.test(String(svc.nbs_code))){alert('O serviço precisa ter um NBS de 9 dígitos cadastrado.');return}
+  if(amount<=0||!description){alert('Informe valor e descrição do serviço.');return}
+  comercialItens.push({profileId:svc.id,name:svc.name,serviceType:svc.service_type,nationalTaxCode:svc.national_code,municipalTaxCode:svc.municipal_code||undefined,nbsCode:svc.nbs_code,description,amount:amount.toFixed(2),issTaxation:svc.iss_taxation,issWithholding:svc.iss_withholding,issRate:svc.iss_rate,pisCofinsCst:svc.pis_cofins_cst||undefined,pisCofinsWithholding:svc.pis_cofins_withholding||undefined,pisCofinsBase:svc.pis_cofins_base||undefined,pisRate:svc.pis_rate||undefined,cofinsRate:svc.cofins_rate||undefined,pisAmount:svc.pis_amount||undefined,cofinsAmount:svc.cofins_amount||undefined,retCp:svc.ret_cp||0,retIrrf:svc.ret_irrf||0,retCsll:svc.ret_csll||0});
+  renderItensComerciais();qs('#co-value').value='0,00';qs('#co-description').value='';
+}
+function removerItemComercial(index){comercialItens.splice(index,1);renderItensComerciais()}
 async function salvarComercial(){
   selecionarClienteComercial();
-  selecionarServicoComercial();
-  const title=qs('#co-title').value.trim(),customerName=qs('#co-customer').value.trim(),description=qs('#co-description').value.trim(),amount=dinheiro(qs('#co-value').value);
-  if(!servicoComercialSelecionado){alert('Selecione um item de Meus serviços para criar o documento.');return}
-  if(!title||!customerName||!description||amount<=0){alert('Informe título, cliente, descrição e valor.');return}
+  if(!comercialItens.length)adicionarItemComercial();
+  const title=qs('#co-title').value.trim(),customerName=qs('#co-customer').value.trim(),amount=comercialItens.reduce((value,item)=>value+Number(item.amount||0),0);
+  if(!title||!customerName||!comercialItens.length||amount<=0){alert('Informe título, cliente e adicione ao menos um serviço.');return}
   const c=clienteComercialSelecionado;
-  const svc=servicoComercialSelecionado;
   const borrower=c?{name:c.legal_name,legal_name:c.legal_name,tax_id:c.tax_id,email:c.email,phone:c.phone,address:c.address,postal_code:c.postal_code,municipality_code:c.municipality_code,street:c.street,number:c.number,complement:c.complement,district:c.district}:{name:customerName,legal_name:customerName};
-  const service={profileId:svc.id,name:svc.name,serviceType:svc.service_type,nationalTaxCode:svc.national_code,municipalTaxCode:svc.municipal_code||undefined,nbsCode:svc.nbs_code||undefined,description,amount:qs('#co-value').value,issTaxation:svc.iss_taxation,issWithholding:svc.iss_withholding,issRate:svc.iss_rate,pisCofinsCst:svc.pis_cofins_cst||undefined,pisCofinsWithholding:svc.pis_cofins_withholding||undefined,pisCofinsBase:svc.pis_cofins_base||undefined,pisRate:svc.pis_rate||undefined,cofinsRate:svc.cofins_rate||undefined,pisAmount:svc.pis_amount||undefined,cofinsAmount:svc.cofins_amount||undefined,retCp:svc.ret_cp||0,retIrrf:svc.ret_irrf||0,retCsll:svc.ret_csll||0};
-  try{await api('/api/workspace/commercial',{method:'POST',body:JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:{borrower,service}})});qs('#co-title').value='';qs('#co-customer').value='';qs('#co-service').value='';qs('#co-description').value='';qs('#co-value').value='0,00';clienteComercialSelecionado=null;servicoComercialSelecionado=null;selecionarClienteComercial();selecionarServicoComercial();await carregarComerciais()}catch(error){alert(error.message)}
+  try{await api('/api/workspace/commercial',{method:'POST',body:JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:{borrower,services:comercialItens,service:comercialItens[0]}})});qs('#co-title').value='';qs('#co-customer').value='';qs('#co-service').value='';qs('#co-description').value='';qs('#co-value').value='0,00';comercialItens=[];clienteComercialSelecionado=null;servicoComercialSelecionado=null;renderItensComerciais();selecionarClienteComercial();selecionarServicoComercial();await carregarComerciais()}catch(error){alert(error.message)}
 }
-async function converterComercial(index){const item=comerciais[index];try{const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'}),p=result.payload||{},b=p.borrower||{},s=p.service||{};preencherCliente({...b,legal_name:b.legal_name||b.name,tax_id:b.tax_id||b.taxId||''});if(s.profileId&&perfisServico.some(profile=>profile.id===s.profileId)){qs('#s-profile').value=s.profileId;aplicarPerfilServico()}else{if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;qs('#s-nbs').value=s.nbsCode||''}qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';formatarDinheiro(qs('#s-val'));lerParametros();go('emitir',qs('.sb-link[onclick*="emitir"]'));alert('Cliente, serviço e valor foram transferidos. Confira os dados fiscais antes de autorizar a NFS-e.')}catch(error){alert(error.message)}}
+async function converterComercial(index){const item=comerciais[index];try{const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'}),p=result.payload||{},b=p.borrower||{},services=Array.isArray(p.services)?p.services:[p.service].filter(Boolean),groups=new Map();services.forEach(service=>{const key=service.nbsCode||'sem-nbs',current=groups.get(key);if(current){current.amount=(Number(current.amount||0)+Number(service.amount||0)).toFixed(2);current.description=[current.description,service.description].filter(Boolean).join('; ')}else groups.set(key,{...service,amount:Number(service.amount||0).toFixed(2)})});const drafts=[...groups.values()];for(const service of drafts)await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title:`${item.title} · NBS ${service.nbsCode||'—'}`,payload:{competenceDate:qs('#s-comp').value,borrower,service}})});const s=drafts[0]||{};preencherCliente({...b,legal_name:b.legal_name||b.name,tax_id:b.tax_id||b.taxId||''});if(s.profileId&&perfisServico.some(profile=>profile.id===s.profileId)){qs('#s-profile').value=s.profileId;aplicarPerfilServico()}else{if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;qs('#s-nbs').value=s.nbsCode||''}qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';formatarDinheiro(qs('#s-val'));lerParametros();go('emitir',qs('.sb-link[onclick*="emitir"]'));alert(`${drafts.length} rascunho(s) criado(s), agrupado(s) por NBS. Confira antes de autorizar.`)}catch(error){alert(error.message)}}
 
 
 /* ---------- importação ADN ---------- */
