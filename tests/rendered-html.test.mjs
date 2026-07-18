@@ -63,7 +63,20 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(landing,/Quero contratar o emissor/);
   assert.match(landing,/\/api\/contact/);
-  assert.match(landing,/titan-logo\.png/);
+  assert.match(landing,/titan-nfse-logo\.png/);
   assert.match(html,/pipe-detail/);
   assert.match(html,/mostrarDetalheEtapa/);
+  assert.match(html,/journey-card/);
+  assert.doesNotMatch(html,/Os dados abaixo montam/);
+});
+
+test("integra documentos comerciais, clientes e gestão exclusiva do master",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/Número de controle \(automático\)/);
+  assert.match(html,/co-customer-list/);
+  assert.match(html,/selecionarClienteComercial/);
+  assert.match(html,/document_number/);
+  assert.match(html,/master-company-context/);
+  assert.match(html,/Esta área é exclusiva do administrador master/);
+  assert.match(html,/titan-nfse-logo\.png/);
 });

@@ -63,7 +63,12 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 }
 #login.hide{display:none}
 .login-card{width:100%;max-width:420px}
-.login-mark{display:flex;align-items:center;gap:10px;margin-bottom:34px}
+.login-mark{display:flex;align-items:center;margin-bottom:28px}
+.login-brand{
+  display:block;width:190px;height:58px;border-radius:8px;overflow:hidden;
+  background:#fff;border:1px solid var(--line-dark)
+}
+.login-brand img{width:100%;height:100%;display:block;object-fit:cover;object-position:center 50%}
 .login-h{
   font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--cream);
   margin-bottom:6px;
@@ -102,9 +107,14 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
   border-right:1px solid #000;
 }
 .sb-mark{
-  padding:20px 18px;border-bottom:1px solid var(--line-dark);
-  display:flex;align-items:center;gap:9px;
+  height:76px;padding:10px 14px;border-bottom:1px solid var(--line-dark);
+  display:flex;align-items:center;
 }
+.sb-logo{
+  display:block;width:100%;height:54px;border-radius:7px;overflow:hidden;
+  background:#fff;border:1px solid rgba(255,255,255,.16)
+}
+.sb-logo img{width:100%;height:100%;display:block;object-fit:cover;object-position:center 50%}
 .sb-nav{padding:12px 10px;flex:1;overflow-y:auto}
 .sb-sec{
   font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
@@ -370,7 +380,11 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .stage.fail .dot{background:var(--err);border-color:var(--err)}
 .stage.fail .dot svg{opacity:1;color:#fff}
 .stage.fail .stage-t{color:#e8a6a4;font-weight:650}
-.pipe{display:flex;align-items:flex-start;gap:0;padding:7px;background:var(--navy);overflow-x:auto}.stage{display:flex;flex:1;min-width:78px;flex-direction:column;align-items:center;gap:4px;padding:0 5px;text-align:center}.stage::before{display:none}.stage:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 13px);right:calc(-50% + 13px);top:6px;height:1px;background:var(--line-dark)}.stage-t{font-size:9px;line-height:1.2;min-height:18px}.stage-d{display:none}.stage-ms{min-height:10px;font-size:9px}.pipe-detail{min-height:18px;margin-top:5px;padding:5px 9px;border-radius:var(--r);background:#f6f4ef;color:var(--ink-2);font:9.5px var(--mono);line-height:1.35}.stage:hover .stage-t,.stage:focus .stage-t{color:var(--cream)}
+.journey-card{margin-bottom:10px}
+.journey-card .card-h{padding:7px 11px;min-height:32px}
+.journey-card .card-h h2{font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.journey-card .card-b{padding:7px 9px 8px}
+.pipe{display:flex;align-items:flex-start;gap:0;padding:5px;background:var(--navy);overflow-x:auto}.stage{display:flex;flex:1;min-width:62px;flex-direction:column;align-items:center;gap:2px;padding:0 3px;text-align:center}.stage::before{display:none}.stage:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 11px);right:calc(-50% + 11px);top:5px;height:1px;background:var(--line-dark)}.dot{width:9px;height:9px}.dot svg{width:6px;height:6px}.stage-t{font-size:8px;line-height:1.15;min-height:10px}.stage-d{display:none}.stage-ms{min-height:0;font-size:8px;line-height:1}.pipe-detail{min-height:16px;margin-top:4px;padding:3px 7px;border-radius:var(--r);background:#f6f4ef;color:var(--ink-2);font:8.5px var(--mono);line-height:1.3}.stage:hover .stage-t,.stage:focus .stage-t{color:var(--cream)}
 
 .result{margin-top:14px;padding:16px;border-radius:var(--r);border:1px solid}
 .result.ok{background:var(--ok-bg);border-color:#bfdccb}
@@ -392,6 +406,19 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .doc-tag{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--cream);border:1px solid var(--line);padding:1px 6px;border-radius:4px;color:var(--ink-2)}
 .doc-meta{font-size:12px;color:var(--ink-3)}
 .doc-act{flex:none}
+.commercial-grid{display:grid;grid-template-columns:minmax(330px,420px) minmax(0,1fr);gap:16px;align-items:start}
+.commercial-form .card-b{padding:18px}
+.commercial-control{background:#f4f2eb;color:var(--ink-2);font-family:var(--mono);font-weight:700}
+.commercial-controls{display:grid;grid-template-columns:minmax(180px,1fr) 160px auto;gap:8px;align-items:center;margin-bottom:12px;padding:9px;background:#f7f6f1;border:1px solid var(--line);border-radius:var(--r)}
+.commercial-summary{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--ink-3)}
+.doc-number{font-family:var(--mono);font-size:10.5px;font-weight:700;background:#eceae3;padding:2px 6px;border-radius:4px;color:var(--ink-2)}
+.master-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.master-context{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:8px;align-items:end;margin-bottom:14px;padding:12px 14px;background:var(--navy);color:var(--cream);border-radius:var(--r)}
+.master-context .field{margin:0}.master-context label{color:#9dabc2}.master-context .inp{background:var(--navy-1);border-color:var(--line-dark);color:var(--cream)}
+.master-bottom-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:14px;align-items:start}
+.master-bottom-grid .card{min-width:0}
+.table-wrap{overflow:auto}
+.card-h h3{font-size:13px}.card-h p{font-size:11px;color:var(--ink-3);margin-top:2px}
 .sticky{position:sticky;top:74px}
 .span2{grid-column:span 2}
 .bar-imp{height:5px;background:#eceaE3;border-radius:3px;overflow:hidden;margin:10px 0 6px}
@@ -433,7 +460,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .burger{display:none}
 @media(max-width:900px){
   .g4{grid-template-columns:1fr 1fr}
-  .g3,.g2,.r3,.r2,.r21,.g-emit{grid-template-columns:1fr}
+  .g3,.g2,.r3,.r2,.r21,.g-emit,.commercial-grid,.master-bottom-grid{grid-template-columns:1fr}
   .span2{grid-column:auto}
   .sticky{position:static}
   .cgsn{flex-direction:column;align-items:flex-start;gap:12px}
@@ -455,6 +482,8 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
   .acts{gap:3px}
   .ico-btn{width:30px;height:30px}
   .flex.wrap>.btn,.flex.wrap>.btn-a{flex:1}
+  .commercial-controls{grid-template-columns:1fr}
+  .master-context{grid-template-columns:1fr}
   table{font-size:12px}
   th,td{padding:8px 9px}
 }
@@ -524,8 +553,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 <div id="login">
   <div class="login-card">
     <div class="login-mark">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v3.6h-6.1V20h-3.8V7.6H4V4Z" fill="#c9a84c"/></svg>
-      <div style="font-weight:800;letter-spacing:-.02em;color:#f5f4ef;font-size:15px">TITAN <span style="color:#c9a84c;font-weight:600">NFS-e</span></div>
+      <a class="login-brand" href="/nfs" aria-label="Página inicial TITAN NFS-e"><img src="/titan-nfse-logo.png" alt="TITAN NFS-e"></a>
     </div>
     <div class="onboard-step">Acesso ao emissor</div>
     <div class="login-h">Acessar o TITAN NFS-e</div>
@@ -554,7 +582,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 <div id="app">
 
   <aside class="sidebar" id="sb">
-    <a class="sb-mark" href="/nfs" aria-label="Página inicial TITAN NFS-e" style="text-decoration:none"><img src="/titan-logo.png" alt="TITAN" style="width:30px;height:30px;object-fit:cover;object-position:center 56%;border-radius:50%"><div style="font-weight:800;letter-spacing:-.02em;color:#f5f4ef;font-size:14px">TITAN <span style="color:#c9a84c;font-weight:600">NFS-e</span></div></a>
+    <a class="sb-mark" href="/nfs" aria-label="Página inicial TITAN NFS-e" style="text-decoration:none"><span class="sb-logo"><img src="/titan-nfse-logo.png" alt="TITAN NFS-e"></span></a>
     <nav class="sb-nav">
       <div class="sb-sec">Operação</div>
       <button class="sb-link active" data-permission="dashboard" onclick="go('painel',this)">
@@ -714,7 +742,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
         <h1>Emitir NFS-e</h1>
       </div>
 
-      <div class="card" style="margin-bottom:14px">
+      <div class="card journey-card">
         <div class="card-h"><h2>Trajeto da nota</h2><span class="pill p-off right mono" id="pipe-env">produção restrita</span></div>
         <div class="card-b"><div class="pipe" id="pipe"></div><div id="pipe-detail" class="pipe-detail">Passe o mouse ou use Tab sobre uma etapa para ver o detalhe.</div><div id="result"></div></div>
       </div>
@@ -870,12 +898,13 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
     </section>
 
     <section class="view" id="v-comercial">
-      <div class="page-h"><h1>Orçamentos e ordens de serviço</h1><p>Monte o documento comercial e converta seus dados em uma NFS-e para revisão e emissão explícita.</p></div>
-      <div class="grid g2" style="align-items:start"><div class="card"><div class="card-h"><h2>Novo documento</h2></div><div class="card-b">
-        <div class="row r2"><div class="field"><label>Tipo</label><select id="co-kind" class="inp"><option value="quote">Orçamento</option><option value="service_order">Ordem de serviço</option></select></div><div class="field"><label>Situação</label><select id="co-status" class="inp"><option value="draft">Em elaboração</option><option value="approved">Aprovado</option></select></div></div>
-        <div class="field"><label>Título</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente</label><div class="flex" style="gap:6px"><input id="co-customer" class="inp" list="co-customer-list" placeholder="Buscar cliente cadastrado ou digitar" autocomplete="off" style="flex:1"><button type="button" class="btn btn-s" style="flex:none" title="Gerenciar clientes cadastrados" onclick="abrirClientes()">+</button></div><datalist id="co-customer-list"></datalist></div><div class="field"><label>Valor (R$)</label><input id="co-value" class="inp num" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" placeholder="Escopo e condições do serviço"></textarea></div>
-        <div class="setup-actions"><span class="foot-note" style="margin:0">A conversão não emite automaticamente a nota.</span><button class="btn btn-a right" type="button" onclick="salvarComercial()">Salvar documento</button></div>
-      </div></div><div class="card"><div class="card-h"><h2>Documentos comerciais</h2><button class="btn btn-s right" onclick="carregarComerciais()">Atualizar</button></div><div class="card-b"><div class="flex wrap" style="gap:8px;margin-bottom:12px"><input id="co-search" class="inp" placeholder="Buscar por título ou cliente" style="flex:1;min-width:160px" oninput="renderComerciais()"><select id="co-filter" class="inp" style="width:auto" onchange="renderComerciais()"><option value="">Todos os status</option><option value="draft">Em elaboração</option><option value="approved">Aprovado</option><option value="converted">Convertido</option><option value="cancelled">Cancelado</option></select></div><div id="commercial-list" class="draft-list"></div></div></div></div>
+      <div class="page-h master-head"><div><h1>Orçamentos e ordens de serviço</h1><p>Monte o documento comercial e converta os dados em uma NFS-e para conferência.</p></div><button class="btn btn-s" type="button" onclick="abrirClientes()">Acessar clientes</button></div>
+      <div class="commercial-grid"><div class="card commercial-form"><div class="card-h"><h2>Novo documento</h2></div><div class="card-b">
+        <div class="field"><label>Número de controle (automático)</label><input id="co-number" class="inp commercial-control" value="Será gerado ao salvar" readonly></div>
+        <div class="row r2"><div class="field"><label>Tipo</label><select id="co-kind" class="inp" onchange="atualizarNumeroComercial()"><option value="quote">Orçamento</option><option value="service_order">Ordem de serviço</option></select></div><div class="field"><label>Situação</label><select id="co-status" class="inp"><option value="draft">Em elaboração</option><option value="approved">Aprovado</option></select></div></div>
+        <div class="field"><label>Título</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="co-customer" class="inp" list="co-customer-list" placeholder="Pesquise pela razão social ou nome" autocomplete="off" oninput="selecionarClienteComercial()"><button type="button" class="btn btn-s" title="Abrir cadastro de clientes" onclick="abrirClientes()">Clientes</button></div><datalist id="co-customer-list"></datalist><div class="hint" id="co-customer-hint">Selecione um cadastro para levar CNPJ e endereço à nota.</div></div><div class="field"><label>Valor (R$)</label><input id="co-value" class="inp num" inputmode="decimal" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" rows="4" placeholder="Escopo e condições do serviço"></textarea></div>
+        <div class="setup-actions"><span class="foot-note" style="margin:0">A conversão prepara a emissão, mas não autoriza a nota.</span><button class="btn btn-a right" type="button" onclick="salvarComercial()">Salvar documento</button></div>
+      </div></div><div class="card"><div class="card-h"><div><h2>Documentos comerciais</h2><p>Pesquise, acompanhe a situação e converta para NFS-e.</p></div></div><div class="card-b"><div class="commercial-controls"><input id="co-search" class="inp" placeholder="Buscar por número, título ou cliente" oninput="renderComerciais()"><select id="co-filter" class="inp" onchange="renderComerciais()"><option value="">Todos os status</option><option value="draft">Em elaboração</option><option value="approved">Aprovado</option><option value="converted">Convertido</option><option value="cancelled">Cancelado</option></select><button class="btn btn-s" onclick="carregarComerciais()">Atualizar</button></div><div id="commercial-list" class="draft-list"></div><div class="commercial-summary"><span id="commercial-count">0 documento(s)</span><span>A conversão exige revisão antes da emissão.</span></div></div></div></div>
     </section>
 
     <!-- ---------- NOTAS ---------- -->
@@ -1166,10 +1195,11 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
     </section>
 
     <section class="view" id="v-master">
-      <div class="page-h">
+      <div class="page-h master-head">
         <div><h1>Gestão master</h1><p>Empresas, convites, perfis de acesso e liberações por plano.</p></div>
         <span class="pill p-ok">MASTER</span>
       </div>
+      <div class="master-context"><div class="field"><label for="master-company-context">Acessar contexto de uma empresa</label><select id="master-company-context" class="inp"><option value="">Selecione uma empresa pelo nome ou CNPJ</option></select></div><button class="btn btn-a" type="button" onclick="abrirContextoMaster()">Abrir painel da empresa</button></div>
       <div class="grid g2">
         <div class="card"><div class="card-h"><div><h3>Convidar usuário</h3><p>Vincule CNPJ, e-mail e perfil. O link vale por 7 dias.</p></div></div><div class="card-b">
           <div class="row r2">
@@ -1188,8 +1218,8 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
         </div></div>
       </div>
       <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Empresas e usuários liberados</h3><p id="master-summary">Carregando...</p></div></div><div class="table-wrap"><table><thead><tr><th>Empresa / CNPJ</th><th>Plano</th><th>Usuários</th><th>Situação</th><th>Ações rápidas</th></tr></thead><tbody id="master-companies"></tbody></table></div></div>
-      <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Liberações por usuário</h3><p>Troque o perfil ou suspenda o vínculo sem excluir o cadastro.</p></div></div><div class="table-wrap"><table><thead><tr><th>Usuário</th><th>Empresa</th><th>Perfil liberado</th><th>Ação</th></tr></thead><tbody id="master-users"></tbody></table></div></div>
-      <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Convites recentes</h3></div></div><div class="table-wrap"><table><thead><tr><th>E-mail</th><th>Empresa</th><th>Perfil</th><th>Status</th></tr></thead><tbody id="master-invites"></tbody></table></div></div>
+      <div class="master-bottom-grid"><div class="card"><div class="card-h"><div><h3>Liberações por usuário</h3><p>Troque o perfil ou suspenda o vínculo sem excluir o cadastro.</p></div></div><div class="table-wrap"><table><thead><tr><th>Usuário / empresa</th><th>Perfil liberado</th><th>Ação</th></tr></thead><tbody id="master-users"></tbody></table></div></div>
+      <div class="card"><div class="card-h"><div><h3>Convites recentes</h3><p>Status dos links gerados pelo administrador.</p></div></div><div class="table-wrap"><table><thead><tr><th>E-mail / empresa</th><th>Perfil</th><th>Status</th></tr></thead><tbody id="master-invites"></tbody></table></div></div></div>
     </section>
 
   </main>
@@ -1347,6 +1377,10 @@ function aplicarAcesso(login){
   }
 }
 function go(v,el){
+  if(v==='master'){
+    const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');
+    if(!access.user?.isMaster){alert('Esta área é exclusiva do administrador master.');return}
+  }
   qsa('.view').forEach(x=>x.classList.remove('on'));
   qs('#v-'+v).classList.add('on');
   qsa('.sb-link').forEach(x=>x.classList.remove('active'));
@@ -1892,30 +1926,57 @@ async function salvarCliente(){const taxId=qs('#cl-doc').value.replace(/\D/g,'')
 async function carregarClientesCadastro(){try{clientesCadastro=await api('/api/customers?search=');qs('#client-list').innerHTML=clientesCadastro.length?clientesCadastro.map((item,index)=>`<div class="draft-item"><b>${esc(item.legal_name)}</b><span>${esc(item.tax_id)} · ${esc(item.address||'sem endereço')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="usarClienteNaEmissao(${index})">Usar na emissão</button></div></div>`).join(''):'<div class="empty-state">Nenhum cliente cadastrado.</div>'}catch(error){qs('#client-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
 function usarClienteNaEmissao(index){preencherCliente(clientesCadastro[index]);go('emitir',qs('.sb-link[onclick*="emitir"]'));}
 function abrirClientes(){go('clientes',qs('.sb-link[onclick*="clientes"]'));}
-async function popularClientesComercial(){try{if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');const dl=qs('#co-customer-list');if(dl)dl.innerHTML=clientesCadastro.map(c=>`<option value="${esc(c.legal_name)}">${esc(c.tax_id||'')}</option>`).join('');}catch(e){}}
+let clienteComercialSelecionado=null;
+async function popularClientesComercial(){
+  try{
+    if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');
+    const dl=qs('#co-customer-list');
+    if(dl)dl.innerHTML=clientesCadastro.map(c=>`<option value="${esc(c.legal_name)}">${esc(formatarCnpj(c.tax_id||''))}</option>`).join('');
+    selecionarClienteComercial();
+  }catch(e){}
+}
+function selecionarClienteComercial(){
+  const value=(qs('#co-customer')?.value||'').trim().toLocaleLowerCase('pt-BR');
+  clienteComercialSelecionado=clientesCadastro.find(c=>String(c.legal_name||'').trim().toLocaleLowerCase('pt-BR')===value)||null;
+  const hint=qs('#co-customer-hint');if(!hint)return;
+  hint.textContent=clienteComercialSelecionado?`${formatarCnpj(clienteComercialSelecionado.tax_id)} · ${clienteComercialSelecionado.address||'endereço não informado'}`:'Selecione um cadastro para levar CNPJ e endereço à nota.';
+}
 
 /* ---------- orçamentos e ordens de serviço ---------- */
 let comerciais=[];
 const COMERCIAL_STATUS={draft:['p-off','Em elaboração'],approved:['p-ok','Aprovado'],converted:['p-ok','Convertido em NFS-e'],cancelled:['p-err','Cancelado']};
+function numeroComercial(item){const prefix=item.kind==='service_order'?'O.S.':'ORÇ';return `${prefix} nº ${String(item.document_number||0).padStart(4,'0')}`}
+function atualizarNumeroComercial(){
+  const kind=qs('#co-kind')?.value||'quote';
+  const max=comerciais.filter(item=>item.kind===kind).reduce((n,item)=>Math.max(n,Number(item.document_number||0)),0);
+  const field=qs('#co-number');if(field)field.value=numeroComercial({kind,document_number:max+1});
+}
 function renderComerciais(){
   const box=qs('#commercial-list');if(!box)return;
   const q=(qs('#co-search')?.value||'').toLowerCase().trim();
   const f=qs('#co-filter')?.value||'';
   let list=comerciais.map((item,index)=>({item,index}));
   if(f)list=list.filter(o=>o.item.status===f);
-  if(q)list=list.filter(o=>String(o.item.title||'').toLowerCase().includes(q)||String(o.item.customer_name||'').toLowerCase().includes(q));
+  if(q)list=list.filter(o=>String(o.item.title||'').toLowerCase().includes(q)||String(o.item.customer_name||'').toLowerCase().includes(q)||numeroComercial(o.item).toLowerCase().includes(q));
+  const count=qs('#commercial-count');if(count)count.textContent=`${list.length} documento(s) exibido(s)`;
   if(!list.length){box.innerHTML='<div class="empty-state">Nenhum documento comercial encontrado.</div>';return}
   box.innerHTML=list.map(({item,index})=>{
     const st=COMERCIAL_STATUS[item.status]||['p-off',item.status];
-    const tag=item.kind==='service_order'?'O.S.':'ORÇ';
     const done=item.status==='converted'||item.status==='cancelled';
     const acao=done?`<button class="btn btn-s" disabled style="opacity:.5">${item.status==='converted'?'Convertido':'Cancelado'}</button>`:`<button class="btn btn-s" onclick="converterComercial(${index})">Converter em NFS-e</button>`;
-    return `<div class="doc-item"><div><div class="doc-head"><span class="doc-tag">${tag}</span><b>${esc(item.title)}</b><span class="pill ${st[0]}">${st[1]}</span></div><div class="doc-meta">${esc(item.customer_name||'Sem cliente')} · <b>R$ ${brl(Number(item.amount||0))}</b></div></div><div class="doc-act">${acao}</div></div>`;
+    return `<div class="doc-item"><div><div class="doc-head"><span class="doc-number">${numeroComercial(item)}</span><b>${esc(item.title)}</b><span class="pill ${st[0]}">${st[1]}</span></div><div class="doc-meta">${esc(item.customer_name||'Sem cliente')} · <b>R$ ${brl(Number(item.amount||0))}</b></div></div><div class="doc-act">${acao}</div></div>`;
   }).join('');
 }
-async function carregarComerciais(){try{comerciais=await api('/api/workspace/commercial');renderComerciais();}catch(error){qs('#commercial-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
-async function salvarComercial(){const title=qs('#co-title').value.trim(),customerName=qs('#co-customer').value.trim(),description=qs('#co-description').value.trim(),amount=dinheiro(qs('#co-value').value);if(!title||!description||amount<=0){alert('Informe título, descrição e valor.');return}try{await api('/api/workspace/commercial',{method:'POST',body:JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:{borrower:{name:customerName},service:{description,amount:qs('#co-value').value}}})});qs('#co-title').value='';qs('#co-customer').value='';qs('#co-description').value='';qs('#co-value').value='0,00';await carregarComerciais()}catch(error){alert(error.message)}}
-async function converterComercial(index){const item=comerciais[index];try{const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'}),p=result.payload||{},b=p.borrower||{},s=p.service||{};qs('#t-nome').value=b.name||'';qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';lerParametros();go('emitir',qs('.sb-link[onclick*="emitir"]'));alert('Dados transferidos para a emissão. Confira CPF/CNPJ, município e demais campos antes de autorizar a NFS-e.')}catch(error){alert(error.message)}}
+async function carregarComerciais(){try{comerciais=await api('/api/workspace/commercial');renderComerciais();atualizarNumeroComercial();}catch(error){qs('#commercial-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
+async function salvarComercial(){
+  selecionarClienteComercial();
+  const title=qs('#co-title').value.trim(),customerName=qs('#co-customer').value.trim(),description=qs('#co-description').value.trim(),amount=dinheiro(qs('#co-value').value);
+  if(!title||!customerName||!description||amount<=0){alert('Informe título, cliente, descrição e valor.');return}
+  const c=clienteComercialSelecionado;
+  const borrower=c?{name:c.legal_name,legal_name:c.legal_name,tax_id:c.tax_id,email:c.email,phone:c.phone,address:c.address,postal_code:c.postal_code,municipality_code:c.municipality_code,street:c.street,number:c.number,complement:c.complement,district:c.district}:{name:customerName,legal_name:customerName};
+  try{await api('/api/workspace/commercial',{method:'POST',body:JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:{borrower,service:{description,amount:qs('#co-value').value}}})});qs('#co-title').value='';qs('#co-customer').value='';qs('#co-description').value='';qs('#co-value').value='0,00';clienteComercialSelecionado=null;selecionarClienteComercial();await carregarComerciais()}catch(error){alert(error.message)}
+}
+async function converterComercial(index){const item=comerciais[index];try{const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'}),p=result.payload||{},b=p.borrower||{},s=p.service||{};preencherCliente({...b,legal_name:b.legal_name||b.name,tax_id:b.tax_id||b.taxId||''});qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';formatarDinheiro(qs('#s-val'));lerParametros();go('emitir',qs('.sb-link[onclick*="emitir"]'));alert('Dados transferidos para a emissão. Confira os dados fiscais antes de autorizar a NFS-e.')}catch(error){alert(error.message)}}
 
 
 /* ---------- importação ADN ---------- */
@@ -2048,15 +2109,21 @@ async function masterAbrir(companyId,view){
   try{await carregarEmpresaServidor();await carregarNotasServidor();}catch(e){}
   go(view,qs('.sb-link[onclick*="'+view+'"]'));
 }
+function abrirContextoMaster(){
+  const companyId=qs('#master-company-context')?.value;
+  if(!companyId){alert('Selecione uma empresa para abrir o contexto.');return}
+  masterAbrir(companyId,'painel');
+}
 async function carregarMaster(){
   try{
     masterData=await api('/api/master/overview');
     qs('#master-summary').textContent=`${masterData.companies.length} empresa(s) · ${masterData.users.length} vínculo(s) · ${masterData.profiles.length} perfil(is)`;
+    qs('#master-company-context').innerHTML='<option value="">Selecione uma empresa pelo nome ou CNPJ</option>'+masterData.companies.map(c=>`<option value="${c.id}">${esc(c.trade_name||c.legal_name)} · ${esc(formatarCnpj(c.federal_tax_id))}</option>`).join('');
     qs('#master-profile').innerHTML=masterData.profiles.map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(p.plan_code)}</option>`).join('');
     qs('#profile-permissions').innerHTML=masterData.permissions.map(p=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${p}" checked> ${esc(permissionLabels[p]||p)}</label>`).join('');
     qs('#master-companies').innerHTML=masterData.companies.map(c=>`<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(c.federal_tax_id)}</span></td><td>${esc(c.plan_code)}</td><td>${c.users}</td><td><span class="pill ${c.emission_enabled?'p-ok':'p-warn'}">${c.emission_enabled?'Emissão liberada':'Cadastro pendente'}</span></td><td><div class="acts"><button class="btn btn-s" onclick="masterAbrir('${c.id}','importar')">Importar</button><button class="btn btn-s" onclick="masterAbrir('${c.id}','servicos')">Serviços</button><button class="btn btn-s" onclick="masterAbrir('${c.id}','emitente')">Config</button></div></td></tr>`).join('')||'<tr><td colspan="5">Nenhuma empresa.</td></tr>';
-    qs('#master-users').innerHTML=masterData.users.filter(u=>u.company_id).map(u=>`<tr><td><b>${esc(u.name)}</b><br>${esc(u.email)} ${u.is_master?'<span class="pill p-ok">MASTER</span>':''}</td><td>${esc(u.legal_name||'—')}</td><td><select id="access-${u.id}-${u.company_id}">${masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u.profile_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></td><td><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',true)">Salvar</button> ${u.is_master?'':`<button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',false)">Suspender</button>`}</td></tr>`).join('')||'<tr><td colspan="4">Nenhum vínculo.</td></tr>';
-    qs('#master-invites').innerHTML=masterData.invitations.map(i=>`<tr><td>${esc(i.email)}</td><td>${esc(i.legal_name)}<br><span class="mono">${esc(i.federal_tax_id)}</span></td><td>${esc(i.profile_name||'—')}</td><td>${i.accepted_at?'Aceito':new Date(i.expires_at)<new Date()?'Expirado':'Pendente'}</td></tr>`).join('')||'<tr><td colspan="4">Nenhum convite.</td></tr>';
+    qs('#master-users').innerHTML=masterData.users.filter(u=>u.company_id).map(u=>`<tr><td><b>${esc(u.name)}</b> ${u.is_master?'<span class="pill p-ok">MASTER</span>':''}<br><span>${esc(u.email)}</span><br><small style="color:var(--gold-dim)">${esc(u.legal_name||'—')}</small></td><td><select class="inp" id="access-${u.id}-${u.company_id}" style="padding:5px">${masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u.profile_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></td><td><div class="acts"><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',true)">Salvar</button> ${u.is_master?'':`<button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',false)">Suspender</button>`}</div></td></tr>`).join('')||'<tr><td colspan="3">Nenhum vínculo.</td></tr>';
+    qs('#master-invites').innerHTML=masterData.invitations.map(i=>{const status=i.accepted_at?['p-ok','Aceito']:new Date(i.expires_at)<new Date()?['p-err','Expirado']:['p-warn','Pendente'];return `<tr><td><b>${esc(i.email)}</b><br><small>${esc(i.legal_name)}</small><br><span class="mono">${esc(i.federal_tax_id)}</span></td><td>${esc(i.profile_name||'—')}</td><td><span class="pill ${status[0]}">${status[1]}</span></td></tr>`}).join('')||'<tr><td colspan="3">Nenhum convite.</td></tr>';
   }catch(error){alert(error.message)}
 }
 
