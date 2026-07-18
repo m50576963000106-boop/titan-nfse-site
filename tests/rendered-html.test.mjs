@@ -132,3 +132,19 @@ test("centraliza serviços, alimenta orçamentos e oferece assistente com açõe
   assert.match(html,/01\/09\/2026/);
   assert.match(html,/Comunicado oficial CGSN 189\/2026/);
 });
+
+test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/\/api\/services\/nbs\/catalog/);
+  assert.match(html,/id="s-nbs-search"/);
+  assert.match(html,/id="cad-nbs-search"/);
+  assert.match(html,/id="reset-screen"/);
+  assert.match(html,/function alternarSenha/);
+  assert.match(html,/Definir senha/);
+  assert.match(html,/id="e-email"/);
+  assert.match(html,/id="e-phone"/);
+  assert.match(html,/class="commercial-letterhead"/);
+  assert.match(html,/id="co-observation"/);
+  assert.match(html,/id="co-payment"/);
+  assert.match(html,/id="co-conditions"/);
+});

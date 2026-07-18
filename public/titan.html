@@ -97,6 +97,14 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 }
 .login-context-link{display:block;margin-top:14px;color:#c9a84c;font-size:12px;font-weight:700;text-align:center;text-decoration:none}
 .login-context-link:hover{color:#e0c76f;text-decoration:underline}
+.reset-screen{display:none;position:fixed;inset:0;z-index:110;background:var(--navy);align-items:center;justify-content:center;padding:24px}
+.reset-screen.on{display:flex}.reset-card{width:100%;max-width:440px;background:var(--navy-1);border:1px solid var(--line-dark);border-radius:10px;padding:28px;box-shadow:0 18px 50px rgba(0,0,0,.24)}
+.reset-card h1{margin:0 0 8px;color:var(--cream);font-size:25px;letter-spacing:-.03em}.reset-card .reset-lead{margin:0 0 20px;color:#9aa9c1;font-size:13px;line-height:1.55}
+.reset-account{padding:10px 12px;margin-bottom:18px;border:1px solid #31415d;border-radius:6px;color:#dbe4f2;font-size:12px;background:#111f35}
+.reset-field{margin-bottom:14px}.reset-field label{display:block;margin-bottom:6px;color:#8b9ab2;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}.reset-input-wrap{position:relative}
+.reset-input-wrap input{width:100%;padding:12px 44px 12px 12px;background:#0d1a2d;border:1px solid #3a4b68;border-radius:6px;color:var(--cream)}.reset-input-wrap input:focus{border-color:var(--gold);outline:2px solid rgba(201,168,76,.16)}
+.password-toggle{position:absolute;right:8px;top:50%;width:32px;height:32px;transform:translateY(-50%);display:grid;place-items:center;color:#b9c5d7;border-radius:5px}.password-toggle:hover{background:#1d2c44;color:var(--gold)}.password-toggle svg{width:18px;height:18px}
+.reset-hint{min-height:20px;margin:4px 0 16px;color:#8fa0ba;font-size:11px;line-height:1.45}.reset-hint.error{color:#ee9a92}.reset-hint.ok{color:#9dd3b2}.reset-action{width:100%;padding:12px;background:var(--gold);color:var(--navy);font-weight:800;border-radius:6px}.reset-action:disabled{opacity:.45;cursor:not-allowed}.reset-back{display:block;margin-top:16px;text-align:center;color:var(--gold);font-size:12px;font-weight:700;text-decoration:none}.reset-back:hover{text-decoration:underline}
 
 /* ---------- SHELL ---------- */
 #app{display:none;min-height:100vh}
@@ -435,7 +443,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .doc-tag{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--cream);border:1px solid var(--line);padding:1px 6px;border-radius:4px;color:var(--ink-2)}
 .doc-meta{font-size:12px;color:var(--ink-3)}
 .doc-act{flex:none}
-.commercial-grid{display:grid;grid-template-columns:minmax(330px,420px) minmax(0,1fr);gap:16px;align-items:start}
+.commercial-grid{display:flex;flex-direction:column;gap:16px;align-items:stretch}.commercial-letterhead{display:grid;grid-template-columns:150px 1fr auto;gap:18px;align-items:center;padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:var(--r)}.commercial-letterhead img{max-width:150px;max-height:58px;object-fit:contain}.commercial-letterhead h2{margin:0;color:var(--navy);font-size:19px}.commercial-letterhead p{margin:4px 0 0;color:var(--ink-2);font-size:11px;line-height:1.5}.commercial-letterhead .commercial-doc-meta{text-align:right;color:var(--gold-dim);font-weight:800;font-size:12px}.commercial-section-title{margin:0 0 12px;color:var(--navy);font-size:14px}.commercial-form{width:100%}
 .commercial-form .card-b{padding:18px}
 .commercial-control{background:#f4f2eb;color:var(--ink-2);font-family:var(--mono);font-weight:700}
 .commercial-controls{display:grid;grid-template-columns:minmax(180px,1fr) 160px auto;gap:8px;align-items:center;margin-bottom:12px;padding:9px;background:#f7f6f1;border:1px solid var(--line);border-radius:var(--r)}
@@ -581,6 +589,7 @@ main{margin-left:258px;padding-top:72px}
   .cgsn{flex-direction:column;align-items:flex-start;gap:12px}
 }
 @media(max-width:760px){
+  .commercial-letterhead{grid-template-columns:1fr auto;gap:10px;padding:14px}.commercial-letterhead img{grid-row:span 2;max-width:110px}.commercial-letterhead h2{font-size:16px}.commercial-letterhead .commercial-doc-meta{font-size:10px}
   .sidebar{transform:translateX(-100%);transition:transform .22s}
   .sidebar.open{transform:none;box-shadow:0 0 0 100vmax rgba(11,22,41,.5)}
   .topbar{left:0;padding:0 14px}
@@ -720,6 +729,22 @@ main{margin-left:258px;padding-top:72px}
     </div>
   </div>
 </div>
+
+<!-- ============ REDEFINIÇÃO DE SENHA ============ -->
+<section id="reset-screen" class="reset-screen" aria-labelledby="reset-title">
+  <div class="reset-card">
+    <div class="login-mark"><a class="login-brand" href="/nfs" aria-label="Página inicial TITAN NFS-e"><img src="/titan-nfse-logo.png" alt="TITAN NFS-e"></a></div>
+    <div class="onboard-step">Segurança da conta</div>
+    <h1 id="reset-title">Definir nova senha</h1>
+    <p class="reset-lead">Crie uma senha nova para continuar. Use pelo menos 10 caracteres e confirme a mesma senha no segundo campo.</p>
+    <div id="reset-account" class="reset-account">Validando o link de redefinição...</div>
+    <div class="reset-field"><label for="reset-password">Nova senha</label><div class="reset-input-wrap"><input id="reset-password" type="password" minlength="10" autocomplete="new-password" placeholder="Digite a nova senha" disabled><button class="password-toggle" type="button" aria-label="Mostrar senha" aria-pressed="false" onclick="alternarSenha('reset-password',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div></div>
+    <div class="reset-field"><label for="reset-password-confirm">Confirmar nova senha</label><div class="reset-input-wrap"><input id="reset-password-confirm" type="password" minlength="10" autocomplete="new-password" placeholder="Repita a nova senha" disabled><button class="password-toggle" type="button" aria-label="Mostrar confirmação" aria-pressed="false" onclick="alternarSenha('reset-password-confirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div></div>
+    <div id="reset-hint" class="reset-hint">O link será validado antes de liberar os campos.</div>
+    <button id="reset-action" class="reset-action" type="button" disabled>Definir senha</button>
+    <a class="reset-back" href="/nfs/entrar">Voltar para o login</a>
+  </div>
+</section>
 
 <!-- ============ APP ============ -->
 <div id="app">
@@ -975,7 +1000,7 @@ main{margin-left:258px;padding-top:72px}
                 </select>
                 <div class="hint">Catálogo oficial PRODREST v1.01 de 22/01/2026.</div>
               </div>
-              <div class="field"><label for="s-nbs">Código NBS <span class="required-mark">*</span></label><input id="s-nbs" class="inp mono" list="nbs-options" maxlength="9" inputmode="numeric" placeholder="Selecione ou informe 9 dígitos" required oninput="validarNbsDigitacao()"><datalist id="nbs-options"></datalist><div class="hint">Obrigatório: selecione um NBS cadastrado ou informe exatamente 9 dígitos.</div></div>
+              <div class="field"><label for="s-nbs-search">Código NBS <span class="required-mark">*</span></label><div class="input-action"><input id="s-nbs-search" class="inp" placeholder="Código ou descrição NBS"><button class="btn btn-s" type="button" onclick="buscarNbsEmissao()">Buscar</button></div><select id="s-nbs" class="inp mono" required onchange="validarNbsDigitacao()"><option value="">Pesquise o catálogo NBS</option></select><div class="hint">Selecione um NBS oficial pelo código ou pela descrição.</div></div>
               <div class="field">
                 <label for="s-desc">Descrição</label>
                 <textarea id="s-desc" class="inp" placeholder="Descreva o serviço prestado"></textarea>
@@ -1059,11 +1084,14 @@ main{margin-left:258px;padding-top:72px}
 
     <section class="view" id="v-comercial">
       <div class="page-h master-head"><div><h1>Orçamentos e ordens de serviço</h1><p>Use clientes e serviços já cadastrados para montar o documento e depois convertê-lo em NFS-e.</p></div><button class="btn btn-s" type="button" onclick="abrirClientes()">Acessar clientes</button></div>
-      <div class="commercial-grid"><div class="card commercial-form"><div class="card-h"><h2>Novo documento</h2></div><div class="card-b">
+      <div class="commercial-grid">
+        <div class="commercial-letterhead"><img id="co-company-logo" src="/titan-nfse-logo.png" alt="Logo da empresa"><div><h2 id="co-company-name">Empresa ativa</h2><p id="co-company-details">CNPJ não informado<br>Endereço não informado</p><p id="co-company-contact"></p></div><div class="commercial-doc-meta"><span id="co-letter-kind">ORÇAMENTO</span><br><span id="co-letter-number">Nº 0001</span><br><span id="co-letter-date"></span></div></div>
+        <div class="card commercial-form"><div class="card-h"><h2>Novo documento</h2><span class="pill p-gold right">Formato comercial</span></div><div class="card-b">
         <div class="field"><label>Número de controle (automático)</label><input id="co-number" class="inp commercial-control" value="Será gerado ao salvar" readonly></div>
         <div class="row r2"><div class="field"><label>Tipo</label><select id="co-kind" class="inp" onchange="atualizarNumeroComercial()"><option value="quote">Orçamento</option><option value="service_order">Ordem de serviço</option></select></div><div class="field"><label>Situação</label><select id="co-status" class="inp"><option value="draft">Em elaboração</option><option value="approved">Aprovado</option></select></div></div>
         <div class="field"><label>Meu serviço</label><div class="input-action"><select id="co-service" class="inp" onchange="selecionarServicoComercial()"><option value="">Carregando serviços cadastrados...</option></select><button type="button" class="btn btn-s" title="Abrir Meus serviços" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint" id="co-service-hint">Selecione e adicione vários serviços antes de salvar.</div></div>
-        <div class="field"><label>Título</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="co-customer" class="inp" list="co-customer-list" placeholder="Pesquise pela razão social ou nome" autocomplete="off" oninput="selecionarClienteComercial()"><button type="button" class="btn btn-s" title="Abrir cadastro de clientes" onclick="abrirClientes()">Clientes</button></div><datalist id="co-customer-list"></datalist><div class="hint" id="co-customer-hint">Selecione um cadastro para levar CNPJ e endereço à nota.</div></div><div class="field"><label>Valor (R$)</label><input id="co-value" class="inp num" inputmode="decimal" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" rows="4" placeholder="Escopo e condições do serviço"></textarea></div><div class="flex wrap" style="margin-top:8px"><button class="btn btn-s" type="button" onclick="adicionarItemComercial()">+ Adicionar serviço à lista</button><span class="foot-note">Os itens serão agrupados por NBS ao converter.</span></div><div id="co-items" class="draft-list" style="margin-top:10px"></div><div class="commercial-summary"><b>Total dos serviços</b><b id="co-total">R$ 0,00</b></div>
+        <div class="field"><label>Título do documento</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="co-customer" class="inp" list="co-customer-list" placeholder="Pesquise pela razão social ou nome" autocomplete="off" oninput="selecionarClienteComercial()"><button type="button" class="btn btn-s" title="Abrir cadastro de clientes" onclick="abrirClientes()">Clientes</button></div><datalist id="co-customer-list"></datalist><div class="hint" id="co-customer-hint">Selecione um cadastro para levar CNPJ e endereço à nota.</div></div><div class="field"><label>Valor do item (R$)</label><input id="co-value" class="inp num" inputmode="decimal" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" rows="4" placeholder="Descrição que aparecerá no documento"></textarea></div><div class="flex wrap" style="margin-top:8px"><button class="btn btn-s" type="button" onclick="adicionarItemComercial()">+ Adicionar serviço à lista</button><span class="foot-note">Cada item recebe descrição, NBS, alíquota e valor; itens iguais são agrupados na conversão.</span></div><div id="co-items" class="draft-list" style="margin-top:10px"></div><div class="commercial-summary"><b>Total dos serviços</b><b id="co-total">R$ 0,00</b></div>
+        <div class="row r2" style="margin-top:16px"><div class="field"><label for="co-observation">Observações</label><textarea id="co-observation" class="inp" rows="3" placeholder="Notas, escopo, prazos ou observações"></textarea></div><div class="field"><label for="co-payment">Meios de pagamento</label><textarea id="co-payment" class="inp" rows="3" placeholder="PIX, dados bancários ou condição de pagamento"></textarea></div></div><div class="field"><label for="co-conditions">Condições especiais / garantia</label><textarea id="co-conditions" class="inp" rows="2" placeholder="Condições comerciais, validade ou garantia"></textarea></div><div class="commercial-summary"><span id="co-signature">Cidade, data de hoje · Empresa responsável</span></div>
         <div class="setup-actions"><span class="foot-note" style="margin:0">A conversão prepara a emissão, mas não autoriza a nota.</span><button class="btn btn-a right" type="button" onclick="salvarComercial()">Salvar documento</button></div>
       </div></div><div class="card"><div class="card-h"><div><h2>Documentos comerciais</h2><p>Pesquise, acompanhe a situação e converta para NFS-e.</p></div></div><div class="card-b"><div class="commercial-controls"><input id="co-search" class="inp" placeholder="Buscar por número, título ou cliente" oninput="renderComerciais()"><select id="co-filter" class="inp" onchange="renderComerciais()"><option value="">Todos os status</option><option value="draft">Em elaboração</option><option value="approved">Aprovado</option><option value="converted">Convertido</option><option value="cancelled">Cancelado</option></select><button class="btn btn-s" onclick="carregarComerciais()">Atualizar</button></div><div id="commercial-list" class="draft-list"></div><div class="commercial-summary"><span id="commercial-count">0 documento(s)</span><span>A conversão exige revisão antes da emissão.</span></div></div></div></div>
     </section>
@@ -1149,6 +1177,10 @@ main{margin-left:258px;padding-top:72px}
             <div class="field mb0">
               <label for="e-end">Endereço</label>
               <input id="e-end" class="inp" placeholder="Logradouro, número, bairro e CEP" required>
+            </div>
+            <div class="row r2" style="margin-top:14px">
+              <div class="field mb0"><label for="e-email">E-mail da empresa</label><input id="e-email" class="inp" type="email" placeholder="contato@empresa.com.br"></div>
+              <div class="field mb0"><label for="e-phone">Telefone da empresa</label><input id="e-phone" class="inp" placeholder="(00) 00000-0000"></div>
             </div>
             <div class="field" style="margin-top:14px"><label for="e-logo">Logotipo para orçamentos e O.S.</label><input id="e-logo" class="inp" type="file" accept="image/png,image/jpeg" onchange="salvarLogoComercial(this)"><div class="hint">Aplicado somente nos PDFs comerciais; o DANFSe oficial continua com a marca nacional.</div><img id="e-logo-preview" alt="Prévia do logotipo comercial" style="display:none;max-width:180px;max-height:64px;margin-top:8px;border:1px solid var(--line);border-radius:6px;padding:4px;background:white"></div>
             <div class="setup-actions">
@@ -1323,7 +1355,7 @@ main{margin-left:258px;padding-top:72px}
             <div class="field"><label for="cad-search">Buscar no Anexo B nacional</label><div class="input-action"><input id="cad-search" class="inp" placeholder="Código ou descrição"><button class="btn btn-s" onclick="buscarCatalogoServico()">Buscar</button></div></div>
             <div class="field"><label for="cad-code">Código de tributação nacional</label><select id="cad-code" class="inp" onchange="selecionarCodigoCadastro()"><option value="">Pesquise o catálogo oficial</option></select></div>
             <div class="field"><label for="cad-desc">Descrição padrão do serviço</label><textarea id="cad-desc" class="inp" placeholder="Descrição que será levada à DPS"></textarea></div>
-            <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal</label><input id="cad-mun-code" class="inp" maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="Até 3 dígitos (opcional)"><div class="hint">Não repita aqui o código nacional 15.06.01.</div></div><div class="field"><label for="cad-nbs">Código NBS <span class="required-mark">*</span></label><input id="cad-nbs" class="inp mono" maxlength="9" inputmode="numeric" placeholder="9 dígitos obrigatórios"><div class="hint">O serviço só pode ser salvo com NBS válido.</div></div></div>
+            <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal</label><input id="cad-mun-code" class="inp" maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="Até 3 dígitos (opcional)"><div class="hint">Não repita aqui o código nacional 15.06.01.</div></div><div class="field"><label for="cad-nbs-search">Código NBS <span class="required-mark">*</span></label><div class="input-action"><input id="cad-nbs-search" class="inp" placeholder="Código ou descrição NBS"><button class="btn btn-s" type="button" onclick="buscarNbsCadastro()">Buscar</button></div><select id="cad-nbs" class="inp mono" required><option value="">Pesquise o catálogo NBS</option></select><div class="hint">Selecione um NBS oficial pelo código ou pela descrição.</div></div></div>
             <div class="field"><label for="cad-rate">Alíquota ISS (%)</label><input id="cad-rate" class="inp num" placeholder="Lida do município"></div>
             <div class="row r2"><div class="field"><label for="cad-trib-iss">Tributação ISSQN</label><select id="cad-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação</option><option value="4">4 — Não incidência</option></select></div><div class="field"><label for="cad-ret-iss">Retenção ISSQN</label><select id="cad-ret-iss" class="inp"><option value="1">1 — Não retido</option><option value="2">2 — Tomador</option><option value="3">3 — Intermediário</option></select></div></div>
             <div class="row r2"><div class="field"><label for="cad-cst">CST PIS/COFINS</label><select id="cad-cst" class="inp"><option value="">Não informar</option><option>01</option><option>02</option><option>03</option><option>04</option><option>06</option><option>07</option><option>08</option><option>09</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>60</option><option>61</option><option>62</option><option>63</option><option>64</option><option>65</option><option>66</option><option>67</option><option>70</option><option>71</option><option>72</option><option>73</option><option>74</option><option>75</option><option>98</option><option>99</option></select></div><div class="field"><label for="cad-ret-pc">tpRetPisCofins</label><select id="cad-ret-pc" class="inp" onchange="atualizarRetencaoPisCofins('cad')"><option value="">Não informar</option><option value="0">0 — PIS/COFINS/CSLL não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — PIS/COFINS/CSLL retidos</option><option value="4">4 — PIS/COFINS retidos e CSLL não</option><option value="5">5 — Somente PIS retido</option><option value="6">6 — Somente COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — Somente CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div></div>
@@ -1663,7 +1695,7 @@ function go(v,el){
   if(v==='master')carregarMaster();
   if(v==='emitir'){carregarRascunhos();exibirMunicipioPorCodigo('s',qs('#s-mun').value)}
   if(v==='clientes')carregarClientesCadastro();
-  if(v==='comercial'){carregarComerciais();popularClientesComercial();carregarPerfisServico().then(popularServicosComercial);}
+  if(v==='comercial'){renderEmpresaComercial();carregarComerciais();popularClientesComercial();carregarPerfisServico().then(popularServicosComercial);}
 }
 qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
 
@@ -1671,7 +1703,8 @@ async function carregarEmpresaServidor(){
   const row=await api('/api/company');
   if(!row){empresaAtual=null;return}
   const regimes={regular:'Lucro Presumido',mei:'MEI',simples:'Simples Nacional — ME'};
-  empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.municipality_code,endereco:row.address||'',postalCode:row.postal_code||'',street:row.street||'',number:row.number||'',complement:row.complement||'',district:row.district||'',state:row.state||'',series:Number(row.dps_series)||1,next:String(row.next_dps_number||1),simpleAp:Number(row.simple_assessment_regime)||1,simpleTotal:row.simple_total_tax_rate==null?'':Number(row.simple_total_tax_rate),special:Number(row.special_tax_regime)||0};
+  empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.municipality_code,endereco:row.address||'',postalCode:row.postal_code||'',street:row.street||'',number:row.number||'',complement:row.complement||'',district:row.district||'',state:row.state||'',email:row.email||'',phone:row.phone||'',series:Number(row.dps_series)||1,next:String(row.next_dps_number||1),simpleAp:Number(row.simple_assessment_regime)||1,simpleTotal:row.simple_total_tax_rate==null?'':Number(row.simple_total_tax_rate),special:Number(row.special_tax_regime)||0};
+  qs('#e-email').value=empresaAtual.email;qs('#e-phone').value=empresaAtual.phone;
   const logo=qs('#e-logo-preview');if(logo&&row.commercial_logo_data){logo.src=row.commercial_logo_data;logo.style.display='block'}
   localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresaAtual));
 }
@@ -1798,6 +1831,7 @@ qs('#t-doc').addEventListener('keydown',event=>{if(event.key==='Enter'){event.pr
 /* ---------- serviços nacionais e perfis ---------- */
 let catalogoServicos=[];
 let catalogoCadastro=[];
+let nbsCatalogo=[];
 let perfisServico=[];
 const dinheiro=value=>Number(String(value||'0').replace(/\./g,'').replace(',','.'))||0;
 function formatarDinheiro(input){
@@ -1831,16 +1865,41 @@ function calcularPisCofins(prefix){
 }
 
 async function carregarServicos(){
-  const [catalogo]=await Promise.all([api('/api/services/catalog?limit=400'),carregarPerfisServico()]);
+  const [catalogo]=await Promise.all([api('/api/services/catalog?limit=400'),carregarPerfisServico(),carregarNbsCatalogo().catch(()=>{})]);
   catalogoServicos=catalogo.services;
   qs('#s-cod').innerHTML=catalogoServicos.map(item=>`<option value="${item.code}">${item.code.slice(0,2)}.${item.code.slice(2,4)}.${item.code.slice(4)} — ${esc(item.description)}</option>`).join('');
   if(catalogoServicos.some(item=>item.code==='170101'))qs('#s-cod').value='170101';
   lerParametros();
 }
 
+function preencherSelectNbs(id,items,selected=''){
+  const select=qs('#'+id);if(!select)return;
+  const value=selected||select.value||'';
+  select.innerHTML='<option value="">Selecione um NBS oficial</option>'+items.map(item=>`<option value="${esc(item.code)}">${esc(item.formatted||item.code)} — ${esc(item.description)}</option>`).join('');
+  if(value&&items.some(item=>item.code===value))select.value=value;
+}
+function definirNbsSelecionado(id,value,description=''){
+  const select=qs('#'+id),code=String(value||'').replace(/\D/g,'');if(!select||!code)return;
+  if(![...select.options].some(option=>option.value===code)){const option=document.createElement('option');option.value=code;option.textContent=description?`${code} — ${description}`:code;select.appendChild(option)}
+  select.value=code;
+}
+async function carregarNbsCatalogo(search='',target='s-nbs'){
+  const result=await api('/api/services/nbs/catalog?limit=400'+(search?`&search=${encodeURIComponent(search)}`:''));
+  nbsCatalogo=result.items||[];preencherSelectNbs(target,nbsCatalogo,target==='s-nbs'?qs('#s-nbs')?.value:qs('#cad-nbs')?.value||'');
+}
+async function buscarNbsEmissao(){
+  const button=qs('#s-nbs-search')?.parentElement?.querySelector('button'),query=qs('#s-nbs-search').value.trim();
+  if(button){button.disabled=true;button.textContent='Buscando...'}
+  try{await carregarNbsCatalogo(query,'s-nbs')}catch(error){alert(error.message)}finally{if(button){button.disabled=false;button.textContent='Buscar'}}
+}
+async function buscarNbsCadastro(){
+  const button=qs('#cad-nbs-search')?.parentElement?.querySelector('button'),query=qs('#cad-nbs-search').value.trim();
+  if(button){button.disabled=true;button.textContent='Buscando...'}
+  try{await carregarNbsCatalogo(query,'cad-nbs')}catch(error){alert(error.message)}finally{if(button){button.disabled=false;button.textContent='Buscar'}}
+}
+
 async function carregarPerfisServico(){
   try{perfisServico=await api('/api/services/profiles')}catch{perfisServico=[]}
-  const nbsOptions=qs('#nbs-options');if(nbsOptions)nbsOptions.innerHTML=[...new Map(perfisServico.filter(item=>item.nbs_code).map(item=>[item.nbs_code,item])).values()].map(item=>`<option value="${esc(item.nbs_code)}">${esc(item.nbs_code)} — ${esc(item.name)}</option>`).join('');
   qs('#s-profile').innerHTML='<option value="">Preenchimento avulso</option>'+perfisServico.map(item=>`<option value="${item.id}">${esc(item.name)}</option>`).join('');
   const list=qs('#svc-list');
   if(!perfisServico.length){list.innerHTML='<div class="empty-state">Nenhum serviço cadastrado. Clique em Novo para criar o primeiro perfil.</div>';return}
@@ -1848,7 +1907,7 @@ async function carregarPerfisServico(){
 }
 
 function validarNbsDigitacao(){
-  const input=qs('#s-nbs');if(!input)return;const value=input.value.replace(/\D/g,'');input.setCustomValidity(/^\d{9}$/.test(value)?'':'Informe um código NBS com exatamente 9 dígitos.');
+  const input=qs('#s-nbs');if(!input)return;const value=input.value.replace(/\D/g,'');input.setCustomValidity(/^\d{9}$/.test(value)?'':'Selecione um código NBS oficial com exatamente 9 dígitos.');
 }
 function atualizarCompetenciaFiscal(){
   const input=qs('#s-comp'),hint=qs('#s-comp-hint');if(!input||!hint||!input.value)return;
@@ -1858,7 +1917,8 @@ function atualizarCompetenciaFiscal(){
 }
 
 function novoPerfilServico(){
-  ['cad-id','cad-name','cad-type','cad-search','cad-desc','cad-mun-code','cad-nbs','cad-rate','cad-cst'].forEach(id=>qs('#'+id).value='');
+  ['cad-id','cad-name','cad-type','cad-search','cad-nbs-search','cad-desc','cad-mun-code','cad-rate','cad-cst'].forEach(id=>qs('#'+id).value='');
+  qs('#cad-nbs').innerHTML='<option value="">Pesquise o catálogo NBS</option>';
   ['cad-pc-base','cad-pis-rate','cad-cofins-rate','cad-pis-amount','cad-cofins-amount','cad-cp','cad-irrf','cad-csll'].forEach(id=>qs('#'+id).value='0,00');
   qs('#cad-code').innerHTML='<option value="">Pesquise o catálogo oficial</option>';
   qs('#cad-trib-iss').value='1';qs('#cad-ret-iss').value='1';qs('#cad-ret-pc').value='';atualizarRetencaoPisCofins('cad');qs('#svc-form-title').textContent='Novo serviço padrão';
@@ -1878,7 +1938,7 @@ function selecionarCodigoCadastro(){
 
 function editarPerfilServico(index){
   const item=perfisServico[index];if(!item)return;
-  qs('#cad-id').value=item.id;qs('#cad-name').value=item.name;qs('#cad-type').value=item.service_type;qs('#cad-desc').value=item.description;qs('#cad-mun-code').value=item.municipal_code||'';qs('#cad-nbs').value=item.nbs_code||'';qs('#cad-rate').value=item.iss_rate==null?'':String(item.iss_rate).replace('.',',');
+  qs('#cad-id').value=item.id;qs('#cad-name').value=item.name;qs('#cad-type').value=item.service_type;qs('#cad-desc').value=item.description;qs('#cad-mun-code').value=item.municipal_code||'';definirNbsSelecionado('cad-nbs',item.nbs_code,item.name);qs('#cad-rate').value=item.iss_rate==null?'':String(item.iss_rate).replace('.',',');
   qs('#cad-trib-iss').value=item.iss_taxation;qs('#cad-ret-iss').value=item.iss_withholding;qs('#cad-cst').value=item.pis_cofins_cst||'';qs('#cad-ret-pc').value=item.pis_cofins_withholding||'';
   qs('#cad-pc-base').value=String(item.pis_cofins_base||0).replace('.',',');qs('#cad-pis-rate').value=String(item.pis_rate||0).replace('.',',');qs('#cad-cofins-rate').value=String(item.cofins_rate||0).replace('.',',');qs('#cad-pis-amount').value=String(item.pis_amount||0).replace('.',',');qs('#cad-cofins-amount').value=String(item.cofins_amount||0).replace('.',',');
   qs('#cad-cp').value=String(item.ret_cp||0).replace('.',',');qs('#cad-irrf').value=String(item.ret_irrf||0).replace('.',',');qs('#cad-csll').value=String(item.ret_csll||0).replace('.',',');
@@ -1905,7 +1965,7 @@ async function excluirPerfilServico(id){
 
 function aplicarPerfilServico(){
   const item=perfisServico.find(profile=>profile.id===qs('#s-profile').value);if(!item)return;
-  qs('#s-cod').value=item.national_code;qs('#s-nbs').value=item.nbs_code||'';qs('#s-desc').value=item.description;qs('#s-trib-iss').value=item.iss_taxation;qs('#s-ret-iss').value=item.iss_withholding;qs('#s-cst').value=item.pis_cofins_cst||'';qs('#s-ret-pc').value=item.pis_cofins_withholding||'';
+  qs('#s-cod').value=item.national_code;definirNbsSelecionado('s-nbs',item.nbs_code,item.name);qs('#s-desc').value=item.description;qs('#s-trib-iss').value=item.iss_taxation;qs('#s-ret-iss').value=item.iss_withholding;qs('#s-cst').value=item.pis_cofins_cst||'';qs('#s-ret-pc').value=item.pis_cofins_withholding||'';
   qs('#s-pc-base').value=String(item.pis_cofins_base||0).replace('.',',');qs('#s-pis-rate').value=String(item.pis_rate||0).replace('.',',');qs('#s-cofins-rate').value=String(item.cofins_rate||0).replace('.',',');qs('#s-pis-amount').value=String(item.pis_amount||0).replace('.',',');qs('#s-cofins-amount').value=String(item.cofins_amount||0).replace('.',',');
   qs('#s-ret-cp').value=String(item.ret_cp||0).replace('.',',');qs('#s-ret-irrf').value=String(item.ret_irrf||0).replace('.',',');qs('#s-ret-csll').value=String(item.ret_csll||0).replace('.',',');lerParametros();
   atualizarRetencaoPisCofins('s');
@@ -2272,7 +2332,7 @@ async function emitir(falhar){
 
 /* ---------- rascunhos de emissão ---------- */
 function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{name:qs('#t-nome').value,taxId:qs('#t-doc').value,email:qs('#t-mail').value,phone:qs('#t-zap').value,municipalityCode:qs('#t-municipio').value,postalCode:qs('#t-cep').value,street:qs('#t-end').value,number:qs('#t-num').value,district:qs('#t-bairro').value,complement:qs('#t-comp').value},service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,nbsCode:qs('#s-nbs').value,description:qs('#s-desc').value,amount:qs('#s-val').value,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,pisCofinsCst:qs('#s-cst').value,pisCofinsWithholding:qs('#s-ret-pc').value,pisCofinsBase:qs('#s-pc-base').value,pisRate:qs('#s-pis-rate').value,cofinsRate:qs('#s-cofins-rate').value,pisAmount:qs('#s-pis-amount').value,cofinsAmount:qs('#s-cofins-amount').value,retCp:qs('#s-ret-cp').value,retIrrf:qs('#s-ret-irrf').value,retCsll:qs('#s-ret-csll').value}}}
-function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;qs('#s-nbs').value=s.nbsCode||'';qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');lerParametros();}
+function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');lerParametros();}
 let rascunhos=[];
 async function carregarRascunhos(){try{rascunhos=await api('/api/workspace/drafts');const box=qs('#draft-list');box.innerHTML=rascunhos.length?rascunhos.map((item,index)=>`<div class="draft-item"><b>${esc(item.title)}</b><span>${new Date(item.updated_at).toLocaleString('pt-BR')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="abrirRascunho(${index})">Abrir</button><button class="ico-btn danger" title="Excluir" onclick="excluirRascunho('${item.id}')">×</button></div></div>`).join(''):'<div class="empty-state">Nenhum rascunho salvo.</div>'}catch(error){qs('#draft-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
 async function salvarRascunho(){const title=prompt('Nome do rascunho',qs('#t-nome').value?`NFS-e — ${qs('#t-nome').value}`:'Nova NFS-e');if(!title)return;try{await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title,payload:dadosRascunho()})});await carregarRascunhos()}catch(error){alert(error.message)}}
@@ -2325,10 +2385,22 @@ let comerciais=[];
 let comercialItens=[];
 const COMERCIAL_STATUS={draft:['p-off','Em elaboração'],approved:['p-ok','Aprovado'],converted:['p-ok','Convertido em NFS-e'],cancelled:['p-err','Cancelado']};
 function numeroComercial(item){const prefix=item.kind==='service_order'?'O.S.':'ORÇ';return `${prefix} nº ${String(item.document_number||0).padStart(4,'0')}`}
+function renderEmpresaComercial(){
+  const e=empresaAtual||{},name=e.rs||'Empresa ativa',cnpj=e.cnpj?formatarCnpj(e.cnpj):'CNPJ não informado',address=e.endereco||'Endereço não informado',contact=[e.email,e.phone].filter(Boolean).join(' · '),kind=qs('#co-kind')?.value==='service_order'?'ORDEM DE SERVIÇO':'ORÇAMENTO',number=qs('#co-number')?.value||'Será gerado ao salvar';
+  if(qs('#co-company-name'))qs('#co-company-name').textContent=name;
+  if(qs('#co-company-details'))qs('#co-company-details').innerHTML=`${esc(cnpj)}<br>${esc(address)}`;
+  if(qs('#co-company-contact'))qs('#co-company-contact').textContent=contact;
+  if(qs('#co-letter-kind'))qs('#co-letter-kind').textContent=kind;
+  if(qs('#co-letter-number'))qs('#co-letter-number').textContent=number.replace('Será gerado ao salvar','Nº 0001');
+  if(qs('#co-letter-date'))qs('#co-letter-date').textContent=new Date().toLocaleDateString('pt-BR');
+  const logo=qs('#e-logo-preview')?.src;if(logo&&qs('#co-company-logo'))qs('#co-company-logo').src=logo;
+  if(qs('#co-signature'))qs('#co-signature').textContent=`${e.municipio||'Cidade'}, ${new Date().toLocaleDateString('pt-BR')} · ${name}`;
+}
 function atualizarNumeroComercial(){
   const kind=qs('#co-kind')?.value||'quote';
   const max=comerciais.filter(item=>item.kind===kind).reduce((n,item)=>Math.max(n,Number(item.document_number||0)),0);
   const field=qs('#co-number');if(field)field.value=numeroComercial({kind,document_number:max+1});
+  renderEmpresaComercial();
 }
 function renderComerciais(){
   const box=qs('#commercial-list');if(!box)return;
@@ -2371,9 +2443,10 @@ async function salvarComercial(){
   if(!title||!customerName||!comercialItens.length||amount<=0){alert('Informe título, cliente e adicione ao menos um serviço.');return}
   const c=clienteComercialSelecionado;
   const borrower=c?{name:c.legal_name,legal_name:c.legal_name,tax_id:c.tax_id,email:c.email,phone:c.phone,address:c.address,postal_code:c.postal_code,municipality_code:c.municipality_code,street:c.street,number:c.number,complement:c.complement,district:c.district}:{name:customerName,legal_name:customerName};
-  try{await api('/api/workspace/commercial',{method:'POST',body:JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:{borrower,services:comercialItens,service:comercialItens[0]}})});qs('#co-title').value='';qs('#co-customer').value='';qs('#co-service').value='';qs('#co-description').value='';qs('#co-value').value='0,00';comercialItens=[];clienteComercialSelecionado=null;servicoComercialSelecionado=null;renderItensComerciais();selecionarClienteComercial();selecionarServicoComercial();await carregarComerciais()}catch(error){alert(error.message)}
+  const commercialPayload={borrower,services:comercialItens,service:comercialItens[0],observation:qs('#co-observation')?.value.trim()||'',payment:qs('#co-payment')?.value.trim()||'',conditions:qs('#co-conditions')?.value.trim()||''};
+  try{await api('/api/workspace/commercial',{method:'POST',body:JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:commercialPayload})});qs('#co-title').value='';qs('#co-customer').value='';qs('#co-service').value='';qs('#co-description').value='';qs('#co-value').value='0,00';qs('#co-observation').value='';qs('#co-payment').value='';qs('#co-conditions').value='';comercialItens=[];clienteComercialSelecionado=null;servicoComercialSelecionado=null;renderItensComerciais();selecionarClienteComercial();selecionarServicoComercial();await carregarComerciais()}catch(error){alert(error.message)}
 }
-async function converterComercial(index){const item=comerciais[index];try{const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'}),p=result.payload||{},b=p.borrower||{},services=Array.isArray(p.services)?p.services:[p.service].filter(Boolean),groups=new Map();services.forEach(service=>{const key=service.nbsCode||'sem-nbs',current=groups.get(key);if(current){current.amount=(Number(current.amount||0)+Number(service.amount||0)).toFixed(2);current.description=[current.description,service.description].filter(Boolean).join('; ')}else groups.set(key,{...service,amount:Number(service.amount||0).toFixed(2)})});const drafts=[...groups.values()];for(const service of drafts)await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title:`${item.title} · NBS ${service.nbsCode||'—'}`,payload:{competenceDate:qs('#s-comp').value,borrower:b,service}})});const s=drafts[0]||{};preencherCliente({...b,legal_name:b.legal_name||b.name,tax_id:b.tax_id||b.taxId||''});if(s.profileId&&perfisServico.some(profile=>profile.id===s.profileId)){qs('#s-profile').value=s.profileId;aplicarPerfilServico()}else{if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;qs('#s-nbs').value=s.nbsCode||''}qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';formatarDinheiro(qs('#s-val'));lerParametros();go('emitir',qs('.sb-link[onclick*="emitir"]'));alert(`${drafts.length} rascunho(s) criado(s), agrupado(s) por NBS. Confira antes de autorizar.`)}catch(error){alert(error.message)}}
+async function converterComercial(index){const item=comerciais[index];try{const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'}),p=result.payload||{},b=p.borrower||{},services=Array.isArray(p.services)?p.services:[p.service].filter(Boolean),groups=new Map();services.forEach(service=>{const key=service.nbsCode||'sem-nbs',current=groups.get(key);if(current){current.amount=(Number(current.amount||0)+Number(service.amount||0)).toFixed(2);current.description=[current.description,service.description].filter(Boolean).join('; ')}else groups.set(key,{...service,amount:Number(service.amount||0).toFixed(2)})});const drafts=[...groups.values()];for(const service of drafts)await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title:`${item.title} · NBS ${service.nbsCode||'—'}`,payload:{competenceDate:qs('#s-comp').value,borrower:b,service}})});const s=drafts[0]||{};preencherCliente({...b,legal_name:b.legal_name||b.name,tax_id:b.tax_id||b.taxId||''});if(s.profileId&&perfisServico.some(profile=>profile.id===s.profileId)){qs('#s-profile').value=s.profileId;aplicarPerfilServico()}else{if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode)}qs('#s-desc').value=s.description||'';qs('#s-val').value=s.amount||'0,00';formatarDinheiro(qs('#s-val'));lerParametros();go('emitir',qs('.sb-link[onclick*="emitir"]'));alert(`${drafts.length} rascunho(s) criado(s), agrupado(s) por NBS. Confira antes de autorizar.`)}catch(error){alert(error.message)}}
 
 
 /* ---------- importação ADN ---------- */
@@ -2443,7 +2516,7 @@ async function salvarCadastro(){
     mun:qs('#e-mun').value,
     municipio:empresaAtual?.municipio||qs('#e-mun').value,
     endereco:qs('#e-end').value.trim(),
-    postalCode:empresaAtual?.postalCode||'',street:empresaAtual?.street||'',number:empresaAtual?.number||'',complement:empresaAtual?.complement||'',district:empresaAtual?.district||'',state:empresaAtual?.state||'',
+    postalCode:empresaAtual?.postalCode||'',street:empresaAtual?.street||'',number:empresaAtual?.number||'',complement:empresaAtual?.complement||'',district:empresaAtual?.district||'',state:empresaAtual?.state||'',email:qs('#e-email').value.trim(),phone:qs('#e-phone').value.trim(),
     series:Number(qs('#e-series').value),next:qs('#e-next').value.replace(/\D/g,''),simpleAp:Number(qs('#e-simple-ap').value),simpleTotal:qs('#e-simple-total').value.trim()===''?'':dinheiro(qs('#e-simple-total').value),special:Number(qs('#e-special').value)
   };
   if(!empresa.rs||!empresa.cnpj){
@@ -2454,7 +2527,7 @@ async function salvarCadastro(){
   const regime=empresa.reg==='MEI'?'mei':empresa.reg.includes('Simples')?'simples':'regular';
   if(ambienteAtual==='production'&&regime==='simples'&&empresa.simpleTotal===''){alert('Informe o percentual aproximado total de tributos do Simples para habilitar emissões fiscais.');return}
   try{
-    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im||undefined,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,simpleTotalTaxRate:regime==='simples'&&empresa.simpleTotal!==''?empresa.simpleTotal:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next,address:empresa.endereco||undefined,postalCode:empresa.postalCode||undefined,street:empresa.street||undefined,number:empresa.number||undefined,complement:empresa.complement||undefined,district:empresa.district||undefined,state:empresa.state||undefined})});
+    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im||undefined,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,simpleTotalTaxRate:regime==='simples'&&empresa.simpleTotal!==''?empresa.simpleTotal:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next,address:empresa.endereco||undefined,postalCode:empresa.postalCode||undefined,street:empresa.street||undefined,number:empresa.number||undefined,complement:empresa.complement||undefined,district:empresa.district||undefined,state:empresa.state||undefined,email:empresa.email||undefined,phone:empresa.phone||undefined})});
     empresaAtual=empresa;
     localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresa));
   }catch(error){alert(error.message);return}
@@ -2491,7 +2564,7 @@ function aplicarEmpresa(){
   qs('#e-im').value=empresaAtual.im;
   qs('#e-reg').value=empresaAtual.reg;
   qs('#e-mun').value=empresaAtual.mun;exibirMunicipioPorCodigo('e',empresaAtual.mun);
-  qs('#e-end').value=empresaAtual.endereco;
+  qs('#e-end').value=empresaAtual.endereco;qs('#e-email').value=empresaAtual.email||'';qs('#e-phone').value=empresaAtual.phone||'';
   qs('#e-series').value=empresaAtual.series||1;qs('#e-next').value=empresaAtual.next||1;qs('#e-simple-ap').value=String(empresaAtual.simpleAp||1);qs('#e-simple-total').value=empresaAtual.simpleTotal===''?'':String(empresaAtual.simpleTotal).replace('.',',');qs('#e-special').value=String(empresaAtual.special||0);
   if(empresaAtual.mun)qs('#s-mun').value=empresaAtual.mun;
   qs('#resumo-regime').textContent=empresaAtual.reg;
@@ -2645,20 +2718,23 @@ async function aceitarConvite(token){
 }
 
 async function prepararRedefinicao(token){
-  const action=qs('#login-action'),hint=qs('.login-sub');
-  if(!token){hint.textContent='Abra o link temporário gerado pelo gestor master para redefinir sua senha.';action.disabled=true;action.textContent='Link necessário';return}
+  qs('#login').classList.add('hide');qs('#reset-screen').classList.add('on');
+  const action=qs('#reset-action'),hint=qs('#reset-hint'),account=qs('#reset-account'),password=qs('#reset-password'),confirmation=qs('#reset-password-confirm');
+  if(!token){account.textContent='Nenhum link temporário foi informado.';hint.textContent='Abra o link gerado pelo gestor master para liberar a redefinição.';hint.classList.add('error');return}
   try{
     const info=await api('/api/auth/password-resets/'+encodeURIComponent(token));
-    ocultarCampoCnpjLogin();qs('#li-mail').value=info.email||'';qs('#li-mail').readOnly=true;qs('#li-pw').value='';qs('#li-pw').placeholder='Nova senha (10+ caracteres)';qs('#li-reset-confirm-wrap').style.display='block';
-    hint.textContent='Defina uma nova senha com pelo menos 10 caracteres. O link expira em 30 minutos e só pode ser usado uma vez.';action.disabled=false;action.textContent='Salvar nova senha';action.onclick=()=>confirmarRedefinicao(token);
-  }catch(error){hint.textContent=error.message;action.disabled=true;action.textContent='Link inválido'}
+    account.textContent=`Conta: ${info.email||'usuário TITAN'}`;hint.textContent='Link válido por 30 minutos e de uso único. Defina uma senha com pelo menos 10 caracteres.';password.disabled=false;confirmation.disabled=false;action.disabled=false;action.onclick=()=>confirmarRedefinicao(token);password.focus();
+  }catch(error){account.textContent='Não foi possível validar este link.';hint.textContent=error.message;hint.classList.add('error');action.disabled=true}
 }
 async function confirmarRedefinicao(token){
-  const password=qs('#li-pw').value,confirmation=qs('#li-pw-confirm').value;
-  if(password.length<10){alert('A nova senha precisa ter pelo menos 10 caracteres.');return}
-  if(password!==confirmation){alert('A confirmação da senha não confere.');return}
-  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password})});alert('Senha redefinida. Entre novamente com a nova senha.');window.top.location.href='/nfs/entrar'}catch(error){alert(error.message)}
+  const password=qs('#reset-password').value,confirmation=qs('#reset-password-confirm').value,hint=qs('#reset-hint'),action=qs('#reset-action');
+  hint.classList.remove('error','ok');
+  if(password.length<10){hint.textContent='A nova senha precisa ter pelo menos 10 caracteres.';hint.classList.add('error');return}
+  if(password!==confirmation){hint.textContent='A confirmação não confere. Digite a mesma senha nos dois campos.';hint.classList.add('error');return}
+  action.disabled=true;action.textContent='Salvando...';
+  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password})});hint.textContent='Senha definida com sucesso. Redirecionando para o login...';hint.classList.add('ok');window.setTimeout(()=>window.top.location.href='/nfs/entrar',700)}catch(error){hint.textContent=error.message;hint.classList.add('error');action.disabled=false;action.textContent='Definir senha'}
 }
+function alternarSenha(id,button){const input=qs('#'+id);if(!input)return;const visible=input.type==='password';input.type=visible?'text':'password';button.setAttribute('aria-pressed',String(visible));button.setAttribute('aria-label',visible?'Ocultar senha':'Mostrar senha')}
 
 function carregarEstado(){
   try{empresaAtual=JSON.parse(localStorage.getItem(STORAGE_EMPRESA)||'null')}catch{empresaAtual=null}
@@ -2700,7 +2776,7 @@ if(PORTAL_FIRST&&!temConvite){
   qs('.login-sub').textContent='Para definir sua senha, abra o convite enviado pelo gestor master. O link identifica a empresa e expira após o uso.';
   qs('#login-action').disabled=true;qs('#login-action').textContent='Aguardando convite';
   qs('#login-context-link').textContent='Voltar ao acesso do cliente';qs('#login-context-link').href='/nfs/entrar';ocultarCampoEmailLogin();
-}else if(PORTAL_RESET){qs('.login-h').textContent='Redefinir senha';qs('#login-context-link').textContent='Voltar ao acesso do cliente';qs('#login-context-link').href='/nfs/entrar';qs('#login-first-link').style.display='none';qs('#login-reset-link').style.display='none';ocultarCampoCnpjLogin();prepararRedefinicao(PORTAL_QUERY.get('token'));}
+}else if(PORTAL_RESET){prepararRedefinicao(PORTAL_QUERY.get('token'));}
 else if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/nfs/entrar';if(!temConvite)ocultarCampoCnpjLogin();}
 else if(!temConvite){ocultarCampoEmailLogin();qs('.login-sub').textContent='Entre com o CNPJ da empresa e sua senha individual.';if(PORTAL_CNPJ){qs('#li-cnpj').value=formatarCnpj(PORTAL_CNPJ);qs('#li-cnpj').readOnly=true;qs('.login-sub').textContent=`Informe sua senha para acessar o CNPJ ${formatarCnpj(PORTAL_CNPJ)}.`;}}
 
