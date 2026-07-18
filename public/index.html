@@ -7,11 +7,10 @@
   <title>TITAN NFS-e</title>
   <script>
     (() => {
-      const target = '/nfs';
       try {
-        if (window.top !== window.self) window.top.location.replace(target);
+        if (window.top !== window.self) window.top.location.replace('/nfs');
       } catch (_) {}
-      location.replace(target);
+      location.replace('/nfs');
     })();
   </script>
 </head>
