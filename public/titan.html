@@ -704,9 +704,14 @@ main{margin-left:258px;padding-top:72px}
       <label for="li-pw">Senha</label>
       <input id="li-pw" type="password" placeholder="Sua senha" autocomplete="current-password">
     </div>
+    <div class="login-field" id="li-reset-confirm-wrap" style="display:none">
+      <label for="li-pw-confirm">Confirmar nova senha</label>
+      <input id="li-pw-confirm" type="password" placeholder="Repita a nova senha" autocomplete="new-password">
+    </div>
     <button id="login-action" class="btn-gold" style="margin-top:8px" onclick="iniciarCadastro()">Entrar</button>
     <a id="login-context-link" class="login-context-link" href="/nfs/admin">Sou administrador master</a>
     <a id="login-first-link" class="login-context-link" href="/nfs/primeiro-acesso">Primeiro acesso · definir senha</a>
+    <a id="login-reset-link" class="login-context-link" href="/nfs/redefinir-senha">Tenho um link · redefinir senha</a>
     <div class="login-foot">
       O ambiente ativo é consultado diretamente no backend seguro.<br>
       <b id="login-env" style="color:#c9a84c">Verificando ambiente...</b>
@@ -1447,6 +1452,7 @@ const PORTAL_MODE=(PORTAL_QUERY.get('portal')||PORTAL_PATH).toLowerCase();
 const PORTAL_ADMIN=['admin','adm'].includes(PORTAL_MODE);
 const PORTAL_HELP=PORTAL_MODE==='help';
 const PORTAL_FIRST=PORTAL_MODE==='first';
+const PORTAL_RESET=PORTAL_MODE==='reset';
 const PORTAL_CNPJ=(PORTAL_QUERY.get('tenant')||(/^\d{14}$/.test(PORTAL_PATH)?PORTAL_PATH:'')).replace(/\D/g,'');
 document.body.classList.toggle('portal-admin',PORTAL_ADMIN);
 document.body.classList.toggle('portal-help',PORTAL_HELP);
@@ -2515,7 +2521,7 @@ async function carregarMaster(){
     qs('#master-profile').innerHTML=masterData.profiles.map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(p.plan_code)}</option>`).join('');
     qs('#profile-permissions').innerHTML=masterData.permissions.map(p=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${p}" checked> ${esc(permissionLabels[p]||p)}</label>`).join('');
     qs('#master-companies').innerHTML=masterData.companies.map(c=>`<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(formatarCnpj(c.federal_tax_id))}</span></td><td>${esc(c.plan_code)}</td><td>${c.users}</td><td><span class="pill ${c.emission_enabled?'p-ok':'p-warn'}">${c.emission_enabled?'Emissão liberada':'Cadastro pendente'}</span></td><td><button class="btn btn-s" ${c.emission_enabled?'':'disabled'} onclick="abrirEmpresaEmissao('${c.id}')">Abrir ↗</button></td></tr>`).join('')||'<tr><td colspan="5">Nenhuma empresa.</td></tr>';
-    qs('#master-users').innerHTML=masterData.users.filter(u=>u.company_id).map(u=>{const active=u.active!==false&&u.access_active!==false;return `<tr><td><b>${esc(u.name)}</b> ${u.is_master?'<span class="pill p-ok">MASTER</span>':''}<br><span>${esc(u.email)}</span><br><small style="color:var(--gold-dim)">${esc(u.legal_name||'—')} · ${esc(formatarCnpj(u.federal_tax_id||''))}</small></td><td><select class="inp" id="access-${u.id}-${u.company_id}" style="padding:5px" ${u.is_master?'disabled':''}>${masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u.profile_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></td><td><span class="pill ${active?'p-ok':'p-off'}">${active?'Liberado':'Suspenso'}</span></td><td><div class="acts">${u.is_master?'<span class="foot-note">Protegido</span>':`<button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',true)">${active?'Salvar':'Liberar'}</button><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',false)">Suspender</button>`}</div></td></tr>`}).join('')||'<tr><td colspan="4">Nenhum vínculo.</td></tr>';
+    qs('#master-users').innerHTML=masterData.users.filter(u=>u.company_id).map(u=>{const active=u.active!==false&&u.access_active!==false;return `<tr><td><b>${esc(u.name)}</b> ${u.is_master?'<span class="pill p-ok">MASTER</span>':''}<br><span>${esc(u.email)}</span><br><small style="color:var(--gold-dim)">${esc(u.legal_name||'—')} · ${esc(formatarCnpj(u.federal_tax_id||''))}</small></td><td><select class="inp" id="access-${u.id}-${u.company_id}" style="padding:5px" ${u.is_master?'disabled':''}>${masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u.profile_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></td><td><span class="pill ${active?'p-ok':'p-off'}">${active?'Liberado':'Suspenso'}</span></td><td><div class="acts">${u.is_master?'<span class="foot-note">Protegido</span>':`<button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',true)">${active?'Salvar':'Liberar'}</button><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',false)">Suspender</button>`}<button class="btn btn-s" onclick="gerarRedefinicaoSenha('${u.id}')">Redefinir senha</button></div></td></tr>`}).join('')||'<tr><td colspan="4">Nenhum vínculo.</td></tr>';
     qs('#master-invites').innerHTML=masterData.invitations.map(i=>{const status=i.accepted_at?['p-ok','Aceito']:new Date(i.expires_at)<new Date()?['p-err','Expirado']:['p-warn','Pendente'];return `<tr><td><b>${esc(i.email)}</b><br><small>${esc(i.legal_name)}</small><br><span class="mono">${esc(i.federal_tax_id)}</span></td><td>${esc(i.profile_name||'—')}</td><td><span class="pill ${status[0]}">${status[1]}</span></td></tr>`}).join('')||'<tr><td colspan="3">Nenhum convite.</td></tr>';
     qs('#master-profiles').innerHTML=masterData.profiles.map(p=>{const permissions=Array.isArray(p.permissions)?p.permissions:[];return `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.plan_code)}</td><td>${esc(permissions.map(permission=>permissionLabels[permission]||permission).join(', ')||'Sem permissões')}</td><td><button class="btn btn-s" onclick="editarPerfilAcesso('${p.id}')">Editar</button></td></tr>`}).join('')||'<tr><td colspan="4">Nenhum perfil.</td></tr>';
     renderEmpresasAdmin();
@@ -2567,6 +2573,12 @@ async function salvarAcesso(userId,companyId,active){
   const profileId=qs(`#access-${userId}-${companyId}`).value;
   try{await api('/api/master/users/'+userId+'/access',{method:'PUT',body:JSON.stringify({companyId,profileId,active})});await carregarMaster()}catch(error){alert(error.message)}
 }
+async function gerarRedefinicaoSenha(userId){
+  try{
+    const result=await api('/api/master/users/'+userId+'/password-reset',{method:'POST'});
+    const link=new URL(result.resetPath,location.origin).href,box=qs('#master-link');box.style.display='flex';box.innerHTML=`<div><b>Link de redefinição válido por ${result.expiresInMinutes} minutos</b><br><span id="reset-url">${esc(link)}</span><br><button class="btn btn-s" style="margin-top:8px" onclick="navigator.clipboard.writeText(qs('#reset-url').textContent)">Copiar link</button></div>`;
+  }catch(error){alert(error.message)}
+}
 
 async function prepararConvite(){
   const token=new URLSearchParams(location.search).get('invite');
@@ -2593,6 +2605,22 @@ async function aceitarConvite(token){
     localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:name,email:accepted.user.email,cnpj:accepted.companies?.[0]?.federal_tax_id||PORTAL_CNPJ}));history.replaceState({},'',location.pathname);
     await carregarEmpresaServidor();await carregarNotasServidor();aplicarAcesso({user:accepted.user,companies:accepted.companies});qs('#login').classList.add('hide');qs('#app').classList.add('on');carregarEstado();render();PORTAL_HELP?(go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]')),setTimeout(()=>supOpen(),80)):go('painel',qs('.sb-link[onclick*="painel"]'));
   }catch(error){alert(error.message)}
+}
+
+async function prepararRedefinicao(token){
+  const action=qs('#login-action'),hint=qs('.login-sub');
+  if(!token){hint.textContent='Abra o link temporário gerado pelo gestor master para redefinir sua senha.';action.disabled=true;action.textContent='Link necessário';return}
+  try{
+    const info=await api('/api/auth/password-resets/'+encodeURIComponent(token));
+    ocultarCampoCnpjLogin();qs('#li-mail').value=info.email||'';qs('#li-mail').readOnly=true;qs('#li-pw').value='';qs('#li-pw').placeholder='Nova senha (10+ caracteres)';qs('#li-reset-confirm-wrap').style.display='block';
+    hint.textContent='Defina uma nova senha com pelo menos 10 caracteres. O link expira em 30 minutos e só pode ser usado uma vez.';action.disabled=false;action.textContent='Salvar nova senha';action.onclick=()=>confirmarRedefinicao(token);
+  }catch(error){hint.textContent=error.message;action.disabled=true;action.textContent='Link inválido'}
+}
+async function confirmarRedefinicao(token){
+  const password=qs('#li-pw').value,confirmation=qs('#li-pw-confirm').value;
+  if(password.length<10){alert('A nova senha precisa ter pelo menos 10 caracteres.');return}
+  if(password!==confirmation){alert('A confirmação da senha não confere.');return}
+  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password})});alert('Senha redefinida. Entre novamente com a nova senha.');location.href='/nfs/entrar'}catch(error){alert(error.message)}
 }
 
 function carregarEstado(){
@@ -2635,7 +2663,8 @@ if(PORTAL_FIRST&&!temConvite){
   qs('.login-sub').textContent='Para definir sua senha, abra o convite enviado pelo gestor master. O link identifica a empresa e expira após o uso.';
   qs('#login-action').disabled=true;qs('#login-action').textContent='Aguardando convite';
   qs('#login-context-link').textContent='Voltar ao acesso do cliente';qs('#login-context-link').href='/nfs/entrar';ocultarCampoEmailLogin();
-}else if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/nfs/entrar';if(!temConvite)ocultarCampoCnpjLogin();}
+}else if(PORTAL_RESET){qs('.login-h').textContent='Redefinir senha';qs('#login-context-link').textContent='Voltar ao acesso do cliente';qs('#login-context-link').href='/nfs/entrar';qs('#login-first-link').style.display='none';qs('#login-reset-link').style.display='none';ocultarCampoCnpjLogin();prepararRedefinicao(PORTAL_QUERY.get('token'));}
+else if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/nfs/entrar';if(!temConvite)ocultarCampoCnpjLogin();}
 else if(!temConvite){ocultarCampoEmailLogin();qs('.login-sub').textContent='Entre com o CNPJ da empresa e sua senha individual.';if(PORTAL_CNPJ){qs('#li-cnpj').value=formatarCnpj(PORTAL_CNPJ);qs('#li-cnpj').readOnly=true;qs('.login-sub').textContent=`Informe sua senha para acessar o CNPJ ${formatarCnpj(PORTAL_CNPJ)}.`;}}
 
 /* ---------- SUPORTE / ASSISTENTE TITAN ---------- */
