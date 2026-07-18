@@ -192,6 +192,14 @@ main{margin-left:230px;padding:58px 0 0}
 .page-h h1{font-size:24px;font-weight:750;letter-spacing:-.025em;line-height:1.2}
 .page-h p{color:var(--ink-2);font-size:13px;margin-top:5px;max-width:62ch}
 
+/* ---------- CENTRAL DE AJUDA MARTYN ---------- */
+.help-hero{display:flex;align-items:center;justify-content:space-between;gap:26px;padding:26px 28px;margin-bottom:16px;border:1px solid #2a4166;border-radius:10px;background:linear-gradient(120deg,var(--navy),#18345a 65%,#244d73);color:#fff;overflow:hidden}
+.help-hero h1{max-width:650px;margin:6px 0 9px;font-size:28px;line-height:1.12;letter-spacing:-.035em}
+.help-hero p{max-width:680px;color:#c4d0e2;font-size:13px;line-height:1.65}
+.help-badges{display:flex;flex-wrap:wrap;gap:7px;margin:15px 0 18px}.help-badges span{padding:5px 9px;border:1px solid #466183;border-radius:999px;color:#d7e2f1;font-size:10px;font-weight:700}
+.help-orb{width:108px;height:108px;flex:none;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 28%,#e8d18a,#c9a84c 48%,#806a2f);box-shadow:0 14px 34px rgba(0,0,0,.2);color:var(--navy);font-weight:850;font-size:25px;position:relative}.help-orb i{position:absolute;width:13px;height:13px;right:11px;bottom:15px;border-radius:50%;background:var(--ok);border:3px solid #d7bd67}
+.help-layout{display:grid;grid-template-columns:minmax(220px,.68fr) minmax(0,1.32fr);gap:14px;align-items:start}.help-categories .card-b{padding:12px}.help-topic-list{display:flex;flex-direction:column;gap:6px;margin-top:10px}.help-topic{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;text-align:left;font-size:12px;font-weight:650;color:var(--ink-2)}.help-topic:hover,.help-topic.on{border-color:var(--gold);background:#fbf6e8;color:var(--ink)}.help-topic small{font-size:10px;color:var(--ink-3)}.help-faq-list{display:grid;gap:8px}.help-faq-item{border:1px solid var(--line);border-radius:8px;background:#fff;overflow:hidden}.help-faq-q{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 13px;text-align:left;width:100%;font-size:12px;font-weight:700}.help-faq-q:hover{background:#fbfaf7}.help-faq-a{display:none;padding:0 13px 13px;color:var(--ink-2);font-size:12px;line-height:1.6}.help-faq-item.on .help-faq-a{display:block}.help-faq-item.on .help-faq-q{color:var(--gold-dim)}.help-action-note{margin-top:14px;padding:12px 14px;border:1px solid #e7d8ad;border-radius:8px;background:#fbf6e8;color:var(--ink-2);font-size:12px;line-height:1.55}.help-action-note b{color:var(--ink)}
+
 /* ---------- CARDS ---------- */
 .card{
   background:var(--paper);border:1px solid var(--line);border-radius:var(--r);
@@ -598,6 +606,7 @@ main{margin-left:258px;padding-top:72px}
   .kpi .val{font-size:22px}
   .cgsn-days{font-size:40px}
   .chart{height:110px}
+  .help-hero{padding:22px 18px;align-items:flex-start}.help-hero h1{font-size:23px}.help-orb{width:78px;height:78px;font-size:18px}.help-layout{grid-template-columns:1fr}
   .acts{gap:3px}
   .ico-btn{width:30px;height:30px}
   .flex.wrap>.btn,.flex.wrap>.btn-a{flex:1}
@@ -739,8 +748,9 @@ main{margin-left:258px;padding-top:72px}
       <button class="sb-link" type="button" onclick="alternarGrupoMenu('integracoes-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Integrações<span class="sb-chevron">›</span></button>
       <div class="sb-submenu" id="integracoes-menu"><button class="sb-link" data-permission="import" onclick="go('importar',this)">Portal Nacional</button><button class="sb-link" onclick="moduloIndisponivel('Integração por e-mail')">E-mail<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Integração com WhatsApp')">WhatsApp<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('Open Finance')">Open Finance<span class="nav-alert">⚠</span></button><button class="sb-link" onclick="moduloIndisponivel('API e webhooks')">API e webhooks<span class="nav-alert">⚠</span></button></div>
 
-      <div class="sb-sec">Configurações</div>
-      <button class="sb-link" onclick="abrirGestao()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Usuários e permissões<span class="nav-alert">⚠</span></button>
+       <div class="sb-sec">Configurações</div>
+       <button class="sb-link" data-permission="dashboard" onclick="go('ajuda',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 4.3 1.5c-.8.8-2.1 1.3-2.1 2.7M12 17h.01"/></svg>Ajuda / Martyn</button>
+       <button class="sb-link" onclick="abrirGestao()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Usuários e permissões<span class="nav-alert">⚠</span></button>
       <button class="sb-link" data-permission="certificate" onclick="go('cert',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Certificado digital</button>
       <button class="sb-link" data-permission="company_settings" onclick="go('emitente',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>Preferências</button>
       <div id="master-menu" style="display:none"><div class="sb-sec">Administração</div><button class="sb-link" onclick="abrirGestao()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/></svg>Gestão master</button><button class="sb-link" onclick="moduloIndisponivel('Logs e auditoria')"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>Logs e auditoria<span class="nav-alert">⚠</span></button></div>
@@ -1320,6 +1330,34 @@ main{margin-left:258px;padding-top:72px}
       </div>
     </section>
 
+    <!-- ---------- CENTRAL DE AJUDA MARTYN ---------- -->
+    <section class="view" id="v-ajuda">
+      <div class="help-hero">
+        <div>
+          <div class="eyebrow" style="color:var(--gold)">Central de ajuda TITAN</div>
+          <h1>Martyn acompanha sua conta e resolve com você.</h1>
+          <p>Pergunte sobre o Portal Nacional, peça uma busca de notas ou navegue até qualquer módulo. O assistente usa a empresa ativa e as permissões da sua sessão.</p>
+          <div class="help-badges"><span>● Base oficial</span><span>● Ações na empresa ativa</span><span>● Confirmação fiscal obrigatória</span></div>
+          <button class="btn btn-gold" type="button" onclick="supOpen()">Abrir conversa com Martyn ↗</button>
+        </div>
+        <div class="help-orb" aria-hidden="true"><span>TA</span><i></i></div>
+      </div>
+      <div class="help-layout">
+        <aside class="card help-categories">
+          <div class="card-h"><div><h2>Encontre uma resposta</h2><p>Escolha um assunto ou pesquise abaixo.</p></div></div>
+          <div class="card-b">
+            <input id="help-search" class="inp" type="search" placeholder="Buscar em ajuda e FAQ..." oninput="helpRenderFaq()" aria-label="Buscar na central de ajuda">
+            <div id="help-topic-list" class="help-topic-list"></div>
+          </div>
+        </aside>
+        <section class="card help-faq-card">
+          <div class="card-h"><div><h2>Perguntas frequentes</h2><p>Respostas oficiais e orientações do TITAN para sua operação.</p></div><span class="pill p-ok">Martyn online</span></div>
+          <div class="card-b"><div id="help-faq-list" class="help-faq-list"></div></div>
+        </section>
+      </div>
+      <div class="help-action-note"><b>Quer cancelar uma nota?</b> Diga “cancelar a nota 22”. Martyn localizará a NFS-e autorizada e abrirá a tela oficial; o motivo e a confirmação continuam obrigatórios antes do envio à Sefin.</div>
+    </section>
+
     <!-- ---------- LOGS ---------- -->
     <section class="view" id="v-logs">
       <div class="page-h">
@@ -1397,9 +1435,12 @@ const STORAGE_SESSION='titan_nfse_access_v1';
 const STORAGE_COMPANY_ID='titan_nfse_company_id_v1';
 const PORTAL_QUERY=new URLSearchParams(location.search);
 const PORTAL_PATH=location.pathname.match(/^\/nfs\/(admin|adm|\d{14})\/?$/i)?.[1]||'';
-const PORTAL_ADMIN=['admin','adm'].includes((PORTAL_QUERY.get('portal')||PORTAL_PATH).toLowerCase());
+const PORTAL_MODE=(PORTAL_QUERY.get('portal')||PORTAL_PATH).toLowerCase();
+const PORTAL_ADMIN=['admin','adm'].includes(PORTAL_MODE);
+const PORTAL_HELP=PORTAL_MODE==='help';
 const PORTAL_CNPJ=(PORTAL_QUERY.get('tenant')||(/^\d{14}$/.test(PORTAL_PATH)?PORTAL_PATH:'')).replace(/\D/g,'');
 document.body.classList.toggle('portal-admin',PORTAL_ADMIN);
+document.body.classList.toggle('portal-help',PORTAL_HELP);
 const dataBrasil=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 qs('#s-comp').value=dataBrasil();
 let ambienteAtual='restricted';
@@ -1435,7 +1476,7 @@ function buscarNoPortal(value){
   const input=qs('#global-search'),query=String(value||'').trim().toLocaleLowerCase('pt-BR');
   buscaPortalView='';
   if(!input)return;
-  const aliases=[['nota','notas'],['nfse','emitir'],['emissão','emitir'],['emissao','emitir'],['cliente','clientes'],['tomador','clientes'],['orçamento','comercial'],['orcamento','comercial'],['ordem','comercial'],['meus serviços','servicos'],['meus servicos','servicos'],['serviço','servicos'],['servico','servicos'],['certificado','cert'],['importar','importar'],['empresa','emitente'],['emitente','emitente'],['master','master']];
+  const aliases=[['nota','notas'],['nfse','emitir'],['emissão','emitir'],['emissao','emitir'],['cliente','clientes'],['tomador','clientes'],['orçamento','comercial'],['orcamento','comercial'],['ordem','comercial'],['meus serviços','servicos'],['meus servicos','servicos'],['serviço','servicos'],['servico','servicos'],['certificado','cert'],['importar','importar'],['empresa','emitente'],['emitente','emitente'],['ajuda','ajuda'],['martyn','ajuda'],['suporte','ajuda'],['master','master']];
   const alias=aliases.find(([term])=>query.includes(term));
   const links=[...qsa('.sb-link')].filter(el=>getComputedStyle(el).display!=='none');
   const match=alias?links.find(el=>(el.getAttribute('onclick')||'').includes(`go('${alias[1]}'`)):links.find(el=>supNorm(el.textContent).includes(supNorm(query)));
@@ -1515,7 +1556,7 @@ async function iniciarCadastro(){
     carregarAmbiente().catch(()=>{});
     login=await api('/api/auth/login',{method:'POST',body:JSON.stringify(PORTAL_ADMIN?{email,password:senha}:{federalTaxId:cnpj,password:senha})});
     selecionarDestinoPortal(login);
-    if(!PORTAL_ADMIN){
+    if(!PORTAL_ADMIN&&!PORTAL_HELP){
       const alvo=(login.companies||[]).find(item=>String(item.federal_tax_id||'').replace(/\D/g,'')===cnpj);
       if(!alvo)throw new Error('Seu usuário não tem acesso liberado para este CNPJ.');
       sessionStorage.setItem(STORAGE_COMPANY_ID,alvo.id);
@@ -1536,9 +1577,11 @@ async function iniciarCadastro(){
   aplicarAcesso(login);
   carregarEstado();
   render();
-  if(PORTAL_ADMIN){
-    go('master',qs('.admin-sidebar .sb-link'));
-  }else if(empresaAtual){
+    if(PORTAL_ADMIN){
+      go('master',qs('.admin-sidebar .sb-link'));
+    }else if(PORTAL_HELP){
+      go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]'));setTimeout(()=>supOpen(),80);
+    }else if(empresaAtual){
     go('painel',qs('.sb-link[onclick*="painel"]'));
   }else{
     go('emitente',qs('.sb-link[onclick*="emitente"]'));
@@ -1582,6 +1625,7 @@ function go(v,el){
   }
   if(v==='importar')carregarImportStatus();
   if(v==='servicos'){carregarPerfisServico();buscarCatalogoServico()}
+  if(v==='ajuda'){helpRenderTopics();helpRenderFaq()}
   if(v==='master')carregarMaster();
   if(v==='emitir'){carregarRascunhos();exibirMunicipioPorCodigo('s',qs('#s-mun').value)}
   if(v==='clientes')carregarClientesCadastro();
@@ -2505,7 +2549,7 @@ async function aceitarConvite(token){
     const accepted=await api('/api/auth/invitations/'+encodeURIComponent(token)+'/accept',{method:'POST',body:JSON.stringify({name,password})});
     sessionStorage.setItem(STORAGE_TOKEN,accepted.token);sessionStorage.setItem(STORAGE_COMPANY_ID,accepted.companyId);sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:accepted.user,companies:accepted.companies||[]}));
     localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:name,email:accepted.user.email,cnpj:accepted.companies?.[0]?.federal_tax_id||PORTAL_CNPJ}));history.replaceState({},'',location.pathname);
-    await carregarEmpresaServidor();await carregarNotasServidor();aplicarAcesso({user:accepted.user,companies:accepted.companies});qs('#login').classList.add('hide');qs('#app').classList.add('on');carregarEstado();render();go('painel',qs('.sb-link[onclick*="painel"]'));
+    await carregarEmpresaServidor();await carregarNotasServidor();aplicarAcesso({user:accepted.user,companies:accepted.companies});qs('#login').classList.add('hide');qs('#app').classList.add('on');carregarEstado();render();PORTAL_HELP?(go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]')),setTimeout(()=>supOpen(),80)):go('painel',qs('.sb-link[onclick*="painel"]'));
   }catch(error){alert(error.message)}
 }
 
@@ -2527,7 +2571,7 @@ async function entrarViaGestor(data){
     sessionStorage.setItem(STORAGE_TOKEN,data.token);sessionStorage.setItem(STORAGE_COMPANY_ID,data.companyId);sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:data.user||{},companies:data.companies||[]}));
     localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:data.user?.name||'Gestor TITAN',email:data.user?.email||'',cnpj:data.companies[0].federal_tax_id||''}));history.replaceState({},'',location.pathname+location.search);
     await carregarAmbiente();await carregarEmpresaServidor();await carregarNotasServidor();carregarServicos().catch(()=>{});
-    qs('#login').classList.add('hide');qs('#app').classList.add('on');aplicarAcesso({user:data.user,companies:data.companies});carregarEstado();render();go('painel',qs('.user-sidebar .sb-link[onclick*="painel"]'));
+    qs('#login').classList.add('hide');qs('#app').classList.add('on');aplicarAcesso({user:data.user,companies:data.companies});carregarEstado();render();PORTAL_HELP?(go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]')),setTimeout(()=>supOpen(),80)):go('painel',qs('.user-sidebar .sb-link[onclick*="painel"]'));
   }catch(error){alert(error.message)}
 }
 
@@ -2597,8 +2641,25 @@ const supTopics=[
   a:()=>`Para criar um orçamento ou O.S., selecione um <b>cliente</b> e um item de <b>Meus serviços</b>. Ao converter, o TITAN leva tomador, descrição, códigos e retenções à tela de emissão para revisão.`,
   act:[['Abrir Orçamentos e O.S.','comercial']]},
  {id:'suporte',chip:'Ajuda oficial',kw:['ajuda oficial','suporte oficial','atendimento receita','sebrae','falar com receita','documentacao oficial'],
-  a:()=>`Para orientação oficial, consulte a FAQ, os guias atuais e os canais de atendimento da NFS-e. Para MEI, o portal recomenda também o suporte do Sebrae.${supFonte(SUP_OFICIAL.canais,'Canais oficiais de atendimento')}`}
+   a:()=>`Para orientação oficial, consulte a FAQ, os guias atuais e os canais de atendimento da NFS-e. Para MEI, o portal recomenda também o suporte do Sebrae.${supFonte(SUP_OFICIAL.canais,'Canais oficiais de atendimento')}`}
 ];
+
+function helpRenderTopics(){
+  const box=qs('#help-topic-list');if(!box)return;
+  const topics=[['diag','Analisar minha conta'],...supTopics.map(t=>[t.id,t.chip])];
+  box.innerHTML=topics.map(([id,label])=>`<button class="help-topic" type="button" onclick="helpOpenTopic('${id}')"><span>${esc(label)}</span><small>›</small></button>`).join('');
+}
+function helpRenderFaq(){
+  const box=qs('#help-faq-list');if(!box)return;
+  const term=supNorm(qs('#help-search')?.value||'');
+  const topics=supTopics.filter(t=>!term||supNorm(`${t.chip} ${t.kw.join(' ')}`).includes(term));
+  box.innerHTML=topics.length?topics.map(t=>`<article class="help-faq-item"><button class="help-faq-q" type="button" onclick="this.parentElement.classList.toggle('on')"><span>${esc(t.chip)}</span><span>⌄</span></button><div class="help-faq-a">${t.a()}</div></article>`).join(''):'<div class="empty-state">Nenhuma resposta encontrada. Abra o Martyn para reformular sua pergunta.</div>';
+}
+function helpOpenTopic(id){
+  if(id==='diag'){supOpen();supBubble('🔎 Analisar minha conta','me');supAnalisar();return}
+  const topic=supTopics.find(t=>t.id===id);if(!topic)return;
+  supOpen();supBubble(esc(topic.chip),'me');supAnswerTopic(topic);
+}
 
 function supGo(v){try{const el=[...document.querySelectorAll('.sb-link')].find(b=>(b.getAttribute('onclick')||'').includes("go('"+v+"'"));go(v,el);}catch(e){}if(window.innerWidth<=760)supClose();}
 function supDo(v){if(v==='diag'){supBubble('🔎 Analisar minha conta','me');supAnalisar();return}supGo(v);}
@@ -2625,12 +2686,32 @@ function supFiltrarNotas(text){
   return {lista,filtrou,chave,numero:numero?.[1]||null};
 }
 function supNotaCard(n){
-  const status=sit[n.st]?.[1]||n.st,acoes=n.key?`<div class="sup-act"><button type="button" onclick="supNotaDetalhe('${n.id}')">Detalhes</button><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}')">Abrir PDF</button></div>`:'<span>Documento ainda sem XML autorizado.</span>';
+  const status=sit[n.st]?.[1]||n.st;
+  let acoes=n.key?`<div class="sup-act"><button type="button" onclick="supNotaDetalhe('${n.id}')">Detalhes</button><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}')">Abrir PDF</button>`:'<span>Documento ainda sem XML autorizado.</span>';
+  if(n.key&&n.st==='ok')acoes+=`<button type="button" onclick="supPrepararCancelamento('${n.id}')">Preparar cancelamento</button>`;
+  if(n.key)acoes+='</div>';
   return `<div class="sup-note-card"><b>DPS ${esc(n.n)} · ${esc(status)}</b><span>${esc(n.d)} · ${esc(n.t||'Tomador não informado')}</span><span>${esc(n.s||'Serviço')} · R$ ${brl(Number(n.v||0))}</span>${acoes}</div>`;
 }
 function supNotaDetalhe(id){
   const n=notas.find(item=>item.id===id);if(!n){supBubble('Não encontrei mais essa nota na empresa ativa. Atualize o histórico e tente novamente.','bot');return}
-  supBubble(`<b>Detalhes da DPS ${esc(n.n)}</b><ul><li>Situação: <b>${esc(sit[n.st]?.[1]||n.st)}</b></li><li>Emissão: ${esc(n.d)}</li><li>Tomador: ${esc(n.t||'Não informado')}</li><li>Serviço: ${esc(n.s||'Não informado')}</li><li>Valor: R$ ${brl(Number(n.v||0))}</li></ul>${n.key?`<span class="sup-note-key">Chave: ${esc(n.key)}</span><div class="sup-act"><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}')">Abrir DANFSe</button></div>`:'<br>Esta emissão ainda não possui chave autorizada.'}`,'bot');
+  supBubble(`<b>Detalhes da DPS ${esc(n.n)}</b><ul><li>Situação: <b>${esc(sit[n.st]?.[1]||n.st)}</b></li><li>Emissão: ${esc(n.d)}</li><li>Tomador: ${esc(n.t||'Não informado')}</li><li>Serviço: ${esc(n.s||'Não informado')}</li><li>Valor: R$ ${brl(Number(n.v||0))}</li></ul>${n.key?`<span class="sup-note-key">Chave: ${esc(n.key)}</span><div class="sup-act"><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}')">Abrir DANFSe</button>${n.st==='ok'?`<button type="button" onclick="supPrepararCancelamento('${n.id}')">Preparar cancelamento</button>`:''}</div>`:'<br>Esta emissão ainda não possui chave autorizada.'}`,'bot');
+}
+function supPrepararCancelamento(id){
+  const n=notas.find(item=>item.id===id);
+  if(!n){supBubble('Não encontrei essa nota na empresa ativa. Atualize o histórico e tente novamente.','bot');return}
+  if(n.st!=='ok'){supBubble('Só uma NFS-e autorizada pode iniciar o cancelamento oficial. Esta nota está '+esc(sit[n.st]?.[1]||n.st)+'.','bot');return}
+  supBubble(`<b>Cancelamento preparado para a DPS ${esc(n.n)}.</b><br>Vou abrir a tela oficial para você informar o motivo e confirmar o envio. Nenhuma ação fiscal será feita sem essa confirmação.`,'bot');
+  abrirCancelamento(n.id,n.n);
+}
+function supPareceCancelamento(q){return /(cancelar|cancelamento|anular|estornar|substituir|tornar sem efeito)/.test(supNorm(q))}
+async function supExecutarCancelamento(text){
+  const holder=supBubble('Localizando NFS-e autorizadas na empresa ativa…','bot');
+  try{
+    await carregarNotasServidor();
+    const {lista}=supFiltrarNotas(text),autorizadas=lista.filter(n=>n.st==='ok').sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+    if(!autorizadas.length){holder.innerHTML='Não encontrei uma NFS-e autorizada correspondente. Informe o número da nota ou abra o histórico completo.'+supActs([['Abrir Notas emitidas','notas']]);supScroll();return}
+    holder.innerHTML=`Encontrei <b>${autorizadas.length}</b> NFS-e autorizada(s). Selecione a nota para preparar o cancelamento — a confirmação final continua na tela oficial.`+autorizadas.slice(0,8).map(supNotaCard).join('');supScroll();
+  }catch(error){holder.innerHTML=`Não consegui consultar as notas agora: ${esc(error.message)}`;supScroll()}
 }
 function supPareceFerramenta(q){return /(buscar|pesquisar|listar|mostrar|localizar|detalhe|baixar|download|xml|pdf|danfse|chave)/.test(q)&&/(nota|nfse|nfs-e|dps|xml|pdf|danfse|chave)/.test(q)}
 async function supExecutarFerramenta(text){
@@ -2677,6 +2758,7 @@ function supChip(id){if(id==='diag'){supBubble('🔎 Analisar minha conta','me')
 function supSend(e){e.preventDefault();const inp=qs('#sup-in');const v=(inp.value||'').trim();if(!v)return false;inp.value='';supBubble(esc(v),'me');const q=supNorm(v);
   if(/(^|\s)(oi|ola|bom dia|boa tarde|boa noite|hello|hi)(\s|$)/.test(q)){supBubble('Olá! Como posso ajudar? Toque em um assunto abaixo ou descreva sua dúvida.','bot');return false}
   if(q.indexOf('analis')>-1||q.indexOf('diagnost')>-1||q.indexOf('minha conta')>-1||q.indexOf('meu status')>-1){supAnalisar();return false}
+  if(supPareceCancelamento(q)){supExecutarCancelamento(v);return false}
   if(supPareceFerramenta(q)){supExecutarFerramenta(v);return false}
   if(q.indexOf('humano')>-1||q.indexOf('atendente')>-1||q.indexOf('falar com')>-1||q.indexOf('pessoa')>-1){supBubble(`Para atendimento do sistema, fale com o responsável pelo TITAN. Para orientação normativa ou indisponibilidade do ambiente nacional, consulte os canais oficiais. Posso adiantar sua dúvida por aqui enquanto isso.${supFonte(SUP_OFICIAL.canais,'Canais oficiais da NFS-e')}`,'bot');return false}
   const t=supMatch(v);
@@ -2686,7 +2768,7 @@ function supSend(e){e.preventDefault();const inp=qs('#sup-in');const v=(inp.valu
 }
 
 let supGreeted=false;
-function supGreet(){const emp=(typeof empresaAtual!=='undefined')?empresaAtual:null;let msg='Olá! Sou o <b>assistente inteligente do TITAN NFS-e</b>. Respondo com base oficial e posso consultar suas notas, mostrar detalhes e entregar XML ou DANFSe.';let act;
+function supGreet(){const emp=(typeof empresaAtual!=='undefined')?empresaAtual:null;let msg='Olá! Sou o <b>Martyn</b>, assistente do TITAN NFS-e. Respondo com base oficial, navego pelos módulos e posso consultar suas notas, entregar XML/DANFSe e preparar um cancelamento para sua confirmação.';let act;
   if(!emp||!emp.rs){msg+='<br><br>Notei que <b>ainda não há empresa ativa</b>. Quer começar pelo cadastro?';act=[['Cadastrar empresa','emitente']];}
   else{msg+=`<br><br>Empresa ativa: <b>${esc(emp.rs)}</b> · ${supAmb()}.`;act=[['🔎 Analisar minha conta','diag']];}
   supBubble(msg+supActs(act),'bot');}
@@ -2703,14 +2785,14 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&qs('#sup-panel')?.c
 </button>
 <section id="sup-panel" class="sup-panel" role="dialog" aria-label="Assistente TITAN NFS-e">
   <div class="sup-head">
-    <div class="sup-head-id">
-      <div class="sup-ava">TA</div>
-      <div><b>Assistente TITAN</b><span>Portal Nacional + ações da empresa</span></div>
+  <div class="sup-head-id">
+      <div class="sup-ava">M</div>
+      <div><b>Martyn · Assistente TITAN</b><span>Portal Nacional + ações da empresa ativa</span></div>
     </div>
     <button class="sup-x" type="button" onclick="supToggle()" aria-label="Fechar assistente">&times;</button>
   </div>
   <div class="sup-log" id="sup-log"></div>
-  <div class="sup-trust"><b>● Base oficial</b><span>· ações limitadas à empresa ativa e ao seu acesso</span></div>
+  <div class="sup-trust"><b>● Martyn online · Base oficial</b><span>· navega e age com seu acesso; eventos fiscais exigem confirmação</span></div>
   <div class="sup-chips" id="sup-chips"></div>
   <form class="sup-input" onsubmit="return supSend(event)">
     <input id="sup-in" type="text" autocomplete="off" placeholder="Pergunte ou peça: buscar notas de julho" aria-label="Sua mensagem">
