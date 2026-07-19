@@ -156,7 +156,14 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.match(html,/id="s-event-location"/);
   assert.match(html,/id="s-base-val"/);
   assert.match(html,/id="s-composition-lines"/);
+  assert.match(html,/id="s-cno-options"/);
+  assert.match(html,/id="s-event-code-options"/);
+  assert.match(html,/\/api\/customers\//);
   assert.match(html,/\/api\/onboarding\/check/);
+  assert.match(html,/\/api\/billing\/status/);
+  assert.match(html,/\/api\/dasn\/manual/);
+  assert.match(html,/id="v-financeiro"/);
+  assert.match(html,/id="v-dasn"/);
   assert.match(html,/Entrar na fila/);
 });
 

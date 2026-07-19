@@ -772,7 +772,7 @@ main{margin-left:258px;padding-top:72px}
 
       <div class="sb-sec">Financeiro</div>
       <button class="sb-link" type="button" onclick="alternarGrupoMenu('financeiro-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg>Financeiro<span class="nav-alert">⚠</span><span class="sb-chevron">›</span></button>
-      <div class="sb-submenu" id="financeiro-menu"><button class="sb-link" type="button" disabled aria-disabled="true">Contas a receber</button><button class="sb-link" type="button" disabled aria-disabled="true">Cobranças</button><button class="sb-link" type="button" disabled aria-disabled="true">Conciliação bancária</button><button class="sb-link" type="button" disabled aria-disabled="true">Fluxo de caixa</button></div>
+      <div class="sb-submenu" id="financeiro-menu"><button class="sb-link" type="button" onclick="go('financeiro',this)">Cobranças</button><button class="sb-link" type="button" onclick="go('dasn',this)">DASN-SIMEI</button><button class="sb-link" type="button" disabled aria-disabled="true">Conciliação bancária</button><button class="sb-link" type="button" disabled aria-disabled="true">Fluxo de caixa</button></div>
 
       <div class="sb-sec">Cadastros</div>
       <button class="sb-link" data-permission="customers" onclick="go('clientes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Clientes</button>
@@ -1032,7 +1032,7 @@ main{margin-left:258px;padding-top:72px}
 
           <div class="card">
             <div class="card-h"><h2>Dados específicos</h2><span class="pill p-off right">Conforme o serviço</span></div>
-            <div class="card-b"><div class="field"><label for="s-category">Tipo de serviço</label><select id="s-category" class="inp" onchange="atualizarCamposEspeciais()"><option value="other">Outro serviço</option><option value="construction">Construção civil</option><option value="event">Evento</option></select></div><div id="s-construction-fields" class="conditional-block"><div class="field"><label for="s-cno">CNO — Cadastro Nacional de Obras</label><input id="s-cno" class="inp mono" inputmode="numeric" maxlength="12" placeholder="12 dígitos"><div class="hint">Obrigatório para serviços de construção civil.</div></div></div><div id="s-event-fields" class="conditional-block"><div class="row r2"><div class="field"><label for="s-event-code">Código do evento</label><input id="s-event-code" class="inp" placeholder="Código ou referência do evento"></div><div class="field"><label for="s-event-location">Local do evento</label><input id="s-event-location" class="inp" placeholder="Endereço / local"></div></div></div></div>
+            <div class="card-b"><div class="field"><label for="s-category">Tipo de serviço</label><select id="s-category" class="inp" onchange="atualizarCamposEspeciais()"><option value="other">Outro serviço</option><option value="construction">Construção civil</option><option value="event">Evento</option></select></div><div id="s-construction-fields" class="conditional-block"><div class="field"><label for="s-cno">CNO — Cadastro Nacional de Obras</label><input id="s-cno" class="inp mono" inputmode="numeric" maxlength="12" list="s-cno-options" placeholder="12 dígitos"><datalist id="s-cno-options"></datalist><div class="hint">Obrigatório para serviços de construção civil. Sugestões do histórico do tomador aparecem aqui.</div></div></div><div id="s-event-fields" class="conditional-block"><div class="row r2"><div class="field"><label for="s-event-code">Código do evento</label><input id="s-event-code" class="inp" list="s-event-code-options" placeholder="Código ou referência do evento"><datalist id="s-event-code-options"></datalist></div><div class="field"><label for="s-event-location">Local do evento</label><input id="s-event-location" class="inp" list="s-event-location-options" placeholder="Endereço / local"><datalist id="s-event-location-options"></datalist></div></div></div></div>
           </div>
 
           <div class="card">
@@ -1355,6 +1355,25 @@ main{margin-left:258px;padding-top:72px}
       </div>
     </section>
 
+    <!-- ---------- FINANCEIRO ---------- -->
+    <section class="view" id="v-financeiro">
+      <div class="page-h"><h1>Cobranças</h1><p>Planos, status de pagamento e documentos de cobrança do TITAN.</p></div>
+      <div class="grid g2" style="align-items:start">
+        <div class="card"><div class="card-h"><h2>Plano ativo</h2></div><div class="card-b" id="billing-status"><div class="empty-state">Consultando cobrança...</div></div></div>
+        <div class="card"><div class="card-h"><h2>Gerar cobrança</h2></div><div class="card-b"><div class="row r2"><div class="field"><label for="billing-method">Forma</label><select id="billing-method" class="inp"><option value="pix">Pix</option><option value="boleto">Boleto</option></select></div><div class="field"><label for="billing-due">Vencimento</label><input id="billing-due" class="inp" type="date"></div></div><button class="btn btn-p" type="button" onclick="gerarCobranca()">Gerar cobrança oficial</button><div class="hint">A emissão real exige credenciais PJ do Nubank configuradas no ambiente seguro.</div></div></div>
+      </div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><h2>Histórico</h2></div><div class="card-b" id="billing-charges"><div class="empty-state">Nenhuma cobrança carregada.</div></div></div>
+    </section>
+
+    <!-- ---------- DASN ---------- -->
+    <section class="view" id="v-dasn">
+      <div class="page-h"><h1>DASN-SIMEI</h1><p>Consolide valores emitidos pelo TITAN, XMLs externos e lançamentos manuais para a declaração anual.</p></div>
+      <div class="grid g2" style="align-items:start">
+        <div class="card"><div class="card-h"><h2>Lançamento manual</h2></div><div class="card-b"><div class="row r2"><div class="field"><label for="dasn-year">Ano</label><input id="dasn-year" class="inp" inputmode="numeric"></div><div class="field"><label for="dasn-month">Mês</label><input id="dasn-month" class="inp" inputmode="numeric" min="1" max="12"></div></div><div class="field"><label for="dasn-amount">Receita bruta (R$)</label><input id="dasn-amount" class="inp num" inputmode="decimal" placeholder="0,00"></div><button class="btn btn-p" type="button" onclick="salvarDasnManual()">Salvar valor</button></div></div>
+        <div class="card"><div class="card-h"><h2>Resumo anual</h2><span id="dasn-total" class="pill p-gold">R$ 0,00</span></div><div class="card-b" id="dasn-list"><div class="empty-state">Nenhum lançamento para o ano selecionado.</div></div></div>
+      </div>
+    </section>
+
     <!-- ---------- SERVIÇOS E RETENÇÕES ---------- -->
     <section class="view" id="v-servicos">
       <div class="page-h"><h1>Meus serviços</h1><p>Seu catálogo reutilizável para orçamentos, ordens de serviço e emissão, com códigos e retenções do padrão nacional.</p></div>
@@ -1443,7 +1462,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
       <div class="master-tabs" role="tablist"><button class="master-tab active" type="button" data-master-tab="usuarios" onclick="masterTab('usuarios',this)">Usuários</button><button class="master-tab" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)">Perfis de acesso</button><button class="master-tab" type="button" data-master-tab="logs" onclick="masterTab('logs',this)">Logs e auditoria</button></div>
 
       <div class="master-panel active" id="master-panel-usuarios">
-        <div class="card"><div class="card-h"><div><h3>Elegibilidade do onboarding</h3><p>Verifique o CNPJ e o município antes de liberar o cadastro. MEI segue a regra nacional; Simples depende da integração configurada.</p></div><span class="pill p-gold">Portal Nacional</span></div><div class="card-b"><div class="row r2"><div class="field"><label for="master-eligibility-cnpj">CNPJ</label><input id="master-eligibility-cnpj" class="inp" inputmode="numeric" placeholder="00.000.000/0000-00"></div><div class="field"><label for="master-eligibility-regime">Regime / porte</label><select id="master-eligibility-regime" class="inp"><option value="MEI">MEI</option><option value="SIMPLES_NACIONAL">Simples Nacional — ME/EPP</option><option value="REGULAR">Outro regime</option></select></div><div class="field"><label for="master-eligibility-code">Código IBGE</label><input id="master-eligibility-code" class="inp mono" inputmode="numeric" maxlength="7" placeholder="0000000"></div><div class="field"><label for="master-eligibility-city">Município</label><input id="master-eligibility-city" class="inp" placeholder="Nome do município"></div></div><div class="flex wrap"><button class="btn btn-s" type="button" onclick="consultarElegibilidadeMaster()">Verificar adesão</button><span id="master-eligibility-status" class="foot-note">A verificação é necessária para avançar.</span></div><div id="master-waitlist" class="alert a-info" style="display:none;margin-top:12px"><b>Fila de espera</b><br>Este município ainda não está liberado para o regime informado. Cadastre os contatos para avisarmos quando a integração estiver disponível.<div class="row r2" style="margin-top:10px"><div class="field"><label for="wait-name">Nome</label><input id="wait-name" class="inp"></div><div class="field"><label for="wait-email">E-mail</label><input id="wait-email" class="inp" type="email"></div><div class="field"><label for="wait-phone">WhatsApp</label><input id="wait-phone" class="inp" inputmode="tel"></div></div><button class="btn btn-p" type="button" onclick="entrarFilaEspera()">Entrar na fila</button></div></div></div>
+        <div class="card"><div class="card-h"><div><h3>Elegibilidade do onboarding</h3><p>Verifique o CNPJ e o município antes de liberar o cadastro. MEI segue a regra nacional; Simples depende da integração configurada.</p></div><span class="pill p-gold">Portal Nacional</span></div><div class="card-b"><div class="row r2"><div class="field"><label for="master-eligibility-cnpj">CNPJ</label><input id="master-eligibility-cnpj" class="inp" inputmode="numeric" placeholder="00.000.000/0000-00"></div><div class="field"><label for="master-eligibility-regime">Regime / porte</label><select id="master-eligibility-regime" class="inp"><option value="MEI">MEI</option><option value="SIMPLES_NACIONAL">Simples Nacional — ME/EPP</option><option value="REGULAR">Outro regime</option></select></div><div class="field"><label for="master-eligibility-code">Código IBGE</label><input id="master-eligibility-code" class="inp mono" inputmode="numeric" maxlength="7" placeholder="0000000"></div><div class="field"><label for="master-eligibility-city">Município</label><input id="master-eligibility-city" class="inp" list="master-municipality-options" placeholder="Nome do município" oninput="buscarMunicipiosOnboarding(this.value)" onchange="selecionarMunicipioOnboarding(this.value)"><datalist id="master-municipality-options"></datalist></div></div><div class="flex wrap"><button class="btn btn-s" type="button" onclick="consultarElegibilidadeMaster()">Verificar adesão</button><span id="master-eligibility-status" class="foot-note">A verificação é necessária para avançar.</span></div><div id="master-waitlist" class="alert a-info" style="display:none;margin-top:12px"><b>Fila de espera</b><br>Este município ainda não está liberado para o regime informado. Cadastre os contatos para avisarmos quando a integração estiver disponível.<div class="row r2" style="margin-top:10px"><div class="field"><label for="wait-name">Nome</label><input id="wait-name" class="inp"></div><div class="field"><label for="wait-email">E-mail</label><input id="wait-email" class="inp" type="email"></div><div class="field"><label for="wait-phone">WhatsApp</label><input id="wait-phone" class="inp" inputmode="tel"></div></div><button class="btn btn-p" type="button" onclick="entrarFilaEspera()">Entrar na fila</button></div></div></div>
         <div class="card"><div class="card-h"><div><h3>Convidar novo usuário</h3><p>O usuário cria a senha pelo link e depois entra com CNPJ e senha. Link válido por 7 dias.</p></div></div><div class="card-b">
           <div class="row r2"><div class="field"><label>CNPJ da empresa</label><input id="master-cnpj" class="inp" placeholder="00.000.000/0000-00"></div><div class="field"><label>E-mail do usuário</label><input id="master-email" class="inp" type="email" placeholder="usuario@empresa.com.br"></div><div class="field"><label>Perfil</label><select id="master-profile" class="inp"></select></div><div class="field"><label>Plano</label><select id="master-plan" class="inp"><option value="mei">Plano MEI — R$ 29,90 / 10 notas</option><option value="sn20">Plano SN 20 — R$ 49,90 / 20 notas</option><option value="sn50">Plano SN 50 — R$ 79,90 / 50 notas</option></select></div></div>
           <button class="btn btn-p" onclick="criarConvite()">Gerar link de convite</button><div id="master-link" class="alert a-info" style="display:none;margin-top:12px;word-break:break-all"></div>
@@ -1714,7 +1733,22 @@ function go(v,el){
   if(v==='emitir'){carregarRascunhos();exibirMunicipioPorCodigo('s',qs('#s-mun').value)}
   if(v==='clientes')carregarClientesCadastro();
   if(v==='comercial'){renderEmpresaComercial();carregarComerciais();popularClientesComercial();carregarPerfisServico().then(popularServicosComercial);}
+  if(v==='financeiro')carregarBilling();
+  if(v==='dasn')carregarDasn();
 }
+
+async function carregarBilling(){
+  const box=qs('#billing-status'),list=qs('#billing-charges');if(!box||!list)return;
+  try{const data=await api('/api/billing/status');const plan=data.plan?`${esc(data.plan.name)} · ${data.plan.monthlyLimit} notas/mês · R$ ${(data.plan.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'Plano ainda não configurado';box.innerHTML=`<b>${plan}</b><p class="hint">Status: ${esc(data.company?.billing_status||'trial')}${data.access?.blocked?' · emissão bloqueada por atraso':''}</p>${data.configured?'':'<div class="alert a-info">A integração Nubank está aguardando credenciais PJ no ambiente seguro.</div>'}`;list.innerHTML=data.charges?.length?data.charges.map(item=>`<div class="draft-item"><b>${esc(item.method)} · ${esc(item.status)}</b><span>R$ ${(Number(item.amount_cents||0)/100).toLocaleString('pt-BR',{minimumFractionDigits:2})} · vence ${new Date(item.due_at).toLocaleDateString('pt-BR')}</span>${item.pix_copy_paste?`<div class="hint mono">${esc(item.pix_copy_paste)}</div>`:''}</div>`).join(''):'<div class="empty-state">Nenhuma cobrança emitida.</div>'}catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`;list.innerHTML=''}
+}
+async function gerarCobranca(){
+  const method=qs('#billing-method').value,due=qs('#billing-due').value||undefined;try{const data=await api('/api/billing/charges',{method:'POST',body:JSON.stringify({method,dueDate:due})});alert('Cobrança oficial criada.');await carregarBilling()}catch(error){alert(error.message)}
+}
+async function carregarDasn(){
+  const year=qs('#dasn-year');if(!year)return;if(!year.value)year.value=String(new Date().getFullYear());if(!qs('#dasn-month').value)qs('#dasn-month').value=String(new Date().getMonth()+1);
+  try{const data=await api('/api/dasn?year='+encodeURIComponent(year.value));qs('#dasn-total').textContent=`R$ ${Number(data.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`;qs('#dasn-list').innerHTML=data.entries?.length?data.entries.map(item=>`<div class="draft-item"><b>${String(item.reference_month).padStart(2,'0')}/${item.reference_year}</b><span>${esc(item.source)} · R$ ${Number(item.gross_amount||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span></div>`).join(''):'<div class="empty-state">Nenhum lançamento para o ano selecionado.</div>'}catch(error){qs('#dasn-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+}
+async function salvarDasnManual(){const year=Number(qs('#dasn-year').value),month=Number(qs('#dasn-month').value),amount=dinheiro(qs('#dasn-amount').value);if(!year||month<1||month>12||amount<0){alert('Informe ano, mês e valor válidos.');return}try{await api('/api/dasn/manual',{method:'POST',body:JSON.stringify({year,month,amount})});qs('#dasn-amount').value='0,00';await carregarDasn();alert('Valor DASN salvo.')}catch(error){alert(error.message)}}
 qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
 
 async function carregarEmpresaServidor(){
@@ -1738,10 +1772,12 @@ async function carregarNotasServidor(){
 
 /* ---------- clientes / consulta CNPJ ---------- */
 let clientesEncontrados=[];
+let clienteAtualEmissao=null;
 let buscaClienteTimer;
 const origemCliente={portal_nacional:'Portal Nacional',cnpj_api:'BrasilAPI',emission_history:'Histórico de notas',manual:'Cadastro manual'};
 
 function preencherCliente(cliente){
+  clienteAtualEmissao=cliente?.id?cliente:null;
   qs('#t-doc').value=cliente.tax_id||'';
   qs('#t-nome').value=cliente.legal_name||cliente.trade_name||'';
   qs('#t-mail').value=cliente.email||'';
@@ -1754,6 +1790,17 @@ function preencherCliente(cliente){
   qs('#t-bairro').value=cliente.district||'';
   qs('#t-comp').value=cliente.complement||'';
   qs('#customer-results').classList.remove('on');
+  carregarSugestoesTomador().catch(()=>{});
+}
+
+async function carregarSugestoesTomador(){
+  const cno=qs('#s-cno-options'),codes=qs('#s-event-code-options'),locations=qs('#s-event-location-options');
+  if(cno)cno.innerHTML='';if(codes)codes.innerHTML='';if(locations)locations.innerHTML='';
+  if(!clienteAtualEmissao?.id)return;
+  const [cnos,events]=await Promise.all([api('/api/customers/'+clienteAtualEmissao.id+'/cnos'),api('/api/customers/'+clienteAtualEmissao.id+'/events')]);
+  if(cno)cno.innerHTML=(cnos.items||[]).map(item=>`<option value="${esc(item.cno)}"></option>`).join('');
+  if(codes)codes.innerHTML=(events.items||[]).map(item=>`<option value="${esc(item.event_code)}"></option>`).join('');
+  if(locations)locations.innerHTML=[...new Set((events.items||[]).map(item=>item.event_location).filter(Boolean))].map(value=>`<option value="${esc(value)}"></option>`).join('');
 }
 
 let municipioTimer;
@@ -2719,6 +2766,14 @@ function exportarMasterLogs(){
   const csv=[header,...rows].map(row=>row.map(value=>`"${String(value??'').replaceAll('"','""')}"`).join(';')).join('\n');
   const blob=new Blob([`\ufeff${csv}`],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`titan-auditoria-${new Date().toISOString().slice(0,10)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+
+let onboardingMunicipalities=[];
+let onboardingMunicipalityTimer;
+function buscarMunicipiosOnboarding(term){
+  clearTimeout(onboardingMunicipalityTimer);if(String(term||'').trim().length<2)return;
+  onboardingMunicipalityTimer=setTimeout(async()=>{try{const data=await api('/api/onboarding/municipalities?search='+encodeURIComponent(term)+'&limit=80');onboardingMunicipalities=data.items||[];qs('#master-municipality-options').innerHTML=onboardingMunicipalities.map(item=>`<option value="${esc(item.municipio)} / ${esc(item.uf)} — ${esc(item.codigoIbge||'sem código')}"></option>`).join('')}catch{}},250);
+}
+function selecionarMunicipioOnboarding(value){const item=onboardingMunicipalities.find(item=>value.startsWith(`${item.municipio} / ${item.uf}`));if(item){qs('#master-eligibility-city').value=item.municipio;qs('#master-eligibility-code').value=item.codigoIbge||''}}
 
 async function consultarElegibilidadeMaster(){
   const cnpj=qs('#master-eligibility-cnpj').value.replace(/\D/g,''),codigoIbge=qs('#master-eligibility-code').value.replace(/\D/g,''),municipio=qs('#master-eligibility-city').value.trim(),porteEmpresa=qs('#master-eligibility-regime').value,status=qs('#master-eligibility-status'),wait=qs('#master-waitlist');
