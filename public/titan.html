@@ -723,7 +723,7 @@ main{margin-left:258px;padding-top:72px}
     <div id="login-error" class="login-sub" role="alert" style="display:none;margin-top:10px;color:#a33b35"></div>
     <a id="login-context-link" class="login-context-link" href="/nfs/admin">Sou administrador master</a>
     <a id="login-first-link" class="login-context-link" href="/nfs/primeiro-acesso">Primeiro acesso · definir senha</a>
-    <a id="login-reset-link" class="login-context-link" href="/nfs/redefinir-senha">Tenho um link · redefinir senha</a>
+    <a id="login-reset-link" class="login-context-link" href="/nfs/redefinir-senha" onclick="abrirRedefinicao(event)">Já recebi um link do administrador · redefinir senha</a>
     <div class="login-foot">
       O ambiente ativo é consultado diretamente no backend seguro.<br>
       <b id="login-env" style="color:#c9a84c">Verificando ambiente...</b>
@@ -795,7 +795,7 @@ main{margin-left:258px;padding-top:72px}
       <button class="sb-link active" type="button" data-master-tab="usuarios" onclick="masterTab('usuarios',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21c.7-4 3-6 7-6s6.3 2 7 6M19 8v6M16 11h6"/></svg>Usuários</button>
       <button class="sb-link" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/><path d="M9 12l2 2 4-4"/></svg>Perfis de acesso</button>
       <div class="sb-sec">Sistema</div>
-      <button class="sb-link" type="button" disabled aria-disabled="true" title="Preferências do usuário em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Configurações</button>
+      <button class="sb-link" type="button" data-master-only="true" data-master-tab="configuracoes" onclick="masterTab('configuracoes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Configurações</button>
       <button class="sb-link" type="button" onclick="sairPortal()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17l5-5-5-5M15 12H3M15 3h6v18h-6"/></svg>Sair</button>
     </nav>
     <div class="sb-foot">
@@ -1459,7 +1459,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
         <div><h1>Gestão master</h1><p>Controle de usuários, empresas, convites e perfis de acesso.</p></div>
         <span class="pill p-ok">MASTER</span>
       </div>
-      <div class="master-tabs" role="tablist"><button class="master-tab active" type="button" data-master-tab="usuarios" onclick="masterTab('usuarios',this)">Usuários</button><button class="master-tab" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)">Perfis de acesso</button><button class="master-tab" type="button" data-master-tab="logs" onclick="masterTab('logs',this)">Logs e auditoria</button></div>
+      <div class="master-tabs" role="tablist"><button class="master-tab active" type="button" data-master-tab="usuarios" onclick="masterTab('usuarios',this)">Usuários</button><button class="master-tab" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)">Perfis de acesso</button><button class="master-tab" type="button" data-master-tab="configuracoes" onclick="masterTab('configuracoes',this)">Configurações</button><button class="master-tab" type="button" data-master-tab="logs" onclick="masterTab('logs',this)">Logs e auditoria</button></div>
 
       <div class="master-panel active" id="master-panel-usuarios">
         <div class="card"><div class="card-h"><div><h3>Elegibilidade do onboarding</h3><p>Verifique o CNPJ e o município antes de liberar o cadastro. MEI segue a regra nacional; Simples depende da integração configurada.</p></div><span class="pill p-gold">Portal Nacional</span></div><div class="card-b"><div class="row r2"><div class="field"><label for="master-eligibility-cnpj">CNPJ</label><input id="master-eligibility-cnpj" class="inp" inputmode="numeric" placeholder="00.000.000/0000-00"></div><div class="field"><label for="master-eligibility-regime">Regime / porte</label><select id="master-eligibility-regime" class="inp"><option value="MEI">MEI</option><option value="SIMPLES_NACIONAL">Simples Nacional — ME/EPP</option><option value="REGULAR">Outro regime</option></select></div><div class="field"><label for="master-eligibility-code">Código IBGE</label><input id="master-eligibility-code" class="inp mono" inputmode="numeric" maxlength="7" placeholder="0000000"></div><div class="field"><label for="master-eligibility-city">Município</label><input id="master-eligibility-city" class="inp" list="master-municipality-options" placeholder="Nome do município" oninput="buscarMunicipiosOnboarding(this.value)" onchange="selecionarMunicipioOnboarding(this.value)"><datalist id="master-municipality-options"></datalist></div></div><div class="flex wrap"><button class="btn btn-s" type="button" onclick="consultarElegibilidadeMaster()">Verificar adesão</button><span id="master-eligibility-status" class="foot-note">A verificação é necessária para avançar.</span></div><div id="master-waitlist" class="alert a-info" style="display:none;margin-top:12px"><b>Fila de espera</b><br>Este município ainda não está liberado para o regime informado. Cadastre os contatos para avisarmos quando a integração estiver disponível.<div class="row r2" style="margin-top:10px"><div class="field"><label for="wait-name">Nome</label><input id="wait-name" class="inp"></div><div class="field"><label for="wait-email">E-mail</label><input id="wait-email" class="inp" type="email"></div><div class="field"><label for="wait-phone">WhatsApp</label><input id="wait-phone" class="inp" inputmode="tel"></div></div><button class="btn btn-p" type="button" onclick="entrarFilaEspera()">Entrar na fila</button></div></div></div>
@@ -1479,6 +1479,15 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
           <div id="profile-permissions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0"></div><div class="flex wrap"><button class="btn btn-p" id="profile-save" onclick="salvarPerfilAcesso()">Criar perfil</button><button class="btn" id="profile-cancel" style="display:none" onclick="cancelarEdicaoPerfil()">Cancelar edição</button></div>
         </div></div>
         <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Perfis existentes</h3><p>Revise permissões e plano mínimo.</p></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Plano mínimo</th><th>Permissões</th><th>Ação</th></tr></thead><tbody id="master-profiles"></tbody></table></div></div>
+      </div>
+
+      <div class="master-panel" id="master-panel-configuracoes">
+        <div class="card"><div class="card-h"><div><h3>Integração Nubank PJ</h3><p>Credenciais armazenadas criptografadas no banco. O segredo nunca é exibido novamente.</p></div><span id="master-nubank-state" class="pill p-off">Não configurado</span></div><div class="card-b">
+          <div class="row r2"><div class="field"><label for="set-nubank-enabled">Ativar cobrança oficial</label><select id="set-nubank-enabled" class="inp"><option value="false">Desativada</option><option value="true">Ativada</option></select></div><div class="field"><label for="set-nubank-api">URL base da API</label><input id="set-nubank-api" class="inp" type="url" value="https://api.nubank.com.br"></div><div class="field"><label for="set-nubank-oauth">URL OAuth (opcional)</label><input id="set-nubank-oauth" class="inp" type="url" placeholder="Usar /oauth/token da URL base"></div><div class="field"><label for="set-nubank-id">Client ID</label><input id="set-nubank-id" class="inp" autocomplete="off"></div></div>
+          <div class="row r2"><div class="field"><label for="set-nubank-secret">Client secret</label><input id="set-nubank-secret" class="inp" type="password" autocomplete="new-password" placeholder="Deixe vazio para manter o atual"></div><div class="field"><label for="set-nubank-webhook">Segredo do webhook</label><input id="set-nubank-webhook" class="inp" type="password" autocomplete="new-password" placeholder="Mínimo de 16 caracteres"></div></div>
+        </div></div>
+        <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Pacote automático do contador</h3><p>Gera o ZIP mensal e envia ao webhook configurado no primeiro dia do mês.</p></div><span id="master-accountant-state" class="pill p-off">Desativado</span></div><div class="card-b"><div class="row r2"><div class="field"><label for="set-accountant-enabled">Rotina automática</label><select id="set-accountant-enabled" class="inp"><option value="false">Desativada</option><option value="true">Ativada</option></select></div><div class="field"><label for="set-accountant-webhook">Webhook de e-mail</label><input id="set-accountant-webhook" class="inp" type="url" placeholder="https://seu-servico/email"></div></div><div class="hint">O webhook recebe destinatário, relatório CSV e ZIP em base64. Teste o endpoint antes de ativar a rotina.</div></div></div>
+        <div class="flex wrap" style="margin-top:16px"><button class="btn btn-p" type="button" onclick="salvarConfiguracoesMaster()">Salvar configurações</button><button class="btn btn-s" type="button" onclick="carregarConfiguracoesMaster()">Recarregar</button><button class="btn btn-s" type="button" onclick="atualizarCatalogoMunicipiosMaster()">Atualizar municípios agora</button><span id="master-settings-status" class="foot-note"></span></div>
       </div>
 
       <div class="master-panel" id="master-panel-logs">
@@ -1649,13 +1658,18 @@ async function iniciarCadastro(){
     sessionStorage.setItem(STORAGE_TOKEN,login.token);
     sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:login.user||{},companies:login.companies||[]}));
     localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:login.user?.name||'',email:login.user?.email||email,cnpj}));
-    await carregarEmpresaServidor();
-    await carregarNotasServidor();
-    carregarServicos().catch(()=>{});
+    // O Master não precisa abrir uma empresa para autenticar. Evite três
+    // consultas operacionais antes de mostrar a Gestão Master; elas ficavam
+    // perceptíveis sobretudo no primeiro acesso após o servidor acordar.
+    if(!PORTAL_ADMIN){
+      await carregarEmpresaServidor();
+      await carregarNotasServidor();
+      carregarServicos().catch(()=>{});
+    }
   }catch(error){
     if(error?.status===401){
       const box=qs('#login-error');
-      if(box){box.style.display='block';box.innerHTML='<b>Senha inválida. Deseja redefinir a senha?</b><div class="flex wrap" style="margin-top:8px"><button class="btn btn-s" type="button" onclick="abrirRedefinicao()">Redefinir senha</button><button class="btn btn-s" type="button" onclick="limparFalhaLogin()">Tentar novamente</button></div>'}
+      if(box){box.style.display='block';box.innerHTML='<b>Senha inválida.</b><div style="margin-top:6px">A redefinição só pode ser feita pelo link temporário fornecido pelo administrador Master.</div><div class="flex wrap" style="margin-top:8px"><button class="btn btn-s" type="button" onclick="limparFalhaLogin()">Tentar novamente</button></div>'}
       return;
     }
     const falhaRede=error instanceof TypeError;
@@ -1668,7 +1682,7 @@ async function iniciarCadastro(){
   carregarEstado();
   render();
     if(PORTAL_ADMIN){
-      go('master',qs('.admin-sidebar .sb-link'));const requestedAdminTab=PORTAL_QUERY.get('tab');if(requestedAdminTab&&['usuarios','perfis','logs'].includes(requestedAdminTab))setTimeout(()=>masterTab(requestedAdminTab),0);
+      go('master',qs('.admin-sidebar .sb-link'));const requestedAdminTab=PORTAL_QUERY.get('tab');if(requestedAdminTab&&['usuarios','perfis','configuracoes','logs'].includes(requestedAdminTab))setTimeout(()=>masterTab(requestedAdminTab),0);
     }else if(PORTAL_HELP){
       go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]'));setTimeout(()=>supOpen(),80);
     }else if(empresaAtual){
@@ -1677,7 +1691,13 @@ async function iniciarCadastro(){
     go('emitente',qs('.sb-link[onclick*="emitente"]'));
   }
 }
-function abrirRedefinicao(){window.top.location.href='/nfs/redefinir-senha';}
+function abrirRedefinicao(event){
+  event?.preventDefault();
+  const token=PORTAL_QUERY.get('token');
+  if(token){prepararRedefinicao(token);return false;}
+  alert('Abra o link temporário de redefinição fornecido pelo administrador Master. Por segurança, não é possível iniciar a redefinição sem esse link.');
+  return false;
+}
 function limparFalhaLogin(){const box=qs('#login-error');if(box){box.style.display='none';box.innerHTML='';}qs('#li-pw')?.focus();}
 function entrar(){iniciarCadastro()}
 function aplicarAcesso(login){
@@ -2419,7 +2439,19 @@ async function emitir(falhar){
     st.className='stage done';
     }
     const last=qs('#st'+(etapas.length-1));last.className='stage run';
-    const result=await api('/api/invoices/emit',{method:'POST',headers:ambienteAtual==='production'?{'X-Confirm-Production':'EMITIR_NFSE_REAL'}:{},body:JSON.stringify(payload)});
+    let result=await api('/api/invoices/emit',{method:'POST',headers:ambienteAtual==='production'?{'X-Confirm-Production':'EMITIR_NFSE_REAL'}:{},body:JSON.stringify(payload)});
+    if(result.status==='queued'){
+      qs('#result').innerHTML='<div class="result"><span class="pill p-gold">Emissão encaminhada</span><div class="chave">A Sefin está processando a DPS com segurança.</div><div class="foot-note">Você pode continuar no portal; o resultado será consultado automaticamente.</div></div>';
+      let finalResult=null;
+      for(let attempt=0;attempt<45;attempt++){
+        await new Promise(resolve=>setTimeout(resolve,2000));
+        const status=await api('/api/invoices/'+encodeURIComponent(result.id)+'/status');
+        if(['authorized','rejected','error'].includes(status.status)){finalResult=status;break}
+      }
+      if(!finalResult)throw new Error('A Sefin ainda não respondeu. A nota permanece na fila fiscal e será atualizada nas Notas emitidas.');
+      result=finalResult;
+      if(result.status!=='authorized')throw new Error(result.queue?.last_error||result.error_payload?.message||'A Sefin recusou a DPS.');
+    }
     last.className='stage done';
     qs('#result').innerHTML=`
         <div class="result ok">
@@ -2720,7 +2752,42 @@ function masterTab(tab,button){
   qsa('[data-master-tab]').forEach(item=>item.classList.toggle('active',item.dataset.masterTab===tab));
   if(button)button.classList.add('active');
   if(tab==='logs')carregarMasterLogs();
+  if(tab==='configuracoes')carregarConfiguracoesMaster();
   window.scrollTo(0,0);
+}
+async function carregarConfiguracoesMaster(){
+  const status=qs('#master-settings-status');if(status)status.textContent='Carregando...';
+  try{
+    const data=await api('/api/master/settings');
+    qs('#set-nubank-enabled').value=String(Boolean(data.nubankEnabled));
+    qs('#set-nubank-api').value=data.nubankApiBaseUrl||'https://api.nubank.com.br';
+    qs('#set-nubank-oauth').value=data.nubankOauthUrl||'';
+    qs('#set-nubank-id').value=data.nubankClientId||'';
+    qs('#set-nubank-secret').value='';qs('#set-nubank-webhook').value='';
+    qs('#set-accountant-enabled').value=String(Boolean(data.accountantCronEnabled));
+    qs('#set-accountant-webhook').value='';
+    const ns=qs('#master-nubank-state');if(ns){ns.textContent=data.nubankEnabled&&data.hasNubankClientSecret?'Configurado':'Não configurado';ns.className=`pill ${data.nubankEnabled&&data.hasNubankClientSecret?'p-ok':'p-off'}`}
+    const as=qs('#master-accountant-state');if(as){as.textContent=data.accountantCronEnabled&&data.hasAccountantEmailWebhook?'Ativo':'Desativado';as.className=`pill ${data.accountantCronEnabled&&data.hasAccountantEmailWebhook?'p-ok':'p-off'}`}
+    if(status)status.textContent='Configurações carregadas.';
+  }catch(error){if(status)status.textContent=error.message}
+}
+async function salvarConfiguracoesMaster(){
+  const status=qs('#master-settings-status');if(status)status.textContent='Salvando com criptografia...';
+  try{
+    const data=await api('/api/master/settings',{method:'PUT',body:JSON.stringify({
+      nubankEnabled:qs('#set-nubank-enabled').value==='true',nubankApiBaseUrl:qs('#set-nubank-api').value.trim(),nubankOauthUrl:qs('#set-nubank-oauth').value.trim(),nubankClientId:qs('#set-nubank-id').value.trim(),nubankClientSecret:qs('#set-nubank-secret').value,nubankWebhookSecret:qs('#set-nubank-webhook').value,
+      accountantCronEnabled:qs('#set-accountant-enabled').value==='true',accountantEmailWebhookUrl:qs('#set-accountant-webhook').value.trim()
+    })});
+    const ns=qs('#master-nubank-state');if(ns){ns.textContent=data.nubankEnabled&&data.hasNubankClientSecret?'Configurado':'Não configurado';ns.className=`pill ${data.nubankEnabled&&data.hasNubankClientSecret?'p-ok':'p-off'}`}
+    const as=qs('#master-accountant-state');if(as){as.textContent=data.accountantCronEnabled&&data.hasAccountantEmailWebhook?'Ativo':'Desativado';as.className=`pill ${data.accountantCronEnabled&&data.hasAccountantEmailWebhook?'p-ok':'p-off'}`}
+    qs('#set-nubank-secret').value='';qs('#set-nubank-webhook').value='';
+    if(status)status.textContent='Configurações salvas. Segredos mantidos no cofre criptografado.';
+  }catch(error){if(status)status.textContent=error.message}
+}
+async function atualizarCatalogoMunicipiosMaster(){
+  const status=qs('#master-settings-status');if(status)status.textContent='Consultando a fonte oficial...';
+  try{const data=await api('/api/master/municipalities/refresh',{method:'POST'});if(status)status.textContent=data.updated?`Catálogo atualizado (${data.total||0} municípios).`:'Catálogo já estava atualizado.';}
+  catch(error){if(status)status.textContent=error.message}
 }
 async function abrirEmpresaEmissao(companyId){
   const novaAba=window.open('about:blank','_blank');
@@ -2865,7 +2932,7 @@ async function confirmarRedefinicao(token){
   if(password.length<10){hint.textContent='A nova senha precisa ter pelo menos 10 caracteres.';hint.classList.add('error');return}
   if(password!==confirmation){hint.textContent='A confirmação não confere. Digite a mesma senha nos dois campos.';hint.classList.add('error');return}
   action.disabled=true;action.textContent='Salvando...';
-  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password})});hint.textContent='Senha definida com sucesso. Redirecionando para o login...';hint.classList.add('ok');window.setTimeout(()=>window.top.location.href='/nfs/entrar',700)}catch(error){hint.textContent=error.message;hint.classList.add('error');action.disabled=false;action.textContent='Definir senha'}
+  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password,confirmation})});hint.textContent='Senha definida com sucesso. Redirecionando para o login...';hint.classList.add('ok');window.setTimeout(()=>window.top.location.href='/nfs/entrar',700)}catch(error){hint.textContent=error.message;hint.classList.add('error');action.disabled=false;action.textContent='Definir senha'}
 }
 function alternarSenha(id,button){const input=qs('#'+id);if(!input)return;const visible=input.type==='password';input.type=visible?'text':'password';button.setAttribute('aria-pressed',String(visible));button.setAttribute('aria-label',visible?'Ocultar senha':'Mostrar senha')}
 
