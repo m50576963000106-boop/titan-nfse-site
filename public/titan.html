@@ -435,7 +435,13 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .g-emit{grid-template-columns:1.35fr 1fr;align-items:start}
 .municipality-results{display:none;position:absolute;z-index:15;left:0;right:0;top:100%;margin-top:4px;max-height:220px;overflow:auto;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 12px 24px rgba(9,22,44,.14)}
 .municipality-results.on{display:block}.municipality-option{display:block;width:100%;padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);font-size:12px}.municipality-option:hover{background:var(--cream)}
-.draft-list{display:grid;gap:8px}.draft-item{padding:10px;border:1px solid var(--line);border-radius:var(--r);background:#fff}.draft-item b{display:block;font-size:12px}.draft-item span{font-size:10.5px;color:var(--ink-3)}.inline-money{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:12px;font-weight:700;color:var(--ink-2)}.inline-money .inp{max-width:180px;min-height:38px}
+.draft-list{display:grid;gap:8px}.draft-item{padding:10px;border:1px solid var(--line);border-radius:var(--r);background:#fff}.draft-item b{display:block;font-size:12px}.draft-item span{font-size:10.5px;color:var(--ink-3)}.inline-money{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:12px;font-weight:700;color:var(--ink-2)}
+.comp-line .comp-fields{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:7px}
+.comp-line .comp-qty{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink-2)}
+.comp-line .comp-qty span,.comp-line .inline-money span{font-size:10.5px;color:var(--ink-3)}
+.comp-line .comp-qty{margin-top:0}.comp-line .inline-money{margin-top:0}
+.comp-line .comp-qty input{width:70px}.comp-line .inline-money input{width:96px}
+.comp-line-total{margin-left:auto;font-weight:800;color:var(--ink);white-space:nowrap}.inline-money .inp{max-width:180px;min-height:38px}
 .doc-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r);background:#fff;transition:box-shadow .15s}
 .doc-item:hover{box-shadow:0 3px 10px rgba(11,22,41,.06)}
 .doc-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
@@ -1951,21 +1957,26 @@ function popularServicosAdicionais(){
   const select=qs('#s-additional-service');if(!select)return;
   select.innerHTML='<option value="">Selecione um serviço adicional</option>'+perfisServico.map(item=>`<option value="${esc(item.id)}">${esc(item.name)} · NBS ${esc(item.nbs_code)}</option>`).join('');
 }
+function lineTotalComposicao(item){return Number(((Number(item.quantity)||0)*(Number(item.unitAmount)||0)).toFixed(2))}
 function renderComposicao(){
   const box=qs('#s-composition-lines');if(!box)return;
-  box.innerHTML=composicaoItens.length?composicaoItens.map((item,index)=>`<div class="draft-item"><b>${esc(item.description)}</b><label class="inline-money"><span>R$</span><input class="inp num" inputmode="decimal" value="${Number(item.amount||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}" oninput="editarValorComposicao(${index},this.value)" aria-label="Valor de ${esc(item.description)}"></label><div class="acts"><button class="btn btn-s" type="button" onclick="removerLinhaComposicao(${index})">Remover</button></div></div>`).join(''):'<div class="empty-state">Selecione um serviço cadastrado para iniciar a composição.</div>';
+  box.innerHTML=composicaoItens.length?composicaoItens.map((item,index)=>`<div class="draft-item comp-line"><b>${esc(item.description)}</b><div class="comp-fields"><label class="comp-qty"><span>Qtd</span><input class="inp num" inputmode="decimal" value="${Number(item.quantity||0).toLocaleString('pt-BR',{maximumFractionDigits:3})}" oninput="editarQtdComposicao(${index},this.value)" aria-label="Quantidade de ${esc(item.description)}"></label><label class="inline-money"><span>R$ un.</span><input class="inp num" inputmode="decimal" value="${Number(item.unitAmount||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}" oninput="editarUnitComposicao(${index},this.value)" aria-label="Valor unitário de ${esc(item.description)}"></label><span class="comp-line-total" id="comp-lt-${index}">R$ ${brl(lineTotalComposicao(item))}</span></div><div class="acts"><button class="btn btn-s" type="button" onclick="removerLinhaComposicao(${index})">Remover</button></div></div>`).join(''):'<div class="empty-state">Selecione um serviço cadastrado para iniciar a composição.</div>';
 }
-function atualizarComposicao(){
-  const base=dinheiro(qs('#s-base-val')?.value),total=base+composicaoItens.reduce((sum,item)=>sum+Number(item.amount||0),0);
+function atualizarTotaisComposicao(){
+  const base=dinheiro(qs('#s-base-val')?.value)||0;let soma=0;
+  composicaoItens.forEach((item,i)=>{const lt=lineTotalComposicao(item);soma+=lt;const el=qs('#comp-lt-'+i);if(el)el.textContent='R$ '+brl(lt)});
+  const total=base+soma;
   if(qs('#s-val'))qs('#s-val').value=total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   if(qs('#s-composition-total'))qs('#s-composition-total').textContent=`R$ ${brl(total)}`;
-  renderComposicao();lerParametros();
+  lerParametros();
 }
+function atualizarComposicao(){renderComposicao();atualizarTotaisComposicao();}
 function adicionarLinhaComposicao(){
   const id=qs('#s-additional-service')?.value,service=perfisServico.find(item=>item.id===id);if(!service){alert('Selecione um serviço adicional cadastrado.');return}
-  const amount=Number(service.default_amount||0);composicaoItens.push({description:service.name,amount:Number.isFinite(amount)?Number(amount.toFixed(2)):0,profileId:service.id});qs('#s-additional-service').value='';atualizarComposicao();
+  const unit=Number(service.default_amount||0);composicaoItens.push({description:service.name,quantity:1,unitAmount:Number.isFinite(unit)?Number(unit.toFixed(2)):0,profileId:service.id,ctn:service.national_code,nbs:service.nbs_code});qs('#s-additional-service').value='';atualizarComposicao();
 }
-function editarValorComposicao(index,value){const amount=dinheiro(value);if(Number.isFinite(amount)&&amount>=0)composicaoItens[index].amount=Number(amount.toFixed(2));const base=dinheiro(qs('#s-base-val')?.value),total=base+composicaoItens.reduce((sum,item)=>sum+Number(item.amount||0),0);if(qs('#s-val'))qs('#s-val').value=total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});if(qs('#s-composition-total'))qs('#s-composition-total').textContent=`R$ ${brl(total)}`;lerParametros()}
+function editarQtdComposicao(index,value){const q=dinheiro(value);if(Number.isFinite(q)&&q>=0)composicaoItens[index].quantity=q;atualizarTotaisComposicao()}
+function editarUnitComposicao(index,value){const u=dinheiro(value);if(Number.isFinite(u)&&u>=0)composicaoItens[index].unitAmount=Number(u.toFixed(2));atualizarTotaisComposicao()}
 function removerLinhaComposicao(index){composicaoItens.splice(index,1);atualizarComposicao()}
 function atualizarCamposEspeciais(){
   const category=qs('#s-category')?.value||'other',code=qs('#s-cod')?.value||'';
@@ -2396,9 +2407,11 @@ async function emitir(falhar){
   const nbs=qs('#s-nbs').value.replace(/\D/g,'');
   const tipoPisCofins=qs('#s-ret-pc').value;
   const retevePisCofins=tipoPisCofins!==''&&tipoPisCofins!=='0';
-  const baseAmount=dinheiro(qs('#s-base-val')?.value||qs('#s-val').value),additionalItems=composicaoItens.map(item=>({description:item.description,amount:Number(item.amount)}));
-  if(!Number.isFinite(baseAmount)||baseAmount<=0){alert('Informe um valor maior que zero no item selecionado, dentro da Composição de valores.');qs('#s-base-val')?.focus();return}
-  if(additionalItems.some(item=>!Number.isFinite(item.amount)||item.amount<=0)){alert('Edite os itens adicionais na Composição de valores e informe valores maiores que zero.');qs('#s-composition-lines')?.scrollIntoView({behavior:'smooth',block:'center'});return}
+  const base=dinheiro(qs('#s-base-val')?.value)||0,additionalItems=composicaoItens.map(item=>({description:item.description,quantity:Number(item.quantity||0),unitAmount:Number(item.unitAmount||0),amount:Number(((Number(item.quantity)||0)*(Number(item.unitAmount)||0)).toFixed(2))}));
+  const baseAmount=base>0?base:undefined;
+  if(!Number.isFinite(base)||base<0){alert('Valor do serviço inválido na Composição de valores.');qs('#s-base-val')?.focus();return}
+  if(additionalItems.some(item=>item.quantity<=0||item.unitAmount<=0)){alert('Cada linha da Composição precisa de quantidade e valor unitário maiores que zero — ou remova a linha.');qs('#s-composition-lines')?.scrollIntoView({behavior:'smooth',block:'center'});return}
+  if(!(base>0)&&!additionalItems.length){alert('Informe o valor do serviço ou adicione ao menos uma linha na Composição de valores.');qs('#s-base-val')?.focus();return}
   const payload={
     competenceDate:qs('#s-comp').value,
     borrower:{name:qs('#t-nome').value.trim(),taxId:qs('#t-doc').value,email:qs('#t-mail').value.trim()||undefined,municipalityCode:qs('#t-municipio').value.replace(/\D/g,'')||undefined,postalCode:qs('#t-cep').value.replace(/\D/g,'')||undefined,street:qs('#t-end').value.trim()||undefined,number:qs('#t-num').value.trim()||undefined,district:qs('#t-bairro').value.trim()||undefined},
@@ -2463,7 +2476,7 @@ async function emitir(falhar){
 
 /* ---------- rascunhos de emissão ---------- */
 function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{name:qs('#t-nome').value,taxId:qs('#t-doc').value,email:qs('#t-mail').value,phone:qs('#t-zap').value,municipalityCode:qs('#t-municipio').value,postalCode:qs('#t-cep').value,street:qs('#t-end').value,number:qs('#t-num').value,district:qs('#t-bairro').value,complement:qs('#t-comp').value},service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,nbsCode:qs('#s-nbs').value,description:qs('#s-desc').value,amount:qs('#s-val').value,baseAmount:qs('#s-base-val')?.value||qs('#s-val').value,additionalItems:composicaoItens,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value,eventCode:qs('#s-event-code')?.value,eventLocation:qs('#s-event-location')?.value,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,pisCofinsCst:qs('#s-cst').value,pisCofinsWithholding:qs('#s-ret-pc').value,pisCofinsBase:qs('#s-pc-base').value,pisRate:qs('#s-pis-rate').value,cofinsRate:qs('#s-cofins-rate').value,pisAmount:qs('#s-pis-amount').value,cofinsAmount:qs('#s-cofins-amount').value,retCp:qs('#s-ret-cp').value,retIrrf:qs('#s-ret-irrf').value,retCsll:qs('#s-ret-csll').value}}}
-function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';composicaoItens=Array.isArray(s.additionalItems)?s.additionalItems.map(item=>({description:item.description,amount:Number(item.amount||0),profileId:item.profileId})):[];qs('#s-base-val').value=s.baseAmount||s.amount||'0,00';qs('#s-category').value=s.serviceCategory||'other';qs('#s-cno').value=s.cno||'';qs('#s-event-code').value=s.eventCode||'';qs('#s-event-location').value=s.eventLocation||'';atualizarCamposEspeciais();atualizarComposicao();qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');lerParametros();}
+function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';composicaoItens=Array.isArray(s.additionalItems)?s.additionalItems.map(item=>({description:item.description,quantity:Number(item.quantity??1),unitAmount:Number(item.unitAmount??item.amount??0),profileId:item.profileId,ctn:item.ctn,nbs:item.nbs})):[];qs('#s-base-val').value=s.baseAmount||s.amount||'0,00';qs('#s-category').value=s.serviceCategory||'other';qs('#s-cno').value=s.cno||'';qs('#s-event-code').value=s.eventCode||'';qs('#s-event-location').value=s.eventLocation||'';atualizarCamposEspeciais();atualizarComposicao();qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');lerParametros();}
 let rascunhos=[];
 async function carregarRascunhos(){try{rascunhos=await api('/api/workspace/drafts');const box=qs('#draft-list');box.innerHTML=rascunhos.length?rascunhos.map((item,index)=>`<div class="draft-item"><b>${esc(item.title)}</b><span>${new Date(item.updated_at).toLocaleString('pt-BR')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="abrirRascunho(${index})">Abrir</button><button class="ico-btn danger" title="Excluir" onclick="excluirRascunho('${item.id}')">×</button></div></div>`).join(''):'<div class="empty-state">Nenhum rascunho salvo.</div>'}catch(error){qs('#draft-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
 async function salvarRascunho(){const title=prompt('Nome do rascunho',qs('#t-nome').value?`NFS-e — ${qs('#t-nome').value}`:'Nova NFS-e');if(!title)return;try{await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title,payload:dadosRascunho()})});await carregarRascunhos()}catch(error){alert(error.message)}}
@@ -2577,7 +2590,44 @@ async function salvarComercial(){
   const commercialPayload={borrower,services:comercialItens,service:comercialItens[0],observation:qs('#co-observation')?.value.trim()||'',payment:qs('#co-payment')?.value.trim()||'',conditions:qs('#co-conditions')?.value.trim()||''};
   try{await api('/api/workspace/commercial',{method:'POST',body:JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:commercialPayload})});qs('#co-title').value='';qs('#co-customer').value='';qs('#co-service').value='';qs('#co-description').value='';qs('#co-value').value='0,00';qs('#co-observation').value='';qs('#co-payment').value='';qs('#co-conditions').value='';comercialItens=[];clienteComercialSelecionado=null;servicoComercialSelecionado=null;renderItensComerciais();selecionarClienteComercial();selecionarServicoComercial();await carregarComerciais()}catch(error){alert(error.message)}
 }
-async function converterComercial(index){const item=comerciais[index];try{const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'}),p=result.payload||{},b=p.borrower||{},services=Array.isArray(p.services)?p.services:[p.service].filter(Boolean),groups=new Map();services.forEach(service=>{const key=service.nbsCode||'sem-nbs',current=groups.get(key);if(current){current.amount=(Number(current.amount||0)+Number(service.amount||0)).toFixed(2);current.description=[current.description,service.description].filter(Boolean).join('; ')}else groups.set(key,{...service,amount:Number(service.amount||0).toFixed(2)})});const drafts=[...groups.values()];for(const service of drafts)await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title:`${item.title} · NBS ${service.nbsCode||'—'}`,payload:{competenceDate:qs('#s-comp').value,borrower:b,service}})});const s=drafts[0]||{};preencherCliente({...b,legal_name:b.legal_name||b.name,tax_id:b.tax_id||b.taxId||''});if(s.profileId&&perfisServico.some(profile=>profile.id===s.profileId)){qs('#s-profile').value=s.profileId;aplicarPerfilServico()}else{if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode)}qs('#s-desc').value=s.description||'';composicaoItens=[];qs('#s-base-val').value=s.amount||'0,00';atualizarComposicao();formatarDinheiro(qs('#s-val'));lerParametros();go('emitir',qs('.sb-link[onclick*="emitir"]'));alert(`${drafts.length} rascunho(s) criado(s), agrupado(s) por NBS. Confira antes de autorizar.`)}catch(error){alert(error.message)}}
+async function converterComercial(index){
+  const item=comerciais[index];
+  try{
+    const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'});
+    const p=result.payload||{},b=p.borrower||{};
+    const services=Array.isArray(p.services)?p.services:[p.service].filter(Boolean);
+    // Agrupa por CTN+NBS. Mesmo CTN+NBS = uma nota; itens iguais viram uma linha com quantidade.
+    const groups=new Map();
+    services.forEach(service=>{
+      const ctn=service.nationalTaxCode||'',nbs=service.nbsCode||'',key=ctn+'|'+nbs;
+      let g=groups.get(key);
+      if(!g){g={nationalTaxCode:ctn,nbsCode:nbs,profileId:service.profileId,municipalTaxCode:service.municipalTaxCode,descricoes:[],lines:[]};groups.set(key,g)}
+      const desc=service.description||service.name||'Serviço',unit=Number(Number(service.amount||0).toFixed(2));
+      if(desc&&!g.descricoes.includes(desc))g.descricoes.push(desc);
+      const existing=g.lines.find(l=>l.description===desc&&Number(l.unitAmount)===unit);
+      if(existing)existing.quantity+=1;else g.lines.push({description:desc,quantity:1,unitAmount:unit,profileId:service.profileId,ctn:ctn,nbs:nbs});
+    });
+    const grupos=[...groups.values()];
+    for(const g of grupos){
+      const total=Number(g.lines.reduce((s,l)=>s+l.quantity*l.unitAmount,0).toFixed(2));
+      await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title:`${item.title} · CTN ${g.nationalTaxCode||'—'} / NBS ${g.nbsCode||'—'}`,payload:{competenceDate:qs('#s-comp').value,borrower:b,service:{nationalTaxCode:g.nationalTaxCode,nbsCode:g.nbsCode,municipalTaxCode:g.municipalTaxCode,description:g.descricoes.join('; '),amount:total,additionalItems:g.lines}}})});
+    }
+    preencherCliente({...b,legal_name:b.legal_name||b.name,tax_id:b.tax_id||b.taxId||''});
+    const first=grupos[0];
+    if(first){
+      if(first.profileId&&perfisServico.some(profile=>profile.id===first.profileId)){qs('#s-profile').value=first.profileId;aplicarPerfilServico()}
+      if(first.nationalTaxCode)qs('#s-cod').value=first.nationalTaxCode;
+      definirNbsSelecionado('s-nbs',first.nbsCode);
+      qs('#s-desc').value=first.descricoes.join('; ');
+      qs('#s-base-val').value='0,00';
+      composicaoItens=first.lines.map(l=>({description:l.description,quantity:l.quantity,unitAmount:l.unitAmount,profileId:l.profileId,ctn:l.ctn,nbs:l.nbs}));
+      atualizarComposicao();
+    }
+    lerParametros();
+    go('emitir',qs('.sb-link[onclick*="emitir"]'));
+    alert(`${grupos.length} nota(s) preparada(s), agrupada(s) por CTN+NBS. Os itens viraram linhas com quantidade — confira e ajuste antes de autorizar.`);
+  }catch(error){alert(error.message)}
+}
 
 
 /* ---------- importação ADN ---------- */
