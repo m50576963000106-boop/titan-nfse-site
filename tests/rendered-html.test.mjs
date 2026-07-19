@@ -150,4 +150,23 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.match(html,/id="co-observation"/);
   assert.match(html,/id="co-payment"/);
   assert.match(html,/id="co-conditions"/);
+  assert.match(html,/\/api\/services\/nbs-suggestions/);
+  assert.match(html,/id="s-cno"/);
+  assert.match(html,/id="s-event-code"/);
+  assert.match(html,/id="s-event-location"/);
+  assert.match(html,/id="s-base-val"/);
+  assert.match(html,/id="s-composition-lines"/);
+  assert.match(html,/\/api\/onboarding\/check/);
+  assert.match(html,/Entrar na fila/);
+});
+
+test("exibe planos SaaS com limites e valores publicados",async()=>{
+  const html=await readFile(resolve(root,"public/nfs.html"),"utf8");
+  assert.match(html,/id="planos"/);
+  assert.match(html,/Plano MEI/);
+  assert.match(html,/R\$ 29,90/);
+  assert.match(html,/Plano SN 20/);
+  assert.match(html,/R\$ 49,90/);
+  assert.match(html,/Plano SN 50/);
+  assert.match(html,/R\$ 79,90/);
 });
