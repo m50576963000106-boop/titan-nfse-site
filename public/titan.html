@@ -2616,7 +2616,7 @@ async function converterComercial(index){
     const first=grupos[0];
     if(first){
       if(first.profileId&&perfisServico.some(profile=>profile.id===first.profileId)){qs('#s-profile').value=first.profileId;aplicarPerfilServico()}
-      if(first.nationalTaxCode)qs('#s-cod').value=first.nationalTaxCode;
+      if(first.nationalTaxCode)definirNbsSelecionado('s-cod',first.nationalTaxCode,first.descricoes[0]||'');
       definirNbsSelecionado('s-nbs',first.nbsCode);
       qs('#s-desc').value=first.descricoes.join('; ');
       qs('#s-base-val').value='0,00';
