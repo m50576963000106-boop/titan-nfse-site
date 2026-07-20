@@ -285,6 +285,7 @@ main{margin-left:230px;padding:58px 0 0}
   transition:border-color .12s,box-shadow .12s;
 }
 .inp:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.14)}
+.inp:read-only,.inp:disabled,select.inp:disabled{background:#eef0f3;color:#6b7280;cursor:not-allowed}
 textarea.inp{resize:vertical;min-height:64px}
 .row{display:grid;gap:12px}
 .r2{grid-template-columns:1fr 1fr}
@@ -961,6 +962,7 @@ main{margin-left:258px;padding-top:72px}
                   <select id="t-tipo" class="inp"><option>Pessoa jurídica</option><option>Pessoa física</option><option>Exterior</option></select>
                 </div>
               </div>
+              <div class="hint" id="t-lock-hint" style="display:none">Dados travados conforme o cadastro do cliente. E-mail, WhatsApp e CPF/CNPJ continuam editáveis; para corrigir nome, endereço ou município, acesse Clientes.</div>
               <div class="field customer-search">
                 <label for="t-nome">Razão social / nome</label>
                 <input id="t-nome" class="inp" placeholder="Digite para buscar na carteira e no Portal Nacional" autocomplete="off">
@@ -982,7 +984,6 @@ main{margin-left:258px;padding-top:72px}
                 <div class="row r2"><div class="field"><label for="t-cep">CEP</label><input id="t-cep" class="inp mono" inputmode="numeric" placeholder="00000-000"></div><div class="field"><label for="t-municipio">Município (código IBGE)</label><input id="t-municipio" class="inp mono" inputmode="numeric" maxlength="7" placeholder="0000000"></div></div>
                 <div class="row r2"><div class="field"><label for="t-end">Logradouro</label><input id="t-end" class="inp" placeholder="Rua, avenida ou rodovia"></div><div class="field"><label for="t-num">Número</label><input id="t-num" class="inp" placeholder="Número"></div></div>
                 <div class="row r2"><div class="field mb0"><label for="t-bairro">Bairro</label><input id="t-bairro" class="inp" placeholder="Bairro"></div><div class="field mb0"><label for="t-comp">Complemento</label><input id="t-comp" class="inp" placeholder="Sala, bloco, referência"></div></div>
-                <div class="hint">A busca por CNPJ preenche nome, contato, cidade e endereço. Revise os dados antes de emitir.</div>
               </div>
             </div>
           </div>
@@ -996,7 +997,7 @@ main{margin-left:258px;padding-top:72px}
                 <div class="hint" id="s-comp-hint">Campo obrigatório da DPS. A data usa o fuso de Brasília.</div>
               </div>
               <div class="field">
-                <label for="s-profile">Cadastro padrão</label>
+                <label for="s-profile">Meus Serviços</label>
                 <select id="s-profile" class="inp" onchange="aplicarPerfilServico()"><option value="">Preenchimento avulso</option></select>
                 <div class="hint">Cadastros configurados em Meus serviços.</div>
               </div>
@@ -1026,7 +1027,7 @@ main{margin-left:258px;padding-top:72px}
           </div>
 
           <div class="card">
-            <div class="card-h"><h2>Composição de valores</h2><span class="pill p-gold right">Conferência</span></div>
+            <div class="card-h"><h2>Serviços nessa nota</h2><span class="pill p-gold right">Conferência</span></div>
             <div class="card-b">
               <div class="row r2"><div class="field"><label for="s-base-val">Valor do serviço selecionado (R$)</label><input id="s-base-val" class="inp num" inputmode="decimal" value="0,00" oninput="atualizarComposicao()"><div class="hint">Preenchido pelo cadastro e editável diretamente nesta lista.</div></div><div class="field"><label for="s-additional-service">Adicionar outro serviço cadastrado</label><div class="input-action"><select id="s-additional-service" class="inp"><option value="">Selecione um serviço adicional</option></select><button class="btn btn-s" type="button" onclick="adicionarLinhaComposicao()">Adicionar</button></div></div></div>
               <div id="s-composition-lines" class="draft-list"></div>
@@ -1041,7 +1042,7 @@ main{margin-left:258px;padding-top:72px}
           </div>
 
           <div class="card">
-            <div class="card-h"><h2>Retenções do padrão nacional</h2></div>
+            <div class="card-h"><h2>Retenções</h2></div>
             <div class="card-b">
               <div class="row r2">
                 <div class="field"><label for="s-trib-iss">Tributação do ISSQN</label><select id="s-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação de serviço</option><option value="4">4 — Não incidência</option></select></div>
@@ -1114,8 +1115,8 @@ main{margin-left:258px;padding-top:72px}
         <div class="field"><label>Meu serviço</label><div class="input-action"><select id="co-service" class="inp" onchange="selecionarServicoComercial()"><option value="">Carregando serviços cadastrados...</option></select><button type="button" class="btn btn-s" title="Abrir Meus serviços" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint" id="co-service-hint">Selecione e adicione vários serviços antes de salvar.</div></div>
         <div class="field"><label>Título do documento</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="co-customer" class="inp" list="co-customer-list" placeholder="Pesquise pela razão social ou nome" autocomplete="off" oninput="selecionarClienteComercial()"><button type="button" class="btn btn-s" title="Abrir cadastro de clientes" onclick="abrirClientes()">Clientes</button></div><datalist id="co-customer-list"></datalist><div class="hint" id="co-customer-hint">Selecione um cadastro para levar CNPJ e endereço à nota.</div></div><div class="field"><label>Valor do item (R$)</label><input id="co-value" class="inp num" inputmode="decimal" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" rows="4" placeholder="Descrição que aparecerá no documento"></textarea></div><div class="flex wrap" style="margin-top:8px"><button class="btn btn-s" type="button" onclick="adicionarItemComercial()">+ Adicionar serviço à lista</button><span class="foot-note">Cada item recebe descrição, NBS, alíquota e valor; itens iguais são agrupados na conversão.</span></div><div id="co-items" class="draft-list" style="margin-top:10px"></div><div class="commercial-summary"><b>Total dos serviços</b><b id="co-total">R$ 0,00</b></div>
         <div class="row r2" style="margin-top:16px"><div class="field"><label for="co-observation">Observações</label><textarea id="co-observation" class="inp" rows="3" placeholder="Notas, escopo, prazos ou observações"></textarea></div><div class="field"><label for="co-payment">Meios de pagamento</label><textarea id="co-payment" class="inp" rows="3" placeholder="PIX, dados bancários ou condição de pagamento"></textarea></div></div><div class="field"><label for="co-conditions">Condições especiais / garantia</label><textarea id="co-conditions" class="inp" rows="2" placeholder="Condições comerciais, validade ou garantia"></textarea></div><div class="commercial-summary"><span id="co-signature">Cidade, data de hoje · Empresa responsável</span></div>
-        <div class="setup-actions"><span class="foot-note" style="margin:0">A conversão prepara a emissão, mas não autoriza a nota.</span><button class="btn btn-a right" type="button" onclick="salvarComercial()">Salvar documento</button></div>
-      </div></div><div class="card"><div class="card-h"><div><h2>Documentos comerciais</h2><p>Pesquise, acompanhe a situação e converta para NFS-e.</p></div></div><div class="card-b"><div class="commercial-controls"><input id="co-search" class="inp" placeholder="Buscar por número, título ou cliente" oninput="renderComerciais()"><select id="co-filter" class="inp" onchange="renderComerciais()"><option value="">Todos os status</option><option value="draft">Em elaboração</option><option value="approved">Aprovado</option><option value="converted">Convertido</option><option value="cancelled">Cancelado</option></select><button class="btn btn-s" onclick="carregarComerciais()">Atualizar</button></div><div id="commercial-list" class="draft-list"></div><div class="commercial-summary"><span id="commercial-count">0 documento(s)</span><span>A conversão exige revisão antes da emissão.</span></div></div></div></div>
+        <div class="setup-actions"><span class="foot-note" style="margin:0">A conversão prepara a emissão, mas não autoriza a nota.</span><button class="btn btn-a right" type="button" onclick="salvarComercial()">Salvar Rascunho</button></div>
+      </div></div><div class="card"><div class="card-h"><div><h2>Meus Ordens de serviços/orçamentos</h2><p>Pesquise, acompanhe a situação e converta para NFS-e.</p></div></div><div class="card-b"><div class="commercial-controls"><input id="co-search" class="inp" placeholder="Buscar por número, título ou cliente" oninput="renderComerciais()"><select id="co-filter" class="inp" onchange="renderComerciais()"><option value="">Todos os status</option><option value="draft">Em elaboração</option><option value="approved">Aprovado</option><option value="converted">Convertido</option><option value="cancelled">Cancelado</option></select><button class="btn btn-s" onclick="carregarComerciais()">Atualizar</button></div><div id="commercial-list" class="draft-list"></div><div class="commercial-summary"><span id="commercial-count">0 documento(s)</span><span>A conversão exige revisão antes da emissão.</span></div></div></div></div>
     </section>
 
     <!-- ---------- NOTAS ---------- -->
@@ -1789,6 +1790,16 @@ let clienteAtualEmissao=null;
 let buscaClienteTimer;
 const origemCliente={portal_nacional:'Portal Nacional',cnpj_api:'BrasilAPI',emission_history:'Histórico de notas',manual:'Cadastro manual'};
 
+const CAMPOS_TOMADOR_TRAVAVEIS=['t-nome','t-tipo','t-cep','t-municipio','t-end','t-num','t-bairro','t-comp'];
+let tomadorTravadoDoc='';
+function travarTomador(locked){
+  CAMPOS_TOMADOR_TRAVAVEIS.forEach(id=>{
+    const el=qs('#'+id);if(!el)return;
+    if(el.tagName==='SELECT')el.disabled=locked;else el.readOnly=locked;
+  });
+  const hint=qs('#t-lock-hint');if(hint)hint.style.display=locked?'':'none';
+  if(!locked)tomadorTravadoDoc='';
+}
 function preencherCliente(cliente){
   clienteAtualEmissao=cliente?.id?cliente:null;
   qs('#t-doc').value=cliente.tax_id||'';
@@ -1804,7 +1815,15 @@ function preencherCliente(cliente){
   qs('#t-comp').value=cliente.complement||'';
   qs('#customer-results').classList.remove('on');
   carregarSugestoesTomador().catch(()=>{});
+  // Dados vieram de um cadastro (busca de CNPJ, carteira de clientes ou conversão
+  // de orçamento/O.S.) - trava tudo exceto e-mail, whatsapp e o próprio documento,
+  // para o endereço/município da nota nunca divergir do cadastro oficial do cliente.
+  tomadorTravadoDoc=qs('#t-doc').value;
+  travarTomador(true);
 }
+qs('#t-doc').addEventListener('input',()=>{
+  if(tomadorTravadoDoc&&qs('#t-doc').value!==tomadorTravadoDoc)travarTomador(false);
+});
 
 async function carregarSugestoesTomador(){
   const cno=qs('#s-cno-options'),codes=qs('#s-event-code-options'),locations=qs('#s-event-location-options');
