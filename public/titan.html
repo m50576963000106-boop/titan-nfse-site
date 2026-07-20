@@ -1078,7 +1078,7 @@ main{margin-left:258px;padding-top:72px}
 
           <div class="flex wrap">
             <button class="btn-a btn" onclick="emitir(false)" id="btn-emit">Testar fluxo de emissão</button>
-            <button class="btn" onclick="emitir(true)">Simular rejeição</button>
+            <button class="btn" onclick="salvarRascunho()">Salvar rascunho</button>
             <label class="flex" style="margin-left:auto;font-size:12px;color:var(--ink-2);cursor:pointer">
               <input type="checkbox" id="zap"> Simular envio por WhatsApp
             </label>
@@ -1087,7 +1087,7 @@ main{margin-left:258px;padding-top:72px}
 
         <div class="card sticky">
           <div class="card-h">
-            <h2>Rascunhos de NFS-e</h2><button class="btn btn-s right" type="button" onclick="salvarRascunho()">Salvar rascunho</button>
+            <h2>Rascunhos de NFS-e</h2>
           </div>
           <div class="card-b">
             <div id="draft-list" class="draft-list"><div class="empty-state">Carregando rascunhos...</div></div>
@@ -1841,21 +1841,37 @@ async function carregarSugestoesTomador(){
 }
 
 let municipioTimer;
+let municipiosCatalogo=[];
+let municipiosCatalogoPromise=null;
+function carregarMunicipiosCatalogo(){
+  if(!municipiosCatalogoPromise)municipiosCatalogoPromise=api('/api/locations/municipalities?all=1').then(rows=>{municipiosCatalogo=Array.isArray(rows)?rows:[]}).catch(error=>{municipiosCatalogoPromise=null;throw error});
+  return municipiosCatalogoPromise;
+}
 async function pesquisarMunicipio(tipo){
   const input=qs(`#${tipo}-mun-search`),box=qs(`#${tipo}-mun-results`),term=input.value.trim();
   clearTimeout(municipioTimer);
   if(term.length<2){box.classList.remove('on');return}
+  box.innerHTML='<div class="empty-state" style="padding:12px">Buscando municípios...</div>';box.classList.add('on');
   municipioTimer=setTimeout(async()=>{
-    box.innerHTML='<div class="empty-state" style="padding:12px">Buscando municípios...</div>';box.classList.add('on');
-    try{const rows=await api('/api/locations/municipalities?search='+encodeURIComponent(term));box.innerHTML=rows.length?rows.map(row=>`<button type="button" class="municipality-option" onclick='selecionarMunicipio("${tipo}",${JSON.stringify(row)})'><b>${esc(row.name)}/${esc(row.state)}</b><br><span class="mono">${esc(row.code)}</span></button>`).join(''):'<div class="empty-state" style="padding:12px">Nenhum município encontrado.</div>'}catch(error){box.innerHTML=`<div class="empty-state" style="padding:12px">${esc(error.message)}</div>`}
-  },250);
+    try{
+      await carregarMunicipiosCatalogo();
+      const q=supNorm(term),digits=term.replace(/\D/g,'');
+      const rows=municipiosCatalogo.filter(row=>(digits&&row.code.includes(digits))||supNorm(`${row.name} ${row.state}`).includes(q)).slice(0,25);
+      box.innerHTML=rows.length?rows.map(row=>`<button type="button" class="municipality-option" onclick='selecionarMunicipio("${tipo}",${JSON.stringify(row)})'><b>${esc(row.name)}/${esc(row.state)}</b><br><span class="mono">${esc(row.code)}</span></button>`).join(''):'<div class="empty-state" style="padding:12px">Nenhum município encontrado.</div>';
+    }catch(error){box.innerHTML=`<div class="empty-state" style="padding:12px">Catálogo de municípios indisponível no momento — tente novamente em instantes.</div>`}
+  },200);
 }
 function selecionarMunicipio(tipo,row){
   qs(`#${tipo}-mun`).value=row.code;qs(`#${tipo}-mun-search`).value=`${row.name}/${row.state} — ${row.code}`;qs(`#${tipo}-mun-results`).classList.remove('on');
   if(tipo==='s')lerParametros();else checarHabilitacao();
 }
 async function exibirMunicipioPorCodigo(tipo,code){
-  if(!code)return;try{const rows=await api('/api/locations/municipalities?search='+encodeURIComponent(code));const row=rows.find(item=>item.code===String(code));if(row)selecionarMunicipio(tipo,row);else qs(`#${tipo}-mun-search`).value=code}catch{qs(`#${tipo}-mun-search`).value=code}
+  if(!code)return;
+  try{
+    await carregarMunicipiosCatalogo();
+    const row=municipiosCatalogo.find(item=>item.code===String(code));
+    if(row)selecionarMunicipio(tipo,row);else qs(`#${tipo}-mun-search`).value=code;
+  }catch{qs(`#${tipo}-mun-search`).value=code}
 }
 
 function formatarCnpj(value){
@@ -2451,14 +2467,10 @@ function pipeReset(){
 function mostrarDetalheEtapa(index){const e=etapas[index];const detail=qs('#pipe-detail');if(detail)detail.textContent=`${e.t} — ${e.d}`}
 
 let rodando=false;
-async function emitir(falhar){
+async function emitir(){
   if(!empresaAtual){
-    alert('Cadastre e salve a empresa antes de testar o fluxo de emissão.');
+    alert('Cadastre e salve a empresa antes de emitir.');
     go('emitente',qs('.sb-link[onclick*="emitente"]'));
-    return;
-  }
-  if(falhar){
-    alert('A simulação artificial foi removida. O sistema exibe somente respostas reais da Sefin Nacional.');
     return;
   }
   const valor=Number(qs('#s-val').value.replace(/\./g,'').replace(',','.'));
