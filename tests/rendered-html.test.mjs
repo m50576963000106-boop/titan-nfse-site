@@ -157,7 +157,7 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.match(html,/id="s-base-val"/);
   assert.match(html,/id="s-composition-lines"/);
   assert.match(html,/id="cad-default-amount"/);
-  assert.match(html,/editarValorComposicao/);
+  assert.match(html,/editarUnitComposicao/);
   assert.match(html,/default_amount/);
   assert.doesNotMatch(html,/const amount=Number\(prompt\(`Valor de/);
   assert.match(html,/id="s-cno-options"/);
