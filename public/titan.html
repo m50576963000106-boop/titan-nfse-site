@@ -447,7 +447,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .doc-head b{font-size:13.5px;color:var(--ink)}
 .doc-tag{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--cream);border:1px solid var(--line);padding:1px 6px;border-radius:4px;color:var(--ink-2)}
 .doc-meta{font-size:12px;color:var(--ink-3)}
-.doc-act{flex:none}
+.doc-act{flex:none;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;align-items:center}
 .commercial-grid{display:flex;flex-direction:column;gap:16px;align-items:stretch}.commercial-letterhead{display:grid;grid-template-columns:150px 1fr auto;gap:18px;align-items:center;padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:var(--r)}.commercial-letterhead img{max-width:150px;max-height:58px;object-fit:contain}.commercial-letterhead h2{margin:0;color:var(--navy);font-size:19px}.commercial-letterhead p{margin:4px 0 0;color:var(--ink-2);font-size:11px;line-height:1.5}.commercial-letterhead .commercial-doc-meta{text-align:right;color:var(--gold-dim);font-weight:800;font-size:12px}.commercial-section-title{margin:0 0 12px;color:var(--navy);font-size:14px}.commercial-form{width:100%}
 .commercial-form .card-b{padding:18px}
 .conditional-block{display:none;margin-top:12px;padding:12px;background:#fbfaf7;border:1px solid var(--line);border-radius:var(--r)}.conditional-block.on{display:block}
@@ -599,6 +599,7 @@ main{margin-left:258px;padding-top:72px}
 @media(max-width:760px){
   .commercial-letterhead{grid-template-columns:1fr auto;gap:10px;padding:14px}.commercial-letterhead img{grid-row:span 2;max-width:110px}.commercial-letterhead h2{font-size:16px}.commercial-letterhead .commercial-doc-meta{font-size:10px}
   .comp-line-single{flex-wrap:wrap}.comp-line-single .comp-desc{flex-basis:100%;white-space:normal}
+  .doc-item{flex-wrap:wrap}.doc-act{justify-content:flex-start;width:100%}
   .sidebar{transform:translateX(-100%);transition:transform .22s}
   .sidebar.open{transform:none;box-shadow:0 0 0 100vmax rgba(11,22,41,.5)}
   .topbar{left:0;padding:0 14px}
@@ -1107,17 +1108,20 @@ main{margin-left:258px;padding-top:72px}
     </section>
 
     <section class="view" id="v-comercial">
-      <div class="page-h master-head"><div><h1>Orçamentos e ordens de serviço</h1><p>Use clientes e serviços já cadastrados para montar o documento e depois convertê-lo em NFS-e.</p></div><button class="btn btn-s" type="button" onclick="abrirClientes()">Acessar clientes</button></div>
-      <div class="commercial-grid">
+      <div class="page-h master-head"><div><h1>Meus Ordens de serviços/orçamentos</h1><p>Pesquise, acompanhe a situação e converta para NFS-e.</p></div><div class="flex wrap" style="gap:8px"><button class="btn btn-s" type="button" onclick="abrirClientes()">Acessar clientes</button><button class="btn btn-s" type="button" onclick="novoComercial('service_order')">+ Nova O.S.</button><button class="btn btn-p" type="button" onclick="novoComercial('quote')">+ Novo Orçamento</button></div></div>
+
+      <div class="card"><div class="card-h"><div><h2>Lista</h2></div></div><div class="card-b"><div class="commercial-controls"><input id="co-search" class="inp" placeholder="Buscar por número, título ou cliente" oninput="renderComerciais()"><select id="co-filter" class="inp" onchange="renderComerciais()"><option value="">Todos os status</option><option value="draft">Em elaboração</option><option value="approved">Aprovado</option><option value="converted">Convertido</option><option value="cancelled">Cancelado</option></select><button class="btn btn-s" onclick="carregarComerciais()">Atualizar</button></div><div id="commercial-list" class="draft-list"></div><div class="commercial-summary"><span id="commercial-count">0 documento(s)</span><span>A conversão exige revisão antes da emissão.</span></div></div></div>
+
+      <div class="commercial-grid" id="co-form-wrap" style="display:none">
         <div class="commercial-letterhead"><img id="co-company-logo" src="/titan-nfse-logo.png" alt="Logo da empresa"><div><h2 id="co-company-name">Empresa ativa</h2><p id="co-company-details">CNPJ não informado<br>Endereço não informado</p><p id="co-company-contact"></p></div><div class="commercial-doc-meta"><span id="co-letter-kind">ORÇAMENTO</span><br><span id="co-letter-number">Nº 0001</span><br><span id="co-letter-date"></span></div></div>
-        <div class="card commercial-form"><div class="card-h"><h2>Novo documento</h2><span class="pill p-gold right">Formato comercial</span></div><div class="card-b">
+        <div class="card commercial-form"><div class="card-h"><h2 id="co-form-title">Novo documento</h2><span class="pill p-gold right">Formato comercial</span></div><div class="card-b">
         <div class="field"><label>Número de controle (automático)</label><input id="co-number" class="inp commercial-control" value="Será gerado ao salvar" readonly></div>
         <div class="row r2"><div class="field"><label>Tipo</label><select id="co-kind" class="inp" onchange="atualizarNumeroComercial()"><option value="quote">Orçamento</option><option value="service_order">Ordem de serviço</option></select></div><div class="field"><label>Situação</label><select id="co-status" class="inp"><option value="draft">Em elaboração</option><option value="approved">Aprovado</option></select></div></div>
         <div class="field"><label>Meu serviço</label><div class="input-action"><select id="co-service" class="inp" onchange="selecionarServicoComercial()"><option value="">Carregando serviços cadastrados...</option></select><button type="button" class="btn btn-s" title="Abrir Meus serviços" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint" id="co-service-hint">Selecione e adicione vários serviços antes de salvar.</div></div>
         <div class="field"><label>Título do documento</label><input id="co-title" class="inp" placeholder="Ex.: manutenção mensal"></div><div class="row r2"><div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="co-customer" class="inp" list="co-customer-list" placeholder="Pesquise pela razão social ou nome" autocomplete="off" oninput="selecionarClienteComercial()"><button type="button" class="btn btn-s" title="Abrir cadastro de clientes" onclick="abrirClientes()">Clientes</button></div><datalist id="co-customer-list"></datalist><div class="hint" id="co-customer-hint">Selecione um cadastro para levar CNPJ e endereço à nota.</div></div><div class="field"><label>Valor do item (R$)</label><input id="co-value" class="inp num" inputmode="decimal" value="0,00"></div></div><div class="field"><label>Descrição do serviço</label><textarea id="co-description" class="inp" rows="4" placeholder="Descrição que aparecerá no documento"></textarea></div><div class="flex wrap" style="margin-top:8px"><button class="btn btn-s" type="button" onclick="adicionarItemComercial()">+ Adicionar serviço à lista</button><span class="foot-note">Cada item recebe descrição, NBS, alíquota e valor; itens iguais são agrupados na conversão.</span></div><div id="co-items" class="draft-list" style="margin-top:10px"></div><div class="commercial-summary"><b>Total dos serviços</b><b id="co-total">R$ 0,00</b></div>
         <div class="row r2" style="margin-top:16px"><div class="field"><label for="co-observation">Observações</label><textarea id="co-observation" class="inp" rows="3" placeholder="Notas, escopo, prazos ou observações"></textarea></div><div class="field"><label for="co-payment">Meios de pagamento</label><textarea id="co-payment" class="inp" rows="3" placeholder="PIX, dados bancários ou condição de pagamento"></textarea></div></div><div class="field"><label for="co-conditions">Condições especiais / garantia</label><textarea id="co-conditions" class="inp" rows="2" placeholder="Condições comerciais, validade ou garantia"></textarea></div><div class="commercial-summary"><span id="co-signature">Cidade, data de hoje · Empresa responsável</span></div>
-        <div class="setup-actions"><span class="foot-note" style="margin:0">A conversão prepara a emissão, mas não autoriza a nota.</span><button class="btn btn-a right" type="button" onclick="salvarComercial()">Salvar Rascunho</button></div>
-      </div></div><div class="card"><div class="card-h"><div><h2>Meus Ordens de serviços/orçamentos</h2><p>Pesquise, acompanhe a situação e converta para NFS-e.</p></div></div><div class="card-b"><div class="commercial-controls"><input id="co-search" class="inp" placeholder="Buscar por número, título ou cliente" oninput="renderComerciais()"><select id="co-filter" class="inp" onchange="renderComerciais()"><option value="">Todos os status</option><option value="draft">Em elaboração</option><option value="approved">Aprovado</option><option value="converted">Convertido</option><option value="cancelled">Cancelado</option></select><button class="btn btn-s" onclick="carregarComerciais()">Atualizar</button></div><div id="commercial-list" class="draft-list"></div><div class="commercial-summary"><span id="commercial-count">0 documento(s)</span><span>A conversão exige revisão antes da emissão.</span></div></div></div></div>
+        <div class="setup-actions"><span class="foot-note" style="margin:0">A conversão prepara a emissão, mas não autoriza a nota.</span><button class="btn btn-s" type="button" onclick="fecharFormComercial()">Cancelar</button><button class="btn btn-a right" type="button" id="co-save-btn" onclick="salvarComercial()">Salvar Rascunho</button></div>
+      </div></div></div>
     </section>
 
     <!-- ---------- NOTAS ---------- -->
@@ -1721,7 +1725,7 @@ function garantirBarreiraInicial(){
 window.addEventListener('pageshow',garantirBarreiraInicial);
 function alternarGrupoMenu(id,button){const menu=qs('#'+id),open=!menu.classList.contains('on');menu.classList.toggle('on',open);button.classList.toggle('expanded',open)}
 function abrirRascunhos(button){go('emitir',button);setTimeout(()=>qs('#draft-list')?.scrollIntoView({behavior:'smooth',block:'center'}),80)}
-function abrirComercial(kind,button){go('comercial',button);if(qs('#co-kind')){qs('#co-kind').value=kind;atualizarNumeroComercial();}}
+function abrirComercial(kind,button){go('comercial',button);novoComercial(kind);}
 function abrirGestao(tab){const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');if(!access.user?.isMaster){moduloIndisponivel('Usuários e permissões — acesso exclusivo do gestor');return}const suffix=tab?`?tab=${encodeURIComponent(tab)}`:'';window.open('/nfs/admin'+suffix,'_blank','noopener')}
 function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);location.reload()}
 function go(v,el){
@@ -2584,6 +2588,7 @@ function selecionarServicoComercial(){
 /* ---------- orçamentos e ordens de serviço ---------- */
 let comerciais=[];
 let comercialItens=[];
+let comercialEditId=null;
 const COMERCIAL_STATUS={draft:['p-off','Em elaboração'],approved:['p-ok','Aprovado'],converted:['p-ok','Convertido em NFS-e'],cancelled:['p-err','Cancelado']};
 function numeroComercial(item){const prefix=item.kind==='service_order'?'O.S.':'ORÇ';return `${prefix} nº ${String(item.document_number||0).padStart(4,'0')}`}
 function renderEmpresaComercial(){
@@ -2603,6 +2608,30 @@ function atualizarNumeroComercial(){
   const field=qs('#co-number');if(field)field.value=numeroComercial({kind,document_number:max+1});
   renderEmpresaComercial();
 }
+function novoComercial(kind){
+  limparFormComercial();
+  if(qs('#co-kind'))qs('#co-kind').value=kind;
+  atualizarNumeroComercial();
+  const wrap=qs('#co-form-wrap');if(wrap){wrap.style.display='';wrap.scrollIntoView({behavior:'smooth',block:'start'})}
+}
+function fecharFormComercial(){const wrap=qs('#co-form-wrap');if(wrap)wrap.style.display='none';limparFormComercial();}
+function limparFormComercial(){
+  comercialEditId=null;
+  if(qs('#co-title'))qs('#co-title').value='';
+  if(qs('#co-customer'))qs('#co-customer').value='';
+  if(qs('#co-service'))qs('#co-service').value='';
+  if(qs('#co-description'))qs('#co-description').value='';
+  if(qs('#co-value'))qs('#co-value').value='0,00';
+  if(qs('#co-observation'))qs('#co-observation').value='';
+  if(qs('#co-payment'))qs('#co-payment').value='';
+  if(qs('#co-conditions'))qs('#co-conditions').value='';
+  if(qs('#co-status'))qs('#co-status').value='draft';
+  if(qs('#co-number'))qs('#co-number').value='Será gerado ao salvar';
+  comercialItens=[];clienteComercialSelecionado=null;servicoComercialSelecionado=null;
+  renderItensComerciais();selecionarClienteComercial();selecionarServicoComercial();
+  const btn=qs('#co-save-btn');if(btn)btn.textContent='Salvar Rascunho';
+  const titleEl=qs('#co-form-title');if(titleEl)titleEl.textContent='Novo documento';
+}
 function renderComerciais(){
   const box=qs('#commercial-list');if(!box)return;
   const q=(qs('#co-search')?.value||'').toLowerCase().trim();
@@ -2615,7 +2644,7 @@ function renderComerciais(){
   box.innerHTML=list.map(({item,index})=>{
     const st=COMERCIAL_STATUS[item.status]||['p-off',item.status];
     const done=item.status==='converted'||item.status==='cancelled';
-    const acao=`<button class="btn btn-s" onclick="abrirPdfComercial('${item.id}')">Abrir PDF</button>`+(done?`<button class="btn btn-s" disabled style="opacity:.5">${item.status==='converted'?'Convertido':'Cancelado'}</button>`:`<button class="btn btn-s" onclick="converterComercial(${index})">Converter em NFS-e</button>`);
+    const acao=`<button class="btn btn-s" onclick="abrirPdfComercial('${item.id}')">Abrir PDF</button><button class="btn btn-s" onclick="enviarComercialEmail(${index})">Enviar e-mail</button>`+(done?'':`<button class="btn btn-s" onclick="editarComercial(${index})">Editar</button>`)+(done?`<button class="btn btn-s" disabled style="opacity:.5">${item.status==='converted'?'Convertido':'Cancelado'}</button>`:`<button class="btn btn-s" onclick="converterComercial(${index})">Converter em NFS-e</button>`)+`<button class="ico-btn danger" type="button" title="Excluir" onclick="excluirComercial(${index})">×</button>`;
     const serviceList=Array.isArray(item.payload?.services)?item.payload.services:[item.payload?.service].filter(Boolean);
     const serviceName=serviceList.length>1?`${serviceList.length} serviços`:serviceList[0]?.name||serviceList[0]?.serviceType||'Serviço não identificado';
     return `<div class="doc-item"><div><div class="doc-head"><span class="doc-number">${numeroComercial(item)}</span><b>${esc(item.title)}</b><span class="pill ${st[0]}">${st[1]}</span></div><div class="doc-meta">${esc(item.customer_name||'Sem cliente')} · ${esc(serviceName)} · <b>R$ ${brl(Number(item.amount||0))}</b></div></div><div class="doc-act">${acao}</div></div>`;
@@ -2645,12 +2674,59 @@ async function salvarComercial(){
   const c=clienteComercialSelecionado;
   const borrower=c?{name:c.legal_name,legal_name:c.legal_name,tax_id:c.tax_id,email:c.email,phone:c.phone,address:c.address,postal_code:c.postal_code,municipality_code:c.municipality_code,street:c.street,number:c.number,complement:c.complement,district:c.district}:{name:customerName,legal_name:customerName};
   const commercialPayload={borrower,services:comercialItens,service:comercialItens[0],observation:qs('#co-observation')?.value.trim()||'',payment:qs('#co-payment')?.value.trim()||'',conditions:qs('#co-conditions')?.value.trim()||''};
-  try{await api('/api/workspace/commercial',{method:'POST',body:JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:commercialPayload})});qs('#co-title').value='';qs('#co-customer').value='';qs('#co-service').value='';qs('#co-description').value='';qs('#co-value').value='0,00';qs('#co-observation').value='';qs('#co-payment').value='';qs('#co-conditions').value='';comercialItens=[];clienteComercialSelecionado=null;servicoComercialSelecionado=null;renderItensComerciais();selecionarClienteComercial();selecionarServicoComercial();await carregarComerciais()}catch(error){alert(error.message)}
+  const body=JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:commercialPayload});
+  try{
+    if(comercialEditId)await api('/api/workspace/commercial/'+comercialEditId,{method:'PUT',body});
+    else await api('/api/workspace/commercial',{method:'POST',body});
+    fecharFormComercial();
+    await carregarComerciais();
+  }catch(error){alert(error.message)}
+}
+function editarComercial(index){
+  const item=comerciais[index];
+  if(item.status==='converted'||item.status==='cancelled'){alert('Documentos convertidos ou cancelados não podem ser editados.');return}
+  limparFormComercial();
+  comercialEditId=item.id;
+  if(qs('#co-kind'))qs('#co-kind').value=item.kind;
+  if(qs('#co-status'))qs('#co-status').value=item.status;
+  if(qs('#co-title'))qs('#co-title').value=item.title||'';
+  if(qs('#co-customer'))qs('#co-customer').value=item.customer_name||'';
+  const p=item.payload||{};
+  comercialItens=Array.isArray(p.services)?JSON.parse(JSON.stringify(p.services)):(p.service?[JSON.parse(JSON.stringify(p.service))]:[]);
+  if(qs('#co-observation'))qs('#co-observation').value=p.observation||'';
+  if(qs('#co-payment'))qs('#co-payment').value=p.payment||'';
+  if(qs('#co-conditions'))qs('#co-conditions').value=p.conditions||'';
+  renderItensComerciais();selecionarClienteComercial();
+  if(qs('#co-number'))qs('#co-number').value=numeroComercial(item);
+  renderEmpresaComercial();
+  const btn=qs('#co-save-btn');if(btn)btn.textContent='Salvar alterações';
+  const titleEl=qs('#co-form-title');if(titleEl)titleEl.textContent=`Editar ${numeroComercial(item)}`;
+  const wrap=qs('#co-form-wrap');if(wrap){wrap.style.display='';wrap.scrollIntoView({behavior:'smooth',block:'start'})}
+}
+async function excluirComercial(index){
+  const item=comerciais[index];
+  if(!confirm(`Excluir ${numeroComercial(item)} — ${item.title}? Esta ação não pode ser desfeita.`))return;
+  try{
+    await api('/api/workspace/commercial/'+item.id,{method:'DELETE'});
+    if(comercialEditId===item.id)fecharFormComercial();
+    await carregarComerciais();
+  }catch(error){alert(error.message)}
+}
+function enviarComercialEmail(index){
+  const item=comerciais[index];
+  const b=(item.payload&&item.payload.borrower)||{};
+  const email=String(b.email||'').trim();
+  if(!email){alert('Este cliente não tem e-mail cadastrado. Informe o e-mail em Clientes antes de enviar.');return}
+  const saudacao=b.name||b.legal_name?`Olá, ${b.name||b.legal_name}.\n\n`:'';
+  const subject=encodeURIComponent(`${numeroComercial(item)} — ${item.title}`);
+  const body=encodeURIComponent(`${saudacao}Segue ${item.kind==='service_order'?'a Ordem de Serviço':'o Orçamento'} ${numeroComercial(item)}.\nBaixe o PDF em "Abrir PDF" e anexe antes de enviar.\n\nAtenciosamente.`);
+  window.location.href=`mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`;
 }
 async function converterComercial(index){
   const item=comerciais[index];
   try{
     const result=await api('/api/workspace/commercial/'+item.id+'/convert',{method:'POST'});
+    if(comerciais[index]){comerciais[index].status='converted';comerciais[index].converted_at=new Date().toISOString();renderComerciais()}
     const p=result.payload||{},b=p.borrower||{};
     const services=Array.isArray(p.services)?p.services:[p.service].filter(Boolean);
     // Agrupa por CTN+NBS. Mesmo CTN+NBS = uma nota; itens iguais viram uma linha com quantidade.
