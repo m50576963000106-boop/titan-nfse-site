@@ -1004,7 +1004,7 @@ main{margin-left:258px;padding-top:72px}
               <div class="field">
                 <label for="s-cod-search">Código de tributação nacional — Anexo B</label>
                 <input id="s-cod-search" class="inp" autocomplete="off" placeholder="Busque por número do código ou palavra da descrição" oninput="filtrarCtnEmissao()" style="margin-bottom:8px">
-                <select id="s-cod" class="inp" onchange="lerParametros();buscarSugestoesNbsCodigo();atualizarCamposEspeciais()">
+                <select id="s-cod" class="inp" onchange="detectarServicoPorCodigo();lerParametros();buscarSugestoesNbsCodigo();atualizarCamposEspeciais()">
                   <option value="">Carregando catálogo nacional...</option>
                 </select>
                 <div class="hint" id="s-cod-hint">Catálogo oficial PRODREST v1.01 de 22/01/2026.</div>
@@ -2170,6 +2170,13 @@ async function excluirPerfilServico(id){
   await api('/api/services/profiles/'+id,{method:'DELETE'});await carregarPerfisServico();
 }
 
+// Item 5: ao informar o código (CTN), detecta o serviço cadastrado que
+// corresponde e aplica seu perfil (descrição, alíquota, retenções, NBS).
+function detectarServicoPorCodigo(){
+  const cod=(qs('#s-cod')?.value||'').replace(/\D/g,'');if(!cod)return;
+  const match=perfisServico.find(p=>String(p.national_code||'').replace(/\D/g,'')===cod);
+  if(match&&qs('#s-profile')&&qs('#s-profile').value!==match.id){qs('#s-profile').value=match.id;aplicarPerfilServico();}
+}
 function aplicarPerfilServico(){
   const item=perfisServico.find(profile=>profile.id===qs('#s-profile').value);
   if(!item){travarRetencoes(false);return}
