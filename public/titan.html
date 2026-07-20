@@ -2390,24 +2390,21 @@ async function baixarXml(id,numero){
 
 async function abrirDanfse(id){
   const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-  // Desktop: abre aba de "carregando" no gesto do clique e troca pelo PDF.
-  // Mobile: window.open+blob costuma ser bloqueado — baixa/abre via <a download>.
+  // Abre o DANFSe (layout v3.8) em HTML; a própria página tem o botão "Salvar PDF".
   let tab=null;
   if(!isMobile){
     tab=window.open('','_blank');
     if(tab)tab.document.write('<title>Preparando DANFSe...</title><p style="font-family:sans-serif;padding:24px">Gerando DANFSe...</p>');
   }
   try{
-    const blob=await apiBlob('/api/invoices/'+id+'/pdf');
-    const url=URL.createObjectURL(blob);
-    if(tab){
-      tab.location.href=url;
-    }else{
-      const a=document.createElement('a');
-      a.href=url;a.target='_blank';a.rel='noopener';a.download='DANFSe-'+id+'.pdf';
+    const html=await (await apiBlob('/api/invoices/'+id+'/danfse')).text();
+    if(tab){tab.document.open();tab.document.write(html);tab.document.close();}
+    else{
+      const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+      const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';
       document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),120000);
     }
-    setTimeout(()=>URL.revokeObjectURL(url),120000);
   }catch(error){if(tab)tab.close();alert(error.message)}
 }
 
