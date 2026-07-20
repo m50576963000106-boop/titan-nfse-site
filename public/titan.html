@@ -2090,9 +2090,16 @@ function definirNbsSelecionado(id,value,description=''){
   if(![...select.options].some(option=>option.value===code)){const option=document.createElement('option');option.value=code;option.textContent=description?`${code} — ${description}`:code;select.appendChild(option)}
   select.value=code;
 }
+// Item 6: NBS só as correspondentes ao CTN. Estrutura: NBS de 9 díg. tem no meio
+// (díg. 2-5) o item+subitem do CTN (LC 116). Ex.: CTN 150601 -> NBS 1.1506.xx.xx.
+// Se o catálogo (incompleto) não tiver correspondência, cai para a lista toda.
+function nbsCorrespondeCtn(nbsCode,ctnCode){const n=String(nbsCode||'').replace(/\D/g,''),c=String(ctnCode||'').replace(/\D/g,'');if(n.length!==9||c.length<4)return true;return n.slice(1,5)===c.slice(0,4);}
+function filtrarNbsPorCtn(items){const ctn=(qs('#s-cod')?.value||'').replace(/\D/g,'');if(ctn.length<4)return items;const f=items.filter(it=>nbsCorrespondeCtn(it.code,ctn));return f.length?f:items;}
 async function carregarNbsCatalogo(search='',target='s-nbs'){
   const result=await api('/api/services/nbs/catalog?limit=400'+(search?`&search=${encodeURIComponent(search)}`:''));
-  nbsCatalogo=result.items||[];preencherSelectNbs(target,nbsCatalogo,target==='s-nbs'?qs('#s-nbs')?.value:qs('#cad-nbs')?.value||'');
+  nbsCatalogo=result.items||[];
+  const lista=target==='s-nbs'?filtrarNbsPorCtn(nbsCatalogo):nbsCatalogo;
+  preencherSelectNbs(target,lista,target==='s-nbs'?qs('#s-nbs')?.value:qs('#cad-nbs')?.value||'');
 }
 async function buscarNbsEmissao(){
   const button=qs('#s-nbs-search')?.parentElement?.querySelector('button'),query=qs('#s-nbs-search').value.trim();
