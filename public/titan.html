@@ -379,6 +379,10 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .modal-backdrop.on{display:flex}
 .modal-card{width:100%;max-width:540px;background:var(--paper);border-radius:8px;box-shadow:0 24px 70px rgba(0,0,0,.3);overflow:hidden}
 .modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:start;gap:12px}.modal-head h2{font-size:18px}.modal-body{padding:20px}.modal-actions{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+.system-dialog .modal-card{max-width:620px}
+.system-dialog-text{width:100%;min-height:96px;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:6px;background:#fbfaf7;color:var(--ink);font-family:var(--mono);font-size:12px;line-height:1.5;resize:vertical;white-space:pre-wrap}
+.system-dialog-input{width:100%;margin-top:12px}
+.system-dialog-copy{margin-right:auto}
 
 /* ---------- PIPELINE (elemento-assinatura) ---------- */
 .pipe{background:var(--navy);border-radius:var(--r);padding:6px 0;overflow:hidden}
@@ -1509,9 +1513,9 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
 
       <div class="master-panel" id="master-panel-parceiros"><div class="card"><div class="card-h"><div><h3>Gestão de parceiros</h3><p>Um usuário pode ter no máximo um vínculo. Sem parceiro, o vínculo exibido é Administrador.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="partner-name">Nome do parceiro</label><input id="partner-name" class="inp" placeholder="Razão social ou nome completo"></div><div class="field"><label for="partner-nickname">Apelido</label><input id="partner-nickname" class="inp" placeholder="Ex.: Contabilidade Alfa"></div><div class="field"><label>&nbsp;</label><button class="btn btn-p" type="button" onclick="salvarParceiroMaster()">Cadastrar parceiro</button></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Apelido</th><th>Usuários vinculados</th><th>Status</th></tr></thead><tbody id="master-partners"></tbody></table></div></div></div></div>
 
-      <div class="master-panel" id="master-panel-usuarios"><div class="card"><div class="card-h"><div><h3>Gestão de usuários</h3><p>Libere, suspenda, redefina senhas e vincule pelo CNPJ da empresa.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="master-user-search">Buscar usuário</label><input id="master-user-search" class="inp" placeholder="Nome, e-mail ou CNPJ" oninput="filtrarUsuariosMaster()"></div><div class="field"><label for="master-user-partner-filter">Vínculo</label><select id="master-user-partner-filter" class="inp" onchange="filtrarUsuariosMaster()"><option value="all">Todos</option><option value="none">Administrador</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Usuário / empresa</th><th>Vínculo</th><th>Perfil</th><th>Consumo</th><th>Status</th><th>Ações</th></tr></thead><tbody id="master-users"></tbody></table></div><div class="hint">A coluna Consumo é a âncora para o detalhamento de uso por cliente.</div></div></div></div>
+      <div class="master-panel" id="master-panel-usuarios"><div class="card"><div class="card-h"><div><h3>Gestão de usuários</h3><p>Libere, suspenda, redefina senhas e vincule pelo CNPJ da empresa.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="master-user-search">Buscar usuário</label><input id="master-user-search" class="inp" placeholder="Nome, e-mail ou CNPJ" oninput="filtrarUsuariosMaster()"></div><div class="field"><label for="master-user-partner-filter">Vínculo</label><select id="master-user-partner-filter" class="inp" onchange="filtrarUsuariosMaster()"><option value="all">Todos</option><option value="none">Administrador</option></select></div></div><div id="master-reset-link-panel" class="alert a-info" style="display:none;margin-bottom:12px"></div><div class="table-wrap"><table><thead><tr><th>Usuário / empresa</th><th>Vínculo</th><th>Perfil</th><th>Consumo</th><th>Status</th><th>Ações</th></tr></thead><tbody id="master-users"></tbody></table></div><div class="hint">A coluna Consumo é a âncora para o detalhamento de uso por cliente.</div></div></div></div>
 
-      <div class="master-panel" id="master-panel-perfis"><div class="card"><div class="card-h"><div><h3 id="profile-form-title">Criar novo perfil</h3><p>As permissões definem os módulos disponíveis para cada usuário.</p></div></div><div class="card-b"><input id="profile-id" type="hidden"><div class="row r2"><div class="field"><label>Nome do perfil</label><input id="profile-name" class="inp" placeholder="Ex.: Financeiro"></div><div class="field"><label>Plano mínimo</label><select id="profile-plan" class="inp"><option value="mei">Plano MEI</option><option value="sn20">Plano SN 20</option><option value="sn50">Plano SN 50</option></select></div></div><div id="profile-permissions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0"></div><div class="flex wrap"><button class="btn btn-p" id="profile-save" onclick="salvarPerfilAcesso()">Criar perfil</button><button class="btn" id="profile-cancel" style="display:none" onclick="cancelarEdicaoPerfil()">Cancelar edição</button></div></div></div><div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Perfis existentes</h3></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Plano mínimo</th><th>Permissões</th><th>Ação</th></tr></thead><tbody id="master-profiles"></tbody></table></div></div></div>
+      <div class="master-panel" id="master-panel-perfis"><div class="card"><div class="card-h"><div><h3 id="profile-form-title">Criar novo perfil</h3><p>Escolha um modelo operacional e ajuste somente o necessário. Permissões sensíveis ficam destacadas.</p></div></div><div class="card-b"><input id="profile-id" type="hidden"><div class="row r2"><div class="field"><label>Modelo inicial</label><select id="profile-preset" class="inp" onchange="aplicarModeloPerfil(this.value)"><option value="operator">Operador básico</option><option value="issuer">Emissor fiscal</option><option value="financial">Financeiro</option><option value="company_admin">Administrador da empresa</option><option value="custom">Personalizado</option></select></div><div class="field"><label>Nome do perfil</label><input id="profile-name" class="inp" placeholder="Ex.: Financeiro"></div><div class="field"><label>Plano mínimo</label><select id="profile-plan" class="inp"><option value="mei">Plano MEI</option><option value="sn20">Plano SN 20</option><option value="sn50">Plano SN 50</option><option value="completo">Completo</option></select></div></div><div id="profile-permissions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0"></div><div class="hint">Novo perfil não nasce mais com tudo marcado. Use rascunhos financeiros, integrações, certificado e configurações da empresa somente quando o usuário realmente precisar.</div><div class="flex wrap"><button class="btn btn-p" id="profile-save" onclick="salvarPerfilAcesso()">Criar perfil</button><button class="btn" id="profile-cancel" style="display:none" onclick="cancelarEdicaoPerfil()">Cancelar edição</button></div></div></div><div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Perfis existentes</h3></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Plano mínimo</th><th>Permissões</th><th>Ação</th></tr></thead><tbody id="master-profiles"></tbody></table></div></div></div>
 
       <div class="master-panel" id="master-panel-planos"><div class="card"><div class="card-h"><div><h3>Planos e categorias</h3><p>Defina nome, preço e limite de NFS-e autorizadas por mês.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="plan-code">Código</label><input id="plan-code" class="inp" placeholder="ex.: pro100"></div><div class="field"><label for="plan-name">Nome do plano</label><input id="plan-name" class="inp" placeholder="Plano Profissional"></div><div class="field"><label for="plan-price">Preço mensal (R$)</label><input id="plan-price" class="inp" inputmode="decimal" placeholder="99,90"></div><div class="field"><label for="plan-limit">Limite de notas / mês</label><input id="plan-limit" class="inp" type="number" min="1" placeholder="100"></div></div><div class="field"><label for="plan-description">Descrição</label><input id="plan-description" class="inp" placeholder="Resumo do que está incluído"></div><button class="btn btn-p" type="button" onclick="salvarPlanoMaster()">Salvar plano</button><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Plano</th><th>Preço</th><th>Limite</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-plans"></tbody></table></div></div></div>
         <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Configurações técnicas</h3><p>Credenciais e rotinas continuam protegidas nesta área do Master.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="set-nubank-enabled">Nubank PJ</label><select id="set-nubank-enabled" class="inp"><option value="false">Desativado</option><option value="true">Ativado</option></select></div><div class="field"><label for="set-nubank-api">URL base da API</label><input id="set-nubank-api" class="inp" type="url" value="https://api.nubank.com.br"></div><div class="field"><label for="set-nubank-oauth">URL OAuth</label><input id="set-nubank-oauth" class="inp" type="url"></div><div class="field"><label for="set-nubank-id">Client ID</label><input id="set-nubank-id" class="inp"></div></div><div class="row r2"><div class="field"><label for="set-nubank-secret">Client secret</label><input id="set-nubank-secret" class="inp" type="password" placeholder="Deixe vazio para manter"></div><div class="field"><label for="set-nubank-webhook">Segredo webhook</label><input id="set-nubank-webhook" class="inp" type="password"></div><div class="field"><label for="set-accountant-enabled">Rotina do contador</label><select id="set-accountant-enabled" class="inp"><option value="false">Desativada</option><option value="true">Ativada</option></select></div><div class="field"><label for="set-accountant-webhook">Webhook de e-mail</label><input id="set-accountant-webhook" class="inp" type="url"></div></div><div class="section-title" style="margin-top:18px">Envio de NFS-e ao tomador</div><div class="hint">Use uma aplicação de produção no Google Cloud ou Microsoft Entra. O plugin conectado no Codex não é usado como credencial do site.</div><div class="row r2"><div class="field"><label for="set-invoice-email-provider">Provedor de e-mail</label><select id="set-invoice-email-provider" class="inp"><option value="disabled">Desativado</option><option value="gmail">Gmail / Google Workspace</option><option value="outlook">Outlook / Microsoft 365</option><option value="smtp">SMTP transacional</option></select></div><div class="field"><label for="set-invoice-email-from">E-mail remetente</label><input id="set-invoice-email-from" class="inp" type="email" placeholder="notas@empresa.com.br"></div><div class="field"><label for="set-invoice-email-reply">Responder para</label><input id="set-invoice-email-reply" class="inp" type="email" placeholder="financeiro@empresa.com.br"></div><div class="field"><label>Status da conexão</label><span id="master-invoice-email-state" class="pill p-off">Desativado</span></div></div><div class="row r2"><div class="field"><label for="set-gmail-client-id">Gmail Client ID</label><input id="set-gmail-client-id" class="inp" autocomplete="off"></div><div class="field"><label for="set-gmail-secret">Gmail Client secret</label><input id="set-gmail-secret" class="inp" type="password" placeholder="Deixe vazio para manter"></div><div class="field"><label for="set-gmail-refresh">Gmail refresh token</label><input id="set-gmail-refresh" class="inp" type="password" placeholder="Deixe vazio para manter"></div><div class="field"><label>Como configurar Gmail</label><div class="hint">Crie um app OAuth no Google Cloud, habilite Gmail API, autorize o escopo gmail.send e informe Client ID, secret e refresh token do remetente.</div></div></div><div class="row r2"><div class="field"><label for="set-outlook-tenant">Outlook Tenant ID</label><input id="set-outlook-tenant" class="inp" autocomplete="off"></div><div class="field"><label for="set-outlook-client-id">Outlook Client ID</label><input id="set-outlook-client-id" class="inp" autocomplete="off"></div><div class="field"><label for="set-outlook-secret">Outlook Client secret</label><input id="set-outlook-secret" class="inp" type="password" placeholder="Deixe vazio para manter"></div><div class="field"><label for="set-outlook-user">Mailbox / User ID</label><input id="set-outlook-user" class="inp" placeholder="notas@empresa.com.br"></div></div><div class="hint">No Microsoft Entra, registre o app, conceda Mail.Send no Microsoft Graph, gere o client secret e use a caixa remetente em Mailbox / User ID.</div><div class="section-title" style="margin-top:18px">Arquivo fiscal no Google Drive</div><div class="row r2"><div class="field"><label for="set-drive-enabled">Arquivar no Drive</label><select id="set-drive-enabled" class="inp"><option value="false">Desativado</option><option value="true">Ativado quando conectado</option></select></div><div class="field"><label for="set-drive-folder">ID da pasta Drive</label><input id="set-drive-folder" class="inp" placeholder="Folder ID"></div><div class="field"><label for="set-drive-service-email">Service account</label><input id="set-drive-service-email" class="inp" type="email" placeholder="conta@projeto.iam.gserviceaccount.com"></div><div class="field"><label>Status do Drive</label><span id="master-drive-state" class="pill p-off">Desativado</span></div></div><div class="field"><label for="set-drive-key">Chave JSON da service account</label><textarea id="set-drive-key" class="inp" rows="3" placeholder="Cole somente no ambiente seguro. Deixe vazio para manter a chave atual."></textarea><div class="hint">Compartilhe a pasta do Drive com o e-mail da service account. O TITAN guardará apenas IDs e indicadores públicos na tela.</div></div><div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarConfiguracoesMaster()">Salvar configurações</button><button class="btn btn-s" type="button" onclick="atualizarCatalogoMunicipiosMaster()">Atualizar municípios</button><span id="master-settings-status" class="foot-note"></span></div></div></div>
@@ -1548,12 +1552,54 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
   <div class="modal-card"><div class="modal-head"><div><h2 id="master-company-title">Detalhes do cliente</h2><p id="master-company-subtitle" style="font-size:12px;color:var(--ink-3);margin-top:4px"></p></div></div><div class="modal-body"><input id="master-detail-company-id" type="hidden"><div class="row r2"><div class="field"><label>Emissão</label><select id="master-detail-emission" class="inp"><option value="true">Liberada</option><option value="false">Suspensa</option></select></div><div class="field"><label>Implantação</label><select id="master-detail-implementation" class="inp"><option value="self_service">Autoimplantação</option><option value="paid_pending">Implantação paga — pendente</option><option value="paid_active">Implantação paga — ativa</option></select></div><div class="field"><label>Valor de implantação (R$)</label><input id="master-detail-fee" class="inp" inputmode="decimal"></div></div><div class="field"><label>Observações</label><textarea id="master-detail-notes" class="inp" rows="3"></textarea></div><div id="master-detail-consumption" class="alert a-info" style="margin-top:12px">Consumo deste mês: carregando...</div></div><div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharDetalhesCliente()">Fechar</button><button class="btn btn-p" type="button" onclick="salvarDetalhesCliente()">Salvar alterações</button></div></div>
 </div>
 
+<div class="modal-backdrop system-dialog" id="system-dialog" role="dialog" aria-modal="true" aria-labelledby="system-dialog-title">
+  <div class="modal-card">
+    <div class="modal-head"><div><h2 id="system-dialog-title">Aviso do TITAN</h2><p id="system-dialog-subtitle" style="font-size:12px;color:var(--ink-3);margin-top:4px">Mensagem do sistema</p></div></div>
+    <div class="modal-body">
+      <div id="system-dialog-kind" class="alert a-info"><div><b id="system-dialog-label">Mensagem</b><br><span id="system-dialog-summary">Confira os detalhes abaixo.</span></div></div>
+      <textarea id="system-dialog-text" class="system-dialog-text" readonly></textarea>
+      <input id="system-dialog-input" class="inp system-dialog-input" style="display:none">
+      <div id="system-dialog-copy-hint" class="hint" style="margin-top:8px">Você pode selecionar o texto ou usar Copiar.</div>
+    </div>
+    <div class="modal-actions">
+      <button id="system-dialog-copy" class="btn btn-s system-dialog-copy" type="button">Copiar</button>
+      <button id="system-dialog-cancel" class="btn btn-s" type="button">Cancelar</button>
+      <button id="system-dialog-ok" class="btn btn-p" type="button">OK</button>
+    </div>
+  </div>
+</div>
+
 <script src="/config.js"></script>
 <script>
 const qs=(s,r=document)=>r.querySelector(s);
 const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
 const brl=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+let systemDialogResolve=null;
+function titanDialog({title='Aviso do TITAN',subtitle='Mensagem do sistema',label='Mensagem',message='',summary='Confira os detalhes abaixo.',variant='info',mode='alert',okLabel='OK',cancelLabel='Cancelar',defaultValue=''}={}){
+  return new Promise(resolve=>{
+    const modal=qs('#system-dialog'),text=qs('#system-dialog-text'),input=qs('#system-dialog-input'),cancel=qs('#system-dialog-cancel'),ok=qs('#system-dialog-ok'),copy=qs('#system-dialog-copy'),hint=qs('#system-dialog-copy-hint'),kind=qs('#system-dialog-kind');
+    if(!modal){resolve(mode==='confirm'?false:mode==='prompt'?null:undefined);return}
+    if(systemDialogResolve)systemDialogResolve(mode==='confirm'?false:mode==='prompt'?null:undefined);
+    systemDialogResolve=resolve;
+    qs('#system-dialog-title').textContent=title;qs('#system-dialog-subtitle').textContent=subtitle;qs('#system-dialog-label').textContent=label;qs('#system-dialog-summary').textContent=summary;
+    kind.className=`alert a-${variant}`;
+    text.value=String(message??'');hint.textContent='Você pode selecionar o texto ou usar Copiar.';
+    input.style.display=mode==='prompt'?'block':'none';input.value=defaultValue||'';input.placeholder='Digite aqui';
+    cancel.style.display=mode==='alert'?'none':'inline-flex';cancel.textContent=cancelLabel;ok.textContent=okLabel;
+    const finish=value=>{modal.classList.remove('on');systemDialogResolve=null;resolve(value)};
+    ok.onclick=()=>finish(mode==='confirm'?true:mode==='prompt'?input.value:undefined);
+    cancel.onclick=()=>finish(mode==='prompt'?null:false);
+    copy.onclick=async()=>{const value=mode==='prompt'&&input.value?`${text.value}\n\n${input.value}`:text.value;try{await navigator.clipboard.writeText(value);hint.textContent='Texto copiado.'}catch{hint.textContent='Selecione o campo e copie manualmente.';text.focus();text.select()}};
+    modal.onclick=event=>{if(event.target===modal&&mode==='alert')finish(undefined)};
+    modal.classList.add('on');
+    window.setTimeout(()=>{if(mode==='prompt')input.focus();else ok.focus();},40);
+  });
+}
+function titanAlert(message,title='Aviso do TITAN',variant='info'){return titanDialog({title,label:variant==='err'?'Erro':variant==='warn'?'Atenção':'Mensagem',message,variant,okLabel:'Fechar'})}
+function titanConfirm(message,title='Confirmar ação',variant='warn'){return titanDialog({title,subtitle:'Confirmação necessária',label:'Revise antes de continuar',message,summary:'A ação só será executada se você confirmar.',variant,mode:'confirm',okLabel:'Confirmar',cancelLabel:'Voltar'})}
+function titanPrompt(message,defaultValue='',title='Informar dado'){return titanDialog({title,subtitle:'Entrada necessária',label:'Preencha a informação',message,summary:'O texto pode ser copiado antes de continuar.',variant:'info',mode:'prompt',okLabel:'Continuar',cancelLabel:'Cancelar',defaultValue})}
+window.alert=(message)=>{titanAlert(message)};
 const API_URL=(window.TITAN_API_URL||'').replace(/\/$/,'');
 const STORAGE_TOKEN='titan_nfse_session_v1';
 const STORAGE_SESSION='titan_nfse_access_v1';
@@ -1680,7 +1726,7 @@ async function iniciarCadastro(){
   const email=qs('#li-mail').value.trim();
   const senha=qs('#li-pw').value;
   if((PORTAL_ADMIN&&!email)||(!PORTAL_ADMIN&&cnpj.length!==14)||senha.length<10){
-    mostrarErroLogin(PORTAL_ADMIN?'Informe o e-mail administrativo e uma senha com pelo menos 10 caracteres.':'Informe o CNPJ e uma senha com pelo menos 10 caracteres.');
+    mostrarErroLogin(PORTAL_ADMIN?'Informe o e-mail administrativo e uma senha com pelo menos 10 caracteres.':'Informe o CNPJ e uma senha individual com pelo menos 10 caracteres.');
     (PORTAL_ADMIN&&!email?qs('#li-mail'):!PORTAL_ADMIN&&cnpj.length!==14?qs('#li-cnpj'):qs('#li-pw'))?.focus();
     return;
   }
@@ -1709,7 +1755,7 @@ async function iniciarCadastro(){
   }catch(error){
     definirCarregandoLogin(false);
     if(error?.status===401){
-      mostrarErroLogin('Dados de acesso inválidos. Confira as informações ou solicite ao gestor Master um link temporário de redefinição.');
+      mostrarErroLogin('Dados de acesso inválidos. Confira o CNPJ e a senha individual. Se precisar, peça um link temporário de redefinição para criar uma senha exclusiva e entrar direto.');
       qs('#li-pw')?.focus();
       return;
     }
@@ -1844,7 +1890,7 @@ async function revisarCobrancaRecebimento(id){
   const item=recebimentos.find(r=>r.id===id);if(!item)return;
   const channel=item.charge_channel&&item.charge_channel!=='none'?item.charge_channel:'manual';
   const preview=`Cobrança ${item.customer_name} · ${item.competence||item.due_date} · R$ ${brl(Number(item.amount||0))}`;
-  if(!confirm(`Revisar e registrar cobrança?\n\n${preview}\n\nNenhum disparo automático em massa será feito nesta etapa.`))return;
+  if(!await titanConfirm(`Revisar e registrar cobrança?\n\n${preview}\n\nNenhum disparo automático em massa será feito nesta etapa.`,'Registrar cobrança'))return;
   try{await api('/api/workspace/receivables/'+id+'/collection-review',{method:'POST',body:JSON.stringify({channel,messagePreview:preview})});await carregarRecebimentos()}catch(error){alert(error.message)}
 }
 function prepararNotaRecebimento(id){
@@ -2280,7 +2326,7 @@ async function salvarPerfilServico(){
 }
 
 async function excluirPerfilServico(id){
-  if(!confirm('Desativar este cadastro de serviço?'))return;
+  if(!await titanConfirm('Desativar este cadastro de serviço?','Desativar serviço'))return;
   await api('/api/services/profiles/'+id,{method:'DELETE'});await carregarPerfisServico();
 }
 
@@ -2632,7 +2678,7 @@ async function emitir(){
   if(qs('#t-mail').value&&!qs('#t-mail').checkValidity()){alert('Informe um e-mail válido para o tomador.');qs('#t-mail').focus();return}
   if(ambienteAtual==='production'){
     const aviso=`ATENÇÃO: esta emissão terá validade fiscal.\n\nEmpresa: ${empresaAtual.rs}\nDPS: série ${empresaAtual.series}, número ${empresaAtual.next}\nTomador: ${payload.borrower.name}\nValor: R$ ${brl(valor)}\n\nConfirma a emissão na Produção oficial?`;
-    if(!confirm(aviso))return;
+    if(!await titanConfirm(aviso,'Transmitir NFS-e',ambienteAtual==='production'?'err':'warn'))return;
   }
   if(rodando)return;
   rodando=true;
@@ -2684,9 +2730,9 @@ function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{na
 function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';composicaoItens=Array.isArray(s.additionalItems)?s.additionalItems.map(item=>({description:item.description,quantity:Number(item.quantity??1),unitAmount:Number(item.unitAmount??item.amount??0),profileId:item.profileId,ctn:item.ctn,nbs:item.nbs})):[];qs('#s-base-val').value=s.baseAmount||s.amount||'0,00';qs('#s-category').value=s.serviceCategory||'other';qs('#s-cno').value=s.cno||'';qs('#s-event-code').value=s.eventCode||'';qs('#s-event-location').value=s.eventLocation||'';atualizarCamposEspeciais();atualizarComposicao();qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');travarRetencoes(true);lerParametros();completarCadastroRascunho();}
 let rascunhos=[];
 async function carregarRascunhos(){try{rascunhos=await api('/api/workspace/drafts');const box=qs('#draft-list');box.innerHTML=rascunhos.length?rascunhos.map((item,index)=>`<div class="draft-item"><b>${esc(item.title)}</b><span>${new Date(item.updated_at).toLocaleString('pt-BR')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="abrirRascunho(${index})">Abrir</button><button class="ico-btn danger" title="Excluir" onclick="excluirRascunho('${item.id}')">×</button></div></div>`).join(''):'<div class="empty-state">Nenhum rascunho salvo.</div>'}catch(error){qs('#draft-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
-async function salvarRascunho(){const title=prompt('Nome do rascunho',qs('#t-nome').value?`NFS-e — ${qs('#t-nome').value}`:'Nova NFS-e');if(!title)return;try{await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title,payload:dadosRascunho()})});await carregarRascunhos()}catch(error){alert(error.message)}}
+async function salvarRascunho(){const title=await titanPrompt('Nome do rascunho',qs('#t-nome').value?`NFS-e — ${qs('#t-nome').value}`:'Nova NFS-e','Salvar rascunho');if(!title)return;try{await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title,payload:dadosRascunho()})});await carregarRascunhos()}catch(error){alert(error.message)}}
 function abrirRascunho(index){aplicarRascunho(rascunhos[index].payload||{});window.scrollTo(0,0)}
-async function excluirRascunho(id){if(!confirm('Excluir este rascunho?'))return;try{await api('/api/workspace/drafts/'+id,{method:'DELETE'});await carregarRascunhos()}catch(error){alert(error.message)}}
+async function excluirRascunho(id){if(!await titanConfirm('Excluir este rascunho?','Excluir rascunho','err'))return;try{await api('/api/workspace/drafts/'+id,{method:'DELETE'});await carregarRascunhos()}catch(error){alert(error.message)}}
 
 /* ---------- cadastro de clientes ---------- */
 let clientesCadastro=[];
@@ -2849,7 +2895,7 @@ function editarComercial(index){
 }
 async function excluirComercial(index){
   const item=comerciais[index];
-  if(!confirm(`Excluir ${numeroComercial(item)} — ${item.title}? Esta ação não pode ser desfeita.`))return;
+  if(!await titanConfirm(`Excluir ${numeroComercial(item)} — ${item.title}? Esta ação não pode ser desfeita.`,'Excluir documento','err'))return;
   try{
     await api('/api/workspace/commercial/'+item.id,{method:'DELETE'});
     if(comercialEditId===item.id)fecharFormComercial();
@@ -3036,6 +3082,48 @@ function aplicarEmpresa(){
 let masterData=null,masterEligibility=null;
 let empresasAdmin=[];
 const permissionLabels={dashboard:'Painel',emit:'Emitir NFS-e',invoices:'Notas emitidas',import:'Importar Portal',customers:'Clientes',services:'Meus serviços',financial:'Financeiro de honorários',financial_drafts:'Rascunhos financeiros',integrations:'Integrações e API',certificate:'Certificado A1',company_settings:'Configuração da empresa'};
+const sensitivePermissions=['financial_drafts','integrations','certificate','company_settings'];
+const permissionCatalog={
+  dashboard:{group:'Operação',desc:'Painel e ajuda operacional'},
+  customers:{group:'Operação',desc:'Cadastro e consulta de clientes'},
+  services:{group:'Operação',desc:'Serviços padrão e parâmetros de serviço'},
+  emit:{group:'Fiscal',desc:'Criar e transmitir NFS-e'},
+  invoices:{group:'Fiscal',desc:'Consultar, baixar e cancelar notas'},
+  import:{group:'Fiscal',desc:'Importar documentos do Portal Nacional'},
+  financial:{group:'Financeiro',desc:'Recebíveis, honorários e cobrança revisada'},
+  financial_drafts:{group:'Rascunhos',desc:'Boletos, conciliação e fluxo completo em rascunho',sensitive:true,draft:true},
+  integrations:{group:'Integrações',desc:'API, WhatsApp e webhooks em rascunho',sensitive:true,draft:true},
+  certificate:{group:'Administração',desc:'Certificado A1 da empresa',sensitive:true},
+  company_settings:{group:'Administração',desc:'Emitente e preferências fiscais',sensitive:true}
+};
+const profilePresets={
+  operator:{name:'Operador básico',plan:'mei',permissions:['dashboard','customers']},
+  issuer:{name:'Emissor fiscal',plan:'mei',permissions:['dashboard','emit','invoices','customers','services']},
+  financial:{name:'Financeiro',plan:'sn20',permissions:['dashboard','customers','financial']},
+  company_admin:{name:'Administrador da empresa',plan:'sn50',permissions:['dashboard','emit','invoices','import','customers','services','financial','certificate','company_settings']},
+  custom:{name:'Personalizado',plan:'mei',permissions:[]}
+};
+function permissoesPerfil(profile){return Array.isArray(profile?.permissions)?profile.permissions:[]}
+function rotuloPermissoes(permissions){return (permissions||[]).map(permission=>permissionLabels[permission]||permission)}
+function renderPermissoesPerfil(selected=[]){
+  const box=qs('#profile-permissions');if(!box||!masterData)return;
+  const selectedSet=new Set(selected);
+  const groups={};
+  (masterData.permissions||[]).forEach(permission=>{const meta=permissionCatalog[permission]||{group:'Outras',desc:''};(groups[meta.group]??=[]).push({permission,meta})});
+  box.innerHTML=Object.entries(groups).map(([group,items])=>`<div class="alert a-info" style="margin:0;padding:10px"><b>${esc(group)}</b><div style="display:grid;gap:7px;margin-top:8px">${items.map(({permission,meta})=>`<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" value="${permission}" ${selectedSet.has(permission)?'checked':''} onchange="qs('#profile-preset').value='custom'"><span><b>${esc(permissionLabels[permission]||permission)}</b> ${meta.sensitive?'<span class="pill p-warn">sensível</span>':''}${meta.draft?'<span class="pill p-off">rascunho</span>':''}<br><small>${esc(meta.desc||'')}</small></span></label>`).join('')}</div></div>`).join('');
+}
+function aplicarModeloPerfil(key){
+  const preset=profilePresets[key]||profilePresets.custom;
+  if(!qs('#profile-id').value){
+    qs('#profile-name').value=preset.name;
+    qs('#profile-plan').value=preset.plan;
+  }
+  renderPermissoesPerfil(preset.permissions);
+}
+function resumoPerfil(profile){
+  const permissions=permissoesPerfil(profile),sens=permissions.filter(permission=>sensitivePermissions.includes(permission));
+  return `${profile?.name||'Perfil'} · ${rotuloPermissoes(permissions).join(', ')||'sem permissões'}${sens.length?` · sensíveis: ${rotuloPermissoes(sens).join(', ')}`:''}`;
+}
 
 function configurarEmpresasAdmin(companies){
   empresasAdmin=(companies||[]).map(c=>({id:String(c.id),legal_name:c.legal_name||c.trade_name||'Empresa sem nome',trade_name:c.trade_name||'',federal_tax_id:String(c.federal_tax_id||''),emission_enabled:Boolean(c.emission_enabled),plan_code:c.plan_code||'teste'}));
@@ -3147,7 +3235,7 @@ async function carregarMaster(){
     configurarEmpresasAdmin(masterData.companies);
     qs('#master-new-profile').innerHTML=masterData.profiles.map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(p.plan_code)}</option>`).join('');
     qs('#master-new-plan').innerHTML=masterData.plans.map(p=>`<option value="${esc(p.code)}">${esc(p.name)} — ${brl(Number(p.price_cents)/100)} / ${p.monthly_limit} notas</option>`).join('');
-    qs('#profile-permissions').innerHTML=masterData.permissions.map(p=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" value="${p}" checked> ${esc(permissionLabels[p]||p)}</label>`).join('');
+    renderPermissoesPerfil(profilePresets.operator.permissions);
     qs('#master-profiles').innerHTML=masterData.profiles.map(p=>{const permissions=Array.isArray(p.permissions)?p.permissions:[];return `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.plan_code)}</td><td>${esc(permissions.map(permission=>permissionLabels[permission]||permission).join(', ')||'Sem permissões')}</td><td><button class="btn btn-s" onclick="editarPerfilAcesso('${p.id}')">Editar</button></td></tr>`}).join('')||'<tr><td colspan="4">Nenhum perfil.</td></tr>';
     qs('#master-user-partner-filter').innerHTML='<option value="all">Todos</option><option value="none">Administrador</option>'+masterData.partners.map(p=>`<option value="${p.id}">${esc(p.nickname)}</option>`).join('');
     renderMasterClients();renderMasterUsers();renderMasterPartners();renderMasterPlans();
@@ -3158,7 +3246,7 @@ async function carregarMaster(){
 function renderMasterClients(){const box=qs('#master-companies');if(!box||!masterData)return;const term=(qs('#master-client-search')?.value||'').trim().toLocaleLowerCase('pt-BR'),status=qs('#master-client-status')?.value||'all';const rows=masterData.companies.filter(c=>{const hit=!term||[c.legal_name,c.trade_name,c.federal_tax_id,c.contact_email].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(term)||String(v||'').replace(/\D/g,'').includes(term));return hit&&(status==='all'||(c.implementation_status||'self_service')===status)});const label={self_service:'Autoimplantação',paid_pending:'Implantação paga — pendente',paid_active:'Implantação paga — ativa'};box.innerHTML=rows.map(c=>`<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(formatarCnpj(c.federal_tax_id))}</span><br><small>${esc(c.contact_email||'—')}</small></td><td>${esc(c.plan_code||'—')}</td><td>${c.users||0}</td><td><span class="pill ${c.implementation_status==='paid_active'?'p-ok':c.implementation_status==='paid_pending'?'p-warn':'p-off'}">${label[c.implementation_status||'self_service']}</span></td><td><div class="acts"><button class="btn btn-s" onclick="abrirDetalhesCliente('${c.id}')">Detalhes</button><button class="btn btn-s" onclick="abrirEmpresaEmissao('${c.id}')">Abrir emissão ↗</button></div></td></tr>`).join('')||'<tr><td colspan="5">Nenhum cliente com emissão liberada.</td></tr>'}
 function filtrarClientesMaster(){renderMasterClients()}
 function imprimirClientesMaster(){document.body.classList.add('printing-master');window.print();window.setTimeout(()=>document.body.classList.remove('printing-master'),1000)}
-function renderMasterUsers(){const box=qs('#master-users');if(!box||!masterData)return;const term=(qs('#master-user-search')?.value||'').trim().toLocaleLowerCase('pt-BR'),partner=qs('#master-user-partner-filter')?.value||'all';const rows=masterData.users.filter(u=>{if(!u.company_id)return false;const hit=!term||[u.name,u.email,u.legal_name,u.trade_name,u.federal_tax_id].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(term)||String(v||'').replace(/\D/g,'').includes(term));const linked=partner==='all'||(partner==='none'?!u.partner_id:u.partner_id===partner);return hit&&linked});box.innerHTML=rows.map(u=>{const active=u.active!==false&&u.access_active!==false,limit=Number(u.monthly_limit||0),used=Number(u.monthly_used||0);const partnerOptions='<option value="">Administrador</option>'+masterData.partners.map(p=>`<option value="${p.id}" ${p.id===u.partner_id?'selected':''}>${esc(p.nickname)}</option>`).join('');return `<tr><td><b>${esc(u.name)}</b> ${u.is_master?'<span class="pill p-ok">MASTER</span>':''}<br><span>${esc(u.email)}</span><br><small>${esc(u.legal_name||'—')} · ${esc(formatarCnpj(u.federal_tax_id||''))}</small></td><td><select class="inp" style="padding:5px" ${u.is_master?'disabled':''} onchange="vincularUsuarioParceiro('${u.id}',this.value,'${u.partner_id||''}')">${partnerOptions}</select></td><td><select class="inp" id="access-${u.id}-${u.company_id}" style="padding:5px" ${u.is_master?'disabled':''}>${masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u.profile_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></td><td><button class="btn btn-s" type="button" onclick="abrirConsumoMaster('${u.company_id}')">${used}${limit?` / ${limit}`:' notas'} ↗</button></td><td><span class="pill ${active?'p-ok':'p-off'}">${active?'Liberado':'Suspenso'}</span></td><td><div class="acts">${u.is_master?'<span class="foot-note">Protegido</span>':`<button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',true)">${active?'Salvar':'Liberar'}</button><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',false)">Suspender</button>`}<button class="btn btn-s" onclick="gerarRedefinicaoSenha('${u.id}')">Redefinir senha</button></div></td></tr>`}).join('')||'<tr><td colspan="6">Nenhum usuário encontrado.</td></tr>'}
+function renderMasterUsers(){const box=qs('#master-users');if(!box||!masterData)return;const term=(qs('#master-user-search')?.value||'').trim().toLocaleLowerCase('pt-BR'),partner=qs('#master-user-partner-filter')?.value||'all';const rows=masterData.users.filter(u=>{if(!u.company_id)return false;const hit=!term||[u.name,u.email,u.legal_name,u.trade_name,u.federal_tax_id].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(term)||String(v||'').replace(/\D/g,'').includes(term));const linked=partner==='all'||(partner==='none'?!u.partner_id:u.partner_id===partner);return hit&&linked});box.innerHTML=rows.map(u=>{const active=u.active!==false&&u.access_active!==false,limit=Number(u.monthly_limit||0),used=Number(u.monthly_used||0);const partnerOptions='<option value="">Administrador</option>'+masterData.partners.map(p=>`<option value="${p.id}" ${p.id===u.partner_id?'selected':''}>${esc(p.nickname)}</option>`).join('');return `<tr><td><b>${esc(u.name)}</b> ${u.is_master?'<span class="pill p-ok">MASTER</span>':''}<br><span>${esc(u.email)}</span><br><small>${esc(u.legal_name||'—')} · ${esc(formatarCnpj(u.federal_tax_id||''))}</small></td><td><select class="inp" style="padding:5px" ${u.is_master?'disabled':''} onchange="vincularUsuarioParceiro('${u.id}',this.value,'${u.partner_id||''}')">${partnerOptions}</select></td><td><select class="inp" id="access-${u.id}-${u.company_id}" style="padding:5px" ${u.is_master?'disabled':''} onchange="mostrarResumoPerfilUsuario('${u.id}','${u.company_id}')">${masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u.profile_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select><div class="hint" id="access-hint-${u.id}-${u.company_id}">${esc(resumoPerfil(masterData.profiles.find(p=>p.id===u.profile_id)))}</div></td><td><button class="btn btn-s" type="button" onclick="abrirConsumoMaster('${u.company_id}')">${used}${limit?` / ${limit}`:' notas'} ↗</button></td><td><span class="pill ${active?'p-ok':'p-off'}">${active?'Liberado':'Suspenso'}</span></td><td><div class="acts">${u.is_master?'<span class="foot-note">Protegido</span>':`<button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',true)">${active?'Revisar e salvar':'Liberar'}</button><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${u.company_id}',false)">Suspender</button>`}<button class="btn btn-s" onclick="gerarRedefinicaoSenha('${u.id}')">Redefinir senha</button></div></td></tr>`}).join('')||'<tr><td colspan="6">Nenhum usuário encontrado.</td></tr>'}
 function filtrarUsuariosMaster(){renderMasterUsers()}
 function renderMasterPartners(){const box=qs('#master-partners');if(!box||!masterData)return;box.innerHTML=masterData.partners.map(p=>`<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td></tr>`).join('')||'<tr><td colspan="4">Nenhum parceiro cadastrado.</td></tr>'}
 function renderMasterPlans(){const box=qs('#master-plans');if(!box||!masterData)return;box.innerHTML=masterData.plans.map(p=>`<tr><td><b>${esc(p.name)}</b><br><span class="mono">${esc(p.code)}</span></td><td>R$ ${brl(Number(p.price_cents)/100)}</td><td>${p.monthly_limit}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Inativo'}</span></td><td><button class="btn btn-s" onclick="editarPlanoMaster('${p.code}')">Editar</button></td></tr>`).join('')||'<tr><td colspan="5">Nenhum plano cadastrado.</td></tr>'}
@@ -3232,23 +3320,52 @@ async function criarConvite(){
 async function salvarPerfilAcesso(){
   const name=qs('#profile-name').value.trim(),planCode=qs('#profile-plan').value,permissions=qsa('#profile-permissions input:checked').map(x=>x.value);
   if(!name||!permissions.length){alert('Informe o nome e ao menos uma permissão.');return}
+  const sensitive=permissions.filter(permission=>sensitivePermissions.includes(permission));
+  if(sensitive.length&&!await titanConfirm(`Este perfil contém permissões sensíveis:\n\n${rotuloPermissoes(sensitive).join('\n')}\n\nConfirma salvar mesmo assim?`,'Salvar perfil sensível','warn'))return;
   const id=qs('#profile-id').value;
   try{await api('/api/master/profiles'+(id?'/'+id:''),{method:id?'PUT':'POST',body:JSON.stringify({name,planCode,permissions})});cancelarEdicaoPerfil();await carregarMaster()}catch(error){alert(error.message)}
 }
-function editarPerfilAcesso(id){const profile=masterData?.profiles.find(item=>item.id===id);if(!profile)return;masterTab('perfis');qs('#profile-id').value=id;qs('#profile-name').value=profile.name;qs('#profile-plan').value=profile.plan_code;qsa('#profile-permissions input').forEach(input=>input.checked=(profile.permissions||[]).includes(input.value));qs('#profile-form-title').textContent='Editar perfil';qs('#profile-save').textContent='Salvar alterações';qs('#profile-cancel').style.display='inline-flex';window.scrollTo(0,0)}
-function cancelarEdicaoPerfil(){qs('#profile-id').value='';qs('#profile-name').value='';qs('#profile-plan').value='teste';qsa('#profile-permissions input').forEach(input=>input.checked=true);qs('#profile-form-title').textContent='Criar novo perfil';qs('#profile-save').textContent='Criar perfil';qs('#profile-cancel').style.display='none'}
+function editarPerfilAcesso(id){const profile=masterData?.profiles.find(item=>item.id===id);if(!profile)return;masterTab('perfis');qs('#profile-id').value=id;qs('#profile-preset').value='custom';qs('#profile-name').value=profile.name;qs('#profile-plan').value=profile.plan_code;renderPermissoesPerfil(profile.permissions||[]);qs('#profile-form-title').textContent='Editar perfil';qs('#profile-save').textContent='Salvar alterações';qs('#profile-cancel').style.display='inline-flex';window.scrollTo(0,0)}
+function cancelarEdicaoPerfil(){qs('#profile-id').value='';qs('#profile-preset').value='operator';qs('#profile-name').value=profilePresets.operator.name;qs('#profile-plan').value=profilePresets.operator.plan;renderPermissoesPerfil(profilePresets.operator.permissions);qs('#profile-form-title').textContent='Criar novo perfil';qs('#profile-save').textContent='Criar perfil';qs('#profile-cancel').style.display='none'}
+
+function mostrarResumoPerfilUsuario(userId,companyId){
+  const profile=masterData?.profiles.find(item=>item.id===qs(`#access-${userId}-${companyId}`)?.value),hint=qs(`#access-hint-${userId}-${companyId}`);
+  if(hint)hint.textContent=resumoPerfil(profile);
+}
 
 async function salvarAcesso(userId,companyId,active){
   const profileId=qs(`#access-${userId}-${companyId}`).value;
+  const user=masterData?.users.find(item=>item.id===userId&&item.company_id===companyId),next=masterData?.profiles.find(item=>item.id===profileId),previous=masterData?.profiles.find(item=>item.id===user?.profile_id);
+  const nextPerms=permissoesPerfil(next),previousPerms=permissoesPerfil(previous);
+  const added=nextPerms.filter(permission=>!previousPerms.includes(permission)),removed=previousPerms.filter(permission=>!nextPerms.includes(permission)),sensitive=nextPerms.filter(permission=>sensitivePermissions.includes(permission));
+  const message=`${active?'Liberar/salvar acesso':'Suspender acesso'}\n\nUsuário: ${user?.name||userId}\nEmpresa: ${user?.legal_name||companyId}\nPerfil atual: ${previous?.name||'Sem perfil'}\nNovo perfil: ${next?.name||'Perfil selecionado'}\n\nAdiciona: ${rotuloPermissoes(added).join(', ')||'nenhuma'}\nRemove: ${rotuloPermissoes(removed).join(', ')||'nenhuma'}${sensitive.length?`\n\nAtenção: contém permissões sensíveis: ${rotuloPermissoes(sensitive).join(', ')}`:''}\n\nConfirmar alteração?`;
+  if(!await titanConfirm(message,'Alterar acesso do usuário','warn'))return;
   try{await api('/api/master/users/'+userId+'/access',{method:'PUT',body:JSON.stringify({companyId,profileId,active})});await carregarMaster()}catch(error){alert(error.message)}
 }
 async function gerarRedefinicaoSenha(userId){
   try{
     const result=await api('/api/master/users/'+userId+'/password-reset',{method:'POST'});
-    const link=new URL(result.resetPath,location.origin).href;await copiarTextoSeguro(link);alert(`Abrir redefinição — link válido por ${result.expiresInMinutes} minutos:\n\n${link}`);
+    const link=new URL(result.resetPath,location.origin).href;
+    mostrarLinkRedefinicao(link,result.expiresInMinutes);
+    await copiarTextoSeguro(link,qs('#master-reset-copy'));
   }catch(error){alert(error.message)}
 }
-async function copiarTextoSeguro(value,button){try{await navigator.clipboard.writeText(value);if(button){const original=button.textContent;button.textContent='Copiado';window.setTimeout(()=>button.textContent=original,1400)}}catch{prompt('Copie o link de redefinição:',value)}}
+function mostrarLinkRedefinicao(link,minutes){
+  const box=qs('#master-reset-link-panel');if(!box)return;
+  box.style.display='block';
+  box.innerHTML=`<b>Link de redefinição gerado</b><br><span>Válido por ${minutes} minutos. O usuário define a nova senha e depois entra direto com e-mail ou CNPJ, sem abrir o perfil Master.</span><textarea id="master-reset-link-value" class="inp mono" rows="2" readonly style="margin-top:8px">${esc(link)}</textarea><div class="acts" style="margin-top:8px"><button id="master-reset-copy" class="btn btn-s" type="button" onclick="copiarTextoSeguro(qs('#master-reset-link-value').value,this)">Copiar link</button><a class="btn btn-s" href="${esc(link)}" target="_blank" rel="noopener">Abrir redefinição</a></div><div id="master-reset-copy-hint" class="hint">O link também ficou selecionável no campo acima.</div>`;
+  const field=qs('#master-reset-link-value');if(field){field.focus();field.select();}
+}
+async function copiarTextoSeguro(value,button){
+  try{
+    await navigator.clipboard.writeText(value);
+    if(button){const original=button.textContent;button.textContent='Copiado';window.setTimeout(()=>button.textContent=original,1400)}
+    const hint=qs('#master-reset-copy-hint');if(hint)hint.textContent='Link copiado para a área de transferência.';
+  }catch{
+    const field=qs('#master-reset-link-value');if(field){field.focus();field.select();}
+    const hint=qs('#master-reset-copy-hint');if(hint)hint.textContent='Copie manualmente pelo campo acima; o navegador bloqueou a cópia automática.';
+  }
+}
 
 async function prepararConvite(){
   const token=new URLSearchParams(location.search).get('invite');
@@ -3341,7 +3458,7 @@ if(PORTAL_FIRST&&!temConvite){
   qs('#login-context-link').textContent='Voltar ao acesso do cliente';qs('#login-context-link').href='/nfs/entrar';ocultarCampoEmailLogin();
 }else if(PORTAL_RESET){prepararRedefinicao(PORTAL_QUERY.get('token'));}
 else if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/nfs/entrar';if(!temConvite)ocultarCampoCnpjLogin();}
-else if(!temConvite){ocultarCampoEmailLogin();qs('.login-sub').textContent='Entre com o CNPJ da empresa e sua senha individual.';if(PORTAL_CNPJ){qs('#li-cnpj').value=formatarCnpj(PORTAL_CNPJ);qs('#li-cnpj').readOnly=true;qs('.login-sub').textContent=`Informe sua senha para acessar o CNPJ ${formatarCnpj(PORTAL_CNPJ)}.`;}}
+else if(!temConvite){ocultarCampoEmailLogin();qs('.login-sub').textContent='Entre com o CNPJ da empresa e sua senha individual exclusiva.';if(PORTAL_CNPJ){qs('#li-cnpj').value=formatarCnpj(PORTAL_CNPJ);qs('#li-cnpj').readOnly=true;qs('.login-sub').textContent=`Informe sua senha individual exclusiva para acessar o CNPJ ${formatarCnpj(PORTAL_CNPJ)}.`;}}
 
 /* ---------- SUPORTE / ASSISTENTE TITAN ---------- */
 const supNorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');

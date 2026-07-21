@@ -110,7 +110,7 @@ test("integra documentos comerciais, clientes e gestão exclusiva do master",asy
 test("usa login por CNPJ e expõe NBS e retenções condicionais",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/federalTaxId/);
-  assert.match(html,/Entre com o CNPJ da empresa e sua senha individual/);
+  assert.match(html,/Entre com o CNPJ da empresa e sua senha individual exclusiva/);
   assert.match(html,/id="s-nbs"/);
   assert.match(html,/id="cad-nbs"/);
   assert.match(html,/id="s-pis-cofins-fields"/);
@@ -198,6 +198,16 @@ test("protege e otimiza login e redefinicao de senha no front",async()=>{
   assert.match(html,/function removerParametroSensivel\(name\)/);
   assert.match(html,/removerParametroSensivel\('token'\)/);
   assert.match(html,/Dados de acesso inválidos/);
+  assert.match(html,/master-reset-link-panel/);
+  assert.match(html,/Link de redefinição gerado/);
+  assert.match(html,/id="system-dialog"/);
+  assert.match(html,/window\.alert=\(message\)=>\{titanAlert\(message\)\}/);
+  assert.match(html,/function titanConfirm/);
+  assert.match(html,/function titanPrompt/);
+  assert.doesNotMatch(html,/\bconfirm\(/);
+  assert.doesNotMatch(html,/\bprompt\(/);
+  assert.doesNotMatch(html,/prompt\('Copie o link de redefinição/);
+  assert.doesNotMatch(html,/alert\(`Abrir redefinição/);
   assert.doesNotMatch(html,/Senha inválida\.<\/b>/);
   assert.match(html,/\['li-cnpj','li-mail','li-pw'\]\.forEach/);
   assert.match(html,/\['reset-password','reset-password-confirm'\]\.forEach/);
