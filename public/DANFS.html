@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DANFSe - NFS-e 331</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    background: #eef2f6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+.toolbar {
+    width: 210mm;
+    max-width: 100%;
+    background: #0f172a;
+    color: #fff;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 10px 10px 0 0;
+}
+.toolbar strong { font-size: 13px; }
+.toolbar small { font-size: 10px; opacity: .65; margin-left: 6px; }
+.actions { display: flex; gap: 8px; }
+.btn {
+    border: 1px solid rgba(255,255,255,.22);
+    background: transparent;
+    color: #fff;
+    padding: 7px 12px;
+    border-radius: 7px;
+    font: 600 11px inherit;
+    cursor: pointer;
+}
+.btn.primary { background: #0ea5e9; border-color: #0ea5e9; }
+
+#sheet {
+    width: 210mm;
+    height: 297mm;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 18px 45px rgba(15,23,42,.12);
+}
+.page {
+    height: 100%;
+    padding: 8mm 10mm;
+    position: relative;
+}
+
+/* ===== TOPO ===== */
+.top-left {
+    position: absolute;
+    left: 8mm;
+    top: 6mm;
+}
+.emitido-por {
+    font-size: 7px;
+    font-weight: 800;
+    color: #64748b;
+    letter-spacing: .3px;
+}
+.emitido-por strong { color: #0f172a; }
+.logo {
+    font-size: 20px;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: -.5px;
+    margin-top: 2px;
+}
+
+.top-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 6mm;
+    text-align: center;
+}
+.titulo {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -.3px;
+}
+.autoridade {
+    font-size: 7px;
+    color: #475569;
+    margin-top: 2px;
+}
+
+/* ===== DADOS DO PRESTADOR (esquerda) ===== */
+.dados-prestador {
+    position: absolute;
+    left: 8mm;
+    top: 26mm;
+    width: 118mm;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 4mm;
+}
+.dados-prestador .campo {
+    display: flex;
+    flex-direction: column;
+}
+.dados-prestador .label {
+    font-size: 6px;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: #94a3b8;
+    letter-spacing: .5px;
+}
+.dados-prestador .valor {
+    font-size: 9px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 1px;
+}
+
+/* ===== LINHA FISCAL (esquerda, abaixo dos dados da empresa) ===== */
+.fiscal-id {
+    position: absolute;
+    left: 8mm;
+    top: 38mm;
+    width: 140mm;
+    display: grid;
+    grid-template-columns: 20mm 27mm 15mm 27mm 1fr;
+    gap: 3mm;
+}
+.fiscal-id .value { font-size: 7.8px; font-weight: 700; }
+.fiscal-id .label { font-size: 4.7px; text-transform: uppercase; font-weight: 900; color: #94a3b8; }
+
+/* ===== BLOCO DIREITO ===== */
+.bloco-direito {
+    position: absolute;
+    right: 8mm;
+    top: 6mm;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1.5mm;
+}
+.status {
+    font-size: 13px;
+    font-weight: 700;
+    color: #059669;
+    background: #ecfdf5;
+    padding: 0 10px;
+    border-radius: 12px;
+    line-height: 1.6;
+}
+.linha-nota-qr {
+    display: flex;
+    gap: 3mm;
+    align-items: flex-start;
+}
+.col-right {
+    text-align: right;
+}
+.doc-type {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+.numero {
+    font-size: 44px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1;
+    color: #0f172a;
+    margin-top: -2px;
+}
+.data {
+    font-size: 8px;
+    font-weight: 600;
+    color: #475569;
+    margin-top: 2px;
+}
+.chave-label {
+    font-size: 7px;
+    font-weight: 800;
+    color: #94a3b8;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+.qr-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1px;
+}
+.qr {
+    width: 22mm;
+    height: 22mm;
+    border: 1px solid #dbe3ec;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 0 3px #fff;
+}
+.qr img { width: 100%; height: 100%; display: block; }
+.qr-caption {
+    font-size: 6px;
+    color: #94a3b8;
+    text-align: center;
+    margin-top: 1px;
+    width: 22mm;
+}
+
+/* Chave completa à direita, abaixo do bloco */
+.chave-completa {
+    position: absolute;
+    right: 8mm;
+    top: 48mm;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* ===== RESTO DO DOCUMENTO ===== */
+.resto {
+    position: absolute;
+    left: 8mm;
+    right: 8mm;
+    top: 55mm; /* começa direto no Tomador */
+}
+.row-section { padding: 2mm 0; border-bottom: 1px solid #dbe3ec; }
+.row-section:first-child { border-top: 1px solid #dbe3ec; }
+.section-title { font-size: 6px; font-weight: 900; text-transform: uppercase; letter-spacing: .13em; color: #475569; margin-bottom: 1.5mm; }
+.entity-line { display: grid; grid-template-columns: 52mm 28mm 1fr; gap: 4mm; align-items: start; }
+.entity-name { font-size: 10px; font-weight: 900; line-height: 1.15; }
+.label { font-size: 4.8px; text-transform: uppercase; letter-spacing: .07em; font-weight: 900; color: #94a3b8; }
+.value { font-size: 8px; font-weight: 700; line-height: 1.28; margin-top: .3mm; }
+.value.secondary { color: #475569; font-weight: 600; }
+.service-line { display: grid; grid-template-columns: 1fr 1.8fr 1fr; gap: 5mm; align-items: center; padding: 1mm 0; }
+.service-code { display: inline-block; font-size: 7.5px; font-weight: 900; background: #0f172a; color: #fff; border-radius: 4px; padding: 1.5px 7px; margin-top: 1mm; }
+.service-desc { font-size: 9.5px; font-weight: 800; line-height: 1.3; }
+.service-meta { font-size: 7.5px; color: #475569; line-height: 1.35; margin-top: .5mm; }
+.commercial { padding-left: 3mm; border-left: 2px solid #0ea5e9; }
+.commercial strong { display: block; font-size: 8.5px; }
+.commercial span { font-size: 7px; color: #475569; line-height: 1.35; }
+.summary { display: grid; grid-template-columns: 1fr 26mm 38mm; gap: 7mm; padding: 2.5mm 0; border-bottom: 1px solid #dbe3ec; align-items: end; }
+.summary-value { text-align: right; }
+.payment-item strong { display: block; font-size: 9px; margin-top: .4mm; }
+.payment-item span { font-size: 5.5px; color: #475569; }
+.amount-label { font-size: 5.5px; text-transform: uppercase; letter-spacing: .11em; font-weight: 900; color: #94a3b8; }
+.amount { font-size: 25px; line-height: .95; font-weight: 900; letter-spacing: -1.2px; margin-top: .8mm; }
+.amount-sub { font-size: 6.2px; color: #475569; margin-top: 1mm; }
+.tax { padding: 2.5mm 0; }
+.tax-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+.tax-group h4 { font-size: 5.8px; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1.2mm; }
+.tax-row { display: flex; justify-content: space-between; gap: 4mm; padding: .65mm 0; font-size: 6.3px; }
+.tax-row span:first-child { color: #475569; }
+.tax-row strong { font-weight: 800; text-align: right; }
+.tax-row.total { border-top: 1px solid #0f172a; margin-top: .8mm; padding-top: 1mm; }
+.tax-row.total strong { font-size: 7.5px; }
+.supplement { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; padding: 2mm 0; border-top: 1px solid #dbe3ec; border-bottom: 1px solid #dbe3ec; }
+.supplement h4 { font-size: 5.8px; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; margin-bottom: 1mm; }
+.compact-note { font-size: 5.8px; line-height: 1.35; color: #475569; }
+.compact-note strong { color: #0f172a; }
+.footer { margin-top: auto; padding: 2.5mm 3mm; border-top: 1px solid #dbe3ec; background: #f4f6f8; display: flex; justify-content: space-between; gap: 8mm; align-items: flex-end; }
+.footer p { font-size: 5.3px; line-height: 1.4; color: #475569; max-width: 78%; }
+.brand { font-size: 7.5px; font-weight: 900; text-align: right; white-space: nowrap; }
+.brand small { display: block; font-size: 5px; font-weight: 600; color: #475569; margin-top: .4mm; }
+
+@media print { @page { size: A4 portrait; margin: 0; } body { padding: 0; background: #fff; } .toolbar { display: none; } #sheet { box-shadow: none; margin: 0; } }
+@media (max-width: 800px) { body { padding: 0; } .toolbar, #sheet { width: 100%; border-radius: 0; } #sheet { height: auto; min-height: 100vh; overflow: visible; } .page { padding: 18px; } .dados-prestador, .fiscal-id { position: static; width: 100%; grid-template-columns: 1fr; gap: 4px; margin-top: 12px; } .bloco-direito { position: static; align-items: center; margin-top: 12px; } .linha-nota-qr { flex-direction: column; align-items: center; } .chave-completa { position: static; white-space: normal; word-break: break-all; text-align: center; margin-top: 8px; } .resto { position: static; margin-top: 20px; } }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+    <div><strong>TITAN DANFSe v3.8</strong><small>NFS-e 331</small></div>
+    <div class="actions">
+        <button class="btn" onclick="downloadXML()">Baixar XML</button>
+        <button class="btn primary" onclick="savePDF()">Salvar PDF</button>
+    </div>
+</div>
+
+<main id="sheet">
+<div class="page">
+
+    <!-- Topo -->
+    <div class="top-left">
+        <div class="emitido-por"><strong>EMITIDO POR</strong> TITAN NFSE</div>
+        <div class="logo">TITANNFSE</div>
+    </div>
+    <div class="top-center">
+        <div class="titulo">Documento Auxiliar da NFS-e</div>
+        <div class="autoridade">Prefeitura Municipal de Curitiba · Secretaria Municipal de Finanças · Ambiente de produção</div>
+    </div>
+
+    <!-- Dados do prestador à esquerda -->
+    <div class="dados-prestador">
+        <div class="campo">
+            <span class="label">EMPRESA</span>
+            <span class="valor">NOVO TEMPO SERVICOS E EVENTOS LTDA</span>
+        </div>
+        <div class="campo">
+            <span class="label">CNPJ</span>
+            <span class="valor">45.753.202/0001-42</span>
+        </div>
+        <div class="campo">
+            <span class="label">INSCRIÇÃO MUNICIPAL</span>
+            <span class="valor">10083457</span>
+        </div>
+    </div>
+
+    <!-- Linha fiscal à esquerda, abaixo dos dados da empresa -->
+    <section class="fiscal-id">
+        <div><div class="label">Competência</div><div class="value">20/07/2026</div></div>
+        <div><div class="label">Emissão da NFS-e</div><div class="value">20/07/2026 · 10:53:07</div></div>
+        <div><div class="label">DPS / Série</div><div class="value">257 / 2</div></div>
+        <div><div class="label">Emissão da DPS</div><div class="value">20/07/2026 · 10:52:48</div></div>
+        <div><div class="label">Regime / Simples Nacional</div><div class="value">Nenhum regime especial · Não optante</div></div>
+    </section>
+
+    <!-- Bloco direito: Autorizada > nota+QR -->
+    <div class="bloco-direito">
+        <div class="status">Autorizada</div>
+        <div class="linha-nota-qr">
+            <div class="col-right">
+                <div class="doc-type">NFS-E</div>
+                <div class="numero">331</div>
+                <div class="data">19/07/2026 · 23:35:24</div>
+                <div class="chave-label">CHAVE DE ACESSO</div>
+            </div>
+            <div class="qr-wrapper">
+                <div class="qr">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeoAAAHqAQAAAADjFjCXAAAEMElEQVR4nO2dwY3jOgyGPz4ZyNEGtoApRelgSxpMSduBXUoKWEA+BrDBd5AoKTvvlBjI5oU8BJNEHxQDBKmflDSiPGDLP4/Q4LjjjjvuuOOOO+74sbgUG4B1yG9ZJpDzal8sIgKrDT0fN7vj74ajqqpEVVVNQVV1Q+dRlZhA5zwqKIxtiBHzSz+748/GVwtfyxRUzuuQP5ZPVdV53ID6WY6JR87u+Hvhw/eP9kEBdJlAl+n3oKyCLj/T4bM7/p74d69bByT++rEBYZMyImwSL8N29OyOvyduXjcqsIIwJoRxQ2AX4q8fG1F3YZmQHASPm93xt8YXERGZgHgpQpaYQnYwOa8nJaagcmbPEvbQ2R1/Mzxr2N6qSq3KtehVwrexrmEdv8usDrKhMyGHNJ3HolyLfAWIugHjhnud40fi44Z+fVQ3S0GJl5JcYT2Vl8UzrOOPWcumJdZp8boc5mKLaxbm8mCPdY7fbzeruY2Sa8etUxPQpd4N1WSYe53jd1mnHGLCXCpVvxpVc+rNy7w/FMZLP7vjz8K7PmzptDZxYZIC2sutkHWvc/wu6xZtpTayQUzAf1ZOku0I8Fjn+KN4XsPVaPY1BdV5vErZc7IW0SpnoAmOv+THO/5q+G1vwhpftS1W8mpty5YdUXisc/wRs8pJLYuM1hvLorWl2dEycfVT9zrH77J8bkIYr0KcFWAfiDMI417P8gSFVVBQWH7+ti9e+tkdfxbexboWyCzDhk605iQcE5S/PNY5fq9ZrCPkQCYQNhi3QSBAOZ4ILFOC5UORemT22T/e8RfF++BWqr+1BGxHJrTdQtERHuscv9u6DFs6XXUvcd1kd7vJ2DWs44fgcoZ6FPak+QAs64B8Jkr5bpnoNgMcObvj74bXfNlOIYaufJeH1MZ/V1fxDOv4/dZX3yjKtfVc2xaoPA6g07rudY7fZXprdOd26kIue5jtb/I+rOPHrOvqXZ3tsH+59iSVVZ98Xspaz/uwjh+DRyufyOdF7LQEwCInbecm2haUQ2d3/E1xu6tTvz5amg0qn2mX3IIF7HLi8eo3Tjj+gP15a6LAsFlbYh9gVATy1Z0ChE0WAYnzAbM77jiYhlC9in7JSVmmXcp1dlYq9nqd4wdWTtoO9nqJXRMXZa033ala930px85u+Pvgvd1uHbsFTuFSHexTreh3et1jj9i4v+9znHHHXfccccdd/x/gf8LvZwzNIrngCYAAAAASUVORK5CYII=" alt="QR Code">
+                </div>
+                <div class="qr-caption">Consulte a autenticidade</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chave completa à direita, abaixo do bloco -->
+    <div class="chave-completa" id="accessKey">41069022245753202000142000000000033126076901211579</div>
+
+    <!-- Restante do documento -->
+    <div class="resto">
+        <section class="row-section">
+            <div class="section-title">Tomador / Destinatário</div>
+            <div class="entity-line">
+                <div>
+                    <div class="entity-name">JNH HOTEIS LTDA</div>
+                    <div class="value secondary" style="font-size:7.5px">financeiro@grupojnp.com.br</div>
+                    <div class="value secondary" style="font-size:7px;margin-top:.2mm">(41) 3123-4567</div>
+                </div>
+                <div>
+                    <div class="label">CNPJ</div>
+                    <div class="value" style="font-size:9px">09.055.007/0001-85</div>
+                    <div style="margin-top:.5mm"><div class="label">Inscrição Municipal</div><div class="value" style="font-size:8px">9876543</div></div>
+                </div>
+                <div>
+                    <div class="label">Endereço</div>
+                    <div class="value" style="font-size:8.5px">Rua Gutemberg, 156, Batel · Curitiba/PR · CEP 80420-030</div>
+                    <div style="margin-top:.3mm"><div class="label">Inscrição Estadual</div><div class="value" style="font-size:7.5px">123.456.789.123</div></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="row-section">
+            <div class="section-title">Serviço Prestado</div>
+            <div class="service-line">
+                <div>
+                    <div class="label">Tributação nacional</div>
+                    <div class="service-code">17.04.01</div>
+                    <div class="service-meta">Municipal: 1234567<br>NBS: 98765</div>
+                </div>
+                <div>
+                    <div class="service-desc">Recrutamento, agenciamento, seleção e colocação de mão de obra.</div>
+                    <div class="service-meta">Local da prestação: Curitiba/PR/BR · Incidência do ISSQN: Curitiba/PR</div>
+                </div>
+                <div class="commercial">
+                    <div class="label">Informação comercial</div>
+                    <strong>Quinzena 07/2026</strong>
+                    <span>Planilha enviada por e-mail.</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="tax">
+            <div class="section-title">Tributação</div>
+            <div class="tax-grid">
+                <div class="tax-group">
+                    <h4>ISSQN</h4>
+                    <div class="tax-row"><span>Tipo de tributação</span><strong>Operação tributável</strong></div>
+                    <div class="tax-row"><span>Município de incidência</span><strong>Curitiba/PR</strong></div>
+                    <div class="tax-row"><span>Base de cálculo</span><strong>R$ 5.334,00</strong></div>
+                    <div class="tax-row"><span>Alíquota</span><strong>5,00%</strong></div>
+                    <div class="tax-row"><span>Retenção</span><strong>Não retido</strong></div>
+                    <div class="tax-row total"><span>ISSQN apurado</span><strong>R$ 266,70</strong></div>
+                </div>
+                <div class="tax-group">
+                    <h4>Retenções federais</h4>
+                    <div class="tax-row"><span>IRRF</span><strong>R$ 80,01</strong></div>
+                    <div class="tax-row"><span>Contribuições sociais</span><strong>R$ 248,03</strong></div>
+                    <div class="tax-row"><span>Descrição</span><strong>PIS/COFINS não retidos; CSLL retida</strong></div>
+                    <div class="tax-row total"><span>Total das retenções</span><strong>R$ 328,04</strong></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="supplement">
+            <div>
+                <h4>IBS / CBS</h4>
+                <p class="compact-note">Nesta NFS-e, <strong>não há valores de IBS/CBS informados</strong>.</p>
+            </div>
+            <div>
+                <h4>Informações complementares</h4>
+                <p class="compact-note"><strong>Tributos aproximados — Lei nº 12.741/2012:</strong> Federais 0,00% · Estaduais 0,00% · Municipais 0,00%.</p>
+            </div>
+        </section>
+
+        <section class="summary">
+            <div class="payment-item summary-pay">
+                <div class="label">Pagamento</div>
+                <strong>PIX · CNPJ</strong>
+                <span>45.753.202/0001-42</span>
+            </div>
+            <div class="payment-item summary-due">
+                <div class="label">Vencimento</div>
+                <strong>24/07/2026</strong>
+                <span>Informação comercial</span>
+            </div>
+            <div class="summary-value">
+                <div class="amount-label">Valor líquido da NFS-e</div>
+                <div class="amount">R$ 5.005,96</div>
+                <div class="amount-sub">Valor do serviço: R$ 5.334,00 · Retenções: R$ 328,04</div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p><strong>Documento gerado pelo TITAN NFSe com base no XML autorizado pelo Portal Nacional.</strong><br>A autenticidade pode ser verificada pela chave de acesso ou pelo QR Code.</p>
+            <div class="brand">TITAN NFSe<small>DANFSe Versão 3.8 | 1 de 1</small></div>
+        </footer>
+    </div>
+
+</div>
+</main>
+
+<script>
+function downloadXML() {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<NFS-e xmlns="http://www.portalfederal.com.br/nfse">
+    <Identificacao><Numero>331</Numero><Serie>1</Serie><Tipo>1</Tipo><DataEmissao>2026-07-20T10:53:07</DataEmissao></Identificacao>
+    <Prestador><CNPJ>45753202000142</CNPJ><InscricaoMunicipal>10083457</InscricaoMunicipal><RazaoSocial>NOVO TEMPO SERVICOS E EVENTOS LTDA</RazaoSocial><Endereco><Logradouro>R. Ewaldo Hauer</Logradouro><Numero>64</Numero><Bairro>Santa Cândida</Bairro><Cidade>Curitiba</Cidade><UF>PR</UF><CEP>82720080</CEP></Endereco></Prestador>
+    <Tomador><CNPJ>09055007000185</CNPJ><InscricaoMunicipal>9876543</InscricaoMunicipal><RazaoSocial>JNH HOTEIS LTDA</RazaoSocial><Endereco><Logradouro>Rua Gutemberg</Logradouro><Numero>156</Numero><Bairro>Batel</Bairro><Cidade>Curitiba</Cidade><UF>PR</UF><CEP>80420030</CEP></Endereco></Tomador>
+    <Servico><CodigoMunicipal>1234567</CodigoMunicipal><CodigoNBS>98765</CodigoNBS><Descricao>Recrutamento, agenciamento, seleção e colocação de mão de obra.</Descricao><ValorServico>5334.00</ValorServico><ValorLiquido>5005.96</ValorLiquido></Servico>
+    <Tributos><ISSQN><BaseCalculo>5334.00</BaseCalculo><Aliquota>5.00</Aliquota><Valor>266.70</Valor></ISSQN><IRRF>80.01</IRRF><ContribuicoesSociais>248.03</ContribuicoesSociais></Tributos>
+</NFS-e>`;
+    const blob = new Blob([xml], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NFS-e_331_${new Date().toISOString().slice(0,10)}.xml`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function savePDF() {
+    const b = document.querySelector('.btn.primary'), old = b.textContent;
+    b.disabled = true;
+    b.textContent = 'Gerando...';
+    html2pdf().set({
+        margin: 0,
+        filename: 'TITAN_DANFSe_v3_8_NFS-e_331.pdf',
+        image: { type: 'jpeg', quality: .98 },
+        html2canvas: { scale: 2.5, useCORS: true, letterRendering: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: 'avoid-all' }
+    }).from(document.getElementById('sheet')).save().finally(() => {
+        b.disabled = false;
+        b.textContent = old;
+    });
+}
+</script>
+</body>
+</html>
