@@ -780,8 +780,8 @@ main{margin-left:258px;padding-top:72px}
       <button class="sb-link" type="button" disabled aria-disabled="true" title="Em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 8h8M8 12h8"/></svg>Contratos recorrentes</button>
 
       <div class="sb-sec">Financeiro</div>
-      <button class="sb-link" type="button" onclick="alternarGrupoMenu('financeiro-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg>Financeiro<span class="nav-alert">⚠</span><span class="sb-chevron">›</span></button>
-      <div class="sb-submenu" id="financeiro-menu"><button class="sb-link" type="button" onclick="go('financeiro',this)">Cobranças</button><button class="sb-link" type="button" onclick="go('dasn',this)">DASN-SIMEI</button><button class="sb-link" type="button" disabled aria-disabled="true">Conciliação bancária</button><button class="sb-link" type="button" disabled aria-disabled="true">Fluxo de caixa</button></div>
+      <button class="sb-link" type="button" data-permission="financial" onclick="alternarGrupoMenu('financeiro-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg>Financeiro<span class="nav-alert">⚠</span><span class="sb-chevron">›</span></button>
+      <div class="sb-submenu" id="financeiro-menu"><button class="sb-link" type="button" data-permission="financial" onclick="go('recebimentos',this)">Recebimentos</button><button class="sb-link" type="button" onclick="go('financeiro',this)">Cobranças TITAN</button><button class="sb-link" type="button" onclick="go('dasn',this)">DASN-SIMEI</button><button class="sb-link" type="button" data-permission="financial_drafts" disabled aria-disabled="true">Boletos (rascunho)</button><button class="sb-link" type="button" data-permission="financial_drafts" disabled aria-disabled="true">Conciliação bancária</button><button class="sb-link" type="button" data-permission="financial_drafts" disabled aria-disabled="true">Fluxo de caixa completo</button></div>
 
       <div class="sb-sec">Cadastros</div>
       <button class="sb-link" data-permission="customers" onclick="go('clientes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Clientes</button>
@@ -790,7 +790,7 @@ main{margin-left:258px;padding-top:72px}
 
       <div class="sb-sec">Integrações</div>
       <button class="sb-link" type="button" onclick="alternarGrupoMenu('integracoes-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Integrações<span class="sb-chevron">›</span></button>
-      <div class="sb-submenu" id="integracoes-menu"><button class="sb-link" type="button" disabled aria-disabled="true">E-mail</button><button class="sb-link" type="button" disabled aria-disabled="true">WhatsApp</button><button class="sb-link" type="button" disabled aria-disabled="true">Open Finance</button><button class="sb-link" type="button" disabled aria-disabled="true">API e webhooks</button></div>
+      <div class="sb-submenu" id="integracoes-menu"><button class="sb-link" type="button" disabled aria-disabled="true">E-mail</button><button class="sb-link" type="button" data-permission="integrations" disabled aria-disabled="true">WhatsApp/API (rascunho)</button><button class="sb-link" type="button" data-permission="integrations" disabled aria-disabled="true">Open Finance</button><button class="sb-link" type="button" data-permission="integrations" disabled aria-disabled="true">API e webhooks</button></div>
 
        <div class="sb-sec">Configurações</div>
        <button class="sb-link" data-permission="dashboard" onclick="go('ajuda',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 4.3 1.5c-.8.8-2.1 1.3-2.1 2.7M12 17h.01"/></svg>Ajuda / Martyn</button>
@@ -1366,9 +1366,44 @@ main{margin-left:258px;padding-top:72px}
       </div>
     </section>
 
+    <!-- ---------- RECEBIMENTOS ---------- -->
+    <section class="view" id="v-recebimentos">
+      <div class="page-h"><h1>Recebimentos</h1><p>Agende honorários, acompanhe vencimentos, prepare cobranças e sinalize quando a NFS-e deve ser emitida.</p></div>
+      <div class="alert a-info">MVP aprovado pelo conselho: recebíveis de honorários, recorrências, cobrança revisada e pré-NFS-e. Boletos, conciliação, contas a pagar, API pública e automação fiscal total permanecem em rascunho.</div>
+      <div class="grid g4">
+        <div class="metric"><small>Em aberto</small><b id="rec-open">R$ 0,00</b></div>
+        <div class="metric"><small>Vencidos</small><b id="rec-overdue">R$ 0,00</b></div>
+        <div class="metric"><small>Recebido no mês</small><b id="rec-month">R$ 0,00</b></div>
+        <div class="metric"><small>NFS-e pendente</small><b id="rec-nfse">0</b></div>
+      </div>
+      <div class="grid g2" style="align-items:start;margin-top:16px">
+        <div class="card"><div class="card-h"><h2>Agendar recebimento</h2></div><div class="card-b">
+          <div class="row r2"><div class="field"><label for="rec-title">Descrição</label><input id="rec-title" class="inp" placeholder="Honorários mensais"></div><div class="field"><label for="rec-client">Cliente</label><input id="rec-client" class="inp" list="rec-client-list" placeholder="Razão social ou nome"><datalist id="rec-client-list"></datalist></div></div>
+          <div class="row r2"><div class="field"><label for="rec-value">Valor (R$)</label><input id="rec-value" class="inp num" inputmode="decimal" placeholder="0,00"></div><div class="field"><label for="rec-due">Vencimento</label><input id="rec-due" class="inp" type="date"></div></div>
+          <div class="row r2"><div class="field"><label for="rec-competence">Competência</label><input id="rec-competence" class="inp" placeholder="2026-07"></div><div class="field"><label for="rec-category">Categoria</label><input id="rec-category" class="inp" placeholder="Honorários"></div></div>
+          <div class="row r2"><div class="field"><label for="rec-cost-center">Centro de custo</label><input id="rec-cost-center" class="inp" placeholder="Operacional"></div><div class="field"><label for="rec-channel">Cobrança</label><select id="rec-channel" class="inp"><option value="none">Sem cobrança agora</option><option value="whatsapp">WhatsApp/API zap — revisar antes</option><option value="manual">Manual</option></select></div></div>
+          <div class="field"><label for="rec-issue">NFS-e</label><select id="rec-issue" class="inp"><option value="false">Somente controle financeiro</option><option value="true">Gerar pré-NFS-e pendente de revisão</option></select></div>
+          <div class="field"><label for="rec-notes">Observações</label><textarea id="rec-notes" class="inp" rows="3" placeholder="Parâmetros, contrato, competência ou instruções de cobrança"></textarea></div>
+          <div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarRecebimento()">Agendar recebimento</button><button class="btn btn-s" type="button" onclick="carregarRecebimentos()">Atualizar</button></div>
+        </div></div>
+        <div class="card"><div class="card-h"><h2>Recorrência de honorários</h2></div><div class="card-b">
+          <div class="row r2"><div class="field"><label for="rr-title">Descrição</label><input id="rr-title" class="inp" placeholder="Honorários contábeis"></div><div class="field"><label for="rr-client">Cliente</label><input id="rr-client" class="inp" list="rec-client-list" placeholder="Cliente cadastrado"></div></div>
+          <div class="row r2"><div class="field"><label for="rr-value">Valor (R$)</label><input id="rr-value" class="inp num" inputmode="decimal" placeholder="0,00"></div><div class="field"><label for="rr-day">Dia do mês</label><input id="rr-day" class="inp" inputmode="numeric" value="5"></div></div>
+          <div class="row r2"><div class="field"><label for="rr-start">Início</label><input id="rr-start" class="inp" type="date"></div><div class="field"><label for="rr-issue">NFS-e</label><select id="rr-issue" class="inp"><option value="true">Pré-NFS-e pendente a cada parcela</option><option value="false">Somente controle financeiro</option></select></div></div>
+          <div class="row r2"><div class="field"><label for="rr-category">Categoria</label><input id="rr-category" class="inp" placeholder="Honorários"></div><div class="field"><label for="rr-cost-center">Centro de custo</label><input id="rr-cost-center" class="inp" placeholder="Operacional"></div></div>
+          <button class="btn btn-p" type="button" onclick="salvarRecorrenciaRecebimento()">Criar recorrência</button><div class="hint">A recorrência gera parcelas programadas; a emissão fiscal continua revisável antes de transmitir.</div>
+        </div></div>
+      </div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><div><h2>Agenda e cobrança</h2><p>Fluxo similar ao Nibo: receber, revisar cobrança, marcar recebido e acompanhar pré-NFS-e.</p></div><select id="rec-filter" class="inp" style="max-width:180px" onchange="carregarRecebimentos()"><option value="all">Todos</option><option value="scheduled">Agendados</option><option value="to_charge">A cobrar</option><option value="charged">Cobrados</option><option value="received">Recebidos</option><option value="overdue">Vencidos</option></select></div><div class="card-b" id="rec-list"><div class="empty-state">Nenhum recebimento carregado.</div></div></div>
+      <div class="grid g2" style="align-items:start;margin-top:16px" data-permission="financial_drafts">
+        <div class="card"><div class="card-h"><h2>Rascunhos financeiros</h2><span class="pill p-off">não aprovado para MVP</span></div><div class="card-b"><div class="draft-item"><b>Boletos e Pix por provedor</b><span>Depende de provedor homologado, idempotência e conciliação.</span></div><div class="draft-item"><b>Fluxo de caixa completo</b><span>Entradas futuras estão previstas; saídas e contas a pagar ficam para fase posterior.</span></div></div></div>
+        <div class="card"><div class="card-h"><h2>Automação futura</h2><span class="pill p-off">rascunho</span></div><div class="card-b"><div class="draft-item"><b>Cobrança automática em lote</b><span>Bloqueada até existir opt-in, fila, rate limit e confirmação final.</span></div><div class="draft-item"><b>Emissão automática irrestrita</b><span>Permitida futuramente só para contratos fiscalmente validados.</span></div></div></div>
+      </div>
+    </section>
+
     <!-- ---------- FINANCEIRO ---------- -->
     <section class="view" id="v-financeiro">
-      <div class="page-h"><h1>Cobranças</h1><p>Planos, status de pagamento e documentos de cobrança do TITAN.</p></div>
+      <div class="page-h"><h1>Cobranças TITAN</h1><p>Planos, status de pagamento e documentos de cobrança do TITAN.</p></div>
       <div class="grid g2" style="align-items:start">
         <div class="card"><div class="card-h"><h2>Plano ativo</h2></div><div class="card-b" id="billing-status"><div class="empty-state">Consultando cobrança...</div></div></div>
         <div class="card"><div class="card-h"><h2>Gerar cobrança</h2></div><div class="card-b"><div class="row r2"><div class="field"><label for="billing-method">Forma</label><select id="billing-method" class="inp"><option value="pix">Pix</option><option value="boleto">Boleto</option></select></div><div class="field"><label for="billing-due">Vencimento</label><input id="billing-due" class="inp" type="date"></div></div><button class="btn btn-p" type="button" onclick="gerarCobranca()">Gerar cobrança oficial</button><div class="hint">A emissão real exige credenciais PJ do Nubank configuradas no ambiente seguro.</div></div></div>
@@ -1710,7 +1745,7 @@ function aplicarAcesso(login){
   const access=login||JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}'),user=access.user||{};
   qs('#master-menu').style.display=user.isMaster?'block':'none';
   const companyId=sessionStorage.getItem(STORAGE_COMPANY_ID),company=(access.companies||[]).find(c=>c.id===companyId)||(access.companies||[])[0],permissions=company?.permissions||[];
-  qsa('[data-permission]').forEach(el=>el.style.display=user.isMaster||permissions.includes(el.dataset.permission)?'flex':'none');
+  qsa('[data-permission]').forEach(el=>{const visible=user.isMaster||permissions.includes(el.dataset.permission);el.style.display=visible?(el.tagName==='DIV'?'':'flex'):'none'});
   qsa('[data-master-only]').forEach(el=>el.style.display=user.isMaster?'flex':'none');
   if(access.companies?.length){
     const visible=PORTAL_CNPJ?access.companies.filter(c=>String(c.federal_tax_id||'').replace(/\D/g,'')===PORTAL_CNPJ):access.companies;
@@ -1738,6 +1773,10 @@ function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.re
 function go(v,el){
   if(!sessionStorage.getItem(STORAGE_TOKEN)){qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide');return}
   if(PORTAL_ADMIN&&v!=='master'){alert('O portal do gestor é exclusivo para usuários, perfis e liberações. Abra a empresa em uma nova aba para operar.');return}
+  if(v==='recebimentos'){
+    const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}'),companyId=sessionStorage.getItem(STORAGE_COMPANY_ID),company=(access.companies||[]).find(c=>c.id===companyId)||(access.companies||[])[0],permissions=company?.permissions||[];
+    if(!access.user?.isMaster&&!permissions.includes('financial')){alert('Seu perfil não possui a permissão Financeiro de honorários. O Master pode liberar em Perfis de Acesso.');return}
+  }
   if(v==='master'){
     const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');
     if(!access.user?.isMaster){alert('Esta área é exclusiva do administrador master.');return}
@@ -1759,8 +1798,69 @@ function go(v,el){
   if(v==='emitir'){carregarRascunhos();exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true)}
   if(v==='clientes')carregarClientesCadastro();
   if(v==='comercial'){renderEmpresaComercial();carregarComerciais();popularClientesComercial();carregarPerfisServico().then(popularServicosComercial);}
+  if(v==='recebimentos')carregarRecebimentos();
   if(v==='financeiro')carregarBilling();
   if(v==='dasn')carregarDasn();
+}
+
+let recebimentos=[],recorrenciasRecebimento=[];
+function clientePorNomeRecebimento(name){const value=(name||'').trim().toLocaleLowerCase('pt-BR');return clientesCadastro.find(c=>(c.legal_name||'').trim().toLocaleLowerCase('pt-BR')===value||(c.trade_name||'').trim().toLocaleLowerCase('pt-BR')===value)}
+async function popularClientesRecebimento(){try{if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');const dl=qs('#rec-client-list');if(dl)dl.innerHTML=clientesCadastro.map(c=>`<option value="${esc(c.legal_name)}">${esc(c.tax_id||'')}</option>`).join('')}catch{}}
+async function carregarRecebimentos(){
+  await popularClientesRecebimento();
+  const filter=qs('#rec-filter')?.value||'all';
+  try{
+    const [summary,items,recs]=await Promise.all([api('/api/workspace/receivables/summary'),api('/api/workspace/receivables?status='+encodeURIComponent(filter)),api('/api/workspace/recurrences')]);
+    recebimentos=items||[];recorrenciasRecebimento=recs||[];
+    qs('#rec-open').textContent='R$ '+brl(Number(summary.open_amount||0));
+    qs('#rec-overdue').textContent='R$ '+brl(Number(summary.overdue_amount||0));
+    qs('#rec-month').textContent='R$ '+brl(Number(summary.received_month||0));
+    qs('#rec-nfse').textContent=String(summary.pending_nfse||0);
+    qs('#rec-list').innerHTML=recebimentos.length?recebimentos.map(renderRecebimento).join(''):'<div class="empty-state">Nenhum recebimento para o filtro selecionado.</div>';
+  }catch(error){qs('#rec-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+}
+function renderRecebimento(item){
+  const due=new Date(item.due_date+'T00:00:00').toLocaleDateString('pt-BR'),amount='R$ '+brl(Number(item.amount||0));
+  const status={draft:['p-off','Rascunho'],scheduled:['p-gold','Agendado'],to_charge:['p-gold','A cobrar'],charged:['p-off','Cobrado'],received:['p-ok','Recebido'],overdue:['p-off','Vencido'],cancelled:['p-off','Cancelado']}[item.status]||['p-off',item.status];
+  const fiscal={not_applicable:'sem NFS-e',pending_issue:'pré-NFS-e pendente',draft_ready:'pré-NFS-e pronta',issuing:'em emissão',issued:'NFS-e emitida',issue_error:'erro fiscal',cancelled:'NFS-e cancelada'}[item.fiscal_status]||'fiscal não informado';
+  const collection={not_sent:'cobrança não enviada',review_pending:'cobrança para revisar',queued:'cobrança na fila',sent:'cobrança registrada',failed:'cobrança falhou',answered:'cliente respondeu',waived:'cobrança dispensada'}[item.collection_status]||'cobrança não informada';
+  const cobrar=(item.status==='scheduled'||item.status==='to_charge')&&item.collection_status!=='sent'?`<button class="btn btn-s" type="button" onclick="revisarCobrancaRecebimento('${item.id}')">Revisar cobrança</button>`:'';
+  const receber=item.status!=='received'&&item.status!=='cancelled'?`<button class="btn btn-s" type="button" onclick="mudarStatusRecebimento('${item.id}','received')">Marcar recebido</button>`:'';
+  const emitir=item.fiscal_status==='pending_issue'&&!item.invoice_id?`<button class="btn btn-s" type="button" onclick="prepararNotaRecebimento('${item.id}')">Preparar NFS-e</button>`:'';
+  const meta=[item.competence?`Competência ${item.competence}`:'',item.category,item.cost_center].filter(Boolean).join(' · ');
+  return `<div class="draft-item"><div><b>${esc(item.title)}</b><span>${esc(item.customer_name)} · vence ${due} · <b>${amount}</b></span><div class="hint">${esc(meta||'Sem classificação')} · ${esc(collection)} · ${esc(fiscal)}${item.notes?' · '+esc(item.notes):''}</div></div><div class="acts" style="margin-top:8px"><span class="pill ${status[0]}">${status[1]}</span>${cobrar}${receber}${emitir}</div></div>`;
+}
+async function salvarRecebimento(){
+  const customerName=qs('#rec-client').value.trim(),c=clientePorNomeRecebimento(customerName),amount=Number(qs('#rec-value').value.replace(/\./g,'').replace(',','.'));
+  const issueNfse=qs('#rec-issue').value==='true',chargeChannel=qs('#rec-channel').value;
+  const body={title:qs('#rec-title').value.trim(),customerName,customerId:c?.id,customerTaxId:c?.tax_id,amount,dueDate:qs('#rec-due').value,competence:qs('#rec-competence').value.trim()||undefined,category:qs('#rec-category').value.trim()||undefined,costCenter:qs('#rec-cost-center').value.trim()||undefined,status:'scheduled',fiscalStatus:issueNfse?'pending_issue':'not_applicable',collectionStatus:chargeChannel==='none'?'not_sent':'review_pending',chargeChannel,issueNfse,notes:qs('#rec-notes').value.trim()||undefined,nfsePayload:c?{borrower:{name:c.legal_name,taxId:c.tax_id,email:c.email,phone:c.phone,address:c.address,municipalityCode:c.municipality_code}}:undefined};
+  if(!body.title||!body.customerName||!body.dueDate||!amount){alert('Informe descrição, cliente, valor e vencimento.');return}
+  try{await api('/api/workspace/receivables',{method:'POST',body:JSON.stringify(body)});['#rec-title','#rec-client','#rec-value','#rec-due','#rec-competence','#rec-category','#rec-cost-center','#rec-notes'].forEach(id=>qs(id).value='');await carregarRecebimentos();alert('Recebimento agendado.')}catch(error){alert(error.message)}
+}
+async function mudarStatusRecebimento(id,status,channel){
+  try{await api('/api/workspace/receivables/'+id+'/status',{method:'PATCH',body:JSON.stringify({status,chargeChannel:channel})});await carregarRecebimentos()}catch(error){alert(error.message)}
+}
+async function revisarCobrancaRecebimento(id){
+  const item=recebimentos.find(r=>r.id===id);if(!item)return;
+  const channel=item.charge_channel&&item.charge_channel!=='none'?item.charge_channel:'manual';
+  const preview=`Cobrança ${item.customer_name} · ${item.competence||item.due_date} · R$ ${brl(Number(item.amount||0))}`;
+  if(!confirm(`Revisar e registrar cobrança?\n\n${preview}\n\nNenhum disparo automático em massa será feito nesta etapa.`))return;
+  try{await api('/api/workspace/receivables/'+id+'/collection-review',{method:'POST',body:JSON.stringify({channel,messagePreview:preview})});await carregarRecebimentos()}catch(error){alert(error.message)}
+}
+function prepararNotaRecebimento(id){
+  const item=recebimentos.find(r=>r.id===id);if(!item)return;
+  const payload=item.nfse_payload||{},borrower=payload.borrower||{};
+  const amount=Number(item.amount||0);
+  qs('#t-nome').value=borrower.name||item.customer_name||'';qs('#t-doc').value=borrower.taxId||item.customer_tax_id||'';qs('#s-desc').value=item.title||'Honorários profissionais';
+  composicaoItens=[{description:item.title||'Honorários profissionais',quantity:1,unitAmount:Number(amount.toFixed(2))}];atualizarComposicao();
+  go('emitir',qs('.sb-link[onclick*="emitir"]'));alert('Dados do recebimento levados para a emissão. Revise os parâmetros fiscais antes de transmitir.');
+}
+async function salvarRecorrenciaRecebimento(){
+  const customerName=qs('#rr-client').value.trim(),c=clientePorNomeRecebimento(customerName),amount=Number(qs('#rr-value').value.replace(/\./g,'').replace(',','.'));
+  const body={title:qs('#rr-title').value.trim(),customerName,customerId:c?.id,customerTaxId:c?.tax_id,amount,dayOfMonth:Number(qs('#rr-day').value||5),startDate:qs('#rr-start').value,issueNfse:qs('#rr-issue').value==='true',nfsePayload:c?{borrower:{name:c.legal_name,taxId:c.tax_id,email:c.email,phone:c.phone,address:c.address,municipalityCode:c.municipality_code}}:undefined};
+  body.category=qs('#rr-category').value.trim()||undefined;body.costCenter=qs('#rr-cost-center').value.trim()||undefined;
+  if(!body.title||!body.customerName||!body.startDate||!amount){alert('Informe descrição, cliente, valor e início.');return}
+  try{await api('/api/workspace/recurrences',{method:'POST',body:JSON.stringify(body)});['#rr-title','#rr-client','#rr-value','#rr-start','#rr-category','#rr-cost-center'].forEach(id=>qs(id).value='');await carregarRecebimentos();alert('Recorrência criada.')}catch(error){alert(error.message)}
 }
 
 async function carregarBilling(){
@@ -2935,7 +3035,7 @@ function aplicarEmpresa(){
 /* ---------- gestão master / convites ---------- */
 let masterData=null,masterEligibility=null;
 let empresasAdmin=[];
-const permissionLabels={dashboard:'Painel',emit:'Emitir NFS-e',invoices:'Notas emitidas',import:'Importar Portal',customers:'Clientes',services:'Meus serviços',certificate:'Certificado A1',company_settings:'Configuração da empresa'};
+const permissionLabels={dashboard:'Painel',emit:'Emitir NFS-e',invoices:'Notas emitidas',import:'Importar Portal',customers:'Clientes',services:'Meus serviços',financial:'Financeiro de honorários',financial_drafts:'Rascunhos financeiros',integrations:'Integrações e API',certificate:'Certificado A1',company_settings:'Configuração da empresa'};
 
 function configurarEmpresasAdmin(companies){
   empresasAdmin=(companies||[]).map(c=>({id:String(c.id),legal_name:c.legal_name||c.trade_name||'Empresa sem nome',trade_name:c.trade_name||'',federal_tax_id:String(c.federal_tax_id||''),emission_enabled:Boolean(c.emission_enabled),plan_code:c.plan_code||'teste'}));

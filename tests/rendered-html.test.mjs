@@ -167,8 +167,28 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.match(html,/\/api\/billing\/status/);
   assert.match(html,/\/api\/dasn\/manual/);
   assert.match(html,/id="v-financeiro"/);
+  assert.match(html,/id="v-recebimentos"/);
   assert.match(html,/id="v-dasn"/);
   assert.match(html,/Entrar na fila/);
+});
+
+test("replica logica de recebimentos com agendamento recorrencia cobranca e NFS-e",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/>Recebimentos<\/button>/);
+  assert.match(html,/data-permission="financial"/);
+  assert.match(html,/\/api\/workspace\/receivables\/summary/);
+  assert.match(html,/\/api\/workspace\/receivables/);
+  assert.match(html,/\/api\/workspace\/receivables\/'\+id\+'\/collection-review/);
+  assert.match(html,/\/api\/workspace\/recurrences/);
+  assert.match(html,/Agendar recebimento/);
+  assert.match(html,/Recorrência de honorários/);
+  assert.match(html,/WhatsApp\/API zap/);
+  assert.match(html,/pré-NFS-e pendente/);
+  assert.match(html,/function prepararNotaRecebimento/);
+  assert.match(html,/Financeiro de honorários/);
+  assert.match(html,/Rascunhos financeiros/);
+  assert.match(html,/Boletos \(rascunho\)/);
+  assert.match(html,/MVP aprovado pelo conselho/);
 });
 
 test("protege e otimiza login e redefinicao de senha no front",async()=>{
