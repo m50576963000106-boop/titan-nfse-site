@@ -13,7 +13,7 @@ test("carrega a configuração externa do backend", async () => {
 });
 
 test("mantém a logo principal com transparência", async () => {
-  const png = await readFile(resolve(root, "public/titan-nfse-logo.png"));
+  const png = await readFile(resolve(root, "public/titan-nfse-logo-transparent.png"));
   assert.equal(png.subarray(1, 4).toString("ascii"), "PNG");
   assert.equal(png[25], 6);
 });
@@ -101,7 +101,7 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(landing,/Quero contratar o emissor/);
   assert.match(landing,/\/api\/contact/);
-  assert.match(landing,/titan-nfse-logo\.png/);
+  assert.match(landing,/titan-nfse-logo-transparent\.png/);
   assert.match(landing,/\/api\/system\/branding/);
   assert.match(landing,/carregarBrandingPortal/);
   assert.match(landing,/Emita suas notas fiscais com o poder e a velocidade do/);
@@ -139,7 +139,7 @@ test("integra documentos comerciais, clientes e gestão exclusiva do master",asy
   assert.match(html,/document_number/);
   assert.match(html,/admin-company-switch/);
   assert.match(html,/Esta área é exclusiva do administrador master/);
-  assert.match(html,/titan-nfse-logo\.png/);
+  assert.match(html,/titan-nfse-logo-transparent\.png/);
 });
 
 test("usa login por CNPJ e expõe NBS e retenções condicionais",async()=>{
