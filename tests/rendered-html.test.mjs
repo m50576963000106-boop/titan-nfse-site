@@ -16,13 +16,13 @@ test("mantém emissão real restrita sem sucesso simulado", async () => {
   const html = await readFile(resolve(root, "public/titan.html"), "utf8");
   assert.match(html, /Produção Restrita/);
   assert.doesNotMatch(html, /Simulação concluída/);
-  assert.match(html, /A simulação artificial foi removida/);
+  assert.match(html, /Documento sem validade fiscal, emitido no ambiente oficial de testes/);
 });
 
 test("oferece documentos e cancelamento oficial sem identidade visual", async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/\/api\/invoices\/'\+id\+'\/xml/);
-  assert.match(html,/\/api\/invoices\/'\+id\+'\/pdf/);
+  assert.match(html,/\/api\/invoices\/'\+id\+'\/danfse/);
   assert.match(html,/X-Confirm-Cancellation/);
   assert.match(html,/Cancelar NFS-e oficialmente/);
   assert.doesNotMatch(html,/Identidade visual|v-marca/);
@@ -169,6 +169,18 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.match(html,/id="v-financeiro"/);
   assert.match(html,/id="v-dasn"/);
   assert.match(html,/Entrar na fila/);
+});
+
+test("protege e otimiza login e redefinicao de senha no front",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/function definirCarregandoLogin/);
+  assert.match(html,/function mostrarErroLogin/);
+  assert.match(html,/function removerParametroSensivel\(name\)/);
+  assert.match(html,/removerParametroSensivel\('token'\)/);
+  assert.match(html,/Dados de acesso inválidos/);
+  assert.doesNotMatch(html,/Senha inválida\.<\/b>/);
+  assert.match(html,/\['li-cnpj','li-mail','li-pw'\]\.forEach/);
+  assert.match(html,/\['reset-password','reset-password-confirm'\]\.forEach/);
 });
 
 test("exibe planos SaaS com limites e valores publicados",async()=>{

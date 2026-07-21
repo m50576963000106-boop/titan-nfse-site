@@ -1636,15 +1636,21 @@ function mascararCnpjLogin(el){
   const d=el.value.replace(/\D/g,'').slice(0,14);
   el.value=d.replace(/^(\d{2})(\d{3})?(\d{3})?(\d{4})?(\d{2})?.*/,(m,a,b,c,dd,e)=>[a,b&&'.'+b,c&&'.'+c,dd&&'/'+dd,e&&'-'+e].filter(Boolean).join(''));
 }
+function definirCarregandoLogin(loading,label='Entrando...'){const button=qs('#login-action');if(!button)return;button.disabled=loading;if(loading){button.dataset.originalText=button.textContent;button.textContent=label}else if(button.dataset.originalText){button.textContent=button.dataset.originalText;delete button.dataset.originalText}}
+function mostrarErroLogin(message){const box=qs('#login-error');if(!box)return;box.style.display='block';box.textContent=message}
+function removerParametroSensivel(name){const url=new URL(location.href);if(!url.searchParams.has(name))return;url.searchParams.delete(name);history.replaceState({},'',url.pathname+(url.search?url.search:'')+url.hash)}
 async function iniciarCadastro(){
+  limparFalhaLogin();
   const cnpj=PORTAL_CNPJ||qs('#li-cnpj').value.replace(/\D/g,'');
   const email=qs('#li-mail').value.trim();
   const senha=qs('#li-pw').value;
   if((PORTAL_ADMIN&&!email)||(!PORTAL_ADMIN&&cnpj.length!==14)||senha.length<10){
-    alert(PORTAL_ADMIN?'Informe o e-mail administrativo e a senha (mínimo 10 caracteres).':'Informe o CNPJ e a senha (mínimo 10 caracteres).');
+    mostrarErroLogin(PORTAL_ADMIN?'Informe o e-mail administrativo e uma senha com pelo menos 10 caracteres.':'Informe o CNPJ e uma senha com pelo menos 10 caracteres.');
+    (PORTAL_ADMIN&&!email?qs('#li-mail'):!PORTAL_ADMIN&&cnpj.length!==14?qs('#li-cnpj'):qs('#li-pw'))?.focus();
     return;
   }
   let login;
+  definirCarregandoLogin(true);
   try{
     carregarAmbiente().catch(()=>{});
     login=await api('/api/auth/login',{method:'POST',body:JSON.stringify(PORTAL_ADMIN?{email,password:senha}:{federalTaxId:cnpj,password:senha})});
@@ -1666,14 +1672,15 @@ async function iniciarCadastro(){
       carregarServicos().catch(()=>{});
     }
   }catch(error){
+    definirCarregandoLogin(false);
     if(error?.status===401){
-      const box=qs('#login-error');
-      if(box){box.style.display='block';box.innerHTML='<b>Senha inválida.</b><div style="margin-top:6px">A redefinição só pode ser feita pelo link temporário fornecido pelo administrador Master.</div><div class="flex wrap" style="margin-top:8px"><button class="btn btn-s" type="button" onclick="limparFalhaLogin()">Tentar novamente</button></div>'}
+      mostrarErroLogin('Dados de acesso inválidos. Confira as informações ou solicite ao gestor Master um link temporário de redefinição.');
+      qs('#li-pw')?.focus();
       return;
     }
     const falhaRede=error instanceof TypeError;
     const message=falhaRede?'Não foi possível conectar ao servidor fiscal. Aguarde alguns segundos e tente novamente.':error.message;
-    alert(message+(!PORTAL_ADMIN?'\n\nSe você é o administrador master, entre por titanbackoffice.com.br/nfs/admin.':''));return
+    mostrarErroLogin(message+(!PORTAL_ADMIN?' Se você é o administrador master, entre por titanbackoffice.com.br/nfs/admin.':''));return
   }
   qs('#login').classList.add('hide');
   qs('#app').classList.add('on');
@@ -1768,7 +1775,7 @@ async function carregarDasn(){
   try{const data=await api('/api/dasn?year='+encodeURIComponent(year.value));qs('#dasn-total').textContent=`R$ ${Number(data.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`;qs('#dasn-list').innerHTML=data.entries?.length?data.entries.map(item=>`<div class="draft-item"><b>${String(item.reference_month).padStart(2,'0')}/${item.reference_year}</b><span>${esc(item.source)} · R$ ${Number(item.gross_amount||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span></div>`).join(''):'<div class="empty-state">Nenhum lançamento para o ano selecionado.</div>'}catch(error){qs('#dasn-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
 }
 async function salvarDasnManual(){const year=Number(qs('#dasn-year').value),month=Number(qs('#dasn-month').value),amount=dinheiro(qs('#dasn-amount').value);if(!year||month<1||month>12||amount<0){alert('Informe ano, mês e valor válidos.');return}try{await api('/api/dasn/manual',{method:'POST',body:JSON.stringify({year,month,amount})});qs('#dasn-amount').value='0,00';await carregarDasn();alert('Valor DASN salvo.')}catch(error){alert(error.message)}}
-qs('#li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')iniciarCadastro()});
+['li-cnpj','li-mail','li-pw'].forEach(id=>qs('#'+id)?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();iniciarCadastro()}}));
 
 async function carregarEmpresaServidor(){
   const row=await api('/api/company');
@@ -3151,6 +3158,7 @@ async function prepararRedefinicao(token){
   const action=qs('#reset-action'),hint=qs('#reset-hint'),account=qs('#reset-account'),password=qs('#reset-password'),confirmation=qs('#reset-password-confirm');
   const normalizedToken=String(token||'').trim().replace(/^['"]|['"]$/g,'');
   if(!normalizedToken){account.textContent='Link temporário necessário';hint.textContent='A tela foi aberta sem o token de segurança. No Master, acesse Usuários > Redefinir senha e abra o link gerado para esta conta.';hint.classList.add('error');action.style.display='none';password.closest('.reset-field').style.display='none';confirmation.closest('.reset-field').style.display='none';return}
+  removerParametroSensivel('token');
   try{
     const info=await api('/api/auth/password-resets/'+encodeURIComponent(normalizedToken));
     account.textContent=`Conta: ${info.email||'usuário TITAN'}`;hint.textContent='Link válido por 30 minutos e de uso único. Defina uma senha com pelo menos 10 caracteres.';password.disabled=false;confirmation.disabled=false;action.disabled=false;action.onclick=()=>confirmarRedefinicao(normalizedToken);password.focus();
@@ -3165,6 +3173,7 @@ async function confirmarRedefinicao(token){
   try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password,confirmation})});hint.textContent='Senha definida com sucesso. Redirecionando para o login...';hint.classList.add('ok');window.setTimeout(()=>window.top.location.href='/nfs/entrar',700)}catch(error){hint.textContent=error.message;hint.classList.add('error');action.disabled=false;action.textContent='Definir senha'}
 }
 function alternarSenha(id,button){const input=qs('#'+id);if(!input)return;const visible=input.type==='password';input.type=visible?'text':'password';button.setAttribute('aria-pressed',String(visible));button.setAttribute('aria-label',visible?'Ocultar senha':'Mostrar senha')}
+['reset-password','reset-password-confirm'].forEach(id=>qs('#'+id)?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!qs('#reset-action')?.disabled){e.preventDefault();qs('#reset-action').click()}}));
 
 function carregarEstado(){
   try{empresaAtual=JSON.parse(localStorage.getItem(STORAGE_EMPRESA)||'null')}catch{empresaAtual=null}
