@@ -49,6 +49,13 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(html,/Usuário do CNPJ/);
   assert.match(html,/CNPJ é a referência da gestão/);
   assert.match(html,/Um CNPJ por usuário responsável/);
+  assert.match(html,/id="master-user-modal"/);
+  assert.match(html,/Editar usuário/);
+  assert.match(html,/Convidar usuário/);
+  assert.match(html,/function abrirEditarUsuario/);
+  assert.match(html,/async function salvarEditarUsuario/);
+  assert.match(html,/\/api\/master\/users\/'\+userId/);
+  assert.match(html,/function prepararUsuarioPendente/);
   assert.match(html,/function renderMasterUsers\(\)\{renderMasterClients\(\)\}/);
   assert.match(html,/function entrarComSessaoSalva/);
   assert.match(html,/entrarComSessaoSalva\(\)\.catch/);
