@@ -173,6 +173,13 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.doesNotMatch(html,/const amount=Number\(prompt\(`Valor de/);
   assert.match(html,/id="s-cno-options"/);
   assert.match(html,/id="s-event-code-options"/);
+  assert.match(html,/class="emit-hero"/);
+  assert.match(html,/Resumo da emissão/);
+  assert.match(html,/id="emit-side-total"/);
+  assert.match(html,/Emissão padrão nacional/);
+  assert.match(html,/Emissão somente por usuário do CNPJ/);
+  assert.match(html,/background:linear-gradient\(135deg,var\(--navy\),var\(--navy-2\)\)/);
+  assert.doesNotMatch(html,/#e94560/);
   assert.match(html,/\/api\/customers\//);
   assert.match(html,/\/api\/onboarding\/check/);
   assert.match(html,/\/api\/billing\/status/);
