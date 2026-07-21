@@ -45,12 +45,16 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(html,/admin-company-search/);
   assert.match(html,/selecionarEmpresaAdmin/);
   assert.match(html,/abrirEmpresaEmissao/);
+  assert.match(html,/Gestão por CNPJ/);
+  assert.match(html,/Usuário do CNPJ/);
+  assert.match(html,/CNPJ é a referência da gestão/);
+  assert.match(html,/Um CNPJ por usuário responsável/);
+  assert.match(html,/function renderMasterUsers\(\)\{renderMasterClients\(\)\}/);
   assert.match(html,/function entrarComSessaoSalva/);
   assert.match(html,/entrarComSessaoSalva\(\)\.catch/);
   assert.match(html,/abrirAreaAutenticada\(access\)/);
   assert.match(html,/async function selecionarEmpresaAdmin\(companyId\)[\s\S]{0,260}abrirEmpresaEmissao\(companyId\)/);
   assert.match(html,/Preparando o ambiente fiscal da empresa/);
-  assert.match(html,/Sem vínculo company_users/);
   assert.match(html,/Sem usuário ativo/);
   assert.doesNotMatch(html,/mode:"master_impersonation"/);
   assert.match(html,/data-master-tab="usuarios"/);
@@ -224,7 +228,7 @@ test("protege e otimiza login e redefinicao de senha no front",async()=>{
   assert.match(html,/master-reset-link-panel/);
   assert.match(html,/Link de redefinição gerado/);
   assert.match(html,/senha do Master não é redefinida por CNPJ/);
-  assert.match(html,/gerarRedefinicaoSenha\('\$\{u\.id\}','\$\{u\.company_id\}'\)/);
+  assert.match(html,/gerarRedefinicaoSenha\('\$\{u\.id\}','\$\{c\.id\}'\)/);
   assert.match(html,/CNPJ da empresa:/);
   assert.match(html,/info\.federalTaxId/);
   assert.doesNotMatch(html,/Conta: \$\{info\.email/);
