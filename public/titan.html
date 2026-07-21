@@ -3499,23 +3499,28 @@ async function prepararConvite(){
   try{
     const invite=await api('/api/auth/invitations/'+encodeURIComponent(token));
     qs('.onboard-step').textContent='Convite de acesso';
-    qs('.login-h').textContent='Criar seu acesso';
+    qs('.login-h').textContent='Criar sua senha';
     qs('.login-sub').textContent=`Você foi convidado para ${invite.trade_name||invite.legal_name} · CNPJ ${invite.federal_tax_id} · perfil ${invite.profile_name}.`;
-    qs('#li-mail').value=invite.email;qs('#li-mail').readOnly=true;
-    qs('#li-pw').placeholder='Crie uma senha com 10+ caracteres';
+    qs('#li-mail').value=invite.email;qs('#li-mail').closest('.login-field').style.display='none';
+    qs('#li-pw').placeholder='Crie sua senha';qs('#li-pw').autocomplete='new-password';
+    const senhaLabel=qs('label[for="li-pw"]');if(senhaLabel)senhaLabel.textContent='Crie sua senha';
+    const confirmWrap=qs('#li-reset-confirm-wrap');if(confirmWrap)confirmWrap.style.display='block';
+    const confirm=qs('#li-pw-confirm');if(confirm){confirm.value='';confirm.placeholder='Confirme sua senha';confirm.autocomplete='new-password'}
+    const confirmLabel=qs('label[for="li-pw-confirm"]');if(confirmLabel)confirmLabel.textContent='Confirme sua senha';
     const campo=qs('#li-cnpj');
-    if(campo){campo.oninput=null;campo.value='';campo.setAttribute('inputmode','text');campo.placeholder='Nome completo';const lab=qs('label[for="li-cnpj"]');if(lab)lab.textContent='Seu nome completo';}
+    if(campo){campo.closest('.login-field').style.display='none';campo.value=invite.federal_tax_id||'';}
     const button=qs('#login-action');button.textContent='Aceitar convite e entrar';button.onclick=()=>aceitarConvite(token);
   }catch(error){qs('.login-sub').textContent=error.message;qs('#login-action').disabled=true}
 }
 
 async function aceitarConvite(token){
-  const name=qs('#li-cnpj').value.trim(),password=qs('#li-pw').value;
-  if(name.length<2||password.length<10){alert('Informe seu nome e uma senha com pelo menos 10 caracteres.');return}
+  const password=qs('#li-pw').value,confirmation=qs('#li-pw-confirm').value;
+  if(password.length<10||confirmation.length<10){alert('Crie sua senha e confirme com pelo menos 10 caracteres.');return}
+  if(password!==confirmation){alert('A confirmação não confere. Digite a mesma senha nos dois campos.');return}
   try{
-    const accepted=await api('/api/auth/invitations/'+encodeURIComponent(token)+'/accept',{method:'POST',body:JSON.stringify({name,password})});
+    const accepted=await api('/api/auth/invitations/'+encodeURIComponent(token)+'/accept',{method:'POST',body:JSON.stringify({password,confirmation})});
     sessionStorage.setItem(STORAGE_TOKEN,accepted.token);sessionStorage.setItem(STORAGE_COMPANY_ID,accepted.companyId);sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:accepted.user,companies:accepted.companies||[]}));
-    localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:name,email:accepted.user.email,cnpj:accepted.companies?.[0]?.federal_tax_id||PORTAL_CNPJ}));history.replaceState({},'',location.pathname);
+    localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:accepted.user.name,email:accepted.user.email,cnpj:accepted.companies?.[0]?.federal_tax_id||PORTAL_CNPJ}));history.replaceState({},'',location.pathname);
     await carregarEmpresaServidor();await carregarNotasServidor();aplicarAcesso({user:accepted.user,companies:accepted.companies});qs('#login').classList.add('hide');qs('#app').classList.add('on');carregarEstado();render();PORTAL_HELP?(go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]')),setTimeout(()=>supOpen(),80)):go('painel',qs('.sb-link[onclick*="painel"]'));
   }catch(error){alert(error.message)}
 }

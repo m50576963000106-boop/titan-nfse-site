@@ -262,6 +262,20 @@ test("protege e otimiza login e redefinicao de senha no front",async()=>{
   assert.match(html,/\['reset-password','reset-password-confirm'\]\.forEach/);
 });
 
+test("convite operacional cria apenas senha e confirmação",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const inviteFlow=html.slice(html.indexOf("async function prepararConvite"),html.indexOf("async function prepararRedefinicao"));
+  assert.match(inviteFlow,/Criar sua senha/);
+  assert.match(inviteFlow,/label\[for="li-pw"\][\s\S]{0,80}Crie sua senha/);
+  assert.match(inviteFlow,/label\[for="li-pw-confirm"\][\s\S]{0,100}Confirme sua senha/);
+  assert.match(inviteFlow,/closest\('\.login-field'\)\.style\.display='none'/);
+  assert.match(inviteFlow,/JSON\.stringify\(\{password,confirmation\}\)/);
+  assert.doesNotMatch(inviteFlow,/readOnly=true/);
+  assert.doesNotMatch(inviteFlow,/Nome completo/);
+  assert.doesNotMatch(inviteFlow,/Seu nome completo/);
+  assert.doesNotMatch(inviteFlow,/JSON\.stringify\(\{name,password\}\)/);
+});
+
 test("exibe planos SaaS com limites e valores publicados",async()=>{
   const html=await readFile(resolve(root,"public/nfs.html"),"utf8");
   assert.match(html,/id="planos"/);
