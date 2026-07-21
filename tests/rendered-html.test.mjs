@@ -75,8 +75,12 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
   assert.match(landing,/titan-nfse-logo\.png/);
   assert.match(landing,/Emita suas notas fiscais com o poder e a velocidade do/);
   assert.match(landing,/Tudo o que sua empresa precisa/);
-  assert.match(landing,/href="\/nfs\/admin"/);
-  assert.match(landing,/href="\/nfs\/entrar"/);
+  assert.match(landing,/id="login-drawer"/);
+  assert.match(landing,/client-login-form/);
+  assert.match(landing,/admin-login-form/);
+  assert.match(landing,/authLogin\(\{federalTaxId:cnpj,password\}\)/);
+  assert.match(landing,/authLogin\(\{email,password\}\)/);
+  assert.doesNotMatch(landing,/location\.replace\(access\.user\.isMaster/);
   assert.match(html,/pipe-detail/);
   assert.match(html,/mostrarDetalheEtapa/);
   assert.match(html,/journey-card/);
