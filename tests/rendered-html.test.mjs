@@ -83,8 +83,17 @@ test("consulta CNPJ preenche emitente e endereço do tomador", async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/consultarCnpjEmitente\(\)/);
   assert.match(html,/\/api\/company\/lookup\/cnpj\//);
+  assert.match(html,/id="t-cidade"/);
+  assert.match(html,/id="t-uf"/);
+  assert.match(html,/id="cl-cidade"/);
+  assert.match(html,/id="cl-uf"/);
   assert.match(html,/id="t-municipio"/);
   assert.match(html,/postalCode:qs\('#t-cep'\)/);
+  assert.match(html,/Regime de Apuração Tributária pelo SN/);
+  assert.match(html,/Normal — tributos federais e municipal pelo SN/);
+  assert.match(html,/Híbrido — federal pelo SN e ISSQN fora do SN/);
+  assert.doesNotMatch(html,/Regime de caixa/);
+  assert.doesNotMatch(html,/Regime especial informado/);
 });
 
 test("oferece municípios pesquisáveis, rascunhos, clientes e documentos comerciais", async()=>{
