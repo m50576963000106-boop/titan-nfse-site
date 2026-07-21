@@ -33,6 +33,8 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   const route=await readFile(resolve(root,"app/nfs/[[...tenant]]/page.tsx"),"utf8");
   assert.match(html,/PORTAL_ADMIN/);
   assert.match(html,/PORTAL_CNPJ/);
+  assert.match(html,/class="sb-mark" href="\/nfs" target="_top"/);
+  assert.match(html,/class="login-brand" href="\/nfs" target="_top"/);
   assert.match(html,/não possui acesso liberado para o CNPJ/);
   assert.match(html,/new URL\('\/nfs\/'\+federalTaxId/);
   assert.match(route,/\^\\d\{14\}\$/);
