@@ -2651,9 +2651,22 @@ async function baixarXml(id,numero){
 }
 
 async function abrirDanfse(id){
-  const url='/DANFS.html'+(id?'?invoiceId='+encodeURIComponent(id):'');
-  const tab=window.open(url,'_blank','noopener');
-  if(!tab)alert('Permita pop-ups para abrir o DANFSe em uma nova aba.');
+  const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  let tab=null;
+  if(!isMobile){
+    tab=window.open('','_blank');
+    if(tab)tab.document.write('<title>Preparando DANFSe...</title><p style="font-family:sans-serif;padding:24px">Gerando DANFSe com dados reais...</p>');
+  }
+  try{
+    const html=await (await apiBlob('/api/invoices/'+id+'/danfse')).text();
+    if(tab){tab.document.open();tab.document.write(html);tab.document.close();}
+    else{
+      const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+      const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),120000);
+    }
+  }catch(error){if(tab)tab.close();alert(error.message)}
 }
 
 let invoiceCancelamento=null;

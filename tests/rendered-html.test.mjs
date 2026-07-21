@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { createHash } from "node:crypto";
 
 const root = resolve(import.meta.dirname, "..");
 
@@ -29,20 +28,11 @@ test("mantém emissão real restrita sem sucesso simulado", async () => {
 test("oferece documentos e cancelamento oficial sem identidade visual", async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/\/api\/invoices\/'\+id\+'\/xml/);
-  assert.match(html,/const url='\/DANFS\.html'\+\(id\?'\?invoiceId='\+encodeURIComponent\(id\):''\)/);
+  assert.match(html,/\/api\/invoices\/'\+id\+'\/danfse/);
+  assert.match(html,/Gerando DANFSe com dados reais/);
   assert.match(html,/X-Confirm-Cancellation/);
   assert.match(html,/Cancelar NFS-e oficialmente/);
   assert.doesNotMatch(html,/v-marca/);
-});
-
-test("mantém DANFS exatamente fiel ao HTML aprovado", async()=>{
-  const bytes=await readFile(resolve(root,"public/DANFS.html"));
-  const hash=createHash("sha256").update(bytes).digest("hex").toUpperCase();
-  assert.equal(hash,"F579E5F808E2BE07FBAFD0F6C43AA16B6F2EA124212542CC8003EBB3AEE48357");
-  const html=bytes.toString("utf8");
-  assert.match(html,/<title>DANFSe - NFS-e 331<\/title>/);
-  assert.match(html,/DANFSe Versão 3\.8 \| 1 de 1/);
-  assert.match(html,/function savePDF\(\)/);
 });
 
 test("isola as rotas do master e de cada CNPJ",async()=>{
