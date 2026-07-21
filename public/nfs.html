@@ -98,6 +98,8 @@
     const loginButton=document.querySelector('#login-button'),loginBackdrop=document.querySelector('#login-drawer-backdrop'),loginDrawer=document.querySelector('#login-drawer'),loginClose=document.querySelector('#login-close');
     const STORAGE_TOKEN='titan_nfse_session_v1',STORAGE_SESSION='titan_nfse_access_v1',STORAGE_COMPANY_ID='titan_nfse_company_id_v1';
     function onlyDigits(value){return String(value||'').replace(/\D/g,'')}
+    async function carregarBrandingPortal(){try{const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/system/branding');const data=await response.json();if(response.ok&&data.portalLogoDataUrl)document.querySelectorAll('img[src="/titan-nfse-logo.png"]').forEach(img=>{img.src=data.portalLogoDataUrl})}catch{}}
+    carregarBrandingPortal();
     function maskCnpjInput(event){const d=onlyDigits(event.target.value).slice(0,14);event.target.value=d.replace(/^(\d{2})(\d{3})?(\d{3})?(\d{4})?(\d{2})?.*/,(m,a,b,c,dd,e)=>[a,b&&'.'+b,c&&'.'+c,dd&&'/'+dd,e&&'-'+e].filter(Boolean).join(''))}
     function openLoginDrawer(){loginBackdrop.classList.add('open');loginButton.setAttribute('aria-expanded','true');setTimeout(()=>document.querySelector('#client-cnpj')?.focus(),80)}
     function closeLoginDrawer(){loginBackdrop.classList.remove('open');loginButton.setAttribute('aria-expanded','false')}

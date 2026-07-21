@@ -25,7 +25,7 @@ test("oferece documentos e cancelamento oficial sem identidade visual", async()=
   assert.match(html,/\/api\/invoices\/'\+id\+'\/danfse/);
   assert.match(html,/X-Confirm-Cancellation/);
   assert.match(html,/Cancelar NFS-e oficialmente/);
-  assert.doesNotMatch(html,/Identidade visual|v-marca/);
+  assert.doesNotMatch(html,/v-marca/);
 });
 
 test("isola as rotas do master e de cada CNPJ",async()=>{
@@ -73,6 +73,8 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
   assert.match(landing,/Quero contratar o emissor/);
   assert.match(landing,/\/api\/contact/);
   assert.match(landing,/titan-nfse-logo\.png/);
+  assert.match(landing,/\/api\/system\/branding/);
+  assert.match(landing,/carregarBrandingPortal/);
   assert.match(landing,/Emita suas notas fiscais com o poder e a velocidade do/);
   assert.match(landing,/Tudo o que sua empresa precisa/);
   assert.match(landing,/id="login-drawer"/);
@@ -231,6 +233,11 @@ test("exibe planos SaaS com limites e valores publicados",async()=>{
 test("orienta configurações de Gmail, Outlook e Google Drive no Master",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/Envio de NFS-e ao tomador/);
+  assert.match(html,/Identidade visual do portal/);
+  assert.match(html,/id="set-portal-logo"/);
+  assert.match(html,/portalLogoDataUrl/);
+  assert.match(html,/function prepararLogoPortalMaster/);
+  assert.match(html,/\/api\/system\/branding/);
   assert.match(html,/Gmail \/ Google Workspace/);
   assert.match(html,/Outlook \/ Microsoft 365/);
   assert.match(html,/O plugin conectado no Codex não é usado como credencial do site/);
