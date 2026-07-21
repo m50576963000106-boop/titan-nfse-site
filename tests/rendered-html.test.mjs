@@ -250,9 +250,16 @@ test("protege e otimiza login e redefinicao de senha no front",async()=>{
   assert.match(html,/info\.federalTaxId/);
   assert.doesNotMatch(html,/Conta: \$\{info\.email/);
   assert.match(html,/id="system-dialog"/);
+  assert.match(html,/id="system-dialog-message"/);
+  assert.match(html,/system-dialog-dot/);
+  assert.match(html,/const content=String\(message\?\?''\)\.trim\(\);const detailed=mode!=='alert'\|\|content\.length>180\|\|content\.includes\('\\n'\)/);
+  assert.match(html,/text\.style\.display=detailed\?'block':'none'/);
+  assert.match(html,/copy\.style\.display=detailed\?'inline-flex':'none'/);
   assert.match(html,/window\.alert=\(message\)=>\{titanAlert\(message\)\}/);
   assert.match(html,/function titanConfirm/);
   assert.match(html,/function titanPrompt/);
+  assert.doesNotMatch(html,/Informe seu nome e uma senha com pelo menos 10 caracteres/);
+  assert.doesNotMatch(html,/class="alert a-info"><div><b id="system-dialog-label"/);
   assert.doesNotMatch(html,/\bconfirm\(/);
   assert.doesNotMatch(html,/\bprompt\(/);
   assert.doesNotMatch(html,/prompt\('Copie o link de redefinição/);
