@@ -1821,20 +1821,36 @@ async function iniciarCadastro(){
     const message=falhaRede?'Não foi possível conectar ao servidor fiscal. Aguarde alguns segundos e tente novamente.':error.message;
     mostrarErroLogin(message+(!PORTAL_ADMIN?' Se você é o administrador master, entre por titanbackoffice.com.br/nfs/admin.':''));return
   }
+  abrirAreaAutenticada(login);
+}
+function abrirAreaAutenticada(access){
   qs('#login').classList.add('hide');
   qs('#app').classList.add('on');
-  aplicarAcesso(login);
+  aplicarAcesso(access);
   carregarEstado();
   render();
-    if(PORTAL_ADMIN){
-      go('master',qs('.admin-sidebar .sb-link'));const requestedAdminTab=PORTAL_QUERY.get('tab');setTimeout(()=>masterTab(['clientes','parceiros','usuarios','perfis','planos','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes',qs(`.admin-sidebar [data-master-tab="${['clientes','parceiros','usuarios','perfis','planos','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes'}"]`)),0);
-    }else if(PORTAL_HELP){
-      go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]'));setTimeout(()=>supOpen(),80);
-    }else if(empresaAtual){
+  if(PORTAL_ADMIN){
+    go('master',qs('.admin-sidebar .sb-link'));const requestedAdminTab=PORTAL_QUERY.get('tab');setTimeout(()=>masterTab(['clientes','parceiros','usuarios','perfis','planos','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes',qs(`.admin-sidebar [data-master-tab="${['clientes','parceiros','usuarios','perfis','planos','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes'}"]`)),0);
+  }else if(PORTAL_HELP){
+    go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]'));setTimeout(()=>supOpen(),80);
+  }else if(empresaAtual){
     go('painel',qs('.sb-link[onclick*="painel"]'));
   }else{
     go('emitente',qs('.sb-link[onclick*="emitente"]'));
   }
+}
+async function entrarComSessaoSalva(){
+  if(PORTAL_FIRST||PORTAL_RESET||new URLSearchParams(location.search).get('invite'))return false;
+  const token=sessionStorage.getItem(STORAGE_TOKEN);
+  if(!token)return false;
+  let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{return false}
+  if(!access.user?.email)return false;
+  try{selecionarDestinoPortal(access)}catch{limparSessaoLocal();return false}
+  if(PORTAL_ADMIN&&!access.user?.isMaster){limparSessaoLocal();return false}
+  if(PORTAL_CNPJ&&access.user?.isMaster){limparSessaoLocal();return false}
+  if(!PORTAL_ADMIN){carregarAmbiente().catch(()=>{});await carregarEmpresaServidor();await carregarNotasServidor();carregarServicos().catch(()=>{})}
+  abrirAreaAutenticada(access);
+  return true;
 }
 function abrirRedefinicao(event){
   event?.preventDefault();
@@ -3537,6 +3553,7 @@ if(PORTAL_FIRST&&!temConvite){
 }else if(PORTAL_RESET){prepararRedefinicao(PORTAL_QUERY.get('token'));}
 else if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/nfs/entrar';if(!temConvite)ocultarCampoCnpjLogin();}
 else if(!temConvite){ocultarCampoEmailLogin();qs('.login-sub').textContent='Entre com o CNPJ da empresa e sua senha individual exclusiva.';if(PORTAL_CNPJ){qs('#li-cnpj').value=formatarCnpj(PORTAL_CNPJ);qs('#li-cnpj').readOnly=true;qs('.login-sub').textContent=`Informe sua senha individual exclusiva para acessar o CNPJ ${formatarCnpj(PORTAL_CNPJ)}.`;}}
+entrarComSessaoSalva().catch(error=>mostrarErroLogin(error.message));
 
 /* ---------- SUPORTE / ASSISTENTE TITAN ---------- */
 const supNorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');

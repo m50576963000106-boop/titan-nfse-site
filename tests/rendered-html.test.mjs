@@ -45,6 +45,9 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(html,/admin-company-search/);
   assert.match(html,/selecionarEmpresaAdmin/);
   assert.match(html,/abrirEmpresaEmissao/);
+  assert.match(html,/function entrarComSessaoSalva/);
+  assert.match(html,/entrarComSessaoSalva\(\)\.catch/);
+  assert.match(html,/abrirAreaAutenticada\(access\)/);
   assert.match(html,/async function selecionarEmpresaAdmin\(companyId\)[\s\S]{0,260}abrirEmpresaEmissao\(companyId\)/);
   assert.match(html,/Preparando o ambiente fiscal da empresa/);
   assert.match(html,/Sem vínculo company_users/);
