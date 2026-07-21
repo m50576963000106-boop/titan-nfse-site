@@ -3431,7 +3431,7 @@ async function prepararRedefinicao(token){
   removerParametroSensivel('token');
   try{
     const info=await api('/api/auth/password-resets/'+encodeURIComponent(normalizedToken));
-    account.textContent=`Conta: ${info.email||'usuário TITAN'}`;hint.textContent='Link válido por 30 minutos e de uso único. Defina uma senha com pelo menos 10 caracteres.';password.disabled=false;confirmation.disabled=false;action.disabled=false;action.onclick=()=>confirmarRedefinicao(normalizedToken);password.focus();
+    account.textContent=`Conta: ${info.email||'usuário TITAN'}`;hint.textContent='Acesso temporário de uso único. Defina uma senha com pelo menos 10 caracteres.';password.disabled=false;confirmation.disabled=false;action.disabled=false;action.onclick=()=>confirmarRedefinicao(normalizedToken);password.focus();
   }catch(error){account.textContent='Não foi possível validar este link.';hint.textContent=error.message;hint.classList.add('error');action.disabled=true}
 }
 async function confirmarRedefinicao(token){
