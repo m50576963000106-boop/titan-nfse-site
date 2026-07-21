@@ -205,6 +205,8 @@ test("protege e otimiza login e redefinicao de senha no front",async()=>{
   assert.match(html,/function mostrarErroLogin/);
   assert.match(html,/function removerParametroSensivel\(name\)/);
   assert.match(html,/removerParametroSensivel\('token'\)/);
+  assert.match(html,/PORTAL_ROUTE==='redefinir-senha'\|\|PORTAL_ROUTE==='redefinirsenha'\?'reset'/);
+  assert.match(html,/else if\(PORTAL_RESET\)\{prepararRedefinicao\(PORTAL_QUERY\.get\('token'\)\);\}/);
   assert.match(html,/Dados de acesso inválidos/);
   assert.match(html,/master-reset-link-panel/);
   assert.match(html,/Link de redefinição gerado/);
