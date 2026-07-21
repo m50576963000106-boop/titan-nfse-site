@@ -12,6 +12,12 @@ test("carrega a configuração externa do backend", async () => {
   assert.match(html, /\/api\/auth\/login/);
 });
 
+test("mantém a logo principal com transparência", async () => {
+  const png = await readFile(resolve(root, "public/titan-nfse-logo.png"));
+  assert.equal(png.subarray(1, 4).toString("ascii"), "PNG");
+  assert.equal(png[25], 6);
+});
+
 test("mantém emissão real restrita sem sucesso simulado", async () => {
   const html = await readFile(resolve(root, "public/titan.html"), "utf8");
   assert.match(html, /Produção Restrita/);
@@ -64,7 +70,11 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(html,/Preparando o ambiente fiscal da empresa/);
   assert.match(html,/Sem usuário ativo/);
   assert.doesNotMatch(html,/mode:"master_impersonation"/);
-  assert.match(html,/data-master-tab="usuarios"/);
+  assert.match(html,/Gestão por CNPJ/);
+  assert.doesNotMatch(html,/Gestão de Usuários/);
+  assert.doesNotMatch(html,/data-master-tab="usuarios"/);
+  assert.match(html,/background:transparent;border:0/);
+  assert.match(html,/object-fit:contain/);
   assert.match(html,/data-master-tab="perfis"/);
 });
 
