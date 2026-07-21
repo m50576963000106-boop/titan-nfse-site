@@ -1167,7 +1167,7 @@ main{margin-left:258px;padding-top:72px}
       <div class="page-h"><h1>Clientes</h1><p>Cadastre, revise e reutilize tomadores nas emissões.</p></div>
       <div class="grid g2" style="align-items:start"><div class="card"><div class="card-h"><h2>Cadastro de cliente</h2></div><div class="card-b">
         <div class="field"><label>CNPJ / CPF</label><div class="input-action"><input id="cl-doc" class="inp mono" placeholder="CPF ou CNPJ"><button class="btn btn-s" type="button" onclick="consultarClienteCadastro()">Buscar CNPJ</button></div></div>
-        <div class="field"><label>Razão social / nome</label><input id="cl-nome" class="inp" placeholder="Nome do cliente"></div><div class="row r2"><div class="field"><label>E-mail</label><input id="cl-mail" class="inp" type="email"></div><div class="field"><label>Telefone</label><input id="cl-fone" class="inp"></div></div>
+        <div class="field"><label>Razão social / nome</label><input id="cl-nome" class="inp" placeholder="Nome do cliente"></div><div class="row r2"><div class="field"><label>E-mail</label><input id="cl-mail" class="inp" type="email"></div><div class="field"><label>E-mail alternativo (recebe cópia)</label><input id="cl-mail-alt" class="inp" type="email"></div></div><div class="field"><label>Telefone</label><input id="cl-fone" class="inp"></div>
         <div class="field"><label>Endereço</label><input id="cl-end" class="inp" placeholder="Logradouro, número, bairro, CEP"></div><div class="row r2"><div class="field"><label>Município</label><input id="cl-cidade" class="inp" placeholder="Cidade"></div><div class="field"><label>UF</label><input id="cl-uf" class="inp mono" maxlength="2" placeholder="UF"></div></div><div class="row r2"><div class="field mb0"><label>Código IBGE</label><input id="cl-mun" class="inp mono" inputmode="numeric" maxlength="7"></div><div class="field mb0"><label>CEP</label><input id="cl-cep" class="inp mono" inputmode="numeric"></div></div>
         <div class="setup-actions"><span class="foot-note" style="margin:0">A busca preenche os dados públicos; confirme antes de salvar.</span><button class="btn btn-a right" type="button" onclick="salvarCliente()">Salvar cliente</button></div>
       </div></div><div class="card"><div class="card-h"><h2>Clientes cadastrados</h2><button class="btn btn-s right" onclick="carregarClientesCadastro()">Atualizar</button></div><div class="card-b"><div id="client-list" class="draft-list"></div></div></div></div>
@@ -2046,7 +2046,7 @@ async function carregarNotasServidor(){
   const rows=await api('/api/invoices');
   notas.splice(0,notas.length,...rows.map(row=>({
     id:row.id,key:row.access_key,n:row.dps_number,date:row.created_at,d:new Date(row.created_at).toLocaleDateString('pt-BR'),t:row.borrower_name,
-    s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='canceled'?'canc':row.status==='rejected'||row.status==='error'?'err':'proc'
+    s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='canceled'?'canc':row.status==='rejected'||row.status==='error'?'err':'proc',emailTo:row.email_to||'',emailSentAt:row.email_sent_at||''
   })));
   tabelas();chart();renderDashboard();
 }
@@ -2585,11 +2585,12 @@ function tabelas(){
       <td>${x.t}</td>
       <td style="color:var(--ink-2)">${x.s}</td>
       <td class="r">${brl(x.v)}</td>
-      <td>${pill(x.st)}</td>
+      <td>${pill(x.st)}${x.emailSentAt?`<div class="foot-note">E-mail: ${esc(x.emailTo||'enviado')} · ${esc(new Date(x.emailSentAt).toLocaleString('pt-BR'))}</div>`:''}</td>
       <td>
         <div class="acts">
           <button class="ico-btn" title="Baixar XML" onclick="baixarXml('${x.id}','${x.n}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
           <button class="ico-btn" title="Abrir DANFSe em PDF" onclick="abrirDanfse('${x.id}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="btn btn-s" type="button" onclick="reenviarEmailNota('${x.id}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}>Reenviar por e-mail</button>
           <button class="ico-btn" title="Enviar por WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5a8.4 8.4 0 0 1-.9-3.9 8.4 8.4 0 0 1 8.4-9 8.4 8.4 0 0 1 8.6 8.4Z"/></svg></button>
           <button class="ico-btn danger" title="Cancelar nota" onclick="abrirCancelamento('${x.id}','${x.n}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></button>
         </div>
@@ -2672,6 +2673,14 @@ async function abrirDanfse(id){
       setTimeout(()=>URL.revokeObjectURL(url),120000);
     }
   }catch(error){if(tab)tab.close();alert(error.message)}
+}
+
+async function reenviarEmailNota(id){
+  try{
+    const result=await api('/api/invoices/'+encodeURIComponent(id)+'/email',{method:'POST',body:JSON.stringify({})});
+    await carregarNotasServidor();
+    alert(`E-mail enviado para ${result.to}.`);
+  }catch(error){alert(error.message)}
 }
 
 let invoiceCancelamento=null;
@@ -2825,7 +2834,8 @@ async function emitir(){
             <span class="pill p-ok">Autorizada na ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}</span>
           </div>
           <div class="eyebrow" style="margin-bottom:2px">Chave da NFS-e</div>
-          <div class="chave">${result.accessKey||'Autorização recebida'}</div>
+          <div class="chave">${result.accessKey||result.access_key||'Autorização recebida'}</div>
+          ${result.email_sent_at&&result.email_to?`<div class="foot-note" style="color:#155c39">E-mail enviado para ${esc(result.email_to)}.</div>`:''}
           <div class="foot-note" style="color:#155c39">${ambienteAtual==='production'?'Documento fiscal autorizado pela Sefin Nacional.':'Documento sem validade fiscal, emitido no ambiente oficial de testes.'}</div>
         </div>`;
     await carregarNotasServidor();
@@ -2849,9 +2859,9 @@ async function excluirRascunho(id){if(!await titanConfirm('Excluir este rascunho
 
 /* ---------- cadastro de clientes ---------- */
 let clientesCadastro=[];
-function preencherClienteCadastro(cliente){qs('#cl-doc').value=cliente.tax_id||'';qs('#cl-nome').value=cliente.legal_name||'';qs('#cl-mail').value=cliente.email||'';qs('#cl-fone').value=cliente.phone||'';qs('#cl-end').value=cliente.address||'';qs('#cl-cidade').value=cliente.city||cliente.municipality||'';qs('#cl-uf').value=cliente.state||'';qs('#cl-mun').value=cliente.municipality_code||'';qs('#cl-cep').value=cliente.postal_code||'';}
+function preencherClienteCadastro(cliente){qs('#cl-doc').value=cliente.tax_id||'';qs('#cl-nome').value=cliente.legal_name||'';qs('#cl-mail').value=cliente.email||'';qs('#cl-mail-alt').value=cliente.email_alt||'';qs('#cl-fone').value=cliente.phone||'';qs('#cl-end').value=cliente.address||'';qs('#cl-cidade').value=cliente.city||cliente.municipality||'';qs('#cl-uf').value=cliente.state||'';qs('#cl-mun').value=cliente.municipality_code||'';qs('#cl-cep').value=cliente.postal_code||'';}
 async function consultarClienteCadastro(){const cnpj=qs('#cl-doc').value.replace(/\D/g,'');if(cnpj.length!==14){alert('A consulta pública está disponível para CNPJ de 14 dígitos.');return}try{preencherClienteCadastro(await api('/api/customers/cnpj/'+cnpj))}catch(error){alert(error.message)}}
-async function salvarCliente(){const taxId=qs('#cl-doc').value.replace(/\D/g,''),legalName=qs('#cl-nome').value.trim();if(!taxId||!legalName){alert('Informe nome e CPF/CNPJ do cliente.');return}try{await api('/api/customers',{method:'POST',body:JSON.stringify({taxId,legalName,email:qs('#cl-mail').value.trim()||undefined,phone:qs('#cl-fone').value.trim()||undefined,address:qs('#cl-end').value.trim()||undefined,city:qs('#cl-cidade').value.trim()||undefined,state:qs('#cl-uf').value.trim().toUpperCase()||undefined,postalCode:qs('#cl-cep').value.replace(/\D/g,'')||undefined,municipalityCode:qs('#cl-mun').value.replace(/\D/g,'')||undefined})});await carregarClientesCadastro();alert('Cliente salvo.') }catch(error){alert(error.message)}}
+async function salvarCliente(){const taxId=qs('#cl-doc').value.replace(/\D/g,''),legalName=qs('#cl-nome').value.trim();if(!taxId||!legalName){alert('Informe nome e CPF/CNPJ do cliente.');return}try{await api('/api/customers',{method:'POST',body:JSON.stringify({taxId,legalName,email:qs('#cl-mail').value.trim()||undefined,emailAlt:qs('#cl-mail-alt').value.trim()||undefined,phone:qs('#cl-fone').value.trim()||undefined,address:qs('#cl-end').value.trim()||undefined,city:qs('#cl-cidade').value.trim()||undefined,state:qs('#cl-uf').value.trim().toUpperCase()||undefined,postalCode:qs('#cl-cep').value.replace(/\D/g,'')||undefined,municipalityCode:qs('#cl-mun').value.replace(/\D/g,'')||undefined})});await carregarClientesCadastro();alert('Cliente salvo.') }catch(error){alert(error.message)}}
 async function carregarClientesCadastro(){try{clientesCadastro=await api('/api/customers?search=');qs('#client-list').innerHTML=clientesCadastro.length?clientesCadastro.map((item,index)=>`<div class="draft-item"><b>${esc(item.legal_name)}</b><span>${esc(item.tax_id)} · ${esc(item.address||'sem endereço')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="usarClienteNaEmissao(${index})">Usar na emissão</button></div></div>`).join(''):'<div class="empty-state">Nenhum cliente cadastrado.</div>'}catch(error){qs('#client-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
 function usarClienteNaEmissao(index){preencherCliente(clientesCadastro[index]);go('emitir',qs('.sb-link[onclick*="emitir"]'));}
 function abrirClientes(){go('clientes',qs('.sb-link[onclick*="clientes"]'));}

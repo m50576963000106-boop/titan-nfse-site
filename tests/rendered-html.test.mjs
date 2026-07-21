@@ -331,3 +331,17 @@ test("orienta configurações de Gmail, Outlook e Google Drive no Master",async(
   assert.match(html,/googleDriveArchiveEnabled/);
   assert.match(html,/hasGoogleDriveServiceAccountKey/);
 });
+
+test("envia NFS-e por e-mail com copia cadastrada e reenvio manual",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const logo=await readFile(resolve(root,"public/assets/logo-email-titan-nfse.png"));
+  assert.ok(logo.length>1000);
+  assert.match(html,/id="cl-mail-alt"/);
+  assert.match(html,/E-mail alternativo \(recebe cópia\)/);
+  assert.match(html,/emailAlt:qs\('#cl-mail-alt'\)\.value\.trim\(\)\|\|undefined/);
+  assert.match(html,/emailSentAt:row\.email_sent_at\|\|''/);
+  assert.match(html,/Reenviar por e-mail/);
+  assert.match(html,/function reenviarEmailNota/);
+  assert.match(html,/\/api\/invoices\/'\+encodeURIComponent\(id\)\+'\/email/);
+  assert.match(html,/E-mail enviado para \$\{esc\(result\.email_to\)\}/);
+});
