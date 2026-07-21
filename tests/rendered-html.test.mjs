@@ -193,3 +193,14 @@ test("exibe planos SaaS com limites e valores publicados",async()=>{
   assert.match(html,/Plano SN 50/);
   assert.match(html,/R\$ 79,90/);
 });
+
+test("orienta configurações de Gmail, Outlook e Google Drive no Master",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/Envio de NFS-e ao tomador/);
+  assert.match(html,/Gmail \/ Google Workspace/);
+  assert.match(html,/Outlook \/ Microsoft 365/);
+  assert.match(html,/O plugin conectado no Codex não é usado como credencial do site/);
+  assert.match(html,/id="set-drive-enabled"/);
+  assert.match(html,/googleDriveArchiveEnabled/);
+  assert.match(html,/hasGoogleDriveServiceAccountKey/);
+});
