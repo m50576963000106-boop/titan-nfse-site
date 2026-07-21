@@ -137,7 +137,10 @@ test("redireciona a raiz e separa os acessos de cliente e administrador",async()
   assert.match(landing,/const loginButton=.*PAGE_QUERY=new URLSearchParams\(location\.search\)/);
   assert.match(landing,/function aplicarIntencaoLogin/);
   assert.match(landing,/openLoginDrawer\(intent==='admin'\?'admin':'client'\)/);
-  assert.match(landing,/location\.href=safeNext\('\/nfs\/admin'\)/);
+  assert.match(landing,/function navegarAposLogin\(defaultTarget\)\{window\.top\.location\.href=safeNext\(defaultTarget\)\}/);
+  assert.match(landing,/navegarAposLogin\('\/nfs\/admin'\)/);
+  assert.match(landing,/navegarAposLogin\('\/nfs\/'\+cnpj\)/);
+  assert.doesNotMatch(landing,/[^.]location\.href=safeNext/);
   assert.match(html,/servidor fiscal demorou para responder/i);
 });
 
