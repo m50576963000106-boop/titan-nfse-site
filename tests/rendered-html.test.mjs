@@ -210,6 +210,11 @@ test("protege e otimiza login e redefinicao de senha no front",async()=>{
   assert.match(html,/Dados de acesso inválidos/);
   assert.match(html,/master-reset-link-panel/);
   assert.match(html,/Link de redefinição gerado/);
+  assert.match(html,/senha do Master não é redefinida por CNPJ/);
+  assert.match(html,/gerarRedefinicaoSenha\('\$\{u\.id\}','\$\{u\.company_id\}'\)/);
+  assert.match(html,/CNPJ da empresa:/);
+  assert.match(html,/info\.federalTaxId/);
+  assert.doesNotMatch(html,/Conta: \$\{info\.email/);
   assert.match(html,/id="system-dialog"/);
   assert.match(html,/window\.alert=\(message\)=>\{titanAlert\(message\)\}/);
   assert.match(html,/function titanConfirm/);
