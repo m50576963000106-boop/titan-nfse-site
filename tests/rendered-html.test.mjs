@@ -45,10 +45,10 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(html,/admin-company-search/);
   assert.match(html,/selecionarEmpresaAdmin/);
   assert.match(html,/abrirEmpresaEmissao/);
-  assert.match(html,/async function selecionarEmpresaAdmin\(companyId\)[\s\S]{0,260}abrirDetalhesCliente\(companyId\)/);
-  assert.match(html,/Emissão somente por usuário do CNPJ/);
-  assert.match(html,/O Master é um perfil administrativo exclusivo/);
-  assert.doesNotMatch(html,/Preparando o ambiente fiscal da empresa/);
+  assert.match(html,/async function selecionarEmpresaAdmin\(companyId\)[\s\S]{0,260}abrirEmpresaEmissao\(companyId\)/);
+  assert.match(html,/Preparando o ambiente fiscal da empresa/);
+  assert.match(html,/Sem vínculo company_users/);
+  assert.match(html,/Sem usuário ativo/);
   assert.doesNotMatch(html,/mode:"master_impersonation"/);
   assert.match(html,/data-master-tab="usuarios"/);
   assert.match(html,/data-master-tab="perfis"/);
@@ -177,7 +177,7 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.match(html,/Resumo da emissão/);
   assert.match(html,/id="emit-side-total"/);
   assert.match(html,/Emissão padrão nacional/);
-  assert.match(html,/Emissão somente por usuário do CNPJ/);
+  assert.match(html,/Abrir emissão ↗/);
   assert.match(html,/background:linear-gradient\(135deg,var\(--navy\),var\(--navy-2\)\)/);
   assert.doesNotMatch(html,/#e94560/);
   assert.match(html,/\/api\/customers\//);
