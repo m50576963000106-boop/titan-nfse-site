@@ -731,6 +731,16 @@ main{margin-left:258px;padding-top:72px}
   .sup-panel{right:0;left:0;bottom:0;width:100%;max-width:100%;height:84vh;max-height:84vh;border-radius:16px 16px 0 0}
 }
 </style>
+<script>
+(()=>{try{
+  const q=new URLSearchParams(location.search),path=location.pathname.match(/^\/nfs\/([^/?#]+)\/?$/i)?.[1]||'',route=path.toLowerCase().replace(/[^a-z0-9-]/g,'');
+  const routeMode=route==='ajuda'?'help':route==='primeiro-acesso'||route==='primeiroacesso'?'first':route==='redefinir-senha'||route==='redefinirsenha'?'reset':route;
+  const mode=(q.get('portal')||routeMode).toLowerCase(),isAdmin=mode==='admin'||mode==='adm',cnpj=(q.get('tenant')||(/^\d{14}$/.test(path)?path:'')).replace(/\D/g,'');
+  if(mode==='help'||mode==='first'||mode==='reset'||q.get('invite')||sessionStorage.getItem('titan_nfse_session_v1'))return;
+  if(!isAdmin&&!cnpj&&mode!=='client')return;
+  const target=new URL('/nfs',location.origin);target.searchParams.set('login',isAdmin?'admin':'client');if(cnpj)target.searchParams.set('tenant',cnpj);target.searchParams.set('next',location.pathname+(location.search||''));window.top.location.replace(target.pathname+target.search);
+}catch{}})();
+</script>
 </head>
 <body>
 
