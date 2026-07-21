@@ -761,7 +761,7 @@ main{margin-left:258px;padding-top:72px}
     </div>
     <button id="login-action" class="btn-gold" style="margin-top:8px" onclick="iniciarCadastro()">Entrar</button>
     <div id="login-error" class="login-sub" role="alert" style="display:none;margin-top:10px;color:#a33b35"></div>
-    <a id="login-context-link" class="login-context-link" href="/nfs/admin">Sou administrador master</a>
+    <a id="login-context-link" class="login-context-link" href="/nfs?login=admin">Sou administrador master</a>
     <a id="login-first-link" class="login-context-link" href="/nfs/primeiro-acesso">Primeiro acesso · definir senha</a>
     <a id="login-reset-link" class="login-context-link" href="/nfs/redefinir-senha" onclick="abrirRedefinicao(event)">Já recebi um link do administrador · redefinir senha</a>
     <div class="login-foot">
@@ -783,7 +783,7 @@ main{margin-left:258px;padding-top:72px}
     <div class="reset-field"><label for="reset-password-confirm">Confirmar nova senha</label><div class="reset-input-wrap"><input id="reset-password-confirm" type="password" minlength="10" autocomplete="new-password" placeholder="Repita a nova senha" disabled><button class="password-toggle" type="button" aria-label="Mostrar confirmação" aria-pressed="false" onclick="alternarSenha('reset-password-confirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div></div>
     <div id="reset-hint" class="reset-hint">O link será validado antes de liberar os campos.</div>
     <button id="reset-action" class="reset-action" type="button" disabled>Definir senha</button>
-    <a class="reset-back" href="/nfs/entrar">Voltar para o login</a>
+    <a class="reset-back" href="/nfs?login=client">Voltar para o login</a>
     <div class="reset-support">A redefinição exige um link temporário gerado pelo gestor Master.<br><a href="/nfs/ajuda">Precisa de ajuda?</a></div>
   </div>
 </section>
@@ -1674,6 +1674,17 @@ const PORTAL_CNPJ=(PORTAL_QUERY.get('tenant')||(/^\d{14}$/.test(PORTAL_PATH)?POR
 document.body.classList.toggle('portal-admin',PORTAL_ADMIN);
 document.body.classList.toggle('portal-help',PORTAL_HELP);
 document.body.classList.toggle('portal-first',PORTAL_FIRST);
+function redirecionarParaLoginUnico(){
+  if(PORTAL_HELP||PORTAL_FIRST||PORTAL_RESET||PORTAL_QUERY.get('invite'))return;
+  if(sessionStorage.getItem(STORAGE_TOKEN))return;
+  if(!PORTAL_ADMIN&&!PORTAL_CNPJ&&PORTAL_MODE!=='client')return;
+  const target=new URL('/nfs',location.origin);
+  target.searchParams.set('login',PORTAL_ADMIN?'admin':'client');
+  if(PORTAL_CNPJ)target.searchParams.set('tenant',PORTAL_CNPJ);
+  target.searchParams.set('next',location.pathname+(location.search||''));
+  window.top.location.replace(target.pathname+target.search);
+}
+redirecionarParaLoginUnico();
 const dataBrasil=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 qs('#s-comp').value=dataBrasil();
 let ambienteAtual='restricted';
@@ -1832,7 +1843,7 @@ async function iniciarCadastro(){
     }
     const falhaRede=error instanceof TypeError;
     const message=falhaRede?'Não foi possível conectar ao servidor fiscal. Aguarde alguns segundos e tente novamente.':error.message;
-    mostrarErroLogin(message+(!PORTAL_ADMIN?' Se você é o administrador master, entre por titanbackoffice.com.br/nfs/admin.':''));return
+    mostrarErroLogin(message+(!PORTAL_ADMIN?' Se você é o administrador master, entre por titanbackoffice.com.br/nfs?login=admin.':''));return
   }
   abrirAreaAutenticada(login);
 }
@@ -3552,7 +3563,7 @@ async function confirmarRedefinicao(token){
   if(password.length<10){hint.textContent='A nova senha precisa ter pelo menos 10 caracteres.';hint.classList.add('error');return}
   if(password!==confirmation){hint.textContent='A confirmação não confere. Digite a mesma senha nos dois campos.';hint.classList.add('error');return}
   action.disabled=true;action.textContent='Salvando...';
-  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password,confirmation})});hint.textContent='Senha definida com sucesso. Redirecionando para o login...';hint.classList.add('ok');window.setTimeout(()=>window.top.location.href='/nfs/entrar',700)}catch(error){hint.textContent=error.message;hint.classList.add('error');action.disabled=false;action.textContent='Definir senha'}
+  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password,confirmation})});hint.textContent='Senha definida com sucesso. Redirecionando para o login...';hint.classList.add('ok');window.setTimeout(()=>window.top.location.href='/nfs?login=client',700)}catch(error){hint.textContent=error.message;hint.classList.add('error');action.disabled=false;action.textContent='Definir senha'}
 }
 function alternarSenha(id,button){const input=qs('#'+id);if(!input)return;const visible=input.type==='password';input.type=visible?'text':'password';button.setAttribute('aria-pressed',String(visible));button.setAttribute('aria-label',visible?'Ocultar senha':'Mostrar senha')}
 ['reset-password','reset-password-confirm'].forEach(id=>qs('#'+id)?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!qs('#reset-action')?.disabled){e.preventDefault();qs('#reset-action').click()}}));
@@ -3596,9 +3607,9 @@ if(PORTAL_FIRST&&!temConvite){
   qs('.login-h').textContent='Primeiro acesso';
   qs('.login-sub').textContent='Para definir sua senha, abra o convite enviado pelo gestor master. O link identifica a empresa e expira após o uso.';
   qs('#login-action').disabled=true;qs('#login-action').textContent='Aguardando convite';
-  qs('#login-context-link').textContent='Voltar ao acesso do cliente';qs('#login-context-link').href='/nfs/entrar';ocultarCampoEmailLogin();
+  qs('#login-context-link').textContent='Voltar ao acesso do cliente';qs('#login-context-link').href='/nfs?login=client';ocultarCampoEmailLogin();
 }else if(PORTAL_RESET){prepararRedefinicao(PORTAL_QUERY.get('token'));}
-else if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/nfs/entrar';if(!temConvite)ocultarCampoCnpjLogin();}
+else if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/nfs?login=client';if(!temConvite)ocultarCampoCnpjLogin();}
 else if(!temConvite){ocultarCampoEmailLogin();qs('.login-sub').textContent='Entre com o CNPJ da empresa e sua senha individual exclusiva.';if(PORTAL_CNPJ){qs('#li-cnpj').value=formatarCnpj(PORTAL_CNPJ);qs('#li-cnpj').readOnly=true;qs('.login-sub').textContent=`Informe sua senha individual exclusiva para acessar o CNPJ ${formatarCnpj(PORTAL_CNPJ)}.`;}}
 entrarComSessaoSalva().catch(error=>mostrarErroLogin(error.message));
 

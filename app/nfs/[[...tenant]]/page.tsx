@@ -24,6 +24,14 @@ export default async function TenantPortal({ params, searchParams }: Props) {
   const isCompany = tenant.length === 1 && /^\d{14}$/.test(target);
   if (!isAdmin && !isClientLogin && !isHelp && !isFirstAccess && !isPasswordReset && !isCompany) notFound();
 
+  if (isClientLogin) {
+    return (
+      <main className="prototype-shell">
+        <iframe className="prototype-frame" src="/nfs.html?login=client" title="TITAN NFS-e — Acesso" />
+      </main>
+    );
+  }
+
   const frameQuery = new URLSearchParams(
     isAdmin ? { portal: "admin" } : isCompany ? { tenant: target } : { portal: isHelp ? "help" : isFirstAccess ? "first" : isPasswordReset ? "reset" : "client" },
   );

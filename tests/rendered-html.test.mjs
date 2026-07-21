@@ -126,8 +126,17 @@ test("redireciona a raiz e separa os acessos de cliente e administrador",async()
   assert.match(home,/redirect\("\/nfs"\)/);
   assert.match(index,/location\.replace\('\/nfs'\)/);
   assert.match(route,/target\.toLowerCase\(\) === "entrar"/);
+  assert.match(route,/src="\/nfs\.html\?login=client"/);
   assert.match(html,/Sou administrador master/);
-  assert.match(html,/qs\('#login-context-link'\)\.textContent='Sou cliente'/);
+  assert.match(html,/function redirecionarParaLoginUnico/);
+  assert.match(html,/target\.searchParams\.set\('login',PORTAL_ADMIN\?'admin':'client'\)/);
+  assert.match(html,/target\.searchParams\.set\('tenant',PORTAL_CNPJ\)/);
+  assert.match(html,/qs\('#login-context-link'\)\.href='\/nfs\?login=client'/);
+  const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
+  assert.match(landing,/const loginButton=.*PAGE_QUERY=new URLSearchParams\(location\.search\)/);
+  assert.match(landing,/function aplicarIntencaoLogin/);
+  assert.match(landing,/openLoginDrawer\(intent==='admin'\?'admin':'client'\)/);
+  assert.match(landing,/location\.href=safeNext\('\/nfs\/admin'\)/);
   assert.match(html,/servidor fiscal demorou para responder/i);
 });
 
