@@ -2046,7 +2046,7 @@ async function carregarNotasServidor(){
   const rows=await api('/api/invoices');
   notas.splice(0,notas.length,...rows.map(row=>({
     id:row.id,key:row.access_key,n:row.dps_number,date:row.created_at,d:new Date(row.created_at).toLocaleDateString('pt-BR'),t:row.borrower_name,
-    s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='canceled'?'canc':row.status==='rejected'||row.status==='error'?'err':'proc',emailTo:row.email_to||'',emailSentAt:row.email_sent_at||''
+    s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='canceled'?'canc':row.status==='rejected'||row.status==='error'?'err':'proc',emailTo:row.email_to||'',emailSentAt:row.email_sent_at||'',emailProviderId:row.email_provider_id||'',emailLastError:row.email_last_error||''
   })));
   tabelas();chart();renderDashboard();
 }
@@ -2585,7 +2585,7 @@ function tabelas(){
       <td>${x.t}</td>
       <td style="color:var(--ink-2)">${x.s}</td>
       <td class="r">${brl(x.v)}</td>
-      <td>${pill(x.st)}${x.emailSentAt?`<div class="foot-note">E-mail: ${esc(x.emailTo||'enviado')} · ${esc(new Date(x.emailSentAt).toLocaleString('pt-BR'))}</div>`:''}</td>
+      <td>${pill(x.st)}${x.emailSentAt?`<div class="foot-note">E-mail: ${esc(x.emailTo||'enviado')} · ${esc(new Date(x.emailSentAt).toLocaleString('pt-BR'))}${x.emailProviderId?` · ID ${esc(x.emailProviderId)}`:''}</div>`:x.emailLastError?`<div class="foot-note" style="color:#b91c1c">E-mail: ${esc(x.emailLastError)}</div>`:''}</td>
       <td>
         <div class="acts">
           <button class="ico-btn" title="Baixar XML" onclick="baixarXml('${x.id}','${x.n}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
@@ -2679,7 +2679,7 @@ async function reenviarEmailNota(id){
   try{
     const result=await api('/api/invoices/'+encodeURIComponent(id)+'/email',{method:'POST',body:JSON.stringify({})});
     await carregarNotasServidor();
-    alert(`E-mail enviado para ${result.to}.`);
+    await titanAlert(`E-mail enviado para ${result.to}${result.providerId?' · ID '+result.providerId:''}.`,'E-mail da NFS-e','ok');
   }catch(error){alert(error.message)}
 }
 

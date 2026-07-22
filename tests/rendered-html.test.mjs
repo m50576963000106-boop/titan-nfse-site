@@ -340,8 +340,12 @@ test("envia NFS-e por e-mail com copia cadastrada e reenvio manual",async()=>{
   assert.match(html,/E-mail alternativo \(recebe cópia\)/);
   assert.match(html,/emailAlt:qs\('#cl-mail-alt'\)\.value\.trim\(\)\|\|undefined/);
   assert.match(html,/emailSentAt:row\.email_sent_at\|\|''/);
+  assert.match(html,/emailProviderId:row\.email_provider_id\|\|''/);
+  assert.match(html,/emailLastError:row\.email_last_error\|\|''/);
   assert.match(html,/Reenviar por e-mail/);
   assert.match(html,/function reenviarEmailNota/);
   assert.match(html,/\/api\/invoices\/'\+encodeURIComponent\(id\)\+'\/email/);
   assert.match(html,/E-mail enviado para \$\{esc\(result\.email_to\)\}/);
+  assert.match(html,/ID \$\{esc\(x\.emailProviderId\)\}/);
+  assert.match(html,/E-mail enviado para \$\{result\.to\}\$\{result\.providerId\?' · ID '\+result\.providerId:''\}/);
 });
