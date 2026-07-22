@@ -736,6 +736,8 @@ main{margin-left:258px;padding-top:72px}
 .martyn-close{width:30px;height:30px;border-radius:8px;color:#d8dde8;font-size:22px;line-height:1;display:grid;place-items:center}
 .martyn-close:hover{background:#15243b;color:#fff}
 .martyn-body{padding:16px;max-height:300px;overflow-y:auto;color:var(--ink);font-size:13px;line-height:1.55;background:#fff}
+.martyn-action-note{margin-top:12px;padding:9px 10px;border:1px solid #d9c179;border-radius:8px;background:#fff8df;color:#5b4612;font-weight:700}
+.martyn-target{outline:3px solid rgba(212,177,74,.72)!important;box-shadow:0 0 0 6px rgba(212,177,74,.18)!important}
 .martyn-foot{padding:12px 14px;border-top:1px solid #e3e0d6;background:#fbfaf7;text-align:right}
 .martyn-foot .btn{padding:9px 14px}
 @media(max-width:760px){
@@ -1787,6 +1789,25 @@ async function apiBlob(path,options={}){
   return response.blob();
 }
 
+const MARTYN_TARGETS={
+  emitir:['s-desc','s-nbs-search','s-cod-search','s-mun-search','t-doc','t-nome','t-mail','t-cep','s-comp','s-ret-pc'],
+  cert:['c-file']
+};
+function aplicarAcaoMartyn(action){
+  if(!action||!action.view||!action.fieldId)return;
+  const allowed=MARTYN_TARGETS[action.view]||[];
+  if(!allowed.includes(action.fieldId))return;
+  go(action.view,qs('.sb-link[onclick*="'+action.view+'"]'));
+  setTimeout(()=>{
+    const field=qs('#'+action.fieldId),corpo=qs('#martyn-corpo');
+    if(!field)return;
+    field.scrollIntoView({behavior:'smooth',block:'center'});
+    try{field.focus({preventScroll:true})}catch{field.focus()}
+    field.classList.add('martyn-target');
+    setTimeout(()=>field.classList.remove('martyn-target'),5200);
+    if(corpo)corpo.innerHTML+='<div class="martyn-action-note">Campo aberto para ajuste: '+esc(action.label||'campo indicado')+'</div>';
+  },180);
+}
 async function dispararMartynPorErro(mensagemErroLog){
   const widget=qs('#martyn-widget'),corpo=qs('#martyn-corpo');
   if(!widget||!corpo)return;
@@ -1795,6 +1816,7 @@ async function dispararMartynPorErro(mensagemErroLog){
   try{
     const dados=await api('/api/martyn',{method:'POST',body:JSON.stringify({erro:String(mensagemErroLog).slice(0,4000)})});
     corpo.innerHTML=esc(dados.resposta).replace(/\n/g,'<br>');
+    aplicarAcaoMartyn(dados.action);
   }catch(err){corpo.textContent=err.message||'Não foi possível conectar ao assistente.';}
 }
 function fecharMartyn(){const widget=qs('#martyn-widget');if(widget)widget.style.display='none';}

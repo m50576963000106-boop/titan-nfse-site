@@ -195,8 +195,15 @@ test("aciona Martyn IA somente no erro de emissão", async()=>{
   assert.match(html,/id="martyn-widget"/);
   assert.match(html,/id="martyn-corpo"/);
   assert.match(html,/function fecharMartyn/);
+  assert.match(html,/const MARTYN_TARGETS=/);
+  assert.match(html,/function aplicarAcaoMartyn\(action\)/);
+  assert.match(html,/emitir:\['s-desc','s-nbs-search','s-cod-search','s-mun-search','t-doc','t-nome','t-mail','t-cep','s-comp','s-ret-pc'\]/);
+  assert.match(html,/cert:\['c-file'\]/);
+  assert.match(html,/field\.scrollIntoView\(\{behavior:'smooth',block:'center'\}\)/);
+  assert.match(html,/field\.classList\.add\('martyn-target'\)/);
   assert.match(html,/async function dispararMartynPorErro\(mensagemErroLog\)/);
   assert.match(html,/api\('\/api\/martyn',\{method:'POST',body:JSON\.stringify\(\{erro:String\(mensagemErroLog\)\.slice\(0,4000\)\}\)\}\)/);
+  assert.match(html,/aplicarAcaoMartyn\(dados\.action\)/);
   assert.match(html,/Emissão não autorizada[\s\S]{0,260}dispararMartynPorErro\(error\.message\)/);
   assert.doesNotMatch(html,/fetch\(API_URL\+'\/api\/martyn'/);
 });
