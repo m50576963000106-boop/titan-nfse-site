@@ -726,9 +726,22 @@ main{margin-left:258px;padding-top:72px}
 .sup-input input:focus{border-color:var(--gold)}
 .sup-input button{width:40px;height:40px;flex:none;border-radius:50%;background:var(--gold);color:var(--navy);font-weight:800;display:grid;place-items:center}
 .sup-input button:hover{background:#d9b95c}
+.martyn-widget{
+  position:fixed;right:20px;bottom:20px;z-index:9999;width:350px;max-width:calc(100vw - 32px);
+  display:none;background:#fff;border:1px solid #e3e0d6;border-radius:12px;overflow:hidden;
+  box-shadow:0 22px 60px rgba(11,22,41,.28);
+}
+.martyn-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#0b1629;color:var(--cream)}
+.martyn-head b{font-size:13px;color:var(--gold)}
+.martyn-close{width:30px;height:30px;border-radius:8px;color:#d8dde8;font-size:22px;line-height:1;display:grid;place-items:center}
+.martyn-close:hover{background:#15243b;color:#fff}
+.martyn-body{padding:16px;max-height:300px;overflow-y:auto;color:var(--ink);font-size:13px;line-height:1.55;background:#fff}
+.martyn-foot{padding:12px 14px;border-top:1px solid #e3e0d6;background:#fbfaf7;text-align:right}
+.martyn-foot .btn{padding:9px 14px}
 @media(max-width:760px){
   .sup-fab{right:16px;bottom:16px;width:52px;height:52px}
   .sup-panel{right:0;left:0;bottom:0;width:100%;max-width:100%;height:84vh;max-height:84vh;border-radius:16px 16px 0 0}
+  .martyn-widget{left:16px;right:16px;bottom:16px;width:auto}
 }
 </style>
 <script>
@@ -1773,6 +1786,18 @@ async function apiBlob(path,options={}){
   if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||'Não foi possível obter o documento.');}
   return response.blob();
 }
+
+async function dispararMartynPorErro(mensagemErroLog){
+  const widget=qs('#martyn-widget'),corpo=qs('#martyn-corpo');
+  if(!widget||!corpo)return;
+  widget.style.display='block';
+  corpo.textContent='O Martyn está analisando a rejeição...';
+  try{
+    const dados=await api('/api/martyn',{method:'POST',body:JSON.stringify({erro:String(mensagemErroLog).slice(0,4000)})});
+    corpo.innerHTML=esc(dados.resposta).replace(/\n/g,'<br>');
+  }catch(err){corpo.textContent=err.message||'Não foi possível conectar ao assistente.';}
+}
+function fecharMartyn(){const widget=qs('#martyn-widget');if(widget)widget.style.display='none';}
 
 function aplicarLogoPortal(dataUrl){
   const logo=dataUrl||'/titan-nfse-logo-transparent.png';
@@ -2842,6 +2867,7 @@ async function emitir(){
   }catch(error){
     const current=qsa('.stage.run').at(-1);if(current){current.className='stage fail';qs('.dot',current).innerHTML=xSvg}
     qs('#result').innerHTML=`<div class="result no"><span class="pill p-err">Emissão não autorizada</span><div class="chave" style="color:#7d1c1f">${String(error.message).replaceAll('<','&lt;')}</div><div class="foot-note">Nenhuma NFS-e válida foi gerada.</div></div>`;
+    dispararMartynPorErro(error.message);
   }finally{
     rodando=false;
     qs('#btn-emit').disabled=false;
@@ -3845,6 +3871,14 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&qs('#sup-panel')?.c
     <input id="sup-in" type="text" autocomplete="off" placeholder="Pergunte ou peça: buscar notas de julho" aria-label="Sua mensagem">
     <button type="submit" aria-label="Enviar mensagem">&#10148;</button>
   </form>
+</section>
+<section id="martyn-widget" class="martyn-widget" role="dialog" aria-live="polite" aria-label="Martyn - análise de erro de emissão">
+  <div class="martyn-head">
+    <b>🛡️ Martyn — Suporte TITAN</b>
+    <button class="martyn-close" type="button" onclick="fecharMartyn()" aria-label="Fechar análise">&times;</button>
+  </div>
+  <div id="martyn-corpo" class="martyn-body"></div>
+  <div class="martyn-foot"><button class="btn btn-s" type="button" onclick="fecharMartyn()">Fechar</button></div>
 </section>
 </body>
 </html>

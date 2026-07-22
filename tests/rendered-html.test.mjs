@@ -190,6 +190,17 @@ test("centraliza serviços, alimenta orçamentos e oferece assistente com açõe
   assert.match(html,/Comunicado oficial CGSN 189\/2026/);
 });
 
+test("aciona Martyn IA somente no erro de emissão", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="martyn-widget"/);
+  assert.match(html,/id="martyn-corpo"/);
+  assert.match(html,/function fecharMartyn/);
+  assert.match(html,/async function dispararMartynPorErro\(mensagemErroLog\)/);
+  assert.match(html,/api\('\/api\/martyn',\{method:'POST',body:JSON\.stringify\(\{erro:String\(mensagemErroLog\)\.slice\(0,4000\)\}\)\}\)/);
+  assert.match(html,/Emissão não autorizada[\s\S]{0,260}dispararMartynPorErro\(error\.message\)/);
+  assert.doesNotMatch(html,/fetch\(API_URL\+'\/api\/martyn'/);
+});
+
 test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/\/api\/services\/nbs\/catalog/);
