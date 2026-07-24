@@ -12,6 +12,16 @@ module.exports = {
         source: '/admin/:path*',
         destination: 'https://nfse.titanbackoffice.com.br/admin/:path*',
         permanent: true,
+      },
+      {
+        source: '/dashbord/:path*',
+        destination: 'https://nfse.titanbackoffice.com.br/dashbord/:path*',
+        permanent: true,
+      },
+      {
+        source: '/martyn/:path*',
+        destination: 'https://martyn.titanbackoffice.com.br/:path*',
+        permanent: true,
       }
     ]
   }
