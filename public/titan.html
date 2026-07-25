@@ -749,7 +749,7 @@ main{margin-left:258px;padding-top:72px}
 <script>
 (()=>{try{
   const q=new URLSearchParams(location.search),path=location.pathname.match(/^\/([^/?#]+)\/?$/i)?.[1]||'',route=path.toLowerCase().replace(/[^a-z0-9-]/g,'');
-  const routeMode=route==='martyn_ia'?'help':route==='primeiro-acesso'||route==='primeiroacesso'?'first':route==='redefinir-senha'||route==='redefinirsenha'?'reset':route;
+  const routeMode=route==='martyn_ia'?'help':route==='primeiro-acesso'||route==='primeiroacesso'?'first':route==='redefinir-senha'||route==='redefinirsenha'?'reset':route==='dashboard'?'client':route;
   const mode=(q.get('portal')||routeMode).toLowerCase(),isAdmin=mode==='admin'||mode==='adm',cnpj=(q.get('tenant')||(/^\d{14}$/.test(path)?path:'')).replace(/\D/g,'');
   if(mode==='help'||mode==='first'||mode==='reset'||q.get('invite')||sessionStorage.getItem('titan_nfse_session_v1'))return;
   if(!isAdmin&&!cnpj&&mode!=='client')return;
@@ -817,7 +817,7 @@ main{margin-left:258px;padding-top:72px}
 <div id="app">
 
   <aside class="sidebar" id="sb">
-    <a class="sb-mark" href="/" target="_top" aria-label="Página inicial TITAN NFS-e" style="text-decoration:none"><span class="sb-logo"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></span></a>
+    <a class="sb-mark" href="/" target="_top" onclick="return irParaLogoDestino(event)" aria-label="Página inicial TITAN NFS-e" style="text-decoration:none"><span class="sb-logo"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></span></a>
     <nav class="sb-nav user-sidebar">
       <div class="sb-sec">Visão geral</div>
       <button class="sb-link active" data-permission="dashboard" onclick="go('painel',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</button>
@@ -1686,11 +1686,18 @@ window.alert=(message)=>{titanAlert(message)};
 const API_URL=(window.TITAN_API_URL||'').replace(/\/$/,'');
 const STORAGE_TOKEN='titan_nfse_session_v1';
 const STORAGE_SESSION='titan_nfse_access_v1';
+function irParaLogoDestino(event){
+  if(!sessionStorage.getItem(STORAGE_TOKEN))return true;
+  let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{}
+  event.preventDefault();
+  window.top.location.href=access.user?.isMaster?'/admin':'/dashboard';
+  return false;
+}
 const STORAGE_COMPANY_ID='titan_nfse_company_id_v1';
 const PORTAL_QUERY=new URLSearchParams(location.search);
 const PORTAL_PATH=location.pathname.match(/^\/([^/?#]+)\/?$/i)?.[1]||'';
 const PORTAL_ROUTE=PORTAL_PATH.toLowerCase().replace(/[^a-z0-9-]/g,'');
-const PORTAL_ROUTE_MODE=PORTAL_ROUTE==='ajuda'?'help':PORTAL_ROUTE==='primeiro-acesso'||PORTAL_ROUTE==='primeiroacesso'?'first':PORTAL_ROUTE==='redefinir-senha'||PORTAL_ROUTE==='redefinirsenha'?'reset':PORTAL_ROUTE;
+const PORTAL_ROUTE_MODE=PORTAL_ROUTE==='martyn_ia'?'help':PORTAL_ROUTE==='primeiro-acesso'||PORTAL_ROUTE==='primeiroacesso'?'first':PORTAL_ROUTE==='redefinir-senha'||PORTAL_ROUTE==='redefinirsenha'?'reset':PORTAL_ROUTE==='dashboard'?'client':PORTAL_ROUTE;
 const PORTAL_MODE=(PORTAL_QUERY.get('portal')||PORTAL_ROUTE_MODE).toLowerCase();
 const PORTAL_ADMIN=['admin','adm'].includes(PORTAL_MODE);
 const PORTAL_HELP=PORTAL_MODE==='help';
