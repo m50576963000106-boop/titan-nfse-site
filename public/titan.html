@@ -748,7 +748,7 @@ main{margin-left:258px;padding-top:72px}
 </style>
 <script>
 (()=>{try{
-  const q=new URLSearchParams(location.search),path=location.pathname.match(/^\/([^/?#]+)\/?$/i)?.[1]||'',route=path.toLowerCase().replace(/[^a-z0-9-]/g,'');
+  const q=new URLSearchParams(location.search),path=location.pathname.match(/^\/([^/?#]+)\/?$/i)?.[1]||'',route=path.toLowerCase().replace(/[^a-z0-9_-]/g,'');
   const routeMode=route==='martyn_ia'?'help':route==='primeiro-acesso'||route==='primeiroacesso'?'first':route==='redefinir-senha'||route==='redefinirsenha'?'reset':route==='dashboard'?'client':route;
   const mode=(q.get('portal')||routeMode).toLowerCase(),isAdmin=mode==='admin'||mode==='adm',cnpj=(q.get('tenant')||(/^\d{14}$/.test(path)?path:'')).replace(/\D/g,'');
   if(mode==='help'||mode==='first'||mode==='reset'||q.get('invite')||sessionStorage.getItem('titan_nfse_session_v1'))return;
@@ -1696,7 +1696,7 @@ function irParaLogoDestino(event){
 const STORAGE_COMPANY_ID='titan_nfse_company_id_v1';
 const PORTAL_QUERY=new URLSearchParams(location.search);
 const PORTAL_PATH=location.pathname.match(/^\/([^/?#]+)\/?$/i)?.[1]||'';
-const PORTAL_ROUTE=PORTAL_PATH.toLowerCase().replace(/[^a-z0-9-]/g,'');
+const PORTAL_ROUTE=PORTAL_PATH.toLowerCase().replace(/[^a-z0-9_-]/g,'');
 const PORTAL_ROUTE_MODE=PORTAL_ROUTE==='martyn_ia'?'help':PORTAL_ROUTE==='primeiro-acesso'||PORTAL_ROUTE==='primeiroacesso'?'first':PORTAL_ROUTE==='redefinir-senha'||PORTAL_ROUTE==='redefinirsenha'?'reset':PORTAL_ROUTE==='dashboard'?'client':PORTAL_ROUTE;
 const PORTAL_MODE=(PORTAL_QUERY.get('portal')||PORTAL_ROUTE_MODE).toLowerCase();
 const PORTAL_ADMIN=['admin','adm'].includes(PORTAL_MODE);
