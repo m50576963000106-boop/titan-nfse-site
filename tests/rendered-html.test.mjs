@@ -134,7 +134,8 @@ test("raiz limpa (sem /nfs) separa os acessos de cliente e administrador",async(
   const route=await readFile(resolve(root,"app/[[...tenant]]/page.tsx"),"utf8");
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(index,/<iframe class="prototype-frame" src="\/nfs\.html" title="TITAN NFS-e">/);
-  assert.doesNotMatch(index,/location\.replace/);
+  assert.doesNotMatch(index,/location\.replace\('\/'/);
+  assert.match(index,/if\(location\.hostname!=='nfse\.titanbackoffice\.com\.br'\)window\.top\.location\.replace\('https:\/\/nfse\.titanbackoffice\.com\.br'/);
   assert.match(route,/tenant\.length === 0/);
   assert.match(route,/target\.toLowerCase\(\) === "entrar"/);
   assert.match(route,/src="\/nfs\.html\?login=client"/);
@@ -153,7 +154,7 @@ test("raiz limpa (sem /nfs) separa os acessos de cliente e administrador",async(
   assert.match(landing,/navegarAposLogin\('\/admin'\)/);
   assert.match(landing,/navegarAposLogin\('\/dashboard'\)/);
   assert.doesNotMatch(landing,/[^.]location\.href=safeNext/);
-  assert.doesNotMatch(landing,/\/nfs/);
+  assert.doesNotMatch(landing,/\/nfs\//);
   assert.doesNotMatch(html,/href="\/nfs["?]/);
   assert.match(html,/servidor fiscal demorou para responder/i);
 });
