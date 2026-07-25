@@ -133,7 +133,8 @@ test("raiz limpa (sem /nfs) separa os acessos de cliente e administrador",async(
   const index=await readFile(resolve(root,"public/index.html"),"utf8");
   const route=await readFile(resolve(root,"app/[[...tenant]]/page.tsx"),"utf8");
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
-  assert.match(index,/location\.replace\('\/'\)/);
+  assert.match(index,/<iframe class="prototype-frame" src="\/nfs\.html" title="TITAN NFS-e">/);
+  assert.doesNotMatch(index,/location\.replace/);
   assert.match(route,/tenant\.length === 0/);
   assert.match(route,/target\.toLowerCase\(\) === "entrar"/);
   assert.match(route,/src="\/nfs\.html\?login=client"/);

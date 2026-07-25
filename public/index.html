@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta http-equiv="refresh" content="0;url=/">
   <title>TITAN NFS-e</title>
-  <script>
-    (() => {
-      try {
-        if (window.top !== window.self) window.top.location.replace('/');
-      } catch (_) {}
-      location.replace('/');
-    })();
-  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body, .prototype-shell { width: 100%; min-height: 100%; margin: 0; }
+    body { overflow: hidden; background: #0b1629; }
+    .prototype-shell { height: 100dvh; }
+    .prototype-frame { display: block; width: 100%; height: 100%; border: 0; background: #f5f4ef; }
+  </style>
 </head>
 <body>
-  <p>Redirecionando para <a href="/">TITAN NFS-e</a>…</p>
+  <main class="prototype-shell">
+    <iframe class="prototype-frame" src="/nfs.html" title="TITAN NFS-e"></iframe>
+  </main>
 </body>
 </html>
