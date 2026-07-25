@@ -26,10 +26,10 @@
 <body>
   <header class="site-header">
     <nav class="nav">
-      <a class="brand" href="/nfs" aria-label="TITAN NFS-e — página inicial"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a>
+      <a class="brand" href="/" aria-label="TITAN NFS-e — página inicial"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a>
       <div class="nav-actions">
         <button class="btn" id="login-button" type="button" aria-expanded="false" aria-controls="login-drawer">Entrar <i data-lucide="log-in"></i></button>
-        <a class="btn" href="/nfs/ajuda">Ajuda Martyn</a>
+        <a class="btn" href="/martyn_ia">Ajuda Martyn</a>
         <a class="btn btn-dark" href="#planos">Contratar plano</a>
       </div>
     </nav>
@@ -52,7 +52,7 @@
         <button class="btn" type="submit">Entrar como Master</button>
         <div class="drawer-status" id="admin-login-status" role="status"></div>
       </form>
-      <div class="drawer-links"><a href="/nfs/primeiro-acesso">Primeiro acesso</a><a href="/nfs/redefinir-senha">Redefinir senha</a><a href="/nfs/ajuda">Preciso de ajuda</a></div>
+      <div class="drawer-links"><a href="/primeiro-acesso">Primeiro acesso</a><a href="/redefinir-senha">Redefinir senha</a><a href="/martyn_ia">Preciso de ajuda</a></div>
     </aside>
   </div>
 
@@ -105,11 +105,11 @@
     function closeLoginDrawer(){loginBackdrop.classList.remove('open');loginButton.setAttribute('aria-expanded','false')}
     async function authLogin(payload){const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Não foi possível entrar.');return data}
     function saveSession(access,company){sessionStorage.setItem(STORAGE_TOKEN,access.token);sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:access.user||{},companies:access.companies||[]}));if(company?.id)sessionStorage.setItem(STORAGE_COMPANY_ID,company.id)}
-    function safeNext(defaultTarget){const next=PAGE_QUERY.get('next')||'';return next.startsWith('/nfs/')&&!next.includes('//')?next:defaultTarget}
+    function safeNext(defaultTarget){const next=PAGE_QUERY.get('next')||'';return /^\/(?!\/)/.test(next)?next:defaultTarget}
     function navegarAposLogin(defaultTarget){window.top.location.href=safeNext(defaultTarget)}
     loginButton.addEventListener('click',()=>openLoginDrawer());loginClose.addEventListener('click',closeLoginDrawer);loginBackdrop.addEventListener('click',event=>{if(event.target===loginBackdrop)closeLoginDrawer()});loginDrawer.addEventListener('click',event=>event.stopPropagation());document.addEventListener('keydown',event=>{if(event.key==='Escape')closeLoginDrawer()});document.querySelector('#client-cnpj').addEventListener('input',maskCnpjInput);
-    document.querySelector('#client-login-form').addEventListener('submit',async event=>{event.preventDefault();const status=document.querySelector('#client-login-status'),cnpj=onlyDigits(document.querySelector('#client-cnpj').value),password=document.querySelector('#client-password').value;status.textContent='';if(cnpj.length!==14||password.length<10){status.textContent='Informe CNPJ e senha individual com pelo menos 10 caracteres.';return}try{status.textContent='Entrando...';const access=await authLogin({federalTaxId:cnpj,password});const company=(access.companies||[]).find(item=>onlyDigits(item.federal_tax_id)===cnpj);if(!company)throw new Error('Seu usuário não possui acesso liberado para este CNPJ.');saveSession(access,company);navegarAposLogin('/nfs/'+cnpj)}catch(error){status.textContent=error.message}});
-    document.querySelector('#admin-login-form').addEventListener('submit',async event=>{event.preventDefault();const status=document.querySelector('#admin-login-status'),email=document.querySelector('#admin-email').value.trim(),password=document.querySelector('#admin-password').value;status.textContent='';if(!email||password.length<10){status.textContent='Informe e-mail administrativo e senha com pelo menos 10 caracteres.';return}try{status.textContent='Entrando...';const access=await authLogin({email,password});if(!access.user?.isMaster)throw new Error('Este acesso é exclusivo do administrador Master.');saveSession(access,null);navegarAposLogin('/nfs/admin')}catch(error){status.textContent=error.message}});
+    document.querySelector('#client-login-form').addEventListener('submit',async event=>{event.preventDefault();const status=document.querySelector('#client-login-status'),cnpj=onlyDigits(document.querySelector('#client-cnpj').value),password=document.querySelector('#client-password').value;status.textContent='';if(cnpj.length!==14||password.length<10){status.textContent='Informe CNPJ e senha individual com pelo menos 10 caracteres.';return}try{status.textContent='Entrando...';const access=await authLogin({federalTaxId:cnpj,password});const company=(access.companies||[]).find(item=>onlyDigits(item.federal_tax_id)===cnpj);if(!company)throw new Error('Seu usuário não possui acesso liberado para este CNPJ.');saveSession(access,company);navegarAposLogin('/dashboard')}catch(error){status.textContent=error.message}});
+    document.querySelector('#admin-login-form').addEventListener('submit',async event=>{event.preventDefault();const status=document.querySelector('#admin-login-status'),email=document.querySelector('#admin-email').value.trim(),password=document.querySelector('#admin-password').value;status.textContent='';if(!email||password.length<10){status.textContent='Informe e-mail administrativo e senha com pelo menos 10 caracteres.';return}try{status.textContent='Entrando...';const access=await authLogin({email,password});if(!access.user?.isMaster)throw new Error('Este acesso é exclusivo do administrador Master.');saveSession(access,null);navegarAposLogin('/admin')}catch(error){status.textContent=error.message}});
     function aplicarIntencaoLogin(){const intent=(PAGE_QUERY.get('login')||'').toLowerCase(),tenant=onlyDigits(PAGE_QUERY.get('tenant'));if(tenant.length===14){const input=document.querySelector('#client-cnpj');input.value=tenant;maskCnpjInput({target:input});}if(intent==='admin'||intent==='client'||tenant.length===14)openLoginDrawer(intent==='admin'?'admin':'client')}
     aplicarIntencaoLogin();
     document.querySelector('#contact-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,status=document.querySelector('#contact-status'),data=Object.fromEntries(new FormData(form));status.textContent='Enviando...';try{const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const out=await response.json();if(!response.ok)throw new Error(out.error||'Não foi possível enviar.');form.reset();status.textContent='Recebemos sua solicitação. Entraremos em contato em breve.'}catch(error){status.textContent=error.message}});

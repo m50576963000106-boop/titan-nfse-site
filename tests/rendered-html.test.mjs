@@ -37,16 +37,17 @@ test("oferece documentos e cancelamento oficial sem identidade visual", async()=
 
 test("isola as rotas do master e de cada CNPJ",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
-  const route=await readFile(resolve(root,"app/nfs/[[...tenant]]/page.tsx"),"utf8");
+  const route=await readFile(resolve(root,"app/[[...tenant]]/page.tsx"),"utf8");
   assert.match(html,/PORTAL_ADMIN/);
   assert.match(html,/PORTAL_CNPJ/);
-  assert.match(html,/class="sb-mark" href="\/nfs" target="_top"/);
-  assert.match(html,/class="login-brand" href="\/nfs" target="_top"/);
+  assert.match(html,/class="sb-mark" href="\/" target="_top"/);
+  assert.match(html,/class="login-brand" href="\/" target="_top"/);
   assert.match(html,/não possui acesso liberado para o CNPJ/);
-  assert.match(html,/new URL\('\/nfs\/'\+federalTaxId/);
-  assert.match(route,/\^\\d\{14\}\$/);
+  assert.match(html,/const handoff=btoa\(binary\),url=`\/dashboard#handoff=/);
+  assert.match(html,/new URL\('\/dashboard',location\.origin\)/);
   assert.match(route,/\["admin", "adm"\]/);
-  assert.match(route,/portal: "admin"/);
+  assert.match(route,/isAdmin \? "admin" : isHelp \? "help"/);
+  assert.match(route,/target\.toLowerCase\(\) === "dashboard"/);
   assert.match(html,/portal do gestor é exclusivo para usuários, perfis e liberações/);
   assert.match(html,/class="sb-nav admin-sidebar"/);
   assert.match(html,/admin-company-search/);
@@ -128,28 +129,31 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
   assert.doesNotMatch(html,/Os dados abaixo montam/);
 });
 
-test("redireciona a raiz e separa os acessos de cliente e administrador",async()=>{
-  const home=await readFile(resolve(root,"app/page.tsx"),"utf8");
+test("raiz limpa (sem /nfs) separa os acessos de cliente e administrador",async()=>{
   const index=await readFile(resolve(root,"public/index.html"),"utf8");
-  const route=await readFile(resolve(root,"app/nfs/[[...tenant]]/page.tsx"),"utf8");
+  const route=await readFile(resolve(root,"app/[[...tenant]]/page.tsx"),"utf8");
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
-  assert.match(home,/redirect\("\/nfs"\)/);
-  assert.match(index,/location\.replace\('\/nfs'\)/);
+  assert.match(index,/location\.replace\('\/'\)/);
+  assert.match(route,/tenant\.length === 0/);
   assert.match(route,/target\.toLowerCase\(\) === "entrar"/);
   assert.match(route,/src="\/nfs\.html\?login=client"/);
   assert.match(html,/Sou administrador master/);
   assert.match(html,/function redirecionarParaLoginUnico/);
   assert.match(html,/target\.searchParams\.set\('login',PORTAL_ADMIN\?'admin':'client'\)/);
   assert.match(html,/target\.searchParams\.set\('tenant',PORTAL_CNPJ\)/);
-  assert.match(html,/qs\('#login-context-link'\)\.href='\/nfs\?login=client'/);
+  assert.match(html,/target\.searchParams\.set\('next',window\.top\.location\.pathname\+\(window\.top\.location\.search\|\|''\)\)/);
+  assert.match(html,/qs\('#login-context-link'\)\.href='\/\?login=client'/);
   const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
   assert.match(landing,/const loginButton=.*PAGE_QUERY=new URLSearchParams\(location\.search\)/);
   assert.match(landing,/function aplicarIntencaoLogin/);
   assert.match(landing,/openLoginDrawer\(intent==='admin'\?'admin':'client'\)/);
   assert.match(landing,/function navegarAposLogin\(defaultTarget\)\{window\.top\.location\.href=safeNext\(defaultTarget\)\}/);
-  assert.match(landing,/navegarAposLogin\('\/nfs\/admin'\)/);
-  assert.match(landing,/navegarAposLogin\('\/nfs\/'\+cnpj\)/);
+  assert.match(landing,/function safeNext\(defaultTarget\)\{const next=PAGE_QUERY\.get\('next'\)\|\|'';return \/\^\\\/\(\?!\\\/\)\/\.test\(next\)\?next:defaultTarget\}/);
+  assert.match(landing,/navegarAposLogin\('\/admin'\)/);
+  assert.match(landing,/navegarAposLogin\('\/dashboard'\)/);
   assert.doesNotMatch(landing,/[^.]location\.href=safeNext/);
+  assert.doesNotMatch(landing,/\/nfs/);
+  assert.doesNotMatch(html,/href="\/nfs["?]/);
   assert.match(html,/servidor fiscal demorou para responder/i);
 });
 

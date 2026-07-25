@@ -25,16 +25,48 @@ interface ExecutionContext {
 // dangerouslyAllowSVG: true in next.config.js and uncomment below:
 // const imageConfig: ImageConfig = { dangerouslyAllowSVG: true };
 
+// The site now lives at the root of nfse.titanbackoffice.com.br. The old
+// domain and the old /nfs-prefixed paths are permanently retired; both are
+// redirected here so nothing (bookmarks, emails already sent, search
+// engines) is left pointing at a dead URL.
+const LEGACY_HOSTS = new Set(["titanbackoffice.com.br", "www.titanbackoffice.com.br"]);
+const CANONICAL_ORIGIN = "https://nfse.titanbackoffice.com.br";
+
+function mapLegacyPath(pathname: string): string {
+  if (pathname === "/index.html") return "/";
+  const match = pathname.match(/^\/nfs(\/.*)?$/i);
+  if (!match) return pathname;
+  const rest = (match[1] || "").replace(/^\//, "");
+  if (!rest) return "/";
+  const segment = rest.split("/")[0].toLowerCase();
+  if (segment === "admin" || segment === "adm") return "/admin";
+  if (segment === "ajuda") return "/martyn_ia";
+  if (segment === "entrar") return "/entrar";
+  if (segment === "primeiro-acesso" || segment === "primeiroacesso") return "/primeiro-acesso";
+  if (segment === "redefinir-senha" || segment === "redefinirsenha") return "/redefinir-senha";
+  if (/^\d{14}$/.test(segment)) return "/dashboard";
+  return "/";
+}
+
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    // Keep the public entry point canonical.  The static `index.html` also
-    // contains a client-side fallback, but an HTTP redirect is reliable when
-    // JavaScript is disabled, a stale page is cached, or the request comes
-    // from a non-browser client.
-    if (url.pathname === "/" || url.pathname === "/index.html") {
-      return Response.redirect(new URL("/nfs", request.url).toString(), 302);
+    // Any request on the retired domain moves to the canonical one, with the
+    // old /nfs-prefixed path translated to its new root-level equivalent.
+    if (LEGACY_HOSTS.has(url.hostname)) {
+      const target = new URL(CANONICAL_ORIGIN);
+      target.pathname = mapLegacyPath(url.pathname);
+      target.search = url.search;
+      return Response.redirect(target.toString(), 301);
+    }
+
+    // A stray /nfs/* link (or /index.html) on the canonical domain itself
+    // also gets folded into the new root-level path.
+    if (url.pathname === "/index.html" || /^\/nfs(\/|$)/i.test(url.pathname)) {
+      const target = new URL(request.url);
+      target.pathname = mapLegacyPath(url.pathname);
+      return Response.redirect(target.toString(), 301);
     }
 
     if (url.pathname === "/_vinext/image") {
