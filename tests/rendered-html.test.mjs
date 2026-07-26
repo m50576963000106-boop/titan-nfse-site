@@ -37,6 +37,7 @@ test("oferece documentos e cancelamento oficial sem identidade visual", async()=
 
 test("isola as rotas do master e de cada CNPJ",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
   const route=await readFile(resolve(root,"app/[[...tenant]]/page.tsx"),"utf8");
   assert.match(html,/PORTAL_ADMIN/);
   assert.match(html,/PORTAL_CNPJ/);
@@ -75,8 +76,8 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(html,/Gestão por CNPJ/);
   assert.doesNotMatch(html,/Gestão de Usuários/);
   assert.doesNotMatch(html,/data-master-tab="usuarios"/);
-  assert.match(html,/background:transparent;border:0/);
-  assert.match(html,/object-fit:contain/);
+  assert.match(css,/background:transparent;border:0/);
+  assert.match(css,/object-fit:contain/);
   assert.match(html,/data-master-tab="perfis"/);
 });
 
@@ -217,6 +218,7 @@ test("aciona Martyn IA somente no erro de emissão", async()=>{
 
 test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
   assert.match(html,/\/api\/services\/nbs\/catalog/);
   assert.match(html,/id="s-nbs-search"/);
   assert.match(html,/id="cad-nbs-search"/);
@@ -249,8 +251,8 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.match(html,/id="emit-side-total"/);
   assert.match(html,/Emissão padrão nacional/);
   assert.match(html,/Abrir emissão ↗/);
-  assert.match(html,/background:linear-gradient\(135deg,var\(--navy\),var\(--navy-2\)\)/);
-  assert.doesNotMatch(html,/#e94560/);
+  assert.match(css,/background:linear-gradient\(135deg,var\(--navy\),var\(--navy-2\)\)/);
+  assert.doesNotMatch(css,/#e94560/);
   assert.match(html,/\/api\/customers\//);
   assert.match(html,/\/api\/onboarding\/check/);
   assert.match(html,/\/api\/billing\/status/);
