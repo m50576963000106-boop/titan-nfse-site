@@ -154,7 +154,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 }
 .tenant select{
   border:none;background:none;font-weight:600;font-size:13px;
-  max-width:240px;cursor:pointer;
+  max-width:240px;min-width:0;cursor:pointer;
 }
 .admin-company-switch{display:none;position:relative;margin-left:auto;width:min(420px,48vw)}
 .admin-company-trigger{width:100%;min-height:46px;padding:7px 42px 7px 13px;border:1px solid #445572;border-radius:6px;background:var(--navy-1);color:#fff;text-align:left;position:relative}
@@ -628,6 +628,9 @@ main{margin-left:258px;padding-top:72px}
   .burger{display:grid;place-items:center;width:32px;height:32px;flex:none}
   .tenant select{max-width:120px}
   .admin-company-switch{width:min(320px,calc(100vw - 102px))}.admin-company-trigger small{font-size:8.5px}.admin-company-trigger b{font-size:10.5px}
+  .inp{font-size:16px}
+  .stage{min-width:74px}
+  .stage-t{font-size:10px;line-height:1.25}
   .env span.txt{display:none}
   .page-h h1{font-size:20px}
   .dash-hero{align-items:flex-start;flex-direction:column;gap:14px}
