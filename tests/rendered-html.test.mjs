@@ -238,7 +238,7 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.match(html,/id="s-cno"/);
   assert.match(html,/id="s-event-code"/);
   assert.match(html,/id="s-event-location"/);
-  assert.match(html,/id="s-base-val"/);
+  assert.match(html,/id="s-add-same-nature"/);
   assert.match(html,/id="s-composition-lines"/);
   assert.match(html,/id="cad-default-amount"/);
   assert.match(html,/editarUnitComposicao/);

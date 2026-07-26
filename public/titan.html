@@ -309,11 +309,14 @@
               </div>
             </div>
               <div class="field" style="margin-top:14px">
-                <label>Endereço do tomador</label>
-                <div class="row r2"><div class="field"><label for="t-cidade">Município</label><input id="t-cidade" class="inp" placeholder="Cidade do tomador"></div><div class="field"><label for="t-uf">UF</label><input id="t-uf" class="inp mono" maxlength="2" placeholder="UF"></div></div>
-                <div class="row r2"><div class="field"><label for="t-cep">CEP</label><input id="t-cep" class="inp mono" inputmode="numeric" placeholder="00000-000"></div><div class="field"><label for="t-municipio">Código IBGE</label><input id="t-municipio" class="inp mono" inputmode="numeric" maxlength="7" placeholder="0000000"></div></div>
-                <div class="row r2"><div class="field"><label for="t-end">Logradouro</label><input id="t-end" class="inp" placeholder="Rua, avenida ou rodovia"></div><div class="field"><label for="t-num">Número</label><input id="t-num" class="inp" placeholder="Número"></div></div>
-                <div class="row r2"><div class="field mb0"><label for="t-bairro">Bairro</label><input id="t-bairro" class="inp" placeholder="Bairro"></div><div class="field mb0"><label for="t-comp">Complemento</label><input id="t-comp" class="inp" placeholder="Sala, bloco, referência"></div></div>
+                <div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:2px"><label style="margin-bottom:0">Endereço do tomador</label><button class="btn btn-s" type="button" id="t-address-toggle" onclick="alternarEnderecoTomador()">Mostrar endereço</button></div>
+                <div class="hint" id="t-address-summary"></div>
+                <div id="t-address-block" style="display:none">
+                  <div class="row r2"><div class="field"><label for="t-cidade">Município</label><input id="t-cidade" class="inp" placeholder="Cidade do tomador"></div><div class="field"><label for="t-uf">UF</label><input id="t-uf" class="inp mono" maxlength="2" placeholder="UF"></div></div>
+                  <div class="row r2"><div class="field"><label for="t-cep">CEP</label><input id="t-cep" class="inp mono" inputmode="numeric" placeholder="00000-000"></div><div class="field"><label for="t-municipio">Código IBGE</label><input id="t-municipio" class="inp mono" inputmode="numeric" maxlength="7" placeholder="0000000"></div></div>
+                  <div class="row r2"><div class="field"><label for="t-end">Logradouro</label><input id="t-end" class="inp" placeholder="Rua, avenida ou rodovia"></div><div class="field"><label for="t-num">Número</label><input id="t-num" class="inp" placeholder="Número"></div></div>
+                  <div class="row r2"><div class="field mb0"><label for="t-bairro">Bairro</label><input id="t-bairro" class="inp" placeholder="Bairro"></div><div class="field mb0"><label for="t-comp">Complemento</label><input id="t-comp" class="inp" placeholder="Sala, bloco, referência"></div></div>
+                </div>
               </div>
             </div>
           </div>
@@ -331,23 +334,28 @@
                 <select id="s-profile" class="inp" onchange="aplicarPerfilServico()"><option value="">Preenchimento avulso</option></select>
                 <div class="hint">Cadastros configurados em Meus serviços.</div>
               </div>
-              <div class="field">
-                <label for="s-cod-search">Código de tributação nacional — Anexo B</label>
-                <input id="s-cod-search" class="inp" autocomplete="off" placeholder="Busque por número do código ou palavra da descrição" oninput="filtrarCtnEmissao()" style="margin-bottom:8px">
-                <select id="s-cod" class="inp" onchange="detectarServicoPorCodigo();lerParametros();buscarSugestoesNbsCodigo();atualizarCamposEspeciais()">
-                  <option value="">Carregando catálogo nacional...</option>
-                </select>
-                <div class="hint" id="s-cod-hint">Catálogo oficial PRODREST v1.01 de 22/01/2026.</div>
+              <div class="hint" id="s-ctn-nbs-summary" style="display:none"></div>
+              <div id="s-ctn-nbs-block">
+                <div class="field">
+                  <label for="s-cod-search">Código de tributação nacional — Anexo B</label>
+                  <input id="s-cod-search" class="inp" autocomplete="off" placeholder="Busque por número do código ou palavra da descrição" oninput="filtrarCtnEmissao()" style="margin-bottom:8px">
+                  <select id="s-cod" class="inp" onchange="detectarServicoPorCodigo();lerParametros();buscarSugestoesNbsCodigo();atualizarCamposEspeciais()">
+                    <option value="">Carregando catálogo nacional...</option>
+                  </select>
+                  <div class="hint" id="s-cod-hint">Catálogo oficial PRODREST v1.01 de 22/01/2026.</div>
+                </div>
+                <div class="field"><label for="s-nbs-search">Código NBS <span class="required-mark">*</span></label><div class="input-action"><input id="s-nbs-search" class="inp" inputmode="numeric" placeholder="Código ou descrição NBS"><button class="btn btn-s" type="button" onclick="buscarNbsEmissao()">Buscar</button></div><select id="s-nbs" class="inp mono" required onchange="validarNbsDigitacao()"><option value="">Pesquise o catálogo NBS</option></select><div class="hint" id="s-nbs-hint">Selecione um NBS oficial pelo código ou pela descrição.</div></div>
               </div>
-              <div class="field"><label for="s-nbs-search">Código NBS <span class="required-mark">*</span></label><div class="input-action"><input id="s-nbs-search" class="inp" inputmode="numeric" placeholder="Código ou descrição NBS"><button class="btn btn-s" type="button" onclick="buscarNbsEmissao()">Buscar</button></div><select id="s-nbs" class="inp mono" required onchange="validarNbsDigitacao()"><option value="">Pesquise o catálogo NBS</option></select><div class="hint" id="s-nbs-hint">Selecione um NBS oficial pelo código ou pela descrição.</div></div>
               <div class="field">
                 <label for="s-desc">Descrição</label>
                 <textarea id="s-desc" class="inp" placeholder="Descreva o serviço prestado"></textarea>
               </div>
               <div class="row r2">
                 <div class="field mb0">
-                  <label for="s-val">Valor final da nota (R$)</label>
-                  <input id="s-val" class="inp num" value="0,00" readonly>
+                  <label for="s-val" id="s-val-label">Valor deste serviço (R$)</label>
+                  <input id="s-val" class="inp num" value="0,00" inputmode="decimal" oninput="atualizarValorServicoAtual()">
+                  <div class="hint" id="s-val-hint">Valor referente ao serviço descrito acima. Para lançar outro serviço, use "+ Novo serviço desta mesma natureza".</div>
+                  <button class="btn btn-s" type="button" id="s-add-same-nature" onclick="adicionarNovoServicoMesmaNatureza()">+ Novo serviço desta mesma natureza</button>
                 </div>
                 <div class="field mb0">
                   <label for="s-mun">Município de incidência</label>
@@ -360,22 +368,26 @@
           <div class="card">
             <div class="card-h emit-card-h"><div class="emit-card-title"><span class="emit-step">3</span><div><h2>Serviços nessa nota</h2><p>Adicione os valores que entram no total da NFS-e.</p></div></div><span class="pill p-gold right">Conferência</span></div>
             <div class="card-b">
-              <div class="row r2"><div class="field"><label for="s-base-val">Valor do serviço selecionado (R$)</label><div class="input-action"><input id="s-base-val" class="inp num" inputmode="decimal" value="0,00"><button class="btn btn-s" type="button" onclick="adicionarValorBaseComposicao()">Adicionar</button></div><div class="hint">Só entra no total depois de adicionado à lista abaixo.</div></div><div class="field"><label for="s-additional-service">Adicionar outro serviço cadastrado</label><div class="input-action"><select id="s-additional-service" class="inp"><option value="">Selecione um serviço adicional</option></select><button class="btn btn-s" type="button" onclick="adicionarLinhaComposicao()">Adicionar</button></div></div></div>
-              <div id="s-composition-lines" class="draft-list"></div>
-              <div class="commercial-summary"><b>Total calculado</b><b id="s-composition-total">R$ 0,00</b></div>
-              <div class="hint">Edite os valores diretamente nos itens, sem abrir outra tela. O total é recalculado na hora e só será enviado após sua confirmação.</div>
+              <div class="field"><label for="s-additional-service">Adicionar outro serviço cadastrado</label><div class="input-action"><select id="s-additional-service" class="inp"><option value="">Selecione um serviço adicional</option></select><button class="btn btn-s" type="button" onclick="adicionarLinhaComposicao()">Adicionar</button></div></div>
+              <div id="s-composition-detail" style="display:none">
+                <div id="s-composition-lines" class="draft-list"></div>
+                <div class="commercial-summary"><b>Total calculado</b><b id="s-composition-total">R$ 0,00</b></div>
+                <div class="hint">Edite os valores diretamente nos itens, sem abrir outra tela. O total é recalculado na hora e só será enviado após sua confirmação.</div>
+              </div>
+              <div class="hint" id="s-composition-empty-hint">Ainda não há outro serviço adicionado a esta nota.</div>
             </div>
           </div>
 
-          <div class="card">
+          <div class="card" id="s-specific-card">
             <div class="card-h emit-card-h"><div class="emit-card-title"><span class="emit-step">4</span><div><h2>Dados específicos</h2><p>CNO e evento aparecem somente quando exigidos pelo código.</p></div></div><span class="pill p-off right">Conforme o serviço</span></div>
             <div class="card-b"><input id="s-category" type="hidden" value="other"><div class="hint" id="s-category-display">Categoria detectada pelo código: Outro serviço.</div><div id="s-construction-fields" class="conditional-block"><div class="field"><label for="s-cno">CNO — Cadastro Nacional de Obras <span class="required-mark">*</span></label><input id="s-cno" class="inp mono" inputmode="numeric" maxlength="12" list="s-cno-options" placeholder="12 dígitos"><datalist id="s-cno-options"></datalist><div class="hint">Obrigatório para este código de construção civil. Sugestões do histórico do tomador aparecem aqui.</div></div></div><div id="s-event-fields" class="conditional-block"><div class="row r2"><div class="field"><label for="s-event-code">Código do evento <span class="required-mark">*</span></label><input id="s-event-code" class="inp" list="s-event-code-options" placeholder="Código ou referência do evento"><datalist id="s-event-code-options"></datalist></div><div class="field"><label for="s-event-location">Local do evento <span class="required-mark">*</span></label><input id="s-event-location" class="inp" list="s-event-location-options" placeholder="Endereço / local"><datalist id="s-event-location-options"></datalist></div></div></div></div>
           </div>
 
-          <div class="card">
+          <div class="card" id="s-ret-card">
             <div class="card-h emit-card-h"><div class="emit-card-title"><span class="emit-step">5</span><div><h2>Retenções</h2><p>Revise ISS, PIS/COFINS, CSLL, CP e IRRF antes do teste.</p></div></div></div>
             <div class="card-b">
-              <div class="hint" id="s-ret-lock-hint" style="display:none">Impostos travados conforme o cadastro do serviço em Meus Serviços. Para alterar, edite o cadastro do serviço.</div>
+              <div class="hint" id="s-ret-lock-hint" style="display:none">Impostos conforme o cadastro do serviço em Meus Serviços. <button class="btn btn-s" type="button" onclick="abrirGestaoServicoAtual()">Editar cadastro do serviço</button></div>
+              <div id="s-ret-fields">
               <div class="row r2">
                 <div class="field"><label for="s-trib-iss">Tributação do ISSQN</label><select id="s-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação de serviço</option><option value="4">4 — Não incidência</option></select></div>
                 <div class="field"><label for="s-ret-iss">Retenção do ISSQN</label><select id="s-ret-iss" class="inp" onchange="lerParametros()"><option value="1">1 — Não retido</option><option value="2">2 — Retido pelo tomador</option><option value="3">3 — Retido pelo intermediário</option></select></div>
@@ -386,6 +398,7 @@
               </div>
               <div class="tax-conditional" id="s-pis-cofins-fields"><div class="row r3"><div class="field"><label for="s-pc-base">Base PIS/COFINS (R$)</label><input id="s-pc-base" class="inp num" value="0,00" oninput="calcularPisCofins('s')"></div><div class="field"><label for="s-pis-rate">Alíquota PIS (%)</label><input id="s-pis-rate" class="inp num" value="0,00" oninput="calcularPisCofins('s')"></div><div class="field"><label for="s-cofins-rate">Alíquota COFINS (%)</label><input id="s-cofins-rate" class="inp num" value="0,00" oninput="calcularPisCofins('s')"></div></div><div class="row r3"><div class="field mb0"><label for="s-pis-amount">vPis (R$)</label><input id="s-pis-amount" class="inp num" value="0,00"></div><div class="field mb0"><label for="s-cofins-amount">vCofins (R$)</label><input id="s-cofins-amount" class="inp num" value="0,00"></div><div class="field mb0"><label for="s-ret-csll">vRetCSLL total (R$)</label><input id="s-ret-csll" class="inp num" value="0,00"><div class="hint">Total retido conforme o tipo selecionado.</div></div></div></div>
               <div class="row r2"><div class="field mb0"><label for="s-ret-cp">CP retida (R$)</label><input id="s-ret-cp" class="inp num" value="0,00"></div><div class="field mb0"><label for="s-ret-irrf">IRRF retido (R$)</label><input id="s-ret-irrf" class="inp num" value="0,00"></div></div>
+              </div>
             </div>
           </div>
 
@@ -1267,7 +1280,7 @@ function go(v,el){
   if(v==='servicos'){carregarPerfisServico();buscarCatalogoServico()}
   if(v==='ajuda'){helpRenderTopics();helpRenderFaq()}
   if(v==='master')carregarMaster();
-  if(v==='emitir'){carregarRascunhos();exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true)}
+  if(v==='emitir'){carregarRascunhos();exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true);atualizarResumoCtnNbs(perfisServico.find(profile=>profile.id===qs('#s-profile')?.value)||null)}
   if(v==='clientes')carregarClientesCadastro();
   if(v==='comercial'){renderEmpresaComercial();carregarComerciais();popularClientesComercial();carregarPerfisServico().then(popularServicosComercial);}
   if(v==='recebimentos')carregarRecebimentos();
@@ -1383,6 +1396,22 @@ function travarTomador(locked){
   });
   const hint=qs('#t-lock-hint');if(hint)hint.style.display=locked?'':'none';
   if(!locked)tomadorTravadoDoc='';
+  atualizarResumoEnderecoTomador();
+  const block=qs('#t-address-block'),toggle=qs('#t-address-toggle');
+  if(block)block.style.display=locked?'none':'';
+  if(toggle)toggle.textContent=locked?'Mostrar endereço':'Ocultar endereço';
+}
+function alternarEnderecoTomador(){
+  const block=qs('#t-address-block'),toggle=qs('#t-address-toggle');if(!block||!toggle)return;
+  const abrir=block.style.display==='none';
+  block.style.display=abrir?'':'none';
+  toggle.textContent=abrir?'Ocultar endereço':'Mostrar endereço';
+}
+function atualizarResumoEnderecoTomador(){
+  const el=qs('#t-address-summary');if(!el)return;
+  const linha1=[qs('#t-end')?.value,qs('#t-num')?.value].filter(Boolean).join(', ');
+  const linha2=[qs('#t-bairro')?.value,[qs('#t-cidade')?.value,qs('#t-uf')?.value].filter(Boolean).join('/')].filter(Boolean).join(' — ');
+  el.textContent=[linha1,linha2].filter(Boolean).join(' · ')||'Endereço ainda não informado.';
 }
 function preencherCliente(cliente){
   clienteAtualEmissao=cliente?.id?cliente:null;
@@ -1598,24 +1627,46 @@ function popularServicosAdicionais(){
 function lineTotalComposicao(item){return Number(((Number(item.quantity)||0)*(Number(item.unitAmount)||0)).toFixed(2))}
 function renderComposicao(){
   const box=qs('#s-composition-lines');if(!box)return;
-  box.innerHTML=composicaoItens.length?composicaoItens.map((item,index)=>`<div class="draft-item comp-line-single"><span class="comp-desc" title="${esc(item.description)}">${esc(item.description)}</span><input class="inp num" inputmode="decimal" value="${Number(item.quantity||0).toLocaleString('pt-BR',{maximumFractionDigits:3})}" oninput="editarQtdComposicao(${index},this.value)" aria-label="Quantidade de ${esc(item.description)}"><input class="inp num" inputmode="decimal" value="${Number(item.unitAmount||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}" oninput="editarUnitComposicao(${index},this.value)" aria-label="Valor unitário de ${esc(item.description)}"><span class="comp-line-total" id="comp-lt-${index}">R$ ${brl(lineTotalComposicao(item))}</span><button class="ico-btn danger" type="button" title="Remover" onclick="removerLinhaComposicao(${index})">×</button></div>`).join(''):'<div class="empty-state">Nenhum serviço adicionado. Informe o valor acima e clique em Adicionar.</div>';
+  box.innerHTML=composicaoItens.length?composicaoItens.map((item,index)=>`<div class="draft-item comp-line-single"><span class="comp-desc" title="${esc(item.description)}">${esc(item.description)}</span><input class="inp num" inputmode="decimal" value="${Number(item.quantity||0).toLocaleString('pt-BR',{maximumFractionDigits:3})}" oninput="editarQtdComposicao(${index},this.value)" aria-label="Quantidade de ${esc(item.description)}"><input class="inp num" inputmode="decimal" value="${Number(item.unitAmount||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}" oninput="editarUnitComposicao(${index},this.value)" aria-label="Valor unitário de ${esc(item.description)}"><span class="comp-line-total" id="comp-lt-${index}">R$ ${brl(lineTotalComposicao(item))}</span><button class="ico-btn danger" type="button" title="Remover" onclick="removerLinhaComposicao(${index})">×</button></div>`).join(''):'<div class="empty-state">Nenhum serviço adicional nesta nota.</div>';
 }
 function atualizarTotaisComposicao(){
   let soma=0;
   composicaoItens.forEach((item,i)=>{const lt=lineTotalComposicao(item);soma+=lt;const el=qs('#comp-lt-'+i);if(el)el.textContent='R$ '+brl(lt)});
   const total=soma;
-  if(qs('#s-val'))qs('#s-val').value=total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const campoValor=qs('#s-val');
+  if(campoValor&&document.activeElement!==campoValor)campoValor.value=total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   if(qs('#s-composition-total'))qs('#s-composition-total').textContent=`R$ ${brl(total)}`;
   if(qs('#emit-side-total'))qs('#emit-side-total').textContent=`R$ ${brl(total)}`;
   lerParametros();
 }
-function atualizarComposicao(){renderComposicao();atualizarTotaisComposicao();}
-function adicionarValorBaseComposicao(){
-  const amount=dinheiro(qs('#s-base-val')?.value)||0;
-  if(amount<=0){alert('Informe um valor maior que zero para adicionar à lista.');return}
+function atualizarModoValorServico(){
+  const campo=qs('#s-val'),label=qs('#s-val-label'),hint=qs('#s-val-hint');
+  const multi=composicaoItens.length>1;
+  if(campo)campo.readOnly=multi;
+  if(label)label.textContent=multi?'Total desta nota (R$)':'Valor deste serviço (R$)';
+  if(hint)hint.textContent=multi?'Soma dos serviços listados em "Serviços nessa nota" — edite cada linha lá.':'Valor referente ao serviço descrito acima. Para lançar outro serviço, use "+ Novo serviço desta mesma natureza".';
+  const detail=qs('#s-composition-detail'),emptyHint=qs('#s-composition-empty-hint');
+  if(detail)detail.style.display=multi?'':'none';
+  if(emptyHint)emptyHint.style.display=multi?'none':'';
+}
+function atualizarComposicao(){renderComposicao();atualizarTotaisComposicao();atualizarModoValorServico();}
+function atualizarValorServicoAtual(){
+  if(composicaoItens.length>1)return;
+  const amount=dinheiro(qs('#s-val')?.value)||0;
   const description=qs('#s-desc')?.value.trim()||'Serviço selecionado';
-  composicaoItens.push({description,quantity:1,unitAmount:Number(amount.toFixed(2)),profileId:qs('#s-profile')?.value||undefined,ctn:qs('#s-cod')?.value||undefined,nbs:qs('#s-nbs')?.value||undefined});
-  qs('#s-base-val').value='0,00';atualizarComposicao();
+  composicaoItens=amount>0?[{description,quantity:1,unitAmount:Number(amount.toFixed(2)),profileId:qs('#s-profile')?.value||undefined,ctn:qs('#s-cod')?.value||undefined,nbs:qs('#s-nbs')?.value||undefined}]:[];
+  renderComposicao();atualizarTotaisComposicao();
+}
+function adicionarNovoServicoMesmaNatureza(){
+  atualizarValorServicoAtual();
+  composicaoItens.push({description:qs('#s-desc')?.value.trim()||'Serviço adicional',quantity:1,unitAmount:0,profileId:qs('#s-profile')?.value||undefined,ctn:qs('#s-cod')?.value||undefined,nbs:qs('#s-nbs')?.value||undefined});
+  atualizarComposicao();
+  setTimeout(()=>{
+    const linhas=[...document.querySelectorAll('#s-composition-lines .comp-line-single')];
+    const campo=linhas[linhas.length-1]?.querySelectorAll('input.num')[1];
+    campo?.focus();campo?.select();
+    qs('#s-composition-detail')?.scrollIntoView({behavior:'smooth',block:'center'});
+  },50);
 }
 function adicionarLinhaComposicao(){
   const id=qs('#s-additional-service')?.value,service=perfisServico.find(item=>item.id===id);if(!service){alert('Selecione um serviço adicional cadastrado.');return}
@@ -1636,6 +1687,7 @@ function atualizarCamposEspeciais(){
   if(qs('#s-event-location'))qs('#s-event-location').required=event;
   const display=qs('#s-category-display');
   if(display)display.textContent=construction?'Categoria detectada pelo código: Construção civil (exige CNO).':event?'Categoria detectada pelo código: Evento (exige código e local do evento).':'Categoria detectada pelo código: Outro serviço.';
+  const card=qs('#s-specific-card');if(card)card.style.display=(construction||event)?'':'none';
 }
 function filtrarCtnEmissao(){
   const select=qs('#s-cod');if(!select)return;
@@ -1770,19 +1822,51 @@ function detectarServicoPorCodigo(){
 }
 function aplicarPerfilServico(){
   const item=perfisServico.find(profile=>profile.id===qs('#s-profile').value);
-  if(!item){travarRetencoes(true);return}
+  if(!item){travarRetencoes(true);atualizarResumoCtnNbs(null);return}
   qs('#s-cod').value=item.national_code;definirNbsSelecionado('s-nbs',item.nbs_code,item.name);qs('#s-desc').value=item.description;qs('#s-trib-iss').value=item.iss_taxation;qs('#s-ret-iss').value=item.iss_withholding;qs('#s-cst').value=item.pis_cofins_cst||'';qs('#s-ret-pc').value=item.pis_cofins_withholding||'';
-  composicaoItens=[];qs('#s-base-val').value=Number(item.default_amount||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});qs('#s-pc-base').value=String(item.pis_cofins_base||0).replace('.',',');qs('#s-pis-rate').value=String(item.pis_rate||0).replace('.',',');qs('#s-cofins-rate').value=String(item.cofins_rate||0).replace('.',',');qs('#s-pis-amount').value=String(item.pis_amount||0).replace('.',',');qs('#s-cofins-amount').value=String(item.cofins_amount||0).replace('.',',');
+  const valorPadrao=Number(item.default_amount||0);
+  composicaoItens=valorPadrao>0?[{description:item.description,quantity:1,unitAmount:valorPadrao,profileId:item.id,ctn:item.national_code,nbs:item.nbs_code}]:[];
+  qs('#s-pc-base').value=String(item.pis_cofins_base||0).replace('.',',');qs('#s-pis-rate').value=String(item.pis_rate||0).replace('.',',');qs('#s-cofins-rate').value=String(item.cofins_rate||0).replace('.',',');qs('#s-pis-amount').value=String(item.pis_amount||0).replace('.',',');qs('#s-cofins-amount').value=String(item.cofins_amount||0).replace('.',',');
   qs('#s-ret-cp').value=String(item.ret_cp||0).replace('.',',');qs('#s-ret-irrf').value=String(item.ret_irrf||0).replace('.',',');qs('#s-ret-csll').value=String(item.ret_csll||0).replace('.',',');lerParametros();
-  atualizarRetencaoPisCofins('s');atualizarComposicao();atualizarCamposEspeciais();travarRetencoes(true);
+  atualizarRetencaoPisCofins('s');atualizarComposicao();atualizarCamposEspeciais();travarRetencoes(true);atualizarResumoCtnNbs(item);
 }
+function atualizarResumoCtnNbs(item){
+  const block=qs('#s-ctn-nbs-block'),summary=qs('#s-ctn-nbs-summary');if(!block||!summary)return;
+  if(item){
+    const nbsSel=qs('#s-nbs'),nbsTexto=nbsSel?.options[nbsSel.selectedIndex]?.textContent||item.nbs_code||'';
+    block.style.display='none';
+    summary.style.display='';
+    summary.innerHTML=`CTN ${esc(item.national_code||'')} · NBS ${esc(nbsTexto)} — definidos no cadastro do serviço "${esc(item.name)}". <button class="btn btn-s" type="button" onclick="abrirGestaoServicoAtual()">Editar cadastro do serviço</button>`;
+  }else{
+    block.style.display='';
+    summary.style.display='none';
+  }
+}
+function abrirGestaoServicoAtual(){
+  const id=qs('#s-profile')?.value,index=perfisServico.findIndex(profile=>profile.id===id);
+  go('servicos',qs('.sb-link[onclick*="servicos"]'));
+  if(index>=0)setTimeout(()=>{editarPerfilServico(index);qs('#svc-form-title')?.scrollIntoView({behavior:'smooth',block:'center'})},80);
+}
+function resumoOpcaoTexto(selectId){const el=qs('#'+selectId);if(!el)return'';const opt=el.options[el.selectedIndex];return opt?opt.textContent.replace(/^\d+\s*—\s*/,''):''}
 const CAMPOS_RETENCOES_TRAVAVEIS=['s-trib-iss','s-ret-iss','s-cst','s-ret-pc','s-pc-base','s-pis-rate','s-cofins-rate','s-pis-amount','s-cofins-amount','s-ret-cp','s-ret-irrf','s-ret-csll'];
+function semRetencaoAplicavel(){
+  const retIss=qs('#s-ret-iss')?.value||'1',retPc=qs('#s-ret-pc')?.value||'';
+  const cp=dinheiro(qs('#s-ret-cp')?.value),irrf=dinheiro(qs('#s-ret-irrf')?.value),csll=dinheiro(qs('#s-ret-csll')?.value);
+  return retIss==='1'&&(retPc===''||retPc==='0')&&cp===0&&irrf===0&&csll===0;
+}
 function travarRetencoes(locked){
   CAMPOS_RETENCOES_TRAVAVEIS.forEach(id=>{
     const el=qs('#'+id);if(!el)return;
     if(el.tagName==='SELECT')el.disabled=locked;else el.readOnly=locked;
   });
-  const hint=qs('#s-ret-lock-hint');if(hint)hint.style.display=locked?'':'none';
+  const hint=qs('#s-ret-lock-hint'),fields=qs('#s-ret-fields'),card=qs('#s-ret-card');
+  if(fields)fields.style.display=locked?'none':'';
+  const semRetencao=locked&&semRetencaoAplicavel();
+  if(card)card.style.display=semRetencao?'none':'';
+  if(hint){
+    hint.style.display=locked?'':'none';
+    if(locked)hint.innerHTML=`Impostos aplicados a esta nota: ISSQN ${esc(resumoOpcaoTexto('s-trib-iss'))}, ${esc(resumoOpcaoTexto('s-ret-iss'))}. <button class="btn btn-s" type="button" onclick="abrirGestaoServicoAtual()">Editar cadastro do serviço</button>`;
+  }
 }
 
 async function carregarCertificado(){
@@ -2107,10 +2191,8 @@ async function emitir(){
   const tipoPisCofins=qs('#s-ret-pc').value;
   const retevePisCofins=tipoPisCofins!==''&&tipoPisCofins!=='0';
   const additionalItems=composicaoItens.map(item=>({description:item.description,quantity:Number(item.quantity||0),unitAmount:Number(item.unitAmount||0),amount:Number(((Number(item.quantity)||0)*(Number(item.unitAmount)||0)).toFixed(2))}));
-  const pendenteBase=dinheiro(qs('#s-base-val')?.value)||0;
-  if(pendenteBase>0){alert('Você informou um valor em "Valor do serviço selecionado" mas não clicou em Adicionar. Adicione a linha à lista ou zere o campo antes de emitir.');qs('#s-base-val')?.focus();return}
   if(additionalItems.some(item=>item.quantity<=0||item.unitAmount<=0)){alert('Cada linha de Serviços nessa nota precisa de quantidade e valor unitário maiores que zero — ou remova a linha.');qs('#s-composition-lines')?.scrollIntoView({behavior:'smooth',block:'center'});return}
-  if(!additionalItems.length){alert('Adicione ao menos um serviço à lista em "Serviços nessa nota".');qs('#s-base-val')?.focus();return}
+  if(!additionalItems.length){alert('Informe o valor deste serviço antes de emitir.');qs('#s-val')?.focus();return}
   const payload={
     competenceDate:qs('#s-comp').value,
     borrower:{name:qs('#t-nome').value.trim(),taxId:qs('#t-doc').value,email:qs('#t-mail').value.trim()||undefined,municipalityCode:qs('#t-municipio').value.replace(/\D/g,'')||undefined,postalCode:qs('#t-cep').value.replace(/\D/g,'')||undefined,street:qs('#t-end').value.trim()||undefined,number:qs('#t-num').value.trim()||undefined,district:qs('#t-bairro').value.trim()||undefined,city:qs('#t-cidade').value.trim()||undefined,state:qs('#t-uf').value.trim().toUpperCase()||undefined},
@@ -2176,8 +2258,8 @@ async function emitir(){
 }
 
 /* ---------- rascunhos de emissão ---------- */
-function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{name:qs('#t-nome').value,taxId:qs('#t-doc').value,email:qs('#t-mail').value,phone:qs('#t-zap').value,municipalityCode:qs('#t-municipio').value,postalCode:qs('#t-cep').value,street:qs('#t-end').value,number:qs('#t-num').value,district:qs('#t-bairro').value,complement:qs('#t-comp').value,city:qs('#t-cidade').value,state:qs('#t-uf').value},service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,nbsCode:qs('#s-nbs').value,description:qs('#s-desc').value,amount:qs('#s-val').value,baseAmount:qs('#s-base-val')?.value||'0,00',additionalItems:composicaoItens,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value,eventCode:qs('#s-event-code')?.value,eventLocation:qs('#s-event-location')?.value,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,pisCofinsCst:qs('#s-cst').value,pisCofinsWithholding:qs('#s-ret-pc').value,pisCofinsBase:qs('#s-pc-base').value,pisRate:qs('#s-pis-rate').value,cofinsRate:qs('#s-cofins-rate').value,pisAmount:qs('#s-pis-amount').value,cofinsAmount:qs('#s-cofins-amount').value,retCp:qs('#s-ret-cp').value,retIrrf:qs('#s-ret-irrf').value,retCsll:qs('#s-ret-csll').value}}}
-function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-cidade').value=b.city||'';qs('#t-uf').value=b.state||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';composicaoItens=Array.isArray(s.additionalItems)?s.additionalItems.map(item=>({description:item.description,quantity:Number(item.quantity??1),unitAmount:Number(item.unitAmount??item.amount??0),profileId:item.profileId,ctn:item.ctn,nbs:item.nbs})):[];qs('#s-base-val').value=s.baseAmount||s.amount||'0,00';qs('#s-category').value=s.serviceCategory||'other';qs('#s-cno').value=s.cno||'';qs('#s-event-code').value=s.eventCode||'';qs('#s-event-location').value=s.eventLocation||'';atualizarCamposEspeciais();atualizarComposicao();qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');travarRetencoes(true);lerParametros();completarCadastroRascunho();}
+function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{name:qs('#t-nome').value,taxId:qs('#t-doc').value,email:qs('#t-mail').value,phone:qs('#t-zap').value,municipalityCode:qs('#t-municipio').value,postalCode:qs('#t-cep').value,street:qs('#t-end').value,number:qs('#t-num').value,district:qs('#t-bairro').value,complement:qs('#t-comp').value,city:qs('#t-cidade').value,state:qs('#t-uf').value},service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,nbsCode:qs('#s-nbs').value,description:qs('#s-desc').value,amount:qs('#s-val').value,additionalItems:composicaoItens,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value,eventCode:qs('#s-event-code')?.value,eventLocation:qs('#s-event-location')?.value,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,pisCofinsCst:qs('#s-cst').value,pisCofinsWithholding:qs('#s-ret-pc').value,pisCofinsBase:qs('#s-pc-base').value,pisRate:qs('#s-pis-rate').value,cofinsRate:qs('#s-cofins-rate').value,pisAmount:qs('#s-pis-amount').value,cofinsAmount:qs('#s-cofins-amount').value,retCp:qs('#s-ret-cp').value,retIrrf:qs('#s-ret-irrf').value,retCsll:qs('#s-ret-csll').value}}}
+function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-cidade').value=b.city||'';qs('#t-uf').value=b.state||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';composicaoItens=Array.isArray(s.additionalItems)?s.additionalItems.map(item=>({description:item.description,quantity:Number(item.quantity??1),unitAmount:Number(item.unitAmount??item.amount??0),profileId:item.profileId,ctn:item.ctn,nbs:item.nbs})):[];qs('#s-category').value=s.serviceCategory||'other';qs('#s-cno').value=s.cno||'';qs('#s-event-code').value=s.eventCode||'';qs('#s-event-location').value=s.eventLocation||'';atualizarCamposEspeciais();atualizarComposicao();qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');travarRetencoes(true);lerParametros();completarCadastroRascunho();}
 let rascunhos=[];
 async function carregarRascunhos(){try{rascunhos=await api('/api/workspace/drafts');const box=qs('#draft-list');box.innerHTML=rascunhos.length?rascunhos.map((item,index)=>`<div class="draft-item"><b>${esc(item.title)}</b><span>${new Date(item.updated_at).toLocaleString('pt-BR')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="abrirRascunho(${index})">Abrir</button><button class="ico-btn danger" title="Excluir" onclick="excluirRascunho('${item.id}')">×</button></div></div>`).join(''):'<div class="empty-state">Nenhum rascunho salvo.</div>'}catch(error){qs('#draft-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
 async function salvarRascunho(){const title=await titanPrompt('Nome do rascunho',qs('#t-nome').value?`NFS-e — ${qs('#t-nome').value}`:'Nova NFS-e','Salvar rascunho');if(!title)return;try{await api('/api/workspace/drafts',{method:'POST',body:JSON.stringify({title,payload:dadosRascunho()})});await carregarRascunhos()}catch(error){alert(error.message)}}
@@ -2392,7 +2474,6 @@ async function converterComercial(index){
       if(first.nationalTaxCode)definirNbsSelecionado('s-cod',first.nationalTaxCode,first.descricoes[0]||'');
       definirNbsSelecionado('s-nbs',first.nbsCode);
       qs('#s-desc').value=first.descricoes.join('; ');
-      qs('#s-base-val').value='0,00';
       composicaoItens=first.lines.map(l=>({description:l.description,quantity:l.quantity,unitAmount:l.unitAmount,profileId:l.profileId,ctn:l.ctn,nbs:l.nbs}));
       atualizarComposicao();atualizarCamposEspeciais();
     }
