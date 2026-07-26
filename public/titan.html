@@ -1976,15 +1976,15 @@ function tabelas(){
     return;
   }
   qs('#ult').innerHTML=notas.slice(0,5).map(x=>`
-    <tr><td class="num">${x.d}</td><td>${x.t}</td><td style="color:var(--ink-2)">${x.s}</td>
+    <tr><td class="num">${x.d}</td><td>${esc(x.t)}</td><td style="color:var(--ink-2)">${esc(x.s)}</td>
     <td class="r">${brl(x.v)}</td><td>${pill(x.st)}</td></tr>`).join('');
 
   qs('#tb-notas').innerHTML=notas.map(x=>`
     <tr>
-      <td class="mono" style="font-size:12px">${x.n}</td>
+      <td class="mono" style="font-size:12px">${esc(x.n)}</td>
       <td class="num">${x.d}</td>
-      <td>${x.t}</td>
-      <td style="color:var(--ink-2)">${x.s}</td>
+      <td>${esc(x.t)}</td>
+      <td style="color:var(--ink-2)">${esc(x.s)}</td>
       <td class="r">${brl(x.v)}</td>
       <td>${pill(x.st)}${x.emailSentAt?`<div class="foot-note">E-mail: ${esc(x.emailTo||'enviado')} · ${esc(new Date(x.emailSentAt).toLocaleString('pt-BR'))}${x.emailProviderId?` · ID ${esc(x.emailProviderId)}`:''}</div>`:x.emailLastError?`<div class="foot-note" style="color:#b91c1c">E-mail: ${esc(x.emailLastError)}</div>`:''}</td>
       <td>

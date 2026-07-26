@@ -80,8 +80,24 @@ const worker = {
       }, allowedWidths);
     }
 
-    return handler.fetch(request, env, ctx);
+    const response = await handler.fetch(request, env, ctx);
+    return withSecurityHeaders(response);
   },
 };
+
+// Cabeçalhos básicos contra clickjacking cross-site e MIME-sniffing. SAMEORIGIN
+// (não DENY): a própria página raiz embute /titan.html e /nfs.html num iframe
+// same-origin — DENY bloquearia o app inteiro de carregar. Sem CSP: o app usa
+// handlers inline (onclick=...) em toda a página, então uma CSP sem
+// 'unsafe-inline' quebraria a emissão inteira — fica de fora até uma
+// revisão dedicada disso.
+function withSecurityHeaders(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("X-Frame-Options", "SAMEORIGIN");
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
 
 export default worker;
