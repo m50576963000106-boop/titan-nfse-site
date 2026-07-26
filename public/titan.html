@@ -378,7 +378,7 @@
               <div class="hint" id="s-ret-lock-hint" style="display:none">Impostos travados conforme o cadastro do serviço em Meus Serviços. Para alterar, edite o cadastro do serviço.</div>
               <div class="row r2">
                 <div class="field"><label for="s-trib-iss">Tributação do ISSQN</label><select id="s-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação de serviço</option><option value="4">4 — Não incidência</option></select></div>
-                <div class="field"><label for="s-ret-iss">Retenção do ISSQN</label><select id="s-ret-iss" class="inp"><option value="1">1 — Não retido</option><option value="2">2 — Retido pelo tomador</option><option value="3">3 — Retido pelo intermediário</option></select></div>
+                <div class="field"><label for="s-ret-iss">Retenção do ISSQN</label><select id="s-ret-iss" class="inp" onchange="lerParametros()"><option value="1">1 — Não retido</option><option value="2">2 — Retido pelo tomador</option><option value="3">3 — Retido pelo intermediário</option></select></div>
               </div>
               <div class="row r2">
                 <div class="field"><label for="s-cst">CST PIS/COFINS</label><select id="s-cst" class="inp"><option value="">Não informar</option><option>01</option><option>02</option><option>03</option><option>04</option><option>06</option><option>07</option><option>08</option><option>09</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>60</option><option>61</option><option>62</option><option>63</option><option>64</option><option>65</option><option>66</option><option>67</option><option>70</option><option>71</option><option>72</option><option>73</option><option>74</option><option>75</option><option>98</option><option>99</option></select></div>
@@ -396,13 +396,11 @@
             </div>
             <div class="card-b" style="padding:10px 16px 16px">
               <div class="kv"><span>Valor do serviço</span><b id="resumo-valor">R$ 0,00</b></div>
-              <div class="kv"><span>Deduções / reduções</span><b>R$ 0,00</b></div>
               <div class="kv"><span>Base de cálculo do ISSQN</span><b id="resumo-base">R$ 0,00</b></div>
               <div class="kv"><span>Alíquota do ISSQN</span><b id="aliq">2,00% <span class="pill p-off" style="margin-left:5px">municipal</span></b></div>
               <div class="kv"><span>Regime</span><b id="resumo-regime">Aguardando cadastro</b></div>
-              <div class="kv"><span>ISSQN a recolher pela nota</span><b>R$ 0,00</b></div>
-              <div class="kv"><span>Retenção na fonte</span><b>Não</b></div>
-              <div class="card" style="margin-top:12px;border:1px solid var(--line);box-shadow:none"><div class="card-h"><h3>Reforma tributária — IBS/CBS</h3><span class="pill p-gold right">Teste</span></div><div class="card-b"><div class="row r2"><div class="field mb0"><label for="s-ibs-rate">Alíquota IBS</label><input id="s-ibs-rate" class="inp num" value="0,15" inputmode="decimal"></div><div class="field mb0"><label for="s-cbs-rate">Alíquota CBS</label><input id="s-cbs-rate" class="inp num" value="0,15" inputmode="decimal"></div></div><div class="hint">Campos de preparação para a regulamentação IBS/CBS; o XML permanece limitado ao leiaute nacional vigente.</div></div></div>
+              <div class="kv"><span>ISSQN a recolher pela nota</span><b id="resumo-issqn">Confirmado pela Sefin no envio</b></div>
+              <div class="kv"><span>Retenção na fonte</span><b id="resumo-retencao">Não</b></div>
             </div>
           </div>
 
@@ -2017,11 +2015,20 @@ qs('#cancel-modal').addEventListener('click',event=>{if(event.target===qs('#canc
 /* ---------- parâmetros municipais ---------- */
 function lerParametros(){
   const profile=perfisServico.find(item=>item.id===qs('#s-profile').value);
-  const a=profile?.iss_rate!=null?Number(profile.iss_rate).toLocaleString('pt-BR',{minimumFractionDigits:2})+'%':'Fornecida pela Sefin';
+  const rate=profile?.iss_rate!=null?Number(profile.iss_rate):null;
+  const a=rate!=null?rate.toLocaleString('pt-BR',{minimumFractionDigits:2})+'%':'Fornecida pela Sefin';
   qs('#aliq').innerHTML=`${a} <span class="pill p-off" style="margin-left:5px">municipal</span>`;
   const valor=qs('#s-val').value.replace(/[^\d,]/g,'')||'0,00';
   qs('#resumo-valor').textContent='R$ '+valor;
   qs('#resumo-base').textContent='R$ '+valor;
+  const retIss=qs('#s-ret-iss')?.value;
+  const retencaoLabel=retIss==='2'?'Sim — retido pelo tomador':retIss==='3'?'Sim — retido pelo intermediário':'Não';
+  if(qs('#resumo-retencao'))qs('#resumo-retencao').textContent=retencaoLabel;
+  if(qs('#resumo-issqn')){
+    if(retIss!=='1')qs('#resumo-issqn').textContent='Retido na fonte pelo responsável indicado acima';
+    else if(rate!=null)qs('#resumo-issqn').textContent='R$ '+brl(dinheiro(valor)*rate/100);
+    else qs('#resumo-issqn').textContent='Confirmado pela Sefin no envio';
+  }
 }
 
 /* ---------- habilitação ---------- */
