@@ -474,20 +474,11 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .commercial-summary{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--ink-3)}
 .doc-number{font-family:var(--mono);font-size:10.5px;font-weight:700;background:#eceae3;padding:2px 6px;border-radius:4px;color:var(--ink-2)}
 .master-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.master-context{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:8px;align-items:end;margin-bottom:14px;padding:12px 14px;background:var(--navy);color:var(--cream);border-radius:var(--r)}
-.master-context .field{margin:0}.master-context label{color:#9dabc2}.master-context .inp{background:var(--navy-1);border-color:var(--line-dark);color:var(--cream)}
-.master-bottom-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:14px;align-items:start}
-.master-bottom-grid .card{min-width:0}
-.master-tabs{display:flex;gap:5px;margin-bottom:16px;padding:5px;background:#eceae3;border:1px solid var(--line);border-radius:9px;width:max-content;max-width:100%}
-.master-tab{padding:9px 16px;border-radius:7px;color:var(--ink-2);font-weight:650;font-size:12.5px}
-.master-tab:hover{background:rgba(255,255,255,.55)}
-.master-tab.active{background:var(--navy);color:var(--cream);box-shadow:0 4px 10px rgba(11,22,41,.12)}
 .master-panel{display:none}.master-panel.active{display:block}
-.master-tabs{display:none}
+.comm-tab-btn.on,.client-subtab-btn.on{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+.client-subtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.client-subtab-btn .pill{margin-left:6px;font-size:10px;vertical-align:middle}
 @media print{body.printing-master *{visibility:hidden!important}body.printing-master #v-master,body.printing-master #v-master #master-panel-clientes,body.printing-master #v-master #master-panel-clientes *{visibility:visible!important}body.printing-master #v-master{position:absolute;inset:0;margin:0;padding:20px}body.printing-master .sidebar,body.printing-master .topbar{display:none!important}body.printing-master #master-panel-clientes{display:block!important}.printing-master .card-h button,.printing-master .card-h .flex{display:none!important}}
-.master-company-box{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:16px;padding:16px 18px;background:var(--navy);color:var(--cream);border-radius:10px}
-.master-company-copy{min-width:0}.master-company-copy b,.master-company-copy span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.master-company-copy span{margin-top:4px;color:#9dabc2;font-size:11px}
-.master-company-box .btn{flex:none}
 .tax-conditional{display:none;margin-top:2px;padding:13px;border:1px solid #e8d9b0;border-radius:8px;background:#fdfaf2}
 .tax-conditional.on{display:block}
 .table-wrap{overflow:auto}
