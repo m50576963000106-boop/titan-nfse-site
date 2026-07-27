@@ -418,3 +418,30 @@ test("menu lateral no mobile fecha ao tocar fora, no Escape e ao escolher item",
   const masterTabFn=html.match(/function masterTab\(tab,button\)\{[\s\S]*?\n\}/)[0];
   assert.match(masterTabFn,/fecharMenuLateral\(\)/);
 });
+
+test("portal expoe manifest e icones proprios para instalacao e empacotamento",async()=>{
+  const manifest=JSON.parse(await readFile(resolve(root,"public/manifest.webmanifest"),"utf8"));
+  const layout=await readFile(resolve(root,"app/layout.tsx"),"utf8");
+  const headers=await readFile(resolve(root,"public/_headers"),"utf8");
+
+  // criterios que o Chrome exige para considerar o site instalavel
+  assert.equal(manifest.display,"standalone");
+  assert.equal(manifest.start_url,"/");
+  assert.equal(manifest.scope,"/");
+  assert.ok(manifest.name&&manifest.short_name);
+  assert.equal(manifest.background_color,"#0b1629");
+  assert.equal(manifest.theme_color,"#0b1629");
+  const tamanhos=manifest.icons.map(i=>i.sizes);
+  assert.ok(tamanhos.includes("192x192"),"falta o icone 192x192");
+  assert.ok(tamanhos.includes("512x512"),"falta o icone 512x512");
+  assert.ok(manifest.icons.some(i=>String(i.purpose||"").split(" ").includes("maskable")),"falta icone maskable");
+
+  assert.match(layout,/manifest: "\/manifest\.webmanifest"/);
+  assert.match(layout,/themeColor: "#0b1629"/);
+  assert.match(layout,/apple: "\/icons\/apple-touch-icon\.png"/);
+
+  // o _headers do repo substitui o que o vinext gera, entao a regra de cache
+  // imutavel dos assets com hash precisa continuar declarada aqui
+  assert.match(headers,/\/manifest\.webmanifest\n {2}Content-Type: application\/manifest\+json/);
+  assert.match(headers,/\/assets\/\*\n {2}Cache-Control: public, max-age=31536000, immutable/);
+});

@@ -17,8 +17,14 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase,
     title,
     description,
+    // O manifest e os ícones abaixo são o que permite instalar o portal na tela
+    // inicial e, mais adiante, empacotá-lo como app Android (TWA).
+    manifest: "/manifest.webmanifest",
+    applicationName: "TITAN NFS-e",
+    appleWebApp: { capable: true, title: "TITAN NFS-e", statusBarStyle: "black-translucent" },
     icons: {
       icon: "/favicon.svg",
+      apple: "/icons/apple-touch-icon.png",
     },
     openGraph: {
       title,
@@ -33,6 +39,10 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 }
+
+export const viewport = {
+  themeColor: "#0b1629",
+};
 
 export default function RootLayout({
   children,

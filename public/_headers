@@ -1,0 +1,12 @@
+# Este arquivo substitui o _headers que o vinext gera sozinho, então a regra
+# de cache dos assets com hash no nome precisa continuar aqui embaixo.
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: public, max-age=3600
+
+/icons/*
+  Cache-Control: public, max-age=604800
+
+# Cache content-hashed assets immutably (originalmente gerado pelo vinext)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
