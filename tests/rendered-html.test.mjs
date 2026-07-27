@@ -445,3 +445,30 @@ test("portal expoe manifest e icones proprios para instalacao e empacotamento",a
   assert.match(headers,/\/manifest\.webmanifest\n {2}Content-Type: application\/manifest\+json/);
   assert.match(headers,/\/assets\/\*\n {2}Cache-Control: public, max-age=31536000, immutable/);
 });
+
+test("publica Termos de Uso e Política de Privacidade em rotas próprias",async()=>{
+  const privacidade=await readFile(resolve(root,"app/privacidade/page.tsx"),"utf8");
+  const termos=await readFile(resolve(root,"app/termos/page.tsx"),"utf8");
+  const css=await readFile(resolve(root,"app/globals.css"),"utf8");
+
+  // a rota catch-all faz notFound() fora da lista dela, entao estas paginas
+  // precisam existir como rotas proprias para nao caírem em 404
+  for (const [nome,pagina] of [["privacidade",privacidade],["termos",termos]]){
+    assert.match(pagina,/export const metadata/, `${nome}: falta metadata`);
+    assert.match(pagina,/TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA/, `${nome}: falta razão social`);
+    assert.match(pagina,/67\.261\.200\/0001-79/, `${nome}: falta CNPJ`);
+    assert.match(pagina,/nfse@titanbackoffice\.com\.br/, `${nome}: falta e-mail de contato`);
+    assert.match(pagina,/className="legal"/, `${nome}: falta o container rolável`);
+    assert.match(pagina,/<Link href="\/(termos|privacidade)">/, `${nome}: falta link cruzado`);
+  }
+  // exigencia do Art. 41 da LGPD: encarregado identificado publicamente
+  assert.match(privacidade,/Marlon Garcia Beira/);
+  assert.match(privacidade,/Art\. 41/);
+  // pontos que protegem a operacao em caso de disputa
+  assert.match(termos,/não presta consultoria fiscal ou\s+tributária/);
+  assert.match(termos,/ISS\s+municipal <b>não é calculado automaticamente<\/b>/);
+  assert.match(termos,/Limitação de responsabilidade/);
+  assert.match(termos,/Curitiba\/PR para dirimir controvérsias/);
+  // o body e overflow:hidden por causa do iframe; a rolagem vive no container
+  assert.match(css,/\.legal \{[\s\S]*?overflow-y: auto;/);
+});
