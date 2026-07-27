@@ -394,3 +394,27 @@ test("Master lista empresas suspensas em subtela propria com reativacao",async()
   assert.match(html,/empresasAdmin=\(companies\|\|\[\]\)\.filter\(c=>c\.emission_enabled\)\.map/);
   assert.match(css,/\.client-subtab-btn\.on/);
 });
+
+test("menu lateral no mobile fecha ao tocar fora, no Escape e ao escolher item",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  // O fundo escuro precisa ser um elemento de verdade: antes era um box-shadow
+  // de 100vmax, que pinta a tela mas nao recebe clique nenhum.
+  assert.match(html,/id="sb-backdrop"[^>]*onclick="fecharMenuLateral\(\)"/);
+  assert.doesNotMatch(css,/box-shadow:0 0 0 100vmax/);
+  assert.match(css,/\.sidebar-backdrop\{display:none\}/);
+  assert.match(css,/\.sidebar-backdrop\.on\{opacity:1;pointer-events:auto\}/);
+  // o burger passa pela funcao central, nao mais por um toggle solto
+  assert.match(html,/id="sb-burger"[^>]*onclick="alternarMenuLateral\(\)"/);
+  assert.match(html,/aria-controls="sb" aria-expanded="false"/);
+  assert.doesNotMatch(html,/getElementById\('sb'\)\.classList\.toggle\('open'\)/);
+  assert.match(html,/function alternarMenuLateral\(forcar\)/);
+  assert.match(html,/qs\('#sb-burger'\)\?\.setAttribute\('aria-expanded',String\(aberto\)\)/);
+  assert.match(html,/if\(event\.key==='Escape'&&qs\('#sb'\)\?\.classList\.contains\('open'\)\)fecharMenuLateral\(\)/);
+  // navegar por um item tambem fecha — vale para os dois menus:
+  // go() no portal do usuario e masterTab() no painel Adm. Sem o masterTab,
+  // no celular a gaveta ficava aberta por cima do painel recem-aberto.
+  assert.match(html,/fecharMenuLateral\(\);\n {2}window\.scrollTo\(0,0\)/);
+  const masterTabFn=html.match(/function masterTab\(tab,button\)\{[\s\S]*?\n\}/)[0];
+  assert.match(masterTabFn,/fecharMenuLateral\(\)/);
+});
