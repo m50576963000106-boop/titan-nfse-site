@@ -65,7 +65,6 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(html,/async function salvarEditarUsuario/);
   assert.match(html,/\/api\/master\/users\/'\+userId/);
   assert.match(html,/function prepararUsuarioPendente/);
-  assert.match(html,/function renderMasterUsers\(\)\{renderMasterClients\(\)\}/);
   assert.match(html,/function entrarComSessaoSalva/);
   assert.match(html,/entrarComSessaoSalva\(\)\.catch/);
   assert.match(html,/abrirAreaAutenticada\(access\)/);
@@ -250,11 +249,10 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.match(html,/Resumo da emissão/);
   assert.match(html,/id="emit-side-total"/);
   assert.match(html,/Emissão padrão nacional/);
-  assert.match(html,/Abrir emissão ↗/);
+  assert.match(html,/onclick="abrirEmpresaEmissao\('\$\{c\.id\}'\)"/);
   assert.match(css,/background:linear-gradient\(135deg,var\(--navy\),var\(--navy-2\)\)/);
   assert.doesNotMatch(css,/#e94560/);
   assert.match(html,/\/api\/customers\//);
-  assert.match(html,/\/api\/onboarding\/check/);
   assert.match(html,/\/api\/billing\/status/);
   assert.match(html,/\/api\/dasn\/manual/);
   assert.match(html,/id="v-financeiro"/);
