@@ -475,7 +475,9 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .doc-number{font-family:var(--mono);font-size:10.5px;font-weight:700;background:#eceae3;padding:2px 6px;border-radius:4px;color:var(--ink-2)}
 .master-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .master-panel{display:none}.master-panel.active{display:block}
-.comm-tab-btn.on{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+.comm-tab-btn.on,.client-subtab-btn.on{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+.client-subtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.client-subtab-btn .pill{margin-left:6px;font-size:10px;vertical-align:middle}
 @media print{body.printing-master *{visibility:hidden!important}body.printing-master #v-master,body.printing-master #v-master #master-panel-clientes,body.printing-master #v-master #master-panel-clientes *{visibility:visible!important}body.printing-master #v-master{position:absolute;inset:0;margin:0;padding:20px}body.printing-master .sidebar,body.printing-master .topbar{display:none!important}body.printing-master #master-panel-clientes{display:block!important}.printing-master .card-h button,.printing-master .card-h .flex{display:none!important}}
 .tax-conditional{display:none;margin-top:2px;padding:13px;border:1px solid #e8d9b0;border-radius:8px;background:#fdfaf2}
 .tax-conditional.on{display:block}

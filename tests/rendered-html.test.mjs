@@ -374,3 +374,23 @@ test("envia NFS-e por e-mail com copia cadastrada e reenvio manual",async()=>{
   assert.match(html,/ID \$\{esc\(x\.emailProviderId\)\}/);
   assert.match(html,/E-mail enviado para \$\{result\.to\}\$\{result\.providerId\?' · ID '\+result\.providerId:''\}/);
 });
+
+test("Master lista empresas suspensas em subtela propria com reativacao",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  // Suspender uma empresa nao pode mais fazer ela sumir da Gestao por CNPJ.
+  assert.match(html,/id="master-count-ativas"/);
+  assert.match(html,/id="master-count-suspensas"/);
+  assert.match(html,/id="master-suspended-note"/);
+  assert.match(html,/onclick="mostrarSubtelaClientes\('ativas',this\)"/);
+  assert.match(html,/onclick="mostrarSubtelaClientes\('suspensas',this\)"/);
+  assert.match(html,/function empresaSuspensa\(c\)\{return c\.emission_enabled===false\}/);
+  assert.match(html,/if\(masterClientView==='suspensas'\?!empresaSuspensa\(c\):empresaSuspensa\(c\)\)return false/);
+  assert.match(html,/async function reativarEmpresaMaster\(companyId\)/);
+  assert.match(html,/Reativar emissão<\/button>/);
+  assert.match(html,/titanConfirm\(`A emissão de NFS-e de \$\{nome\} será liberada de novo/);
+  assert.match(html,/emissionEnabled:true,implementationStatus:empresa\.implementation_status/);
+  // o seletor de empresas do admin continua listando apenas as liberadas
+  assert.match(html,/empresasAdmin=\(companies\|\|\[\]\)\.filter\(c=>c\.emission_enabled\)\.map/);
+  assert.match(css,/\.client-subtab-btn\.on/);
+});
