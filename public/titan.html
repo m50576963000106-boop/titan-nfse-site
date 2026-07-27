@@ -871,6 +871,98 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
 
       <div class="master-panel" id="master-panel-planos"><div class="card"><div class="card-h"><div><h3>Planos e categorias</h3><p>Defina nome, preço e limite de NFS-e autorizadas por mês.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="plan-code">Código</label><input id="plan-code" class="inp" placeholder="ex.: pro100"></div><div class="field"><label for="plan-name">Nome do plano</label><input id="plan-name" class="inp" placeholder="Plano Profissional"></div><div class="field"><label for="plan-price">Preço mensal (R$)</label><input id="plan-price" class="inp" inputmode="decimal" placeholder="99,90"></div><div class="field"><label for="plan-limit">Limite de notas / mês</label><input id="plan-limit" class="inp" type="number" min="1" placeholder="100"></div></div><div class="field"><label for="plan-description">Descrição</label><input id="plan-description" class="inp" placeholder="Resumo do que está incluído"></div><button class="btn btn-p" type="button" onclick="salvarPlanoMaster()">Salvar plano</button><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Plano</th><th>Preço</th><th>Limite</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-plans"></tbody></table></div></div></div>
         <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Configurações técnicas</h3><p>Credenciais e rotinas continuam protegidas nesta área do Master.</p></div></div><div class="card-b"><div class="section-title">Identidade visual do portal</div><div class="row r2"><div class="field"><label for="set-portal-logo">Logo principal do TITAN</label><input id="set-portal-logo" class="inp" type="file" accept="image/png,image/jpeg" onchange="prepararLogoPortalMaster(this)"><input id="set-portal-logo-data" type="hidden"><div class="hint">PNG ou JPEG até 1,8 MB. A logo aparece na página inicial, login e barra lateral.</div></div><div class="field"><label>Prévia</label><img id="set-portal-logo-preview" src="/titan-nfse-logo-transparent.png" alt="Prévia da logo do portal" style="display:block;max-width:260px;max-height:82px;border:1px solid var(--line);border-radius:6px;padding:4px;background:transparent"><button class="btn btn-s" type="button" style="margin-top:8px" onclick="limparLogoPortalMaster()">Usar logo padrão</button></div></div><div class="row r2"><div class="field"><label for="set-nubank-enabled">Nubank PJ</label><select id="set-nubank-enabled" class="inp"><option value="false">Desativado</option><option value="true">Ativado</option></select></div><div class="field"><label for="set-nubank-api">URL base da API</label><input id="set-nubank-api" class="inp" type="url" value="https://api.nubank.com.br"></div><div class="field"><label for="set-nubank-oauth">URL OAuth</label><input id="set-nubank-oauth" class="inp" type="url"></div><div class="field"><label for="set-nubank-id">Client ID</label><input id="set-nubank-id" class="inp"></div></div><div class="row r2"><div class="field"><label for="set-nubank-secret">Client secret</label><input id="set-nubank-secret" class="inp" type="password" placeholder="Deixe vazio para manter"></div><div class="field"><label for="set-nubank-webhook">Segredo webhook</label><input id="set-nubank-webhook" class="inp" type="password"></div><div class="field"><label for="set-accountant-enabled">Rotina do contador</label><select id="set-accountant-enabled" class="inp"><option value="false">Desativada</option><option value="true">Ativada</option></select></div><div class="field"><label for="set-accountant-webhook">Webhook de e-mail</label><input id="set-accountant-webhook" class="inp" type="url"></div></div><div class="section-title" style="margin-top:18px">Envio de NFS-e ao tomador</div><div class="hint">Use uma aplicação de produção no Google Cloud ou Microsoft Entra. O plugin conectado no Codex não é usado como credencial do site.</div><div class="row r2"><div class="field"><label for="set-invoice-email-provider">Provedor de e-mail</label><select id="set-invoice-email-provider" class="inp"><option value="disabled">Desativado</option><option value="gmail">Gmail / Google Workspace</option><option value="outlook">Outlook / Microsoft 365</option><option value="smtp">SMTP transacional</option></select></div><div class="field"><label for="set-invoice-email-from">E-mail remetente</label><input id="set-invoice-email-from" class="inp" type="email" placeholder="notas@empresa.com.br"></div><div class="field"><label for="set-invoice-email-reply">Responder para</label><input id="set-invoice-email-reply" class="inp" type="email" placeholder="financeiro@empresa.com.br"></div><div class="field"><label>Status da conexão</label><span id="master-invoice-email-state" class="pill p-off">Desativado</span></div></div><div class="row r2"><div class="field"><label for="set-gmail-client-id">Gmail Client ID</label><input id="set-gmail-client-id" class="inp" autocomplete="off"></div><div class="field"><label for="set-gmail-secret">Gmail Client secret</label><input id="set-gmail-secret" class="inp" type="password" placeholder="Deixe vazio para manter"></div><div class="field"><label for="set-gmail-refresh">Gmail refresh token</label><input id="set-gmail-refresh" class="inp" type="password" placeholder="Deixe vazio para manter"></div><div class="field"><label>Como configurar Gmail</label><div class="hint">Crie um app OAuth no Google Cloud, habilite Gmail API, autorize o escopo gmail.send e informe Client ID, secret e refresh token do remetente.</div></div></div><div class="row r2"><div class="field"><label for="set-outlook-tenant">Outlook Tenant ID</label><input id="set-outlook-tenant" class="inp" autocomplete="off"></div><div class="field"><label for="set-outlook-client-id">Outlook Client ID</label><input id="set-outlook-client-id" class="inp" autocomplete="off"></div><div class="field"><label for="set-outlook-secret">Outlook Client secret</label><input id="set-outlook-secret" class="inp" type="password" placeholder="Deixe vazio para manter"></div><div class="field"><label for="set-outlook-user">Mailbox / User ID</label><input id="set-outlook-user" class="inp" placeholder="notas@empresa.com.br"></div></div><div class="hint">No Microsoft Entra, registre o app, conceda Mail.Send no Microsoft Graph, gere o client secret e use a caixa remetente em Mailbox / User ID.</div><div class="section-title" style="margin-top:18px">Arquivo fiscal no Google Drive</div><div class="row r2"><div class="field"><label for="set-drive-enabled">Arquivar no Drive</label><select id="set-drive-enabled" class="inp"><option value="false">Desativado</option><option value="true">Ativado quando conectado</option></select></div><div class="field"><label for="set-drive-folder">ID da pasta Drive</label><input id="set-drive-folder" class="inp" placeholder="Folder ID"></div><div class="field"><label for="set-drive-service-email">Service account</label><input id="set-drive-service-email" class="inp" type="email" placeholder="conta@projeto.iam.gserviceaccount.com"></div><div class="field"><label>Status do Drive</label><span id="master-drive-state" class="pill p-off">Desativado</span></div></div><div class="field"><label for="set-drive-key">Chave JSON da service account</label><textarea id="set-drive-key" class="inp" rows="3" placeholder="Cole somente no ambiente seguro. Deixe vazio para manter a chave atual."></textarea><div class="hint">Compartilhe a pasta do Drive com o e-mail da service account. O TITAN guardará apenas IDs e indicadores públicos na tela.</div></div><div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarConfiguracoesMaster()">Salvar configurações</button><button class="btn btn-s" type="button" onclick="atualizarCatalogoMunicipiosMaster()">Atualizar municípios</button><span id="master-settings-status" class="foot-note"></span></div></div></div>
+
+        <div class="card" style="margin-top:16px" id="comm-settings-card">
+          <div class="card-h"><div><h3>Comunicação — WhatsApp e Martyn</h3><p>Número empresarial (BR DID), integração oficial com a Meta, atuação do assistente Martyn e o telefone pessoal de escalonamento. Segredos ficam no mesmo cofre criptografado das demais integrações.</p></div></div>
+          <div class="card-b">
+            <div class="flex wrap" style="gap:6px;margin-bottom:16px">
+              <button class="btn btn-s comm-tab-btn on" type="button" onclick="mostrarAbaComunicacao('numero',this)">Número empresarial</button>
+              <button class="btn btn-s comm-tab-btn" type="button" onclick="mostrarAbaComunicacao('meta',this)">WhatsApp Meta</button>
+              <button class="btn btn-s comm-tab-btn" type="button" onclick="mostrarAbaComunicacao('martyn',this)">Martyn</button>
+              <button class="btn btn-s comm-tab-btn" type="button" onclick="mostrarAbaComunicacao('escalonamento',this)">Escalonamento humano</button>
+            </div>
+
+            <div class="comm-tab-panel" id="comm-tab-numero">
+              <div class="row r2">
+                <div class="field"><label for="set-comm-provider">Prestador do número</label><select id="set-comm-provider" class="inp"><option value="BR DID">BR DID</option><option value="Outro">Outro</option></select></div>
+                <div class="field"><label for="set-comm-business-phone">Número empresarial</label><input id="set-comm-business-phone" class="inp" placeholder="+5541999999999"><div class="hint">Padrão internacional E.164.</div></div>
+                <div class="field"><label for="set-comm-phone-type">Tipo do número</label><select id="set-comm-phone-type" class="inp"><option value="fixo_virtual">Fixo virtual</option><option value="celular">Celular</option><option value="0800">0800</option></select></div>
+                <div class="field"><label for="set-comm-area-code">DDD</label><input id="set-comm-area-code" class="inp" maxlength="3" placeholder="41"></div>
+              </div>
+              <div class="row r2">
+                <div class="field"><label for="set-comm-phone-label">Identificação interna</label><input id="set-comm-phone-label" class="inp" placeholder="Atendimento ETHOS"></div>
+                <div class="field"><label for="set-comm-phone-enabled">Número ativo</label><select id="set-comm-phone-enabled" class="inp"><option value="false">Desativado</option><option value="true">Ativado</option></select></div>
+                <div class="field"><label for="set-comm-voice-calls">Receber chamadas</label><select id="set-comm-voice-calls" class="inp"><option value="true">Ativado</option><option value="false">Desativado</option></select></div>
+                <div class="field"><label for="set-comm-voice-forwarding">Encaminhamento de chamadas</label><select id="set-comm-voice-forwarding" class="inp" onchange="qs('#comm-voice-forwarding-phone-field').style.display=this.value==='true'?'':'none'"><option value="false">Desativado</option><option value="true">Ativado</option></select></div>
+              </div>
+              <div class="row r2" id="comm-voice-forwarding-phone-field" style="display:none">
+                <div class="field"><label for="set-comm-voice-forwarding-phone">Telefone de destino</label><input id="set-comm-voice-forwarding-phone" class="inp" placeholder="+5541999999999"><div class="hint">Pode ser diferente do telefone pessoal de alertas do Martyn (aba Escalonamento humano).</div></div>
+              </div>
+            </div>
+
+            <div class="comm-tab-panel" id="comm-tab-meta" style="display:none">
+              <div class="hint" style="margin-bottom:10px">O endpoint de webhook (validação e recebimento de mensagens da Meta) ainda não está publicado nesta fase — cadastre as credenciais aqui; a URL de webhook será informada quando o receptor entrar no ar.</div>
+              <div class="row r2">
+                <div class="field"><label for="set-wa-enabled">Integração WhatsApp (Meta)</label><select id="set-wa-enabled" class="inp"><option value="false">Desativada</option><option value="true">Ativada</option></select></div>
+                <div class="field"><label for="set-wa-display-name">Nome de exibição</label><input id="set-wa-display-name" class="inp" placeholder="TITAN NFS-e"></div>
+                <div class="field"><label for="set-wa-graph-version">Versão da Graph API</label><input id="set-wa-graph-version" class="inp" placeholder="v21.0"></div>
+                <div class="field"><label>Status</label><span id="master-whatsapp-state" class="pill p-off">Não configurado</span></div>
+              </div>
+              <div class="row r2">
+                <div class="field"><label for="set-wa-meta-business-id">Meta Business Account ID</label><input id="set-wa-meta-business-id" class="inp" autocomplete="off"></div>
+                <div class="field"><label for="set-wa-waba-id">WhatsApp Business Account ID</label><input id="set-wa-waba-id" class="inp" autocomplete="off"></div>
+                <div class="field"><label for="set-wa-phone-number-id">Phone Number ID</label><input id="set-wa-phone-number-id" class="inp" autocomplete="off"></div>
+                <div class="field"><label for="set-wa-app-id">Meta App ID</label><input id="set-wa-app-id" class="inp" autocomplete="off"></div>
+              </div>
+              <div class="row r2">
+                <div class="field"><label for="set-wa-access-token">Token de acesso</label><input id="set-wa-access-token" class="inp" type="password" placeholder="Deixe vazio para manter" autocomplete="off"></div>
+                <div class="field"><label for="set-wa-app-secret">App Secret</label><input id="set-wa-app-secret" class="inp" type="password" placeholder="Deixe vazio para manter" autocomplete="off"></div>
+                <div class="field"><label for="set-wa-verify-token">Webhook Verify Token</label><input id="set-wa-verify-token" class="inp" type="password" placeholder="Deixe vazio para manter" autocomplete="off"></div>
+              </div>
+              <div class="hint">Token, App Secret e Verify Token nunca são devolvidos pela API depois de salvos — só um indicador de "configurado".</div>
+            </div>
+
+            <div class="comm-tab-panel" id="comm-tab-martyn" style="display:none">
+              <div class="row r2">
+                <div class="field"><label for="set-martyn-wa-enabled">Martyn no WhatsApp</label><select id="set-martyn-wa-enabled" class="inp"><option value="false">Desativado</option><option value="true">Ativado</option></select></div>
+                <div class="field"><label for="set-martyn-mode">Modo de operação</label><select id="set-martyn-mode" class="inp"><option value="observar">Somente observar</option><option value="sugerir">Sugerir respostas</option><option value="automatico">Responder automaticamente</option><option value="automatico_escalonamento">Automático com escalonamento</option><option value="humano">Atendimento humano</option></select></div>
+                <div class="field"><label for="set-martyn-name">Nome apresentado</label><input id="set-martyn-name" class="inp" placeholder="Martyn"></div>
+                <div class="field"><label for="set-martyn-company">Empresa representada</label><input id="set-martyn-company" class="inp" placeholder="ETHOS AE"></div>
+              </div>
+              <div class="field"><label for="set-martyn-greeting">Apresentação inicial</label><textarea id="set-martyn-greeting" class="inp" rows="2" placeholder="Olá! Sou o Martyn, assistente virtual da ETHOS. Vou analisar sua solicitação e ajudar no que for possível. Quando necessário, acionarei um responsável da equipe."></textarea></div>
+              <div class="row r2">
+                <div class="field"><label for="set-martyn-tone">Tom de voz</label><input id="set-martyn-tone" class="inp" placeholder="Cordial, objetivo, direto"></div>
+                <div class="field"><label for="set-martyn-hours-start">Horário de atendimento — início</label><input id="set-martyn-hours-start" class="inp" type="time"></div>
+                <div class="field"><label for="set-martyn-hours-end">Horário de atendimento — fim</label><input id="set-martyn-hours-end" class="inp" type="time"></div>
+                <div class="field"><label for="set-martyn-max-attempts">Limite de tentativas</label><input id="set-martyn-max-attempts" class="inp" type="number" min="1" max="20" placeholder="3"></div>
+              </div>
+              <div class="field"><label for="set-martyn-out-of-hours">Mensagem fora do horário</label><textarea id="set-martyn-out-of-hours" class="inp" rows="2"></textarea></div>
+              <div class="row r2">
+                <div class="field"><label for="set-martyn-allowed">Assuntos autorizados</label><textarea id="set-martyn-allowed" class="inp" rows="2" placeholder="Um por linha"></textarea></div>
+                <div class="field"><label for="set-martyn-forbidden">Assuntos proibidos</label><textarea id="set-martyn-forbidden" class="inp" rows="2" placeholder="Um por linha"></textarea></div>
+              </div>
+              <div class="field"><label for="set-martyn-max-time">Tempo máximo sem solução (minutos)</label><input id="set-martyn-max-time" class="inp" type="number" min="1" max="1440" placeholder="15"><div class="hint">Passado esse tempo sem resolver, o Martyn deve escalar para o telefone pessoal (aba Escalonamento humano).</div></div>
+            </div>
+
+            <div class="comm-tab-panel" id="comm-tab-escalonamento" style="display:none">
+              <div class="hint" style="margin-bottom:10px">O telefone pessoal nunca é exposto ao cliente — serve só para o Martyn alertar, e para autorizar comandos (ASSUMIR, RESPONDER, ORIENTAR, ENCERRAR, LIGAR) quando a integração de mensageria estiver ativa.</div>
+              <div class="row r2">
+                <div class="field"><label for="set-support-phone">Telefone pessoal para alertas do Martyn</label><input id="set-support-phone" class="inp" placeholder="+5541988887777"><div class="hint">Telefone pessoal que recebe alertas do Martyn quando uma situação precisa de intervenção humana.</div></div>
+                <div class="field"><label for="set-support-phone-name">Responsável</label><input id="set-support-phone-name" class="inp" placeholder="Nome de quem recebe os alertas"></div>
+                <div class="field"><label for="set-support-wa-enabled">Receber alertas por WhatsApp</label><select id="set-support-wa-enabled" class="inp"><option value="true">Sim</option><option value="false">Não</option></select></div>
+                <div class="field"><label for="set-support-call-enabled">Receber ligação automática</label><select id="set-support-call-enabled" class="inp"><option value="false">Não</option><option value="true">Sim</option></select></div>
+              </div>
+              <div class="row r2">
+                <div class="field"><label for="set-support-alerts-enabled">Alertas do Martyn ativos</label><select id="set-support-alerts-enabled" class="inp"><option value="true">Ativado</option><option value="false">Desativado</option></select></div>
+                <div class="field"><label for="set-support-alert-start">Alertas a partir de</label><input id="set-support-alert-start" class="inp" type="time"></div>
+                <div class="field"><label for="set-support-alert-end">Alertas até</label><input id="set-support-alert-end" class="inp" type="time"></div>
+                <div class="field"><label for="set-support-emergency-override">Emergência fora do horário</label><select id="set-support-emergency-override" class="inp"><option value="true">Permitir</option><option value="false">Não permitir</option></select></div>
+              </div>
+            </div>
+
+            <div class="flex wrap" style="margin-top:16px"><button class="btn btn-p" type="button" onclick="salvarConfiguracoesMaster()">Salvar configurações</button><span id="master-comm-status" class="foot-note"></span></div>
+          </div>
+        </div>
       </div>
 
       <div class="master-panel" id="master-panel-logs"><div class="card"><div class="card-h"><div><h3>Logs de auditoria</h3><p>Histórico imutável de acessos, convites, permissões e operações fiscais.</p></div><button class="btn btn-s" type="button" onclick="exportarMasterLogs()">Exportar CSV</button></div><div class="card-b"><div class="row r3"><div class="field"><label for="master-log-from">De</label><input id="master-log-from" class="inp" type="date" onchange="carregarMasterLogs()"></div><div class="field"><label for="master-log-to">Até</label><input id="master-log-to" class="inp" type="date" onchange="carregarMasterLogs()"></div><div class="field"><label>&nbsp;</label><button class="btn btn-s" type="button" onclick="carregarMasterLogs()">Atualizar registros</button></div></div><div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Data</th><th>Ator</th><th>Ação</th><th>Recurso</th><th>Detalhes</th></tr></thead><tbody id="master-logs"><tr><td colspan="5">Selecione a aba para carregar.</td></tr></tbody></table></div></div></div></div>
@@ -2692,7 +2784,7 @@ function masterTab(tab,button){
   window.scrollTo(0,0);
 }
 async function carregarConfiguracoesMaster(){
-  const status=qs('#master-settings-status');if(status)status.textContent='Carregando...';
+  const status=qs('#master-settings-status'),commStatus=qs('#master-comm-status');if(status)status.textContent='Carregando...';if(commStatus)commStatus.textContent='Carregando...';
   try{
     const data=await api('/api/master/settings');
     qs('#set-nubank-enabled').value=String(Boolean(data.nubankEnabled));
@@ -2716,14 +2808,53 @@ async function carregarConfiguracoesMaster(){
     qs('#set-drive-key').value='';
     qs('#set-portal-logo-data').value=data.portalLogoDataUrl||'';
     aplicarLogoPortal(data.portalLogoDataUrl||'');
+    qs('#set-comm-provider').value=data.businessPhoneProvider||'BR DID';
+    qs('#set-comm-business-phone').value=data.businessPhone||'';
+    qs('#set-comm-phone-type').value=data.businessPhoneType||'fixo_virtual';
+    qs('#set-comm-area-code').value=data.businessPhoneAreaCode||'';
+    qs('#set-comm-phone-label').value=data.businessPhoneLabel||'';
+    qs('#set-comm-phone-enabled').value=String(Boolean(data.businessPhoneEnabled));
+    qs('#set-comm-voice-calls').value=String(data.voiceCallsEnabled!==false);
+    qs('#set-comm-voice-forwarding').value=String(Boolean(data.voiceForwardingEnabled));
+    qs('#set-comm-voice-forwarding-phone').value=data.voiceForwardingPhone||'';
+    qs('#comm-voice-forwarding-phone-field').style.display=data.voiceForwardingEnabled?'':'none';
+    qs('#set-wa-enabled').value=String(Boolean(data.whatsappEnabled));
+    qs('#set-wa-display-name').value=data.whatsappDisplayName||'';
+    qs('#set-wa-graph-version').value=data.metaGraphApiVersion||'v21.0';
+    qs('#set-wa-meta-business-id').value=data.metaBusinessId||'';
+    qs('#set-wa-waba-id').value=data.whatsappBusinessAccountId||'';
+    qs('#set-wa-phone-number-id').value=data.whatsappPhoneNumberId||'';
+    qs('#set-wa-app-id').value=data.metaAppId||'';
+    qs('#set-wa-access-token').value='';qs('#set-wa-app-secret').value='';qs('#set-wa-verify-token').value='';
+    qs('#set-martyn-wa-enabled').value=String(Boolean(data.martynWhatsAppEnabled));
+    qs('#set-martyn-mode').value=data.martynOperationMode||'automatico_escalonamento';
+    qs('#set-martyn-name').value=data.martynDisplayName||'Martyn';
+    qs('#set-martyn-company').value=data.martynRepresentedCompany||'';
+    qs('#set-martyn-greeting').value=data.martynGreeting||'';
+    qs('#set-martyn-tone').value=data.martynTone||'';
+    qs('#set-martyn-hours-start').value=data.martynBusinessHoursStart||'';
+    qs('#set-martyn-hours-end').value=data.martynBusinessHoursEnd||'';
+    qs('#set-martyn-max-attempts').value=data.martynMaxAttempts||3;
+    qs('#set-martyn-out-of-hours').value=data.martynOutOfHoursMessage||'';
+    qs('#set-martyn-allowed').value=data.martynAllowedTopics||'';
+    qs('#set-martyn-forbidden').value=data.martynForbiddenTopics||'';
+    qs('#set-martyn-max-time').value=data.martynMaxTimeMinutes||'';
+    qs('#set-support-phone').value=data.supportHelpPhone||'';
+    qs('#set-support-phone-name').value=data.supportHelpPhoneName||'';
+    qs('#set-support-wa-enabled').value=String(data.supportHelpWhatsAppEnabled!==false);
+    qs('#set-support-call-enabled').value=String(Boolean(data.supportHelpCallEnabled));
+    qs('#set-support-alerts-enabled').value=String(data.supportHelpAlertsEnabled!==false);
+    qs('#set-support-alert-start').value=data.supportHelpAlertStartTime||'';
+    qs('#set-support-alert-end').value=data.supportHelpAlertEndTime||'';
+    qs('#set-support-emergency-override').value=String(data.supportHelpEmergencyOverride!==false);
     const ns=qs('#master-nubank-state');if(ns){ns.textContent=data.nubankEnabled&&data.hasNubankClientSecret?'Configurado':'Não configurado';ns.className=`pill ${data.nubankEnabled&&data.hasNubankClientSecret?'p-ok':'p-off'}`}
     const as=qs('#master-accountant-state');if(as){as.textContent=data.accountantCronEnabled&&data.hasAccountantEmailWebhook?'Ativo':'Desativado';as.className=`pill ${data.accountantCronEnabled&&data.hasAccountantEmailWebhook?'p-ok':'p-off'}`}
     atualizarEstadosIntegracoes(data);
-    if(status)status.textContent='Configurações carregadas.';
-  }catch(error){if(status)status.textContent=error.message}
+    if(status)status.textContent='Configurações carregadas.';if(commStatus)commStatus.textContent='Configurações carregadas.';
+  }catch(error){if(status)status.textContent=error.message;if(commStatus)commStatus.textContent=error.message}
 }
 async function salvarConfiguracoesMaster(){
-  const status=qs('#master-settings-status');if(status)status.textContent='Salvando com criptografia...';
+  const status=qs('#master-settings-status'),commStatus=qs('#master-comm-status');if(status)status.textContent='Salvando com criptografia...';if(commStatus)commStatus.textContent='Salvando com criptografia...';
   try{
     const data=await api('/api/master/settings',{method:'PUT',body:JSON.stringify({
       nubankEnabled:qs('#set-nubank-enabled').value==='true',nubankApiBaseUrl:qs('#set-nubank-api').value.trim(),nubankOauthUrl:qs('#set-nubank-oauth').value.trim(),nubankClientId:qs('#set-nubank-id').value.trim(),nubankClientSecret:qs('#set-nubank-secret').value,nubankWebhookSecret:qs('#set-nubank-webhook').value,
@@ -2732,21 +2863,37 @@ async function salvarConfiguracoesMaster(){
       gmailClientId:qs('#set-gmail-client-id').value.trim(),gmailClientSecret:qs('#set-gmail-secret').value,gmailRefreshToken:qs('#set-gmail-refresh').value,
       outlookTenantId:qs('#set-outlook-tenant').value.trim(),outlookClientId:qs('#set-outlook-client-id').value.trim(),outlookClientSecret:qs('#set-outlook-secret').value,outlookUserId:qs('#set-outlook-user').value.trim(),
       googleDriveArchiveEnabled:qs('#set-drive-enabled').value==='true',googleDriveFolderId:qs('#set-drive-folder').value.trim(),googleDriveServiceAccountEmail:qs('#set-drive-service-email').value.trim(),googleDriveServiceAccountKey:qs('#set-drive-key').value,
-      portalLogoDataUrl:qs('#set-portal-logo-data').value
+      portalLogoDataUrl:qs('#set-portal-logo-data').value,
+      businessPhoneProvider:qs('#set-comm-provider').value,businessPhone:qs('#set-comm-business-phone').value.trim(),businessPhoneType:qs('#set-comm-phone-type').value,businessPhoneAreaCode:qs('#set-comm-area-code').value.trim(),businessPhoneLabel:qs('#set-comm-phone-label').value.trim(),businessPhoneEnabled:qs('#set-comm-phone-enabled').value==='true',
+      voiceCallsEnabled:qs('#set-comm-voice-calls').value==='true',voiceForwardingEnabled:qs('#set-comm-voice-forwarding').value==='true',voiceForwardingPhone:qs('#set-comm-voice-forwarding-phone').value.trim(),
+      whatsappEnabled:qs('#set-wa-enabled').value==='true',whatsappDisplayName:qs('#set-wa-display-name').value.trim(),metaGraphApiVersion:qs('#set-wa-graph-version').value.trim(),metaBusinessId:qs('#set-wa-meta-business-id').value.trim(),whatsappBusinessAccountId:qs('#set-wa-waba-id').value.trim(),whatsappPhoneNumberId:qs('#set-wa-phone-number-id').value.trim(),metaAppId:qs('#set-wa-app-id').value.trim(),
+      metaAccessToken:qs('#set-wa-access-token').value,metaAppSecret:qs('#set-wa-app-secret').value,whatsappWebhookVerifyToken:qs('#set-wa-verify-token').value,
+      martynWhatsAppEnabled:qs('#set-martyn-wa-enabled').value==='true',martynOperationMode:qs('#set-martyn-mode').value,martynDisplayName:qs('#set-martyn-name').value.trim(),martynRepresentedCompany:qs('#set-martyn-company').value.trim(),martynGreeting:qs('#set-martyn-greeting').value.trim(),martynTone:qs('#set-martyn-tone').value.trim(),
+      martynBusinessHoursStart:qs('#set-martyn-hours-start').value,martynBusinessHoursEnd:qs('#set-martyn-hours-end').value,martynMaxAttempts:Number(qs('#set-martyn-max-attempts').value)||undefined,martynOutOfHoursMessage:qs('#set-martyn-out-of-hours').value.trim(),martynAllowedTopics:qs('#set-martyn-allowed').value.trim(),martynForbiddenTopics:qs('#set-martyn-forbidden').value.trim(),martynMaxTimeMinutes:Number(qs('#set-martyn-max-time').value)||undefined,
+      supportHelpPhone:qs('#set-support-phone').value.trim(),supportHelpPhoneName:qs('#set-support-phone-name').value.trim(),supportHelpWhatsAppEnabled:qs('#set-support-wa-enabled').value==='true',supportHelpCallEnabled:qs('#set-support-call-enabled').value==='true',supportHelpAlertsEnabled:qs('#set-support-alerts-enabled').value==='true',supportHelpAlertStartTime:qs('#set-support-alert-start').value,supportHelpAlertEndTime:qs('#set-support-alert-end').value,supportHelpEmergencyOverride:qs('#set-support-emergency-override').value==='true'
     })});
     const ns=qs('#master-nubank-state');if(ns){ns.textContent=data.nubankEnabled&&data.hasNubankClientSecret?'Configurado':'Não configurado';ns.className=`pill ${data.nubankEnabled&&data.hasNubankClientSecret?'p-ok':'p-off'}`}
     const as=qs('#master-accountant-state');if(as){as.textContent=data.accountantCronEnabled&&data.hasAccountantEmailWebhook?'Ativo':'Desativado';as.className=`pill ${data.accountantCronEnabled&&data.hasAccountantEmailWebhook?'p-ok':'p-off'}`}
     atualizarEstadosIntegracoes(data);
     aplicarLogoPortal(data.portalLogoDataUrl||'');
     qs('#set-nubank-secret').value='';qs('#set-nubank-webhook').value='';qs('#set-gmail-secret').value='';qs('#set-gmail-refresh').value='';qs('#set-outlook-secret').value='';qs('#set-drive-key').value='';
-    if(status)status.textContent='Configurações salvas. Segredos mantidos no cofre criptografado.';
-  }catch(error){if(status)status.textContent=error.message}
+    qs('#set-wa-access-token').value='';qs('#set-wa-app-secret').value='';qs('#set-wa-verify-token').value='';
+    if(status)status.textContent='Configurações salvas. Segredos mantidos no cofre criptografado.';if(commStatus)commStatus.textContent='Configurações salvas. Segredos mantidos no cofre criptografado.';
+  }catch(error){if(status)status.textContent=error.message;if(commStatus)commStatus.textContent=error.message}
 }
 function atualizarEstadosIntegracoes(data){
   const emailReady=data.invoiceEmailProvider==='gmail'?data.hasGmailClientSecret&&data.hasGmailRefreshToken&&data.gmailClientId&&data.invoiceEmailFrom:data.invoiceEmailProvider==='outlook'?data.hasOutlookClientSecret&&data.outlookTenantId&&data.outlookClientId&&data.outlookUserId&&data.invoiceEmailFrom:false;
   const email=qs('#master-invoice-email-state');if(email){email.textContent=data.invoiceEmailProvider==='disabled'?'Desativado':emailReady?'Pronto para conectar':'Pendente';email.className=`pill ${emailReady?'p-ok':'p-off'}`}
   const driveReady=data.googleDriveArchiveEnabled&&data.googleDriveFolderId&&data.googleDriveServiceAccountEmail&&data.hasGoogleDriveServiceAccountKey;
   const drive=qs('#master-drive-state');if(drive){drive.textContent=driveReady?'Pronto para conectar':data.googleDriveArchiveEnabled?'Pendente':'Desativado';drive.className=`pill ${driveReady?'p-ok':'p-off'}`}
+  const waCredentialsReady=Boolean(data.whatsappPhoneNumberId&&data.hasMetaAccessToken&&data.hasMetaAppSecret);
+  const wa=qs('#master-whatsapp-state');if(wa){wa.textContent=!data.whatsappEnabled?'Desativado':waCredentialsReady?'Configurado — aguardando webhook':'Configuração incompleta';wa.className=`pill ${data.whatsappEnabled&&waCredentialsReady?'p-ok':'p-off'}`}
+}
+function mostrarAbaComunicacao(aba,btnAtivo){
+  qsa('.comm-tab-panel').forEach(el=>el.style.display='none');
+  qsa('.comm-tab-btn').forEach(el=>el.classList.remove('on'));
+  const painel=qs('#comm-tab-'+aba);if(painel)painel.style.display='';
+  btnAtivo?.classList.add('on');
 }
 function prepararLogoPortalMaster(input){
   const file=input.files?.[0],status=qs('#master-settings-status');
