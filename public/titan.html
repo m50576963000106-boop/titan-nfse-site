@@ -2797,6 +2797,7 @@ function masterTab(tab,button){
   if(button)button.classList.add('active');
   if(tab==='logs')carregarMasterLogs();
   if(tab==='config')carregarConfiguracoesMaster();
+  fecharMenuLateral();
   window.scrollTo(0,0);
 }
 async function carregarConfiguracoesMaster(){

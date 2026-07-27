@@ -411,6 +411,10 @@ test("menu lateral no mobile fecha ao tocar fora, no Escape e ao escolher item",
   assert.match(html,/function alternarMenuLateral\(forcar\)/);
   assert.match(html,/qs\('#sb-burger'\)\?\.setAttribute\('aria-expanded',String\(aberto\)\)/);
   assert.match(html,/if\(event\.key==='Escape'&&qs\('#sb'\)\?\.classList\.contains\('open'\)\)fecharMenuLateral\(\)/);
-  // navegar por um item tambem fecha
+  // navegar por um item tambem fecha — vale para os dois menus:
+  // go() no portal do usuario e masterTab() no painel Adm. Sem o masterTab,
+  // no celular a gaveta ficava aberta por cima do painel recem-aberto.
   assert.match(html,/fecharMenuLateral\(\);\n {2}window\.scrollTo\(0,0\)/);
+  const masterTabFn=html.match(/function masterTab\(tab,button\)\{[\s\S]*?\n\}/)[0];
+  assert.match(masterTabFn,/fecharMenuLateral\(\)/);
 });
