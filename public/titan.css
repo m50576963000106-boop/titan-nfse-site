@@ -105,6 +105,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
   display:flex;flex-direction:column;z-index:40;
   border-right:1px solid #000;
 }
+.sidebar-backdrop{display:none}
 .sb-mark{
   height:76px;padding:10px 14px;border-bottom:1px solid var(--line-dark);
   display:flex;align-items:center;
@@ -612,7 +613,12 @@ main{margin-left:258px;padding-top:72px}
   .comp-line-single{flex-wrap:wrap}.comp-line-single .comp-desc{flex-basis:100%;white-space:normal}
   .doc-item{flex-wrap:wrap}.doc-act{justify-content:flex-start;width:100%}
   .sidebar{transform:translateX(-100%);transition:transform .22s}
-  .sidebar.open{transform:none;box-shadow:0 0 0 100vmax rgba(11,22,41,.5)}
+  .sidebar.open{transform:none;box-shadow:6px 0 24px rgba(11,22,41,.32)}
+  /* Fundo clicável de verdade: a sombra que fazia esse papel antes era só
+     decorativa e não recebia clique, então o menu não fechava ao tocar fora. */
+  .sidebar-backdrop{display:block;position:fixed;inset:0;z-index:35;background:rgba(11,22,41,.5);opacity:0;pointer-events:none;transition:opacity .22s}
+  .sidebar-backdrop.on{opacity:1;pointer-events:auto}
+  body.menu-aberto{overflow:hidden}
   .topbar{left:0;padding:0 14px}
   main{margin-left:0}
   .view{padding:20px 14px 60px}

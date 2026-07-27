@@ -131,9 +131,10 @@
       </div>
     </div>
   </aside>
+  <div class="sidebar-backdrop" id="sb-backdrop" onclick="fecharMenuLateral()" aria-hidden="true"></div>
 
   <header class="topbar">
-    <button class="burger" onclick="document.getElementById('sb').classList.toggle('open')" aria-label="Menu">
+    <button class="burger" id="sb-burger" onclick="alternarMenuLateral()" aria-label="Menu" aria-controls="sb" aria-expanded="false">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
     </button>
     <label class="global-search" aria-label="Buscar no portal">
@@ -1344,6 +1345,16 @@ function garantirBarreiraInicial(){
 }
 window.addEventListener('pageshow',garantirBarreiraInicial);
 function alternarGrupoMenu(id,button){const menu=qs('#'+id),open=!menu.classList.contains('on');menu.classList.toggle('on',open);button.classList.toggle('expanded',open)}
+function alternarMenuLateral(forcar){
+  const sb=qs('#sb');if(!sb)return;
+  const aberto=typeof forcar==='boolean'?forcar:!sb.classList.contains('open');
+  sb.classList.toggle('open',aberto);
+  qs('#sb-backdrop')?.classList.toggle('on',aberto);
+  qs('#sb-burger')?.setAttribute('aria-expanded',String(aberto));
+  document.body.classList.toggle('menu-aberto',aberto);
+}
+function fecharMenuLateral(){alternarMenuLateral(false)}
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&qs('#sb')?.classList.contains('open'))fecharMenuLateral()});
 function abrirRascunhos(button){go('emitir',button);setTimeout(()=>qs('#draft-list')?.scrollIntoView({behavior:'smooth',block:'center'}),80)}
 function abrirComercial(kind,button){go('comercial',button);novoComercial(kind);}
 function abrirGestao(tab){const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');if(!access.user?.isMaster){moduloIndisponivel('Usuários e permissões — acesso exclusivo do gestor');return}const suffix=tab?`?tab=${encodeURIComponent(tab)}`:'';window.open('/admin'+suffix,'_blank','noopener')}
@@ -1363,7 +1374,7 @@ function go(v,el){
   qs('#v-'+v).classList.add('on');
   qsa('.sb-link').forEach(x=>x.classList.remove('active'));
   if(el)el.classList.add('active');
-  qs('#sb').classList.remove('open');
+  fecharMenuLateral();
   window.scrollTo(0,0);
   if(v==='cert'){
     qs('#c-pw').value='';
