@@ -51,6 +51,11 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
   padding:24px;
 }
 #login.hide{display:none}
+#boot-loading{display:none;position:fixed;inset:0;z-index:101;background:var(--navy);align-items:center;justify-content:center}
+.boot-spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--line-dark);border-top-color:var(--gold);animation:boot-spin .8s linear infinite}
+@keyframes boot-spin{to{transform:rotate(360deg)}}
+html.titan-boot-auth #login{display:none}
+html.titan-boot-auth #boot-loading{display:flex}
 .login-card{width:100%;max-width:420px}
 .login-mark{display:flex;align-items:center;margin-bottom:28px}
 .login-brand{
