@@ -110,13 +110,13 @@ test("oferece municípios pesquisáveis, rascunhos, clientes e documentos comerc
 test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async()=>{
   const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
-  assert.match(landing,/Quero contratar o emissor/);
+  assert.match(landing,/Vamos colocar sua empresa na nota fiscal nacional/);
   assert.match(landing,/\/api\/contact/);
   assert.match(landing,/titan-nfse-logo-transparent\.png/);
   assert.match(landing,/\/api\/system\/branding/);
   assert.match(landing,/carregarBrandingPortal/);
-  assert.match(landing,/Emita suas notas fiscais com o poder e a velocidade do/);
-  assert.match(landing,/Tudo o que sua empresa precisa/);
+  assert.match(landing,/com a força do/);
+  assert.match(landing,/Tudo o que você precisa para emitir sem dor de cabeça/);
   assert.match(landing,/id="login-drawer"/);
   assert.match(landing,/client-login-form/);
   assert.match(landing,/admin-login-form/);

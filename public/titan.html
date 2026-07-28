@@ -15,13 +15,21 @@
   const q=new URLSearchParams(location.search),path=location.pathname.match(/^\/([^/?#]+)\/?$/i)?.[1]||'',route=path.toLowerCase().replace(/[^a-z0-9_-]/g,'');
   const routeMode=route==='martyn_ia'?'help':route==='primeiro-acesso'||route==='primeiroacesso'?'first':route==='redefinir-senha'||route==='redefinirsenha'?'reset':route==='dashboard'?'client':route;
   const mode=(q.get('portal')||routeMode).toLowerCase(),isAdmin=mode==='admin'||mode==='adm',cnpj=(q.get('tenant')||(/^\d{14}$/.test(path)?path:'')).replace(/\D/g,'');
-  if(mode==='help'||mode==='first'||mode==='reset'||q.get('invite')||sessionStorage.getItem('titan_nfse_session_v1'))return;
+  const modoEspecial=mode==='help'||mode==='first'||mode==='reset'||q.get('invite');
+  // Quem chega aqui logo após entrar em nfs.html já tem sessão salva — sem isto,
+  // a tela de login (por baixo, escondida só depois que o JS confere a sessão)
+  // aparece um instante antes do painel, como se fosse um segundo login.
+  if(!modoEspecial&&sessionStorage.getItem('titan_nfse_session_v1'))document.documentElement.classList.add('titan-boot-auth');
+  if(modoEspecial||sessionStorage.getItem('titan_nfse_session_v1'))return;
   if(!isAdmin&&!cnpj&&mode!=='client')return;
   const target=new URL('/',location.origin);target.searchParams.set('login',isAdmin?'admin':'client');if(cnpj)target.searchParams.set('tenant',cnpj);target.searchParams.set('next',window.top.location.pathname+(window.top.location.search||''));window.top.location.replace(target.pathname+target.search);
 }catch{}})();
 </script>
 </head>
 <body>
+
+<!-- ============ CARREGANDO SESSÃO ============ -->
+<div id="boot-loading" aria-hidden="true"><div class="boot-spinner"></div></div>
 
 <!-- ============ LOGIN ============ -->
 <div id="login">
@@ -3260,7 +3268,7 @@ if(PORTAL_FIRST&&!temConvite){
 }else if(PORTAL_RESET){prepararRedefinicao(PORTAL_QUERY.get('token'));}
 else if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/?login=client';if(!temConvite)ocultarCampoCnpjLogin();}
 else if(!temConvite){ocultarCampoEmailLogin();qs('.login-sub').textContent='Entre com o CNPJ da empresa e sua senha individual exclusiva.';if(PORTAL_CNPJ){qs('#li-cnpj').value=formatarCnpj(PORTAL_CNPJ);qs('#li-cnpj').readOnly=true;qs('.login-sub').textContent=`Informe sua senha individual exclusiva para acessar o CNPJ ${formatarCnpj(PORTAL_CNPJ)}.`;}}
-entrarComSessaoSalva().catch(error=>mostrarErroLogin(error.message));
+entrarComSessaoSalva().catch(error=>mostrarErroLogin(error.message)).finally(()=>document.documentElement.classList.remove('titan-boot-auth'));
 
 /* ---------- SUPORTE / ASSISTENTE TITAN ---------- */
 const supNorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
