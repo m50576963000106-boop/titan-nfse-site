@@ -339,6 +339,16 @@ test("exibe planos SaaS com limites e valores publicados",async()=>{
   assert.match(html,/R\$ 49,90/);
   assert.match(html,/Plano SN 50/);
   assert.match(html,/R\$ 79,90/);
+  assert.match(html,/price-card custom/);
+  assert.match(html,/Sob consulta/);
+});
+
+test("landing tem seção de dúvidas frequentes sobre a migração de 01\\/09",async()=>{
+  const html=await readFile(resolve(root,"public/nfs.html"),"utf8");
+  assert.match(html,/id="faq"/);
+  assert.match(html,/Preciso mesmo migrar até 01\/09\?/);
+  const perguntas=html.match(/<summary>/g)||[];
+  assert.ok(perguntas.length>=6);
 });
 
 test("orienta configurações de Gmail, Outlook e Google Drive no Master",async()=>{
