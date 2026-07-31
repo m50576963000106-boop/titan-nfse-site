@@ -3347,8 +3347,6 @@ function supScroll(){const l=qs('#sup-log');if(l)l.scrollTop=l.scrollHeight}
 function supBubble(html,who){const l=qs('#sup-log');if(!l)return null;const d=document.createElement('div');d.className='sup-b '+(who==='me'?'me':'bot');d.innerHTML=html;l.appendChild(d);supScroll();return d}
 function supActs(list){if(!list||!list.length)return '';return '<div class="sup-act">'+list.map(([label,view])=>`<button type="button" onclick="supDo('${view}')">${esc(label)}</button>`).join('')+'</div>'}
 function supAnswerTopic(t){supBubble(t.a()+supActs(t.act),'bot')}
-function supMatch(text){const q=supNorm(text);let best=null,score=0;for(const t of supTopics){let s=0;for(const k of t.kw){if(q.includes(supNorm(k)))s+=k.trim().length}if(s>score){score=s;best=t}}return score>0?best:null;}
-
 const supMeses={janeiro:0,fevereiro:1,marco:2,abril:3,maio:4,junho:5,julho:6,agosto:7,setembro:8,outubro:9,novembro:10,dezembro:11};
 function supFiltrarNotas(text){
   const q=supNorm(text),agora=new Date();let lista=[...notas],filtrou=false;
@@ -3435,15 +3433,37 @@ function supAnalisar(){
 function supRenderChips(){const wrap=qs('#sup-chips');if(!wrap)return;const items=[['diag','🔎 Analisar minha conta'],...supTopics.map(t=>[t.id,t.chip])];wrap.innerHTML=items.map(([id,label])=>`<button class="sup-chip" type="button" onclick="supChip('${id}')">${esc(label)}</button>`).join('');}
 function supChip(id){if(id==='diag'){supBubble('🔎 Analisar minha conta','me');supAnalisar();return}const t=supTopics.find(x=>x.id===id);if(!t)return;supBubble(esc(t.chip),'me');supAnswerTopic(t);}
 
+/**
+ * Memória curta da conversa com o Martyn de verdade (mesma API que atende o
+ * widget de erro de emissão e o WhatsApp). Cresce por turno e é cortada no
+ * mesmo teto que o backend aceita — sem isso, a cada nova pergunta cresceria
+ * o payload à toa e ainda arriscaria estourar o limite do schema.
+ */
+let supHistoricoIA=[];
+const SUP_HISTORICO_MAX=8;
+async function supPerguntarIA(texto){
+  const holder=supBubble('<span class="sup-typing">Martyn está digitando…</span>','bot');
+  try{
+    const dados=await api('/api/martyn',{method:'POST',body:JSON.stringify({mensagem:texto,historico:supHistoricoIA})});
+    if(holder){holder.innerHTML=esc(dados.resposta).replace(/\n/g,'<br>');supScroll();}
+    supHistoricoIA.push({role:'user',content:texto},{role:'assistant',content:dados.resposta});
+    supHistoricoIA=supHistoricoIA.slice(-SUP_HISTORICO_MAX);
+    aplicarAcaoMartyn(dados.action);
+  }catch(error){
+    if(holder){holder.innerHTML=`Não consegui pensar nisso agora: ${esc(error.message||'falha de comunicação')}. Pode tentar de novo?`;supScroll();}
+  }
+}
 function supSend(e){e.preventDefault();const inp=qs('#sup-in');const v=(inp.value||'').trim();if(!v)return false;inp.value='';supBubble(esc(v),'me');const q=supNorm(v);
   if(/(^|\s)(oi|ola|bom dia|boa tarde|boa noite|hello|hi)(\s|$)/.test(q)){supBubble('Olá! Como posso ajudar? Toque em um assunto abaixo ou descreva sua dúvida.','bot');return false}
   if(q.indexOf('analis')>-1||q.indexOf('diagnost')>-1||q.indexOf('minha conta')>-1||q.indexOf('meu status')>-1){supAnalisar();return false}
   if(supPareceCancelamento(q)){supExecutarCancelamento(v);return false}
   if(supPareceFerramenta(q)){supExecutarFerramenta(v);return false}
   if(q.indexOf('humano')>-1||q.indexOf('atendente')>-1||q.indexOf('falar com')>-1||q.indexOf('pessoa')>-1){supBubble(`Para atendimento do sistema, fale com o responsável pelo TITAN. Para orientação normativa ou indisponibilidade do ambiente nacional, consulte os canais oficiais. Posso adiantar sua dúvida por aqui enquanto isso.${supFonte(SUP_OFICIAL.canais,'Canais oficiais da NFS-e')}`,'bot');return false}
-  const t=supMatch(v);
-  if(t)supAnswerTopic(t);
-  else supBubble('Ainda não sei responder isso com precisão. Toque em um dos atalhos abaixo, tente reformular, ou use <b>🔎 Analisar minha conta</b> para eu revisar seu cadastro, certificado e notas.','bot');
+  // Os tópicos prontos (supMatch) só respondem aos chips, clicados de propósito —
+  // no texto livre, uma palavra solta ("prazo", "regime") já bastava pra puxar
+  // um tópico sem relação nenhuma com a pergunta. Pergunta digitada vai direto
+  // pro Martyn de verdade, que lê a pergunta inteira em vez de uma palavra-chave.
+  supPerguntarIA(v);
   return false;
 }
 
