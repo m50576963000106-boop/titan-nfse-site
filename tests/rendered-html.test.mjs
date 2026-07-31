@@ -196,7 +196,7 @@ test("centraliza serviços, alimenta orçamentos e oferece assistente com açõe
   assert.match(html,/Comunicado oficial CGSN 189\/2026/);
 });
 
-test("aciona Martyn IA somente no erro de emissão", async()=>{
+test("aciona Martyn IA no widget dedicado de erro de emissão", async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/id="martyn-widget"/);
   assert.match(html,/id="martyn-corpo"/);
@@ -213,6 +213,24 @@ test("aciona Martyn IA somente no erro de emissão", async()=>{
   assert.match(html,/aplicarAcaoMartyn\(dados\.action\)/);
   assert.match(html,/Emissão não autorizada[\s\S]{0,260}dispararMartynPorErro\(error\.message\)/);
   assert.doesNotMatch(html,/fetch\(API_URL\+'\/api\/martyn'/);
+});
+
+test("chat interno do Martyn (sup-panel) manda texto livre pra IA de verdade, com memória de conversa", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/async function supPerguntarIA\(texto\)/);
+  assert.match(html,/api\('\/api\/martyn',\{method:'POST',body:JSON\.stringify\(\{mensagem:texto,historico:supHistoricoIA\}\)\}\)/);
+  assert.match(html,/supHistoricoIA\.push\(\{role:'user',content:texto\},\{role:'assistant',content:dados\.resposta\}\)/);
+  assert.match(html,/supHistoricoIA=supHistoricoIA\.slice\(-SUP_HISTORICO_MAX\)/);
+  assert.match(html,/aplicarAcaoMartyn\(dados\.action\)/);
+  // pergunta digitada vai direto pra IA — sem isso, uma palavra solta que bate
+  // com a keyword de um tópico (ex.: "prazo") sequestra a resposta com um
+  // texto pronto sem relação com a pergunta de verdade
+  assert.doesNotMatch(html,/supMatch\(v\)/);
+  assert.match(html,/\n  supPerguntarIA\(v\);\n  return false;/);
+  // supMatch some do arquivo inteiro: virou código morto depois que só os
+  // chips (clique intencional) continuaram usando os tópicos prontos
+  assert.doesNotMatch(html,/function supMatch\(/);
+  assert.match(html,/function supChip\(id\)\{if\(id==='diag'\)/);
 });
 
 test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=>{
