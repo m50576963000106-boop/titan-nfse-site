@@ -14,7 +14,7 @@
 (()=>{try{
   const q=new URLSearchParams(location.search),path=location.pathname.match(/^\/([^/?#]+)\/?$/i)?.[1]||'',route=path.toLowerCase().replace(/[^a-z0-9_-]/g,'');
   const routeMode=route==='martyn_ia'?'help':route==='primeiro-acesso'||route==='primeiroacesso'?'first':route==='redefinir-senha'||route==='redefinirsenha'?'reset':route==='dashboard'?'client':route;
-  const mode=(q.get('portal')||routeMode).toLowerCase(),isAdmin=mode==='admin'||mode==='adm',cnpj=(q.get('tenant')||(/^\d{14}$/.test(path)?path:'')).replace(/\D/g,'');
+  const mode=(q.get('portal')||routeMode).toLowerCase(),isAdmin=mode==='admin'||mode==='adm',cnpj=String(q.get('tenant')||(/^[A-Z0-9]{12}[0-9]{2}$/i.test(path)?path:'')).toUpperCase().replace(/[^A-Z0-9]/g,'');
   const modoEspecial=mode==='help'||mode==='first'||mode==='reset'||q.get('invite');
   // Quem chega aqui logo após entrar em nfs.html já tem sessão salva — sem isto,
   // a tela de login (por baixo, escondida só depois que o JS confere a sessão)
@@ -42,7 +42,7 @@
     <div class="login-sub">Informe o CNPJ da empresa e sua senha para entrar no ambiente fiscal liberado.</div>
     <div class="login-field">
       <label for="li-cnpj">CNPJ da empresa</label>
-      <input id="li-cnpj" type="text" inputmode="numeric" placeholder="00.000.000/0000-00" autocomplete="off" oninput="mascararCnpjLogin(this)">
+      <input id="li-cnpj" type="text" autocapitalize="characters" maxlength="18" placeholder="AA.AAA.AAA/AAAA-99" autocomplete="off" oninput="mascararCnpjLogin(this)">
     </div>
     <div class="login-field">
       <label for="li-mail">E-mail</label>
@@ -292,7 +292,7 @@
               <div class="row r21">
                 <div class="field">
                   <label for="t-doc">CPF / CNPJ</label>
-                  <div class="input-action"><input id="t-doc" class="inp" placeholder="CPF ou CNPJ do tomador"><button class="btn btn-s" id="btn-cnpj" type="button" onclick="consultarCnpj()">Buscar CNPJ</button></div>
+                  <div class="input-action"><input id="t-doc" class="inp" autocapitalize="characters" maxlength="18" placeholder="CPF ou AA.AAA.AAA/AAAA-99" oninput="mascararDocumento(this)"><button class="btn btn-s" id="btn-cnpj" type="button" onclick="consultarCnpj()">Buscar CNPJ</button></div>
                   <div class="hint" id="cnpj-hint">Consulta gratuita pela BrasilAPI. CPF e CNPJ alfanumérico podem ser preenchidos manualmente.</div>
                 </div>
                 <div class="field">
@@ -465,7 +465,7 @@
     <section class="view" id="v-clientes">
       <div class="page-h"><h1>Clientes</h1><p>Cadastre, revise e reutilize tomadores nas emissões.</p></div>
       <div class="grid g2" style="align-items:start"><div class="card"><div class="card-h"><h2>Cadastro de cliente</h2></div><div class="card-b">
-        <div class="field"><label>CNPJ / CPF</label><div class="input-action"><input id="cl-doc" class="inp mono" placeholder="CPF ou CNPJ"><button class="btn btn-s" type="button" onclick="consultarClienteCadastro()">Buscar CNPJ</button></div></div>
+        <div class="field"><label>CNPJ / CPF</label><div class="input-action"><input id="cl-doc" class="inp mono" autocapitalize="characters" maxlength="18" placeholder="CPF ou AA.AAA.AAA/AAAA-99" oninput="mascararDocumento(this)"><button class="btn btn-s" type="button" onclick="consultarClienteCadastro()">Buscar CNPJ</button></div></div>
         <div class="field"><label>Razão social / nome</label><input id="cl-nome" class="inp" placeholder="Nome do cliente"></div><div class="row r2"><div class="field"><label>E-mail</label><input id="cl-mail" class="inp" type="email"></div><div class="field"><label>E-mail alternativo (recebe cópia)</label><input id="cl-mail-alt" class="inp" type="email"></div></div><div class="field"><label>Telefone</label><input id="cl-fone" class="inp"></div>
         <div class="field"><label>Endereço</label><input id="cl-end" class="inp" placeholder="Logradouro, número, bairro, CEP"></div><div class="row r2"><div class="field"><label>Município</label><input id="cl-cidade" class="inp" placeholder="Cidade"></div><div class="field"><label>UF</label><input id="cl-uf" class="inp mono" maxlength="2" placeholder="UF"></div></div><div class="row r2"><div class="field mb0"><label>Código IBGE</label><input id="cl-mun" class="inp mono" inputmode="numeric" maxlength="7"></div><div class="field mb0"><label>CEP</label><input id="cl-cep" class="inp mono" inputmode="numeric"></div></div>
         <div class="setup-actions"><span class="foot-note" style="margin:0">A busca preenche os dados públicos; confirme antes de salvar.</span><button class="btn btn-a right" type="button" onclick="salvarCliente()">Salvar cliente</button></div>
@@ -543,7 +543,7 @@
             <div class="row r2">
               <div class="field">
                 <label for="e-cnpj">CNPJ</label>
-                <div class="input-action"><input id="e-cnpj" class="inp mono" placeholder="00.000.000/0000-00" required><button class="btn btn-s" id="btn-e-cnpj" type="button" onclick="consultarCnpjEmitente()">Buscar CNPJ</button></div>
+                <div class="input-action"><input id="e-cnpj" class="inp mono" autocapitalize="characters" maxlength="18" placeholder="AA.AAA.AAA/AAAA-99" oninput="mascararCnpjLogin(this)" required><button class="btn btn-s" id="btn-e-cnpj" type="button" onclick="consultarCnpjEmitente()">Buscar CNPJ</button></div>
                 <div class="hint" id="e-cnpj-hint">Consulta gratuita pela BrasilAPI: preenche razão social, cidade e endereço.</div>
               </div>
               <div class="field">
@@ -997,7 +997,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
 
 <div class="modal-backdrop" id="master-client-modal" role="dialog" aria-modal="true" aria-labelledby="master-client-title">
   <div class="modal-card"><div class="modal-head"><div><h2 id="master-client-title">Convidar novo cliente</h2><p style="font-size:12px;color:var(--ink-3);margin-top:4px">A empresa será consultada na base pública e receberá um link de primeiro acesso.</p></div></div>
-    <div class="modal-body"><div class="field"><label for="master-new-cnpj">CNPJ da empresa</label><div class="flex"><input id="master-new-cnpj" class="inp" inputmode="numeric" placeholder="00.000.000/0000-00" onblur="consultarNovoClienteCnpj()"><button class="btn btn-s" type="button" onclick="consultarNovoClienteCnpj()">Consultar</button></div><div id="master-new-cnpj-status" class="hint"></div></div><div id="master-new-company" class="alert a-info" style="display:none;margin:10px 0"></div><div class="hint">CNPJ inativo não pode receber convite. Municípios ainda não elegíveis podem entrar na fila de análise.</div><div class="row r2"><div class="field"><label for="master-new-email">E-mail de contato</label><input id="master-new-email" class="inp" type="email" placeholder="usuario@empresa.com.br"><div class="hint">Usado para contato e para o link de acesso. O login é feito com CNPJ e senha.</div></div><div class="field"><label for="master-new-zap">WhatsApp do cliente</label><input id="master-new-zap" class="inp" inputmode="tel" placeholder="(00) 00000-0000"><div class="hint">Cadastre para todo cliente, em qualquer plano: é o canal oficial de contato. Emitir nota por ele depende do plano.</div></div></div><div class="row r2"><div class="field"><label for="master-new-profile">Perfil de acesso</label><select id="master-new-profile" class="inp"></select></div><div class="field"><label for="master-new-plan">Plano contratado</label><select id="master-new-plan" class="inp"></select></div></div><div id="master-new-link" class="alert a-info" style="display:none;margin-top:12px;word-break:break-all"></div></div>
+    <div class="modal-body"><div class="field"><label for="master-new-cnpj">CNPJ da empresa</label><div class="flex"><input id="master-new-cnpj" class="inp" autocapitalize="characters" maxlength="18" placeholder="AA.AAA.AAA/AAAA-99" oninput="mascararCnpjLogin(this)" onblur="consultarNovoClienteCnpj()"><button class="btn btn-s" type="button" onclick="consultarNovoClienteCnpj()">Consultar</button></div><div id="master-new-cnpj-status" class="hint"></div></div><div id="master-new-company" class="alert a-info" style="display:none;margin:10px 0"></div><div class="hint">CNPJ inativo não pode receber convite. Municípios ainda não elegíveis podem entrar na fila de análise.</div><div class="row r2"><div class="field"><label for="master-new-email">E-mail de contato</label><input id="master-new-email" class="inp" type="email" placeholder="usuario@empresa.com.br"><div class="hint">Usado para contato e para o link de acesso. O login é feito com CNPJ e senha.</div></div><div class="field"><label for="master-new-zap">WhatsApp do cliente</label><input id="master-new-zap" class="inp" inputmode="tel" placeholder="(00) 00000-0000"><div class="hint">Cadastre para todo cliente, em qualquer plano: é o canal oficial de contato. Emitir nota por ele depende do plano.</div></div></div><div class="row r2"><div class="field"><label for="master-new-profile">Perfil de acesso</label><select id="master-new-profile" class="inp"></select></div><div class="field"><label for="master-new-plan">Plano contratado</label><select id="master-new-plan" class="inp"></select></div></div><div id="master-new-link" class="alert a-info" style="display:none;margin-top:12px;word-break:break-all"></div></div>
      <div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharNovoCliente()">Fechar</button><button class="btn btn-p" type="button" onclick="criarConviteNovoCliente()">Gerar link de primeiro acesso</button></div>
      <span class="sr-only">Entrar na fila de análise</span>
   </div>
@@ -1064,6 +1064,8 @@ window.alert=(message)=>{titanAlert(message)};
 const API_URL=(window.TITAN_API_URL||'').replace(/\/$/,'');
 const STORAGE_TOKEN='titan_nfse_session_v1';
 const STORAGE_SESSION='titan_nfse_access_v1';
+function normalizarDocumento(value){return String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function cnpjComFormatoValido(value){return /^[A-Z0-9]{12}[0-9]{2}$/.test(normalizarDocumento(value))}
 function irParaLogoDestino(event){
   if(!sessionStorage.getItem(STORAGE_TOKEN))return true;
   let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{}
@@ -1081,7 +1083,7 @@ const PORTAL_ADMIN=['admin','adm'].includes(PORTAL_MODE);
 const PORTAL_HELP=PORTAL_MODE==='help';
 const PORTAL_FIRST=PORTAL_MODE==='first';
 const PORTAL_RESET=PORTAL_MODE==='reset';
-const PORTAL_CNPJ=(PORTAL_QUERY.get('tenant')||(/^\d{14}$/.test(PORTAL_PATH)?PORTAL_PATH:'')).replace(/\D/g,'');
+const PORTAL_CNPJ=normalizarDocumento(PORTAL_QUERY.get('tenant')||(cnpjComFormatoValido(PORTAL_PATH)?PORTAL_PATH:''));
 document.body.classList.toggle('portal-admin',PORTAL_ADMIN);
 document.body.classList.toggle('portal-help',PORTAL_HELP);
 document.body.classList.toggle('portal-first',PORTAL_FIRST);
@@ -1231,7 +1233,7 @@ function selecionarDestinoPortal(access){
     return;
   }
   if(PORTAL_CNPJ){
-    const company=companies.find(item=>String(item.federal_tax_id||'').replace(/\D/g,'')===PORTAL_CNPJ);
+    const company=companies.find(item=>normalizarDocumento(item.federal_tax_id)===PORTAL_CNPJ);
     if(!company)throw new Error('Seu usuário não possui acesso liberado para o CNPJ deste endereço.');
     sessionStorage.setItem(STORAGE_COMPANY_ID,company.id);
     return;
@@ -1240,18 +1242,19 @@ function selecionarDestinoPortal(access){
 }
 
 function mascararCnpjLogin(el){
-  const d=el.value.replace(/\D/g,'').slice(0,14);
-  el.value=d.replace(/^(\d{2})(\d{3})?(\d{3})?(\d{4})?(\d{2})?.*/,(m,a,b,c,dd,e)=>[a,b&&'.'+b,c&&'.'+c,dd&&'/'+dd,e&&'-'+e].filter(Boolean).join(''));
+  const d=normalizarDocumento(el.value).slice(0,14);
+  el.value=d.replace(/^(.{2})(.{3})?(.{3})?(.{4})?(\d{2})?.*/,(m,a,b,c,dd,e)=>[a,b&&'.'+b,c&&'.'+c,dd&&'/'+dd,e&&'-'+e].filter(Boolean).join(''));
 }
+function mascararDocumento(el){const d=normalizarDocumento(el.value).slice(0,14);if(/[A-Z]/.test(d)||d.length>11){mascararCnpjLogin(el);return}el.value=d.replace(/^(\d{3})(\d{3})?(\d{3})?(\d{2})?.*/,(m,a,b,c,e)=>[a,b&&'.'+b,c&&'.'+c,e&&'-'+e].filter(Boolean).join(''))}
 function definirCarregandoLogin(loading,label='Entrando...'){const button=qs('#login-action');if(!button)return;button.disabled=loading;if(loading){button.dataset.originalText=button.textContent;button.textContent=label}else if(button.dataset.originalText){button.textContent=button.dataset.originalText;delete button.dataset.originalText}}
 function mostrarErroLogin(message){const box=qs('#login-error');if(!box)return;box.style.display='block';box.textContent=message}
 function removerParametroSensivel(name){const url=new URL(location.href);if(!url.searchParams.has(name))return;url.searchParams.delete(name);history.replaceState({},'',url.pathname+(url.search?url.search:'')+url.hash)}
 async function iniciarCadastro(){
   limparFalhaLogin();
-  const cnpj=PORTAL_CNPJ||qs('#li-cnpj').value.replace(/\D/g,'');
+  const cnpj=PORTAL_CNPJ||normalizarDocumento(qs('#li-cnpj').value);
   const email=qs('#li-mail').value.trim();
   const senha=qs('#li-pw').value;
-  if((PORTAL_ADMIN&&!email)||(!PORTAL_ADMIN&&cnpj.length!==14)||senha.length<10){
+  if((PORTAL_ADMIN&&!email)||(!PORTAL_ADMIN&&!cnpjComFormatoValido(cnpj))||senha.length<10){
     mostrarErroLogin(PORTAL_ADMIN?'Informe o e-mail administrativo e uma senha com pelo menos 10 caracteres.':'Informe o CNPJ e uma senha individual com pelo menos 10 caracteres.');
     (PORTAL_ADMIN&&!email?qs('#li-mail'):!PORTAL_ADMIN&&cnpj.length!==14?qs('#li-cnpj'):qs('#li-pw'))?.focus();
     return;
@@ -1263,7 +1266,7 @@ async function iniciarCadastro(){
     login=await api('/api/auth/login',{method:'POST',body:JSON.stringify(PORTAL_ADMIN?{email,password:senha}:{federalTaxId:cnpj,password:senha})});
     selecionarDestinoPortal(login);
     if(!PORTAL_ADMIN&&!PORTAL_HELP){
-      const alvo=(login.companies||[]).find(item=>String(item.federal_tax_id||'').replace(/\D/g,'')===cnpj);
+      const alvo=(login.companies||[]).find(item=>normalizarDocumento(item.federal_tax_id)===cnpj);
       if(!alvo)throw new Error('Seu usuário não tem acesso liberado para este CNPJ.');
       sessionStorage.setItem(STORAGE_COMPANY_ID,alvo.id);
     }
@@ -1336,7 +1339,7 @@ function aplicarAcesso(login){
   qsa('[data-permission]').forEach(el=>{const visible=user.isMaster||permissions.includes(el.dataset.permission);el.style.display=visible?(el.tagName==='DIV'?'':'flex'):'none'});
   qsa('[data-master-only]').forEach(el=>el.style.display=user.isMaster?'flex':'none');
   if(access.companies?.length){
-    const visible=PORTAL_CNPJ?access.companies.filter(c=>String(c.federal_tax_id||'').replace(/\D/g,'')===PORTAL_CNPJ):access.companies;
+    const visible=PORTAL_CNPJ?access.companies.filter(c=>normalizarDocumento(c.federal_tax_id)===PORTAL_CNPJ):access.companies;
     qs('#tenant').innerHTML=visible.map(c=>`<option value="${c.id}" ${c.id===companyId?'selected':''}>${esc(c.trade_name||c.legal_name)}</option>`).join('');
     qs('#tenant').disabled=Boolean(PORTAL_CNPJ);
   }
@@ -1532,7 +1535,7 @@ function preencherCliente(cliente){
   qs('#t-nome').value=cliente.legal_name||cliente.trade_name||'';
   qs('#t-mail').value=cliente.email||'';
   qs('#t-zap').value=cliente.phone||'';
-  qs('#t-tipo').selectedIndex=(cliente.tax_id||'').replace(/\D/g,'').length===11?1:0;
+  qs('#t-tipo').selectedIndex=normalizarDocumento(cliente.tax_id).length===11?1:0;
   qs('#t-cidade').value=cliente.city||cliente.municipality||'';
   qs('#t-uf').value=cliente.state||'';
   qs('#t-cep').value=cliente.postal_code||'';
@@ -1599,14 +1602,14 @@ async function exibirMunicipioPorCodigo(tipo,code){
 }
 
 function formatarCnpj(value){
-  const digits=String(value||'').replace(/\D/g,'');
-  return digits.length===14?digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5'):value;
+  const characters=normalizarDocumento(value);
+  return characters.length===14?characters.replace(/^(.{2})(.{3})(.{3})(.{4})(\d{2})$/,'$1.$2.$3/$4-$5'):value;
 }
 qs('#e-cnpj').addEventListener('blur',()=>{qs('#e-cnpj').value=formatarCnpj(qs('#e-cnpj').value)});
 
 async function consultarCnpjEmitente(){
-  const cnpj=qs('#e-cnpj').value.replace(/\D/g,'');
-  if(cnpj.length!==14){alert('Informe os 14 dígitos do CNPJ para fazer a consulta pública.');qs('#e-cnpj').focus();return}
+  const cnpj=normalizarDocumento(qs('#e-cnpj').value);
+  if(!cnpjComFormatoValido(cnpj)){alert('Informe o CNPJ com 14 caracteres válidos para fazer a consulta pública.');qs('#e-cnpj').focus();return}
   const button=qs('#btn-e-cnpj'),hint=qs('#e-cnpj-hint');
   button.disabled=true;button.textContent='Buscando...';hint.textContent='Consultando a base pública de CNPJ...';
   try{
@@ -1653,8 +1656,8 @@ function abrirClientesPortal(){
 }
 
 async function consultarCnpj(){
-  const cnpj=qs('#t-doc').value.replace(/\D/g,'');
-  if(cnpj.length!==14){alert('Informe os 14 dígitos do CNPJ para fazer a consulta pública.');return}
+  const cnpj=normalizarDocumento(qs('#t-doc').value);
+  if(!cnpjComFormatoValido(cnpj)){alert('Informe o CNPJ com 14 caracteres válidos para fazer a consulta pública.');return}
   const button=qs('#btn-cnpj'),hint=qs('#cnpj-hint');
   button.disabled=true;button.textContent='Buscando...';hint.textContent='Consultando a base pública de CNPJ...';
   try{
@@ -1667,8 +1670,8 @@ async function consultarCnpj(){
 // Ao abrir um rascunho, completa pela API do CNPJ só os campos do tomador que
 // ficaram vazios (e-mail, endereço, município), sem sobrescrever o que já veio.
 async function completarCadastroRascunho(){
-  const cnpj=(qs('#t-doc')?.value||'').replace(/\D/g,'');
-  if(cnpj.length!==14)return;
+  const cnpj=normalizarDocumento(qs('#t-doc')?.value);
+  if(!cnpjComFormatoValido(cnpj))return;
   if((qs('#t-mail')?.value||'').trim()&&(qs('#t-end')?.value||'').trim()&&(qs('#t-municipio')?.value||'').trim())return;
   try{
     const c=await api('/api/customers/cnpj/'+cnpj);
@@ -2297,7 +2300,7 @@ async function emitir(){
     return;
   }
   const valor=Number(qs('#s-val').value.replace(/\./g,'').replace(',','.'));
-  const documento=qs('#t-doc').value.replace(/\D/g,'');
+  const documento=normalizarDocumento(qs('#t-doc').value);
   const perfil=perfisServico.find(item=>item.id===qs('#s-profile').value);
   const cst=qs('#s-cst').value.trim();
   const nbs=qs('#s-nbs').value.replace(/\D/g,'');
@@ -2308,13 +2311,13 @@ async function emitir(){
   if(!additionalItems.length){alert('Informe o valor deste serviço antes de emitir.');qs('#s-val')?.focus();return}
   const payload={
     competenceDate:qs('#s-comp').value,
-    borrower:{name:qs('#t-nome').value.trim(),taxId:qs('#t-doc').value,email:qs('#t-mail').value.trim()||undefined,municipalityCode:qs('#t-municipio').value.replace(/\D/g,'')||undefined,postalCode:qs('#t-cep').value.replace(/\D/g,'')||undefined,street:qs('#t-end').value.trim()||undefined,number:qs('#t-num').value.trim()||undefined,district:qs('#t-bairro').value.trim()||undefined,city:qs('#t-cidade').value.trim()||undefined,state:qs('#t-uf').value.trim().toUpperCase()||undefined},
+    borrower:{name:qs('#t-nome').value.trim(),taxId:documento,email:qs('#t-mail').value.trim()||undefined,municipalityCode:qs('#t-municipio').value.replace(/\D/g,'')||undefined,postalCode:qs('#t-cep').value.replace(/\D/g,'')||undefined,street:qs('#t-end').value.trim()||undefined,number:qs('#t-num').value.trim()||undefined,district:qs('#t-bairro').value.trim()||undefined,city:qs('#t-cidade').value.trim()||undefined,state:qs('#t-uf').value.trim().toUpperCase()||undefined},
     service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,municipalTaxCode:perfil?.municipal_code||undefined,nbsCode:nbs||undefined,description:qs('#s-desc').value.trim(),amount:valor,additionalItems,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value.replace(/\D/g,'')||undefined,eventCode:qs('#s-event-code')?.value.trim()||undefined,eventLocation:qs('#s-event-location')?.value.trim()||undefined,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,issRate:perfil?.iss_rate==null?undefined:Number(perfil.iss_rate),pisCofinsCst:cst||undefined,pisCofinsWithholding:tipoPisCofins||undefined,pisCofinsBase:retevePisCofins?dinheiro(qs('#s-pc-base').value):undefined,pisRate:retevePisCofins?dinheiro(qs('#s-pis-rate').value):undefined,cofinsRate:retevePisCofins?dinheiro(qs('#s-cofins-rate').value):undefined,pisAmount:retevePisCofins?dinheiro(qs('#s-pis-amount').value):undefined,cofinsAmount:retevePisCofins?dinheiro(qs('#s-cofins-amount').value):undefined,retCp:dinheiro(qs('#s-ret-cp').value),retIrrf:dinheiro(qs('#s-ret-irrf').value),retCsll:retevePisCofins?dinheiro(qs('#s-ret-csll').value):0}
   };
   if(!payload.competenceDate||!payload.borrower.name||!payload.borrower.taxId||!payload.service.nationalTaxCode||!payload.service.description||!Number.isFinite(valor)||valor<=0){
     alert('Preencha competência, tomador, CPF/CNPJ, código nacional, descrição e valor do serviço.');return;
   }
-  if(documento.length!==11&&documento.length!==14){alert('O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 dígitos.');qs('#t-doc').focus();return}
+  if(!/^\d{11}$/.test(documento)&&!cnpjComFormatoValido(documento)){alert('O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 caracteres válidos.');qs('#t-doc').focus();return}
   if(!/^\d{9}$/.test(nbs)){alert('O código NBS é obrigatório e deve conter exatamente 9 dígitos.');qs('#s-nbs').focus();return}
   if(payload.service.serviceCategory==='construction'||payload.service.nationalTaxCode.startsWith('07')){if(!/^\d{12}$/.test(payload.service.cno||'')){alert('O serviço de construção civil exige um CNO válido de 12 dígitos.');qs('#s-cno').focus();return}}
   if(payload.service.serviceCategory==='event'&&(!payload.service.eventCode||!payload.service.eventLocation)){alert('Informe o código e o local do evento antes de transmitir.');return}
@@ -2382,8 +2385,8 @@ async function excluirRascunho(id){if(!await titanConfirm('Excluir este rascunho
 /* ---------- cadastro de clientes ---------- */
 let clientesCadastro=[];
 function preencherClienteCadastro(cliente){qs('#cl-doc').value=cliente.tax_id||'';qs('#cl-nome').value=cliente.legal_name||'';qs('#cl-mail').value=cliente.email||'';qs('#cl-mail-alt').value=cliente.email_alt||'';qs('#cl-fone').value=cliente.phone||'';qs('#cl-end').value=cliente.address||'';qs('#cl-cidade').value=cliente.city||cliente.municipality||'';qs('#cl-uf').value=cliente.state||'';qs('#cl-mun').value=cliente.municipality_code||'';qs('#cl-cep').value=cliente.postal_code||'';}
-async function consultarClienteCadastro(){const cnpj=qs('#cl-doc').value.replace(/\D/g,'');if(cnpj.length!==14){alert('A consulta pública está disponível para CNPJ de 14 dígitos.');return}try{preencherClienteCadastro(await api('/api/customers/cnpj/'+cnpj))}catch(error){alert(error.message)}}
-async function salvarCliente(){const taxId=qs('#cl-doc').value.replace(/\D/g,''),legalName=qs('#cl-nome').value.trim();if(!taxId||!legalName){alert('Informe nome e CPF/CNPJ do cliente.');return}try{await api('/api/customers',{method:'POST',body:JSON.stringify({taxId,legalName,email:qs('#cl-mail').value.trim()||undefined,emailAlt:qs('#cl-mail-alt').value.trim()||undefined,phone:qs('#cl-fone').value.trim()||undefined,address:qs('#cl-end').value.trim()||undefined,city:qs('#cl-cidade').value.trim()||undefined,state:qs('#cl-uf').value.trim().toUpperCase()||undefined,postalCode:qs('#cl-cep').value.replace(/\D/g,'')||undefined,municipalityCode:qs('#cl-mun').value.replace(/\D/g,'')||undefined})});await carregarClientesCadastro();alert('Cliente salvo.') }catch(error){alert(error.message)}}
+async function consultarClienteCadastro(){const cnpj=normalizarDocumento(qs('#cl-doc').value);if(!cnpjComFormatoValido(cnpj)){alert('A consulta pública exige um CNPJ com 14 caracteres válidos.');return}try{preencherClienteCadastro(await api('/api/customers/cnpj/'+cnpj))}catch(error){alert(error.message)}}
+async function salvarCliente(){const taxId=normalizarDocumento(qs('#cl-doc').value),legalName=qs('#cl-nome').value.trim();if(!taxId||!legalName){alert('Informe nome e CPF/CNPJ do cliente.');return}try{await api('/api/customers',{method:'POST',body:JSON.stringify({taxId,legalName,email:qs('#cl-mail').value.trim()||undefined,emailAlt:qs('#cl-mail-alt').value.trim()||undefined,phone:qs('#cl-fone').value.trim()||undefined,address:qs('#cl-end').value.trim()||undefined,city:qs('#cl-cidade').value.trim()||undefined,state:qs('#cl-uf').value.trim().toUpperCase()||undefined,postalCode:qs('#cl-cep').value.replace(/\D/g,'')||undefined,municipalityCode:qs('#cl-mun').value.replace(/\D/g,'')||undefined})});await carregarClientesCadastro();alert('Cliente salvo.') }catch(error){alert(error.message)}}
 async function carregarClientesCadastro(){try{clientesCadastro=await api('/api/customers?search=');qs('#client-list').innerHTML=clientesCadastro.length?clientesCadastro.map((item,index)=>`<div class="draft-item"><b>${esc(item.legal_name)}</b><span>${esc(item.tax_id)} · ${esc(item.address||'sem endereço')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="editarClienteCadastro(${index})">Editar</button><button class="btn btn-s" onclick="usarClienteNaEmissao(${index})">Usar na emissão</button></div></div>`).join(''):'<div class="empty-state">Nenhum cliente cadastrado.</div>'}catch(error){qs('#client-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
 // salvarCliente já é upsert por CNPJ/CPF (ON CONFLICT no banco): preencher o
 // formulário com um cliente existente e salvar de novo atualiza em vez de
@@ -2785,10 +2788,10 @@ function configurarEmpresasAdmin(companies){
 }
 function renderEmpresasAdmin(){
   const box=qs('#admin-company-options');if(!box)return;
-  const term=(qs('#admin-company-search')?.value||'').toLocaleLowerCase('pt-BR').replace(/\D/g,'')||'';
+  const term=normalizarDocumento(qs('#admin-company-search')?.value)||'';
   const raw=(qs('#admin-company-search')?.value||'').trim().toLocaleLowerCase('pt-BR');
   const current=sessionStorage.getItem(STORAGE_COMPANY_ID);
-  const filtered=empresasAdmin.filter(c=>!raw||String(c.legal_name).toLocaleLowerCase('pt-BR').includes(raw)||String(c.trade_name).toLocaleLowerCase('pt-BR').includes(raw)||String(c.federal_tax_id).replace(/\D/g,'').includes(term));
+  const filtered=empresasAdmin.filter(c=>!raw||String(c.legal_name).toLocaleLowerCase('pt-BR').includes(raw)||String(c.trade_name).toLocaleLowerCase('pt-BR').includes(raw)||normalizarDocumento(c.federal_tax_id).includes(term));
   box.innerHTML=filtered.length?filtered.map(c=>`<button type="button" class="admin-company-option ${c.id===current?'active':''}" onclick="selecionarEmpresaAdmin('${c.id}')"><b>${esc(c.trade_name||c.legal_name)}</b><span>CNPJ: ${esc(formatarCnpj(c.federal_tax_id))}</span></button>`).join(''):'<div class="empty-state" style="padding:16px">Nenhuma empresa encontrada.</div>';
   const selected=empresasAdmin.find(c=>c.id===current)||empresasAdmin[0];
   const label=qs('#admin-company-current');if(label)label.textContent=selected?(selected.trade_name||selected.legal_name):'Nenhuma empresa cadastrada';
@@ -2980,7 +2983,7 @@ function usuarioPrincipalCnpj(companyId){const rows=usuariosDoCnpj(companyId);re
 function empresaSuspensa(c){return c.emission_enabled===false}
 let masterClientView='ativas';
 function mostrarSubtelaClientes(view,btn){masterClientView=view;qsa('.client-subtab-btn').forEach(el=>el.classList.remove('on'));btn?.classList.add('on');renderMasterClients()}
-function renderMasterClients(){const box=qs('#master-companies');if(!box||!masterData)return;const term=(qs('#master-client-search')?.value||'').trim().toLocaleLowerCase('pt-BR'),digits=term.replace(/\D/g,''),status=qs('#master-client-status')?.value||'all';const label={self_service:'Autoimplantação',paid_pending:'Implantação paga — pendente',paid_active:'Implantação paga — ativa'};const suspensasTotal=masterData.companies.filter(empresaSuspensa).length,contadorAtivas=qs('#master-count-ativas'),contadorSuspensas=qs('#master-count-suspensas'),aviso=qs('#master-suspended-note');if(contadorAtivas)contadorAtivas.textContent=masterData.companies.length-suspensasTotal;if(contadorSuspensas)contadorSuspensas.textContent=suspensasTotal;if(aviso)aviso.style.display=masterClientView==='suspensas'?'':'none';const rows=masterData.companies.filter(c=>{if(masterClientView==='suspensas'?!empresaSuspensa(c):empresaSuspensa(c))return false;const user=usuarioPrincipalCnpj(c.id)||{};const search=[c.legal_name,c.trade_name,c.federal_tax_id,c.contact_email,user.name,user.email,user.profile_name,user.partner_nickname].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(term)||String(v||'').replace(/\D/g,'').includes(digits));return (!term||search)&&(status==='all'||(c.implementation_status||'self_service')===status)});box.innerHTML=rows.map(c=>{const u=usuarioPrincipalCnpj(c.id),linked=usuariosDoCnpj(c.id),multi=linked.filter(item=>item.access_origin==='operational').length>1,isPending=!u||u.access_origin==='pending',active=u&&u.active!==false&&u.access_active!==false&&!isPending,limit=Number(u?.monthly_limit||0),used=Number(u?.monthly_used||0);const partnerOptions='<option value="">Administrador</option>'+masterData.partners.map(p=>`<option value="${p.id}" ${p.id===u?.partner_id?'selected':''}>${esc(p.nickname)}</option>`).join('');const profileOptions=isPending?`<option>${esc(u?.profile_name||'Administrador')}</option>`:masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u?.profile_id?'selected':''}>${esc(p.name)}</option>`).join('');const userCell=u?`<b>${esc(u.name||'Administrador')}</b> ${isPending?'<span class="pill p-warn">PENDENTE</span>':''}${multi?'<span class="pill p-err">REVISAR</span>':''}<br><span>${esc(u.email||c.contact_email||'Sem e-mail informado')}</span><br><small>${multi?'Mais de um usuário operacional neste CNPJ':'Um CNPJ por usuário responsável'}</small>`:`<b>Administrador</b> <span class="pill p-warn">PENDENTE</span><br><span>${esc(c.contact_email||'Sem e-mail informado')}</span><br><small>Sem usuário ativo neste CNPJ</small>`;const vinculo=isPending?'<span class="foot-note">Administrador</span>':`<select class="inp" style="padding:5px" onchange="vincularUsuarioParceiro('${u.id}',this.value,'${u.partner_id||''}')">${partnerOptions}</select>`;const perfil=isPending?`<select class="inp" style="padding:5px" disabled>${profileOptions}</select><div class="hint">Cliente sem usuário operacional ativo.</div>`:`<select class="inp" id="access-${u.id}-${c.id}" style="padding:5px" onchange="mostrarResumoPerfilUsuario('${u.id}','${c.id}')">${profileOptions}</select><div class="hint" id="access-hint-${u.id}-${c.id}">${esc(resumoPerfil(masterData.profiles.find(p=>p.id===u.profile_id)))}</div>`;const suspensa=empresaSuspensa(c);const statusCell=suspensa?`<span class="pill p-err">Emissão suspensa</span><br><small>${esc(label[c.implementation_status||'self_service']||'')}</small>`:isPending?'<span class="pill p-warn">Sem usuário ativo</span>':`<span class="pill ${active?'p-ok':'p-off'}">${active?'Liberado':'Suspenso'}</span><br><small>${esc(label[c.implementation_status||'self_service']||'')}</small>`;const actions=suspensa?`<button class="btn btn-s" onclick="reativarEmpresaMaster('${c.id}')">Reativar emissão</button><button class="btn btn-s" onclick="abrirDetalhesCliente('${c.id}')">Detalhes</button>${u&&!isPending?`<button class="btn btn-s" onclick="gerarRedefinicaoSenha('${u.id}','${c.id}')">Redefinir senha</button>`:''}<span class="foot-note">As notas já emitidas continuam preservadas</span>`:isPending?`<button class="btn btn-s" onclick="prepararUsuarioPendente('${c.id}')">Convidar usuário</button><button class="btn btn-s" onclick="abrirDetalhesCliente('${c.id}')">Detalhes</button><button class="btn btn-s" onclick="abrirEmpresaEmissao('${c.id}')" ${c.emission_enabled?'':'disabled'}>Abrir emissão</button><span class="foot-note">Gere ou reenvie o convite pelo CNPJ</span>`:`<button class="btn btn-s" onclick="abrirEditarUsuario('${u.id}','${c.id}')">Editar usuário</button><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${c.id}',true)">${active?'Revisar e salvar':'Liberar'}</button><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${c.id}',false)">Suspender</button><button class="btn btn-s" onclick="gerarRedefinicaoSenha('${u.id}','${c.id}')">Redefinir senha</button><button class="btn btn-s" onclick="abrirEmpresaEmissao('${c.id}')" ${c.emission_enabled?'':'disabled'}>Abrir emissão</button>`;return `<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(formatarCnpj(c.federal_tax_id))}</span><br><small>Plano ${esc(c.plan_code||'—')} · ${used}${limit?` / ${limit}`:' notas'} autorizadas</small></td><td>${userCell}</td><td>${vinculo}</td><td>${perfil}</td><td>${statusCell}</td><td><div class="acts">${actions}</div></td></tr>`}).join('')||`<tr><td colspan="6">${masterClientView==='suspensas'?'Nenhuma empresa suspensa — está tudo liberado por aqui.':'Nenhum CNPJ encontrado.'}</td></tr>`}
+function renderMasterClients(){const box=qs('#master-companies');if(!box||!masterData)return;const term=(qs('#master-client-search')?.value||'').trim().toLocaleLowerCase('pt-BR'),documento=normalizarDocumento(term),status=qs('#master-client-status')?.value||'all';const label={self_service:'Autoimplantação',paid_pending:'Implantação paga — pendente',paid_active:'Implantação paga — ativa'};const suspensasTotal=masterData.companies.filter(empresaSuspensa).length,contadorAtivas=qs('#master-count-ativas'),contadorSuspensas=qs('#master-count-suspensas'),aviso=qs('#master-suspended-note');if(contadorAtivas)contadorAtivas.textContent=masterData.companies.length-suspensasTotal;if(contadorSuspensas)contadorSuspensas.textContent=suspensasTotal;if(aviso)aviso.style.display=masterClientView==='suspensas'?'':'none';const rows=masterData.companies.filter(c=>{if(masterClientView==='suspensas'?!empresaSuspensa(c):empresaSuspensa(c))return false;const user=usuarioPrincipalCnpj(c.id)||{};const search=[c.legal_name,c.trade_name,c.federal_tax_id,c.contact_email,user.name,user.email,user.profile_name,user.partner_nickname].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(term)||normalizarDocumento(v).includes(documento));return (!term||search)&&(status==='all'||(c.implementation_status||'self_service')===status)});box.innerHTML=rows.map(c=>{const u=usuarioPrincipalCnpj(c.id),linked=usuariosDoCnpj(c.id),multi=linked.filter(item=>item.access_origin==='operational').length>1,isPending=!u||u.access_origin==='pending',active=u&&u.active!==false&&u.access_active!==false&&!isPending,limit=Number(u?.monthly_limit||0),used=Number(u?.monthly_used||0);const partnerOptions='<option value="">Administrador</option>'+masterData.partners.map(p=>`<option value="${p.id}" ${p.id===u?.partner_id?'selected':''}>${esc(p.nickname)}</option>`).join('');const profileOptions=isPending?`<option>${esc(u?.profile_name||'Administrador')}</option>`:masterData.profiles.map(p=>`<option value="${p.id}" ${p.id===u?.profile_id?'selected':''}>${esc(p.name)}</option>`).join('');const userCell=u?`<b>${esc(u.name||'Administrador')}</b> ${isPending?'<span class="pill p-warn">PENDENTE</span>':''}${multi?'<span class="pill p-err">REVISAR</span>':''}<br><span>${esc(u.email||c.contact_email||'Sem e-mail informado')}</span><br><small>${multi?'Mais de um usuário operacional neste CNPJ':'Um CNPJ por usuário responsável'}</small>`:`<b>Administrador</b> <span class="pill p-warn">PENDENTE</span><br><span>${esc(c.contact_email||'Sem e-mail informado')}</span><br><small>Sem usuário ativo neste CNPJ</small>`;const vinculo=isPending?'<span class="foot-note">Administrador</span>':`<select class="inp" style="padding:5px" onchange="vincularUsuarioParceiro('${u.id}',this.value,'${u.partner_id||''}')">${partnerOptions}</select>`;const perfil=isPending?`<select class="inp" style="padding:5px" disabled>${profileOptions}</select><div class="hint">Cliente sem usuário operacional ativo.</div>`:`<select class="inp" id="access-${u.id}-${c.id}" style="padding:5px" onchange="mostrarResumoPerfilUsuario('${u.id}','${c.id}')">${profileOptions}</select><div class="hint" id="access-hint-${u.id}-${c.id}">${esc(resumoPerfil(masterData.profiles.find(p=>p.id===u.profile_id)))}</div>`;const suspensa=empresaSuspensa(c);const statusCell=suspensa?`<span class="pill p-err">Emissão suspensa</span><br><small>${esc(label[c.implementation_status||'self_service']||'')}</small>`:isPending?'<span class="pill p-warn">Sem usuário ativo</span>':`<span class="pill ${active?'p-ok':'p-off'}">${active?'Liberado':'Suspenso'}</span><br><small>${esc(label[c.implementation_status||'self_service']||'')}</small>`;const actions=suspensa?`<button class="btn btn-s" onclick="reativarEmpresaMaster('${c.id}')">Reativar emissão</button><button class="btn btn-s" onclick="abrirDetalhesCliente('${c.id}')">Detalhes</button>${u&&!isPending?`<button class="btn btn-s" onclick="gerarRedefinicaoSenha('${u.id}','${c.id}')">Redefinir senha</button>`:''}<span class="foot-note">As notas já emitidas continuam preservadas</span>`:isPending?`<button class="btn btn-s" onclick="prepararUsuarioPendente('${c.id}')">Convidar usuário</button><button class="btn btn-s" onclick="abrirDetalhesCliente('${c.id}')">Detalhes</button><button class="btn btn-s" onclick="abrirEmpresaEmissao('${c.id}')" ${c.emission_enabled?'':'disabled'}>Abrir emissão</button><span class="foot-note">Gere ou reenvie o convite pelo CNPJ</span>`:`<button class="btn btn-s" onclick="abrirEditarUsuario('${u.id}','${c.id}')">Editar usuário</button><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${c.id}',true)">${active?'Revisar e salvar':'Liberar'}</button><button class="btn btn-s" onclick="salvarAcesso('${u.id}','${c.id}',false)">Suspender</button><button class="btn btn-s" onclick="gerarRedefinicaoSenha('${u.id}','${c.id}')">Redefinir senha</button><button class="btn btn-s" onclick="abrirEmpresaEmissao('${c.id}')" ${c.emission_enabled?'':'disabled'}>Abrir emissão</button>`;return `<tr><td><b>${esc(c.trade_name||c.legal_name)}</b><br><span class="mono">${esc(formatarCnpj(c.federal_tax_id))}</span><br><small>Plano ${esc(c.plan_code||'—')} · ${used}${limit?` / ${limit}`:' notas'} autorizadas</small></td><td>${userCell}</td><td>${vinculo}</td><td>${perfil}</td><td>${statusCell}</td><td><div class="acts">${actions}</div></td></tr>`}).join('')||`<tr><td colspan="6">${masterClientView==='suspensas'?'Nenhuma empresa suspensa — está tudo liberado por aqui.':'Nenhum CNPJ encontrado.'}</td></tr>`}
 function filtrarClientesMaster(){renderMasterClients()}
 function imprimirClientesMaster(){document.body.classList.add('printing-master');window.print();window.setTimeout(()=>document.body.classList.remove('printing-master'),1000)}
 function renderMasterPartners(){const box=qs('#master-partners');if(!box||!masterData)return;box.innerHTML=masterData.partners.map(p=>`<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td><td><div class="acts"><button class="btn btn-s" type="button" onclick="editarParceiroMaster('${p.id}')">Editar</button><button class="btn btn-s" type="button" onclick="alternarStatusParceiroMaster('${p.id}')">${p.active?'Suspender':'Ativar'}</button></div></td></tr>`).join('')||'<tr><td colspan="5">Nenhum parceiro cadastrado.</td></tr>'}
@@ -3009,7 +3012,7 @@ function renderMasterPlans(){const box=qs('#master-plans');if(!box||!masterData)
 let masterNewLookup=null,masterEditingPlanCode='';
 function abrirNovoCliente(){qs('#master-client-modal').classList.add('on');qs('#master-new-cnpj').focus();}
 function fecharNovoCliente(){qs('#master-client-modal').classList.remove('on');masterNewLookup=null;qs('#master-new-cnpj').value='';qs('#master-new-email').value='';qs('#master-new-zap').value='';qs('#master-new-company').style.display='none';qs('#master-new-link').style.display='none';qs('#master-new-cnpj-status').textContent=''}
-async function consultarNovoClienteCnpj(){const input=qs('#master-new-cnpj'),cnpj=input.value.replace(/\D/g,'');const status=qs('#master-new-cnpj-status'),box=qs('#master-new-company');if(cnpj.length!==14){status.textContent='Informe um CNPJ com 14 dígitos.';return}status.textContent='Consultando CNPJ e situação cadastral...';masterNewLookup=null;try{const data=await api('/api/master/cnpj/'+cnpj);masterNewLookup=data;box.style.display='block';box.innerHTML=`<b>${esc(data.legalName)}</b>${data.tradeName?` · ${esc(data.tradeName)}`:''}<br><span class="mono">${esc(formatarCnpj(data.federalTaxId))}</span> · ${esc(data.municipalityName||'Município não informado')} / ${esc(data.state||'—')}<br><span class="pill ${data.active?'p-ok':'p-err'}">${esc(data.status||'')}</span> · Regime sugerido: ${esc(data.regime)}`;status.textContent=data.active?'CNPJ ativo. Confira os dados antes de gerar o convite.':'CNPJ não está ativo.'}catch(error){status.textContent=error.message;box.style.display='none'}}
+async function consultarNovoClienteCnpj(){const input=qs('#master-new-cnpj'),cnpj=normalizarDocumento(input.value);const status=qs('#master-new-cnpj-status'),box=qs('#master-new-company');if(!cnpjComFormatoValido(cnpj)){status.textContent='Informe um CNPJ com 14 caracteres válidos.';return}status.textContent='Consultando CNPJ e situação cadastral...';masterNewLookup=null;try{const data=await api('/api/master/cnpj/'+cnpj);masterNewLookup=data;box.style.display='block';box.innerHTML=`<b>${esc(data.legalName)}</b>${data.tradeName?` · ${esc(data.tradeName)}`:''}<br><span class="mono">${esc(formatarCnpj(data.federalTaxId))}</span> · ${esc(data.municipalityName||'Município não informado')} / ${esc(data.state||'—')}<br><span class="pill ${data.active?'p-ok':'p-err'}">${esc(data.status||'')}</span> · Regime sugerido: ${esc(data.regime)}`;status.textContent=data.active?'CNPJ ativo. Confira os dados antes de gerar o convite.':'CNPJ não está ativo.'}catch(error){status.textContent=error.message;box.style.display='none'}}
 async function criarConviteNovoCliente(){const email=qs('#master-new-email').value.trim(),profileId=qs('#master-new-profile').value,planCode=qs('#master-new-plan').value,whatsappPhone=qs('#master-new-zap').value.trim();if(!masterNewLookup?.active){alert('Consulte um CNPJ ativo antes de gerar o convite.');return}if(!email||!profileId||!planCode){alert('Informe e-mail, perfil e plano.');return}try{const result=await api('/api/master/invitations',{method:'POST',body:JSON.stringify({federalTaxId:masterNewLookup.federalTaxId,email,profileId,planCode,whatsappPhone:whatsappPhone||undefined})});const token=new URL(result.invitePath,location.origin).searchParams.get('invite'),link=new URL('/dashboard',location.origin);if(token)link.searchParams.set('invite',token);const box=qs('#master-new-link');box.style.display='block';box.innerHTML=`<b>Link pronto para envio</b><br><span id="master-new-link-value">${esc(link.href)}</span><br><button class="btn btn-s" style="margin-top:8px" onclick="copiarTextoSeguro(qs('#master-new-link-value').textContent,this)">Copiar link</button>`;await carregarMaster()}catch(error){alert(error.message)}}
 let masterEditingPartnerId='';
 async function salvarParceiroMaster(){
@@ -3089,7 +3092,7 @@ async function salvarEditarUsuario(){
 function prepararUsuarioPendente(companyId){
   const company=masterData?.companies.find(item=>item.id===companyId);if(!company){alert('CNPJ não encontrado na gestão.');return}
   abrirNovoCliente();
-  const federalTaxId=String(company.federal_tax_id||'').replace(/\D/g,'');
+  const federalTaxId=normalizarDocumento(company.federal_tax_id);
   qs('#master-new-cnpj').value=formatarCnpj(federalTaxId);qs('#master-new-email').value=company.contact_email||'';qs('#master-new-zap').value=company.whatsapp_phone||'';
   if(company.plan_code&&qs('#master-new-plan'))qs('#master-new-plan').value=company.plan_code;
   masterNewLookup={active:true,federalTaxId,legalName:company.legal_name||company.trade_name||'',tradeName:company.trade_name||'',municipalityName:'Cadastro existente',state:'',regime:'sn'};
@@ -3272,7 +3275,7 @@ entrarComSessaoSalva().catch(error=>mostrarErroLogin(error.message)).finally(()=
 
 /* ---------- SUPORTE / ASSISTENTE TITAN ---------- */
 const supNorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-function supFmtCnpj(v){v=String(v||'').replace(/\D/g,'');return v.length===14?v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,'$1.$2.$3/$4-$5'):(v||'—')}
+function supFmtCnpj(v){v=normalizarDocumento(v);return v.length===14?v.replace(/^(.{2})(.{3})(.{3})(.{4})(\d{2})$/,'$1.$2.$3/$4-$5'):(v||'—')}
 const supAmb=()=>(typeof ambienteAtual!=='undefined'&&ambienteAtual==='production')?'Produção oficial':'Produção Restrita';
 
 const SUP_OFICIAL={
@@ -3350,8 +3353,8 @@ function supAnswerTopic(t){supBubble(t.a()+supActs(t.act),'bot')}
 const supMeses={janeiro:0,fevereiro:1,marco:2,abril:3,maio:4,junho:5,julho:6,agosto:7,setembro:8,outubro:9,novembro:10,dezembro:11};
 function supFiltrarNotas(text){
   const q=supNorm(text),agora=new Date();let lista=[...notas],filtrou=false;
-  const chave=(String(text).match(/\d{45,60}/)||[])[0];
-  if(chave){lista=lista.filter(n=>String(n.key||'').replace(/\D/g,'')===chave);filtrou=true}
+  const chave=(String(text).toUpperCase().match(/[A-Z0-9]{44,50}/)||[])[0];
+  if(chave){lista=lista.filter(n=>normalizarDocumento(n.key)===chave);filtrou=true}
   const numero=q.match(/(?:dps|nota|numero|nº|n°)\s*(?:numero|nº|n°|#)?\s*(\d{1,15})/);
   if(numero&&!chave){lista=lista.filter(n=>String(n.n)===String(Number(numero[1]))||String(n.n)===numero[1]);filtrou=true}
   const mes=Object.entries(supMeses).find(([nome])=>q.includes(nome));

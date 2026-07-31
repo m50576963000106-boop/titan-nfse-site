@@ -181,6 +181,20 @@ test("usa login por CNPJ e expõe NBS e retenções condicionais",async()=>{
   assert.match(html,/pisCofinsBase/);
 });
 
+test("aceita CNPJ alfanumérico em todos os fluxos do portal",async()=>{
+  const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(landing,/function normalizeTaxId/);
+  assert.match(landing,/\^\[A-Z0-9\]\{12\}\[0-9\]\{2\}\$/);
+  assert.match(landing,/AA\.AAA\.AAA\/AAAA-99/);
+  assert.match(html,/function normalizarDocumento/);
+  assert.match(html,/function cnpjComFormatoValido/);
+  assert.match(html,/function mascararDocumento/);
+  assert.match(html,/taxId:documento/);
+  assert.match(html,/\[A-Z0-9\]\{44,50\}/);
+  assert.doesNotMatch(html,/federal_tax_id\|\|''\)\.replace\(\/\\D\/g/);
+});
+
 test("centraliza serviços, alimenta orçamentos e oferece assistente com ações",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.doesNotMatch(html,/>Pendências<\/button>/);
