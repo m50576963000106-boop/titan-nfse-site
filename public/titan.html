@@ -912,7 +912,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
             </div>
 
             <div class="comm-tab-panel" id="comm-tab-meta" style="display:none">
-              <div class="hint" style="margin-bottom:10px">O endpoint de webhook (validação e recebimento de mensagens da Meta) ainda não está publicado nesta fase — cadastre as credenciais aqui; a URL de webhook será informada quando o receptor entrar no ar.</div>
+              <div class="hint" style="margin-bottom:10px">Webhook oficial já publicado: <code id="set-wa-webhook-url">https://titan-nfse-api.onrender.com/api/whatsapp/webhook</code>. Use exatamente essa URL na Meta e o mesmo Verify Token salvo abaixo.</div>
               <div class="row r2">
                 <div class="field"><label for="set-wa-enabled">Integração WhatsApp (Meta)</label><select id="set-wa-enabled" class="inp"><option value="false">Desativada</option><option value="true">Ativada</option></select></div>
                 <div class="field"><label for="set-wa-display-name">Nome de exibição</label><input id="set-wa-display-name" class="inp" placeholder="TITAN NFS-e"></div>
@@ -939,6 +939,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
                 <div class="field"><label for="set-martyn-mode">Modo de operação</label><select id="set-martyn-mode" class="inp"><option value="observar">Somente observar</option><option value="sugerir">Sugerir respostas</option><option value="automatico">Responder automaticamente</option><option value="automatico_escalonamento">Automático com escalonamento</option><option value="humano">Atendimento humano</option></select></div>
                 <div class="field"><label for="set-martyn-name">Nome apresentado</label><input id="set-martyn-name" class="inp" placeholder="Martyn"></div>
                 <div class="field"><label for="set-martyn-company">Empresa representada</label><input id="set-martyn-company" class="inp" placeholder="ETHOS AE"></div>
+                <div class="field"><label>Provedor de inteligência</label><span id="master-martyn-provider-state" class="pill p-off">Verificando</span><div id="master-martyn-provider-detail" class="hint"></div></div>
               </div>
               <div class="field"><label for="set-martyn-greeting">Apresentação inicial</label><textarea id="set-martyn-greeting" class="inp" rows="2" placeholder="Olá! Sou o Martyn, assistente virtual da ETHOS. Vou analisar sua solicitação e ajudar no que for possível. Quando necessário, acionarei um responsável da equipe."></textarea></div>
               <div class="row r2">
@@ -2858,6 +2859,7 @@ async function carregarConfiguracoesMaster(){
     qs('#set-wa-waba-id').value=data.whatsappBusinessAccountId||'';
     qs('#set-wa-phone-number-id').value=data.whatsappPhoneNumberId||'';
     qs('#set-wa-app-id').value=data.metaAppId||'';
+    const webhook=qs('#set-wa-webhook-url');if(webhook)webhook.textContent=data.whatsappWebhookUrl||'https://titan-nfse-api.onrender.com/api/whatsapp/webhook';
     qs('#set-wa-access-token').value='';qs('#set-wa-app-secret').value='';qs('#set-wa-verify-token').value='';
     qs('#set-martyn-wa-enabled').value=String(Boolean(data.martynWhatsAppEnabled));
     qs('#set-martyn-mode').value=data.martynOperationMode||'automatico_escalonamento';
@@ -2919,8 +2921,10 @@ function atualizarEstadosIntegracoes(data){
   const email=qs('#master-invoice-email-state');if(email){email.textContent=data.invoiceEmailProvider==='disabled'?'Desativado':emailReady?'Pronto para conectar':'Pendente';email.className=`pill ${emailReady?'p-ok':'p-off'}`}
   const driveReady=data.googleDriveArchiveEnabled&&data.googleDriveFolderId&&data.googleDriveServiceAccountEmail&&data.hasGoogleDriveServiceAccountKey;
   const drive=qs('#master-drive-state');if(drive){drive.textContent=driveReady?'Pronto para conectar':data.googleDriveArchiveEnabled?'Pendente':'Desativado';drive.className=`pill ${driveReady?'p-ok':'p-off'}`}
-  const waCredentialsReady=Boolean(data.whatsappPhoneNumberId&&data.hasMetaAccessToken&&data.hasMetaAppSecret);
-  const wa=qs('#master-whatsapp-state');if(wa){wa.textContent=!data.whatsappEnabled?'Desativado':waCredentialsReady?'Configurado — aguardando webhook':'Configuração incompleta';wa.className=`pill ${data.whatsappEnabled&&waCredentialsReady?'p-ok':'p-off'}`}
+  const waCredentialsReady=Boolean(data.whatsappPhoneNumberId&&data.whatsappBusinessAccountId&&data.hasMetaAccessToken&&data.hasMetaAppSecret&&data.hasWhatsappWebhookVerifyToken);
+  const wa=qs('#master-whatsapp-state');if(wa){wa.textContent=!data.whatsappEnabled?'Desativado':waCredentialsReady?'Pronto para validar':'Configuração incompleta';wa.className=`pill ${data.whatsappEnabled&&waCredentialsReady?'p-ok':'p-off'}`}
+  const martyn=qs('#master-martyn-provider-state');if(martyn){martyn.textContent=data.martynProviderReady?'Provedor conectado':'Chave de IA ausente';martyn.className=`pill ${data.martynProviderReady?'p-ok':'p-off'}`}
+  const detail=qs('#master-martyn-provider-detail');if(detail)detail.textContent=data.martynProviderReady?`${data.martynProvider||''} · ${data.martynModel||''}`:'Configure a chave do provedor de IA no ambiente da API antes de ativar respostas automáticas.';
 }
 function mostrarAbaComunicacao(aba,btnAtivo){
   qsa('.comm-tab-panel').forEach(el=>el.style.display='none');
@@ -3512,4 +3516,3 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&qs('#sup-panel')?.c
 </section>
 </body>
 </html>
-

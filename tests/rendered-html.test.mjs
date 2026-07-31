@@ -484,8 +484,8 @@ test("portal expoe manifest e icones proprios para instalacao e empacotamento",a
 
   // o _headers do repo substitui o que o vinext gera, entao a regra de cache
   // imutavel dos assets com hash precisa continuar declarada aqui
-  assert.match(headers,/\/manifest\.webmanifest\n {2}Content-Type: application\/manifest\+json/);
-  assert.match(headers,/\/assets\/\*\n {2}Cache-Control: public, max-age=31536000, immutable/);
+  assert.match(headers,/\/manifest\.webmanifest\r?\n {2}Content-Type: application\/manifest\+json/);
+  assert.match(headers,/\/assets\/\*\r?\n {2}Cache-Control: public, max-age=31536000, immutable/);
 });
 
 test("publica Termos de Uso e Política de Privacidade em rotas próprias",async()=>{
@@ -513,4 +513,14 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   assert.match(termos,/Curitiba\/PR para dirimir controvérsias/);
   // o body e overflow:hidden por causa do iframe; a rolagem vive no container
   assert.match(css,/\.legal \{[\s\S]*?overflow-y: auto;/);
+});
+
+test("painel Master mostra a prontidão real do WhatsApp e do Martyn",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="set-wa-webhook-url"/);
+  assert.match(html,/https:\/\/titan-nfse-api\.onrender\.com\/api\/whatsapp\/webhook/);
+  assert.doesNotMatch(html,/endpoint de webhook[^<]*ainda não está publicado/i);
+  assert.match(html,/id="master-martyn-provider-state"/);
+  assert.match(html,/data\.martynProviderReady\?'Provedor conectado':'Chave de IA ausente'/);
+  assert.match(html,/data\.hasWhatsappWebhookVerifyToken/);
 });
