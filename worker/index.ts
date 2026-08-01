@@ -69,6 +69,14 @@ const worker = {
       return Response.redirect(target.toString(), 301);
     }
 
+    // Next.js route matching is case-sensitive; a visitor typing /FAQ (or any
+    // other casing) would otherwise 404 on a page that does exist at /faq.
+    if (url.pathname !== "/faq" && url.pathname.toLowerCase() === "/faq") {
+      const target = new URL(request.url);
+      target.pathname = "/faq";
+      return Response.redirect(target.toString(), 301);
+    }
+
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
       return handleImageOptimization(request, {
