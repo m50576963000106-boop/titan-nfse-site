@@ -509,6 +509,26 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .client-subtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .client-subtab-btn .pill{margin-left:6px;font-size:10px;vertical-align:middle}
 @media print{body.printing-master *{visibility:hidden!important}body.printing-master #v-master,body.printing-master #v-master #master-panel-clientes,body.printing-master #v-master #master-panel-clientes *{visibility:visible!important}body.printing-master #v-master{position:absolute;inset:0;margin:0;padding:20px}body.printing-master .sidebar,body.printing-master .topbar{display:none!important}body.printing-master #master-panel-clientes{display:block!important}.printing-master .card-h button,.printing-master .card-h .flex{display:none!important}}
+
+/* ---------- NOTAS EMITIDAS: filtros, impressão e cartão no mobile ---------- */
+.nt-filtros-avancados{display:flex;flex-wrap:wrap;gap:10px 12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.nt-filtros-avancados .field{flex:1;min-width:150px;margin:0}
+.nt-limpar-wrap{flex:none;display:flex;align-items:flex-end}
+#nt-filtro-btn.on{background:var(--navy);border-color:var(--navy);color:#fff}
+@media print{body.printing-notas *{visibility:hidden!important}body.printing-notas #v-notas,body.printing-notas #v-notas *{visibility:visible!important}body.printing-notas #v-notas{position:absolute;inset:0;margin:0;padding:20px}body.printing-notas .sidebar,body.printing-notas .topbar{display:none!important}body.printing-notas #nt-filtro-card,body.printing-notas .foot-note{display:none!important}body.printing-notas .acts,body.printing-notas th:last-child,body.printing-notas td[data-th="Ações"]{display:none!important}}
+@media(max-width:760px){
+  .tbl-cards-mobile thead{display:none}
+  .tbl-cards-mobile,.tbl-cards-mobile tbody,.tbl-cards-mobile tr{display:block;width:100%}
+  .tbl-cards-mobile tr{margin-bottom:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+  .tbl-cards-mobile tr:last-child{margin-bottom:0}
+  .tbl-cards-mobile td{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #f0eee6;text-align:right}
+  .tbl-cards-mobile td:last-child{border-bottom:none}
+  .tbl-cards-mobile td::before{content:attr(data-th);flex:none;text-align:left;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+  .tbl-cards-mobile td[data-th="Ações"]{flex-direction:column;align-items:stretch}
+  .tbl-cards-mobile td[data-th="Ações"]::before{margin-bottom:6px}
+  .tbl-cards-mobile .acts{justify-content:flex-start;flex-wrap:wrap}
+  .tbl-cards-mobile td.r,.tbl-cards-mobile td.num{text-align:right}
+}
 .tax-conditional{display:none;margin-top:2px;padding:13px;border:1px solid #e8d9b0;border-radius:8px;background:#fdfaf2}
 .tax-conditional.on{display:block}
 .table-wrap{overflow:auto}
