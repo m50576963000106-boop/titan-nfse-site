@@ -798,7 +798,10 @@ main{margin-left:258px;padding-top:72px}
 .atend-msg-author{font-size:10px;font-weight:800;color:var(--ink-2);text-transform:uppercase;letter-spacing:.4px}
 .atend-msg-body{white-space:pre-wrap}
 .atend-msg-time{font-size:9.5px;color:var(--ink-3);align-self:flex-end}
-.atend-composer{display:flex;gap:8px;padding:11px 12px;background:#fff;border-top:1px solid var(--line);align-items:flex-end}
-.atend-composer textarea{flex:1;resize:vertical;min-height:42px}
+.atend-composer{display:flex;flex-direction:column;gap:8px;padding:11px 12px;background:#fff;border-top:1px solid var(--line)}
+.atend-as{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-2);font-weight:600}
+.atend-as input{flex:1;max-width:240px;padding:5px 9px;font-size:12px}
+.atend-composer-row{display:flex;gap:8px;align-items:flex-end}
+.atend-composer-row textarea{flex:1;resize:vertical;min-height:42px}
 #atend-thread-open .hint{padding:2px 14px 11px}
 @media(max-width:860px){.atend-wrap{grid-template-columns:1fr;min-height:0}.atend-conversas{max-height:320px}.atend-messages{max-height:360px}}
