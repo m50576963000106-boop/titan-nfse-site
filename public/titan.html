@@ -125,11 +125,11 @@
        <button class="sb-link" type="button" disabled aria-disabled="true" title="Acesse Gestão master"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Usuários e permissões</button>
       <button class="sb-link" data-permission="certificate" onclick="go('cert',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Certificado digital</button>
       <button class="sb-link" data-permission="company_settings" onclick="go('emitente',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 10h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>Preferências</button>
-      <div id="master-menu" style="display:none"><div class="sb-sec">Administração</div><button class="sb-link" type="button" data-master-tab="clientes" onclick="masterTab('clientes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h7a4.5 4.5 0 0 1 4.5 4.5V20M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>Gestão por CNPJ</button><button class="sb-link" type="button" data-master-tab="parceiros" onclick="masterTab('parceiros',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Gestão de Parceiros</button><button class="sb-link" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/><path d="M9 12l2 2 4-4"/></svg>Perfis de Acesso</button><button class="sb-link" type="button" data-master-tab="planos" onclick="masterTab('planos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/></svg>Planos e Categorias</button><button class="sb-link" type="button" data-master-tab="config" onclick="masterTab('config',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>Configurações</button><button class="sb-link" type="button" data-master-tab="logs" onclick="masterTab('logs',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg>Logs de Auditoria</button></div>
+      <div id="master-menu" style="display:none"><div class="sb-sec">Administração</div><button class="sb-link" type="button" data-master-tab="clientes" onclick="masterTab('clientes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h7a4.5 4.5 0 0 1 4.5 4.5V20M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>Gestão por CNPJ</button><button class="sb-link" type="button" data-master-tab="parceiros" onclick="masterTab('parceiros',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Gestão de Parceiros</button><button class="sb-link" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/><path d="M9 12l2 2 4-4"/></svg>Perfis de Acesso</button><button class="sb-link" type="button" data-master-tab="planos" onclick="masterTab('planos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/></svg>Planos e Categorias</button><button class="sb-link" type="button" data-master-tab="atendimentos" onclick="masterTab('atendimentos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Atendimentos</button><button class="sb-link" type="button" data-master-tab="config" onclick="masterTab('config',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>Configurações</button><button class="sb-link" type="button" data-master-tab="logs" onclick="masterTab('logs',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg>Logs de Auditoria</button></div>
     </nav>
     <nav class="sb-nav admin-sidebar">
       <div class="sb-sec">Painel administrativo</div>
-      <button class="sb-link active" type="button" data-master-tab="clientes" onclick="masterTab('clientes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h7a4.5 4.5 0 0 1 4.5 4.5V20M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>Gestão por CNPJ</button><button class="sb-link" type="button" data-master-tab="parceiros" onclick="masterTab('parceiros',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Gestão de Parceiros</button><button class="sb-link" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/><path d="M9 12l2 2 4-4"/></svg>Perfis de Acesso</button><button class="sb-link" type="button" data-master-tab="planos" onclick="masterTab('planos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/></svg>Planos e Categorias</button><button class="sb-link" type="button" data-master-tab="config" onclick="masterTab('config',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>Configurações</button><button class="sb-link" type="button" data-master-tab="logs" onclick="masterTab('logs',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg>Logs de Auditoria</button>
+      <button class="sb-link active" type="button" data-master-tab="clientes" onclick="masterTab('clientes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h7a4.5 4.5 0 0 1 4.5 4.5V20M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>Gestão por CNPJ</button><button class="sb-link" type="button" data-master-tab="parceiros" onclick="masterTab('parceiros',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Gestão de Parceiros</button><button class="sb-link" type="button" data-master-tab="perfis" onclick="masterTab('perfis',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4 7v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V7l-8-4Z"/><path d="M9 12l2 2 4-4"/></svg>Perfis de Acesso</button><button class="sb-link" type="button" data-master-tab="planos" onclick="masterTab('planos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/></svg>Planos e Categorias</button><button class="sb-link" type="button" data-master-tab="atendimentos" onclick="masterTab('atendimentos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Atendimentos</button><button class="sb-link" type="button" data-master-tab="config" onclick="masterTab('config',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>Configurações</button><button class="sb-link" type="button" data-master-tab="logs" onclick="masterTab('logs',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg>Logs de Auditoria</button>
       <button class="sb-link" type="button" onclick="sairPortal()"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17l5-5-5-5M15 12H3M15 3h6v18h-6"/></svg>Sair</button>
     </nav>
     <div class="sb-foot">
@@ -875,6 +875,32 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
         <div class="card"><div class="card-h"><div><h3>Gestão por CNPJ</h3><p id="master-summary">Carregando...</p></div><div class="flex wrap"><button class="btn btn-s" type="button" onclick="imprimirClientesMaster()">Exportar / imprimir PDF</button><button class="btn btn-p" type="button" onclick="abrirNovoCliente()">+ Novo cliente</button></div></div><div class="card-b"><div class="client-subtabs"><button class="btn btn-s client-subtab-btn on" type="button" onclick="mostrarSubtelaClientes('ativas',this)">Empresas ativas<span class="pill p-ok" id="master-count-ativas">0</span></button><button class="btn btn-s client-subtab-btn" type="button" onclick="mostrarSubtelaClientes('suspensas',this)">Empresas suspensas<span class="pill p-off" id="master-count-suspensas">0</span></button></div><div id="master-suspended-note" class="alert a-warn" style="display:none;margin-bottom:12px">Empresas com a emissão suspensa. Os dados e as notas já emitidas continuam preservados — reative quando quiser para liberar a emissão de novo.</div><div class="row r2"><div class="field"><label for="master-client-search">Buscar CNPJ, cliente ou usuário</label><input id="master-client-search" class="inp" placeholder="Nome, e-mail ou CNPJ" oninput="filtrarClientesMaster()"></div><div class="field"><label for="master-client-status">Situação</label><select id="master-client-status" class="inp" onchange="filtrarClientesMaster()"><option value="all">Todas</option><option value="paid_active">Implantação ativa</option><option value="self_service">Autoimplantação</option><option value="paid_pending">Implantação pendente</option></select></div></div><div id="master-reset-link-panel" class="alert a-info" style="display:none;margin-bottom:12px"></div><div class="table-wrap"><table id="master-client-table"><thead><tr><th>Empresa / CNPJ</th><th>Usuário do CNPJ</th><th>Vínculo</th><th>Perfil</th><th>Status</th><th>Ações</th></tr></thead><tbody id="master-companies"></tbody></table></div><div class="hint">CNPJ é a referência da gestão. Cada linha representa um cliente e seu usuário responsável; se houver mais de um vínculo operacional, revise pelo CNPJ. A senha do Master não é redefinida por CNPJ.</div></div></div>
       </div>
 
+      <div class="master-panel" id="master-panel-atendimentos">
+        <div class="card"><div class="card-h"><div><h3>Atendimentos no WhatsApp</h3><p>Espelho das conversas do Martyn. Acompanhe e, quando precisar, assuma o atendimento — ao responder, o Martyn é pausado para aquele contato até você reativá-lo.</p></div><div class="flex wrap"><span id="atend-auto" class="foot-note"></span><button class="btn btn-s" type="button" onclick="carregarAtendimentos()">Atualizar</button></div></div><div class="card-b">
+          <div class="atend-wrap">
+            <aside class="atend-list">
+              <input id="atend-search" class="inp" placeholder="Buscar por nome, telefone ou empresa" oninput="filtrarAtendimentos()">
+              <div id="atend-conversas" class="atend-conversas"><div class="atend-empty">Carregando conversas...</div></div>
+            </aside>
+            <section class="atend-thread">
+              <div class="atend-thread-empty" id="atend-thread-empty">Selecione uma conversa à esquerda para ver o histórico e dar seguimento.</div>
+              <div id="atend-thread-open" style="display:none">
+                <header class="atend-thread-head">
+                  <div class="atend-th-id"><strong id="atend-th-name">—</strong><span id="atend-th-sub" class="atend-th-sub"></span></div>
+                  <div class="atend-th-actions"><span id="atend-th-pausestate" class="pill p-ok">Martyn ativo</span><button id="atend-th-pausebtn" class="btn btn-s" type="button" onclick="alternarPausaAtendimento()">Assumir conversa</button></div>
+                </header>
+                <div id="atend-th-messages" class="atend-messages"></div>
+                <form class="atend-composer" onsubmit="return enviarRespostaAtendimento(event)">
+                  <textarea id="atend-reply" class="inp" rows="2" placeholder="Escreva uma resposta como atendente da TITAN..." maxlength="4096"></textarea>
+                  <button class="btn btn-p" type="submit" id="atend-send-btn">Enviar</button>
+                </form>
+                <div id="atend-th-status" class="hint">Ao enviar, a mensagem sai pelo mesmo número da TITAN e o Martyn deixa de responder este contato.</div>
+              </div>
+            </section>
+          </div>
+        </div></div>
+      </div>
+
       <div class="master-panel" id="master-panel-parceiros"><div class="card"><div class="card-h"><div><h3>Gestão de parceiros</h3><p>Um usuário pode ter no máximo um vínculo. Sem parceiro, o vínculo exibido é Administrador.</p></div></div><div class="card-b"><input id="partner-id" type="hidden"><div class="row r2"><div class="field"><label for="partner-name">Nome do parceiro</label><input id="partner-name" class="inp" placeholder="Razão social ou nome completo"></div><div class="field"><label for="partner-nickname">Apelido</label><input id="partner-nickname" class="inp" placeholder="Ex.: Contabilidade Alfa"></div><div class="field"><label>&nbsp;</label><div class="flex wrap"><button class="btn btn-p" id="partner-save" type="button" onclick="salvarParceiroMaster()">Cadastrar parceiro</button><button class="btn" id="partner-cancel" style="display:none" type="button" onclick="cancelarEdicaoParceiroMaster()">Cancelar edição</button></div></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Apelido</th><th>Usuários vinculados</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-partners"></tbody></table></div></div></div></div>
 
 
@@ -1304,7 +1330,7 @@ function abrirAreaAutenticada(access){
   carregarEstado();
   render();
   if(PORTAL_ADMIN){
-    go('master',qs('.admin-sidebar .sb-link'));const requestedAdminTab=PORTAL_QUERY.get('tab');setTimeout(()=>masterTab(['clientes','parceiros','perfis','planos','config','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes',qs(`.admin-sidebar [data-master-tab="${['clientes','parceiros','perfis','planos','config','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes'}"]`)),0);
+    go('master',qs('.admin-sidebar .sb-link'));const requestedAdminTab=PORTAL_QUERY.get('tab');setTimeout(()=>masterTab(['clientes','atendimentos','parceiros','perfis','planos','config','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes',qs(`.admin-sidebar [data-master-tab="${['clientes','atendimentos','parceiros','perfis','planos','config','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes'}"]`)),0);
   }else if(PORTAL_HELP){
     go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]'));setTimeout(()=>supOpen(),80);
   }else if(empresaAtual){
@@ -2901,9 +2927,97 @@ function masterTab(tab,button){
   if(button)button.classList.add('active');
   if(tab==='logs')carregarMasterLogs();
   if(tab==='config')carregarConfiguracoesMaster();
+  if(tab==='atendimentos')iniciarAtendimentos();else pararPollingAtendimentos();
   fecharMenuLateral();
   window.scrollTo(0,0);
 }
+
+/* ── Atendimentos: espelho do WhatsApp Web para o Master ─────────────────── */
+const atendState={conversas:[],atual:null,pollTimer:null,pollMs:8000,buscaTimer:null};
+function iniciarAtendimentos(){
+  carregarAtendimentos();
+  pararPollingAtendimentos();
+  atendState.pollTimer=setInterval(()=>{
+    if(qs('#master-panel-atendimentos')?.classList.contains('active'))tickAtendimentos();else pararPollingAtendimentos();
+  },atendState.pollMs);
+  const auto=qs('#atend-auto');if(auto)auto.textContent='Atualiza sozinho a cada 8s';
+}
+function pararPollingAtendimentos(){if(atendState.pollTimer){clearInterval(atendState.pollTimer);atendState.pollTimer=null;}}
+async function tickAtendimentos(){await carregarAtendimentos({silencioso:true});if(atendState.atual)await abrirConversa(atendState.atual,{silencioso:true});}
+function filtrarAtendimentos(){clearTimeout(atendState.buscaTimer);atendState.buscaTimer=setTimeout(()=>carregarAtendimentos(),300);}
+async function carregarAtendimentos(opts={}){
+  const cont=qs('#atend-conversas');if(!cont)return;
+  const busca=qs('#atend-search')?.value.trim()||'';
+  if(!opts.silencioso&&!atendState.conversas.length)cont.innerHTML='<div class="atend-empty">Carregando conversas...</div>';
+  try{
+    const data=await api('/api/master/whatsapp/conversations?limit=80&search='+encodeURIComponent(busca));
+    atendState.conversas=data.conversations||[];
+    renderListaAtendimentos();
+  }catch(error){if(!opts.silencioso)cont.innerHTML='<div class="atend-empty">'+esc(error.message)+'</div>';}
+}
+function renderListaAtendimentos(){
+  const cont=qs('#atend-conversas');if(!cont)return;
+  if(!atendState.conversas.length){cont.innerHTML='<div class="atend-empty">Nenhuma conversa por aqui ainda. Quando um cliente escrever no WhatsApp, ela aparece aqui.</div>';return;}
+  cont.innerHTML=atendState.conversas.map(c=>{
+    const nome=esc(c.displayName||c.companyName||formatarTelefone(c.phone));
+    const sub=esc(c.companyName&&c.displayName?c.companyName:formatarTelefone(c.phone));
+    const prev=esc(((c.lastDirection==='out'?'Você/Martyn: ':'')+(c.lastBody||'[arquivo]')).slice(0,90));
+    const badge=c.martynPaused?'<span class="atend-badge b-human">assumido</span>':(c.aguardando?'<span class="atend-badge b-wait">aguardando</span>':'');
+    return `<button type="button" class="atend-conv${atendState.atual===c.phoneKey?' on':''}" onclick="abrirConversa('${c.phoneKey}')"><div class="atend-conv-top"><span class="atend-conv-name">${nome}</span><span class="atend-conv-time">${esc(formatarHora(c.lastAt))}</span></div><div class="atend-conv-sub">${sub}</div><div class="atend-conv-prev">${prev}${badge}</div></button>`;
+  }).join('');
+}
+async function abrirConversa(phoneKey,opts={}){
+  atendState.atual=phoneKey;
+  const vazio=qs('#atend-thread-empty'),aberto=qs('#atend-thread-open');
+  if(vazio)vazio.style.display='none';if(aberto)aberto.style.display='';
+  qsa('.atend-conv').forEach(b=>b.classList.toggle('on',(b.getAttribute('onclick')||'').includes("'"+phoneKey+"'")));
+  try{const d=await api('/api/master/whatsapp/conversations/'+encodeURIComponent(phoneKey));renderConversa(d,opts);}
+  catch(error){if(!opts.silencioso){const s=qs('#atend-th-status');if(s)s.textContent=error.message;}}
+}
+function renderConversa(d,opts={}){
+  qs('#atend-th-name').textContent=d.displayName||d.companyName||formatarTelefone(d.phone)||'Contato';
+  const partes=[];if(d.phone)partes.push(formatarTelefone(d.phone));if(d.companyName)partes.push(d.companyName);
+  qs('#atend-th-sub').textContent=partes.join(' · ');
+  const pilar=qs('#atend-th-pausestate'),btn=qs('#atend-th-pausebtn');
+  if(d.martynPaused){pilar.textContent='Martyn pausado';pilar.className='pill p-off';btn.textContent='Reativar Martyn';}
+  else{pilar.textContent='Martyn ativo';pilar.className='pill p-ok';btn.textContent='Assumir conversa';}
+  const box=qs('#atend-th-messages');
+  const perto=box.scrollHeight-box.scrollTop-box.clientHeight<80;
+  box.innerHTML=(d.mensagens||[]).map(m=>{
+    const saida=m.direction==='out',humano=m.agent==='human';
+    const autor=saida?(humano?'Você':'Martyn'):'';
+    const corpo=esc(m.body||(m.mediaMimeType?('['+m.mediaMimeType+']'):'[arquivo]'));
+    return `<div class="atend-msg ${saida?(humano?'m-human':'m-bot'):'m-in'}">${autor?`<span class="atend-msg-author">${esc(autor)}</span>`:''}<span class="atend-msg-body">${corpo}</span><span class="atend-msg-time">${esc(formatarHora(m.createdAt))}</span></div>`;
+  }).join('')||'<div class="atend-empty">Sem mensagens.</div>';
+  if(perto||!opts.silencioso)box.scrollTop=box.scrollHeight;
+}
+async function enviarRespostaAtendimento(event){
+  event.preventDefault();
+  const ta=qs('#atend-reply'),btn=qs('#atend-send-btn'),status=qs('#atend-th-status');
+  const texto=ta.value.trim();if(!texto||!atendState.atual)return false;
+  btn.disabled=true;status.textContent='Enviando...';
+  try{
+    const d=await api('/api/master/whatsapp/conversations/'+encodeURIComponent(atendState.atual)+'/reply',{method:'POST',body:JSON.stringify({text:texto})});
+    ta.value='';status.textContent='Enviado. O Martyn ficou pausado para este contato até você reativá-lo.';
+    renderConversa(d);carregarAtendimentos({silencioso:true});
+  }catch(error){status.textContent=error.message;}
+  finally{btn.disabled=false;}
+  return false;
+}
+async function alternarPausaAtendimento(){
+  if(!atendState.atual)return;
+  const btn=qs('#atend-th-pausebtn'),status=qs('#atend-th-status');
+  const pausarAgora=btn.textContent!=='Reativar Martyn';
+  btn.disabled=true;
+  try{
+    const d=await api('/api/master/whatsapp/conversations/'+encodeURIComponent(atendState.atual)+'/pause',{method:'POST',body:JSON.stringify({paused:pausarAgora})});
+    renderConversa(d);status.textContent=pausarAgora?'Você assumiu a conversa. O Martyn está pausado para este contato.':'Martyn reativado: ele volta a responder este contato.';carregarAtendimentos({silencioso:true});
+  }catch(error){status.textContent=error.message;}
+  finally{btn.disabled=false;}
+}
+function formatarHora(iso){if(!iso)return'';const d=new Date(iso);if(isNaN(d.getTime()))return'';const hoje=new Date();return d.toDateString()===hoje.toDateString()?d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});}
+function formatarTelefone(p){if(!p)return'';const d=String(p).replace(/\D/g,'');const n=d.startsWith('55')?d.slice(2):d;if(n.length===11)return`(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;if(n.length===10)return`(${n.slice(0,2)}) ${n.slice(2,6)}-${n.slice(6)}`;return p;}
+
 async function carregarConfiguracoesMaster(){
   const status=qs('#master-settings-status'),commStatus=qs('#master-comm-status');if(status)status.textContent='Carregando...';if(commStatus)commStatus.textContent='Carregando...';
   try{
