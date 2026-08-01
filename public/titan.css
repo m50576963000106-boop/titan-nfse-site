@@ -765,3 +765,40 @@ main{margin-left:258px;padding-top:72px}
   .sup-panel{right:0;left:0;bottom:0;width:100%;max-width:100%;height:84vh;max-height:84vh;border-radius:16px 16px 0 0}
   .martyn-widget{left:16px;right:16px;bottom:16px;width:auto}
 }
+
+/* ── Atendimentos: espelho do WhatsApp Web para o Master ─────────────────── */
+.atend-wrap{display:grid;grid-template-columns:minmax(240px,.9fr) minmax(0,1.9fr);gap:14px;align-items:stretch;min-height:520px}
+.atend-list{display:flex;flex-direction:column;gap:10px;min-width:0}
+.atend-conversas{display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:560px;padding-right:2px}
+.atend-empty{padding:18px 12px;color:var(--ink-3);font-size:12px;text-align:center;line-height:1.5}
+.atend-conv{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;padding:10px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
+.atend-conv:hover{border-color:var(--gold);background:#fbf6e8}
+.atend-conv.on{border-color:var(--gold);background:#fbf6e8;box-shadow:inset 3px 0 0 var(--gold)}
+.atend-conv-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.atend-conv-name{font-weight:700;font-size:12.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atend-conv-time{font-size:10.5px;color:var(--ink-3);flex:none}
+.atend-conv-sub{font-size:11px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atend-conv-prev{font-size:11.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
+.atend-badge{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:1px 6px;border-radius:999px;flex:none}
+.atend-badge.b-wait{background:var(--warn-bg);color:var(--warn)}
+.atend-badge.b-human{background:var(--ok-bg);color:var(--ok)}
+.atend-thread{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;background:#f7f6f1;min-width:0;overflow:hidden}
+.atend-thread-empty{margin:auto;padding:30px;color:var(--ink-3);font-size:12.5px;text-align:center}
+#atend-thread-open{display:flex;flex-direction:column;height:100%;min-height:0}
+.atend-thread-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;background:#fff;border-bottom:1px solid var(--line)}
+.atend-th-id{min-width:0}
+.atend-th-id strong{display:block;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atend-th-sub{font-size:11px;color:var(--ink-3)}
+.atend-th-actions{display:flex;align-items:center;gap:8px;flex:none}
+.atend-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px;min-height:280px;max-height:460px;background:linear-gradient(180deg,#efeadf,#f2efe7)}
+.atend-msg{max-width:74%;padding:7px 11px;border-radius:10px;font-size:12.5px;line-height:1.45;display:flex;flex-direction:column;gap:2px;box-shadow:0 1px 1px rgba(0,0,0,.06);word-break:break-word}
+.atend-msg.m-in{align-self:flex-start;background:#fff;border:1px solid var(--line)}
+.atend-msg.m-bot{align-self:flex-end;background:#dff3d6;border:1px solid #c4e6b4}
+.atend-msg.m-human{align-self:flex-end;background:#d7ebff;border:1px solid #b4d5f0}
+.atend-msg-author{font-size:10px;font-weight:800;color:var(--ink-2);text-transform:uppercase;letter-spacing:.4px}
+.atend-msg-body{white-space:pre-wrap}
+.atend-msg-time{font-size:9.5px;color:var(--ink-3);align-self:flex-end}
+.atend-composer{display:flex;gap:8px;padding:11px 12px;background:#fff;border-top:1px solid var(--line);align-items:flex-end}
+.atend-composer textarea{flex:1;resize:vertical;min-height:42px}
+#atend-thread-open .hint{padding:2px 14px 11px}
+@media(max-width:860px){.atend-wrap{grid-template-columns:1fr;min-height:0}.atend-conversas{max-height:320px}.atend-messages{max-height:360px}}
