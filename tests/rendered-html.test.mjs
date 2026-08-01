@@ -247,6 +247,31 @@ test("chat interno do Martyn (sup-panel) manda texto livre pra IA de verdade, co
   assert.match(html,/function supChip\(id\)\{if\(id==='diag'\)/);
 });
 
+test("preflight fiscal do Martyn confere a nota interativamente antes de emitir",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  // botão e painel na tela de emissão
+  assert.match(html,/onclick="abrirPreflight\(\)"[^>]*id="btn-preflight"/);
+  assert.match(html,/id="preflight-panel"/);
+  // emitir() e o preflight compartilham o MESMO payload — conferir uma nota e
+  // emitir outra seria pior que não conferir
+  assert.match(html,/function montarPayloadEmissao\(\)/);
+  assert.match(html,/const montagem=montarPayloadEmissao\(\);/);
+  assert.match(html,/\/api\/invoices\/preflight/);
+  assert.match(html,/martynFacts:preflightFatos/);
+  // só mapeia de volta os fatos que uma pergunta representa sem ambiguidade
+  assert.match(html,/const PREFLIGHT_MAPA=\{/);
+  assert.match(html,/'csrf-natureza-servico':\{fato:'serviceUnderArt30',tipo:'bool'\}/);
+  assert.match(html,/'irrf-perfil-servico':\{fato:'irrfServiceProfile',tipo:'enum'/);
+  // pergunta fora do mapa vira orientação para o contador, sem responder pelo cliente
+  assert.match(html,/Confirme este ponto com seu contador antes de emitir/);
+  // emissão bloqueada não oferece o botão de emitir; a confirmação final destrava
+  assert.match(html,/if\(pf\.blocked\)html\+=[\s\S]*?Conferir de novo/);
+  assert.match(html,/onchange="qs\('#pf-emitir'\)\.disabled=!this\.checked"/);
+  assert.match(css,/\.preflight-panel\{/);
+  assert.match(css,/\.pf-head\.pf-err\{background:var\(--err\)\}/);
+});
+
 test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");

@@ -443,8 +443,10 @@
               <label class="flex" style="font-size:12px;color:var(--ink-2);cursor:pointer">
                 <input type="checkbox" id="zap-visible" onchange="qs('#zap').checked=this.checked"> Simular envio por WhatsApp
               </label>
+              <section id="preflight-panel" class="preflight-panel" aria-live="polite" style="display:none"></section>
               <div class="emit-actions">
-                <button class="btn-a btn" onclick="emitir(false)" id="btn-emit">Testar fluxo de emissão</button>
+                <button class="btn-a btn" type="button" onclick="abrirPreflight()" id="btn-preflight"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Conferir com o Martyn</button>
+                <button class="btn" onclick="emitir(false)" id="btn-emit">Emitir direto</button>
                 <button class="btn" onclick="salvarRascunho()">Salvar rascunho</button>
               </div>
             </div>
@@ -2294,12 +2296,15 @@ function pipeReset(){
 function mostrarDetalheEtapa(index){const e=etapas[index];const detail=qs('#pipe-detail');if(detail)detail.textContent=`${e.t} — ${e.d}`}
 
 let rodando=false;
-async function emitir(){
-  if(!empresaAtual){
-    alert('Cadastre e salve a empresa antes de emitir.');
-    go('emitente',qs('.sb-link[onclick*="emitente"]'));
-    return;
-  }
+/**
+ * Monta e valida o payload da emissão a partir do formulário. Extraído de
+ * emitir() para o preflight do Martyn reaproveitar exatamente a mesma nota que
+ * seria transmitida — conferir uma coisa e emitir outra seria pior que não
+ * conferir. Devolve {ok:true,payload} ou {ok:false,msg,...} para quem chamou
+ * decidir como avisar (alert na emissão, painel no preflight).
+ */
+function montarPayloadEmissao(){
+  if(!empresaAtual) return {ok:false,msg:'Cadastre e salve a empresa antes de emitir.',view:'emitente'};
   const valor=Number(qs('#s-val').value.replace(/\./g,'').replace(',','.'));
   const documento=normalizarDocumento(qs('#t-doc').value);
   const perfil=perfisServico.find(item=>item.id===qs('#s-profile').value);
@@ -2308,21 +2313,31 @@ async function emitir(){
   const tipoPisCofins=qs('#s-ret-pc').value;
   const retevePisCofins=tipoPisCofins!==''&&tipoPisCofins!=='0';
   const additionalItems=composicaoItens.map(item=>({description:item.description,quantity:Number(item.quantity||0),unitAmount:Number(item.unitAmount||0),amount:Number(((Number(item.quantity)||0)*(Number(item.unitAmount)||0)).toFixed(2))}));
-  if(additionalItems.some(item=>item.quantity<=0||item.unitAmount<=0)){alert('Cada linha de Serviços nessa nota precisa de quantidade e valor unitário maiores que zero — ou remova a linha.');qs('#s-composition-lines')?.scrollIntoView({behavior:'smooth',block:'center'});return}
-  if(!additionalItems.length){alert('Informe o valor deste serviço antes de emitir.');qs('#s-val')?.focus();return}
+  if(additionalItems.some(item=>item.quantity<=0||item.unitAmount<=0)) return {ok:false,msg:'Cada linha de Serviços nessa nota precisa de quantidade e valor unitário maiores que zero — ou remova a linha.',foco:'#s-composition-lines',scroll:true};
+  if(!additionalItems.length) return {ok:false,msg:'Informe o valor deste serviço antes de emitir.',foco:'#s-val'};
   const payload={
     competenceDate:qs('#s-comp').value,
     borrower:{name:qs('#t-nome').value.trim(),taxId:documento,email:qs('#t-mail').value.trim()||undefined,municipalityCode:qs('#t-municipio').value.replace(/\D/g,'')||undefined,postalCode:qs('#t-cep').value.replace(/\D/g,'')||undefined,street:qs('#t-end').value.trim()||undefined,number:qs('#t-num').value.trim()||undefined,district:qs('#t-bairro').value.trim()||undefined,city:qs('#t-cidade').value.trim()||undefined,state:qs('#t-uf').value.trim().toUpperCase()||undefined},
     service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,municipalTaxCode:perfil?.municipal_code||undefined,nbsCode:nbs||undefined,description:qs('#s-desc').value.trim(),amount:valor,additionalItems,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value.replace(/\D/g,'')||undefined,eventCode:qs('#s-event-code')?.value.trim()||undefined,eventLocation:qs('#s-event-location')?.value.trim()||undefined,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,issRate:perfil?.iss_rate==null?undefined:Number(perfil.iss_rate),pisCofinsCst:cst||undefined,pisCofinsWithholding:tipoPisCofins||undefined,pisCofinsBase:retevePisCofins?dinheiro(qs('#s-pc-base').value):undefined,pisRate:retevePisCofins?dinheiro(qs('#s-pis-rate').value):undefined,cofinsRate:retevePisCofins?dinheiro(qs('#s-cofins-rate').value):undefined,pisAmount:retevePisCofins?dinheiro(qs('#s-pis-amount').value):undefined,cofinsAmount:retevePisCofins?dinheiro(qs('#s-cofins-amount').value):undefined,retCp:dinheiro(qs('#s-ret-cp').value),retIrrf:dinheiro(qs('#s-ret-irrf').value),retCsll:retevePisCofins?dinheiro(qs('#s-ret-csll').value):0}
   };
-  if(!payload.competenceDate||!payload.borrower.name||!payload.borrower.taxId||!payload.service.nationalTaxCode||!payload.service.description||!Number.isFinite(valor)||valor<=0){
-    alert('Preencha competência, tomador, CPF/CNPJ, código nacional, descrição e valor do serviço.');return;
-  }
-  if(!/^\d{11}$/.test(documento)&&!cnpjComFormatoValido(documento)){alert('O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 caracteres válidos.');qs('#t-doc').focus();return}
-  if(!/^\d{9}$/.test(nbs)){alert('O código NBS é obrigatório e deve conter exatamente 9 dígitos.');qs('#s-nbs').focus();return}
-  if(payload.service.serviceCategory==='construction'||payload.service.nationalTaxCode.startsWith('07')){if(!/^\d{12}$/.test(payload.service.cno||'')){alert('O serviço de construção civil exige um CNO válido de 12 dígitos.');qs('#s-cno').focus();return}}
-  if(payload.service.serviceCategory==='event'&&(!payload.service.eventCode||!payload.service.eventLocation)){alert('Informe o código e o local do evento antes de transmitir.');return}
-  if(qs('#t-mail').value&&!qs('#t-mail').checkValidity()){alert('Informe um e-mail válido para o tomador.');qs('#t-mail').focus();return}
+  if(!payload.competenceDate||!payload.borrower.name||!payload.borrower.taxId||!payload.service.nationalTaxCode||!payload.service.description||!Number.isFinite(valor)||valor<=0) return {ok:false,msg:'Preencha competência, tomador, CPF/CNPJ, código nacional, descrição e valor do serviço.'};
+  if(!/^\d{11}$/.test(documento)&&!cnpjComFormatoValido(documento)) return {ok:false,msg:'O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 caracteres válidos.',foco:'#t-doc'};
+  if(!/^\d{9}$/.test(nbs)) return {ok:false,msg:'O código NBS é obrigatório e deve conter exatamente 9 dígitos.',foco:'#s-nbs'};
+  if(payload.service.serviceCategory==='construction'||payload.service.nationalTaxCode.startsWith('07')){if(!/^\d{12}$/.test(payload.service.cno||'')) return {ok:false,msg:'O serviço de construção civil exige um CNO válido de 12 dígitos.',foco:'#s-cno'};}
+  if(payload.service.serviceCategory==='event'&&(!payload.service.eventCode||!payload.service.eventLocation)) return {ok:false,msg:'Informe o código e o local do evento antes de transmitir.'};
+  if(qs('#t-mail').value&&!qs('#t-mail').checkValidity()) return {ok:false,msg:'Informe um e-mail válido para o tomador.',foco:'#t-mail'};
+  return {ok:true,payload};
+}
+function tratarFalhaPayload(m){
+  alert(m.msg);
+  if(m.view){go(m.view,qs('.sb-link[onclick*="'+m.view+'"]'));return}
+  const el=m.foco&&qs(m.foco);
+  if(el){m.scroll?el.scrollIntoView({behavior:'smooth',block:'center'}):el.focus();}
+}
+async function emitir(){
+  const montagem=montarPayloadEmissao();
+  if(!montagem.ok){tratarFalhaPayload(montagem);return;}
+  const payload=montagem.payload,valor=payload.service.amount;
   if(ambienteAtual==='production'){
     const aviso=`ATENÇÃO: esta emissão terá validade fiscal.\n\nEmpresa: ${empresaAtual.rs}\nDPS: série ${empresaAtual.series}, número ${empresaAtual.next}\nTomador: ${payload.borrower.name}\nValor: R$ ${brl(valor)}\n\nConfirma a emissão na Produção oficial?`;
     if(!await titanConfirm(aviso,'Transmitir NFS-e',ambienteAtual==='production'?'err':'warn'))return;
@@ -2372,6 +2387,78 @@ async function emitir(){
     rodando=false;
     qs('#btn-emit').disabled=false;
   }
+}
+
+/* ---------- Preflight fiscal do Martyn: conferir antes de emitir ---------- */
+// Fatos coletados nas perguntas, acumulados entre reconferências para as
+// decisões irem refinando. Zerado a cada nova abertura do painel.
+let preflightFatos={};
+/**
+ * Só traduzimos de volta os fatos que uma pergunta representa SEM AMBIGUIDADE.
+ * Um mapeamento errado aqui vira conclusão de retenção errada — exatamente o
+ * que o motor fiscal existe para impedir. Pergunta fora deste mapa aparece como
+ * orientação para o contador, sem o sistema responder pelo cliente.
+ */
+const PREFLIGHT_MAPA={
+  'inss-arts-111-112':{fato:'potentiallySubjectToArts111112',tipo:'bool'},
+  'inss-forma-contratacao':{fato:'laborAssignmentOrContract',tipo:'bool'},
+  'csrf-natureza-servico':{fato:'serviceUnderArt30',tipo:'bool'},
+  'irrf-perfil-servico':{fato:'irrfServiceProfile',tipo:'enum',opcoes:[['Serviços profissionais (consultoria, advocacia, engenharia, TI…)','SERVICOS_PROFISSIONAIS'],['Limpeza, conservação, segurança, vigilância ou locação de mão de obra','LIMPEZA_CONSERVACAO_SEGURANCA_LOCACAO_MAO_OBRA'],['Outro serviço','OUTRO']]},
+  'regime-tomador':{fato:'borrowerRegime',tipo:'enum',opcoes:[['Simples Nacional','SIMPLES_NACIONAL'],['MEI','MEI'],['Lucro Presumido','LUCRO_PRESUMIDO'],['Lucro Real','LUCRO_REAL'],['Pessoa física','PESSOA_FISICA'],['Imune ou isenta','IMUNE_ISENTA'],['Empresa no exterior','EXTERIOR']]}
+};
+const PF_STATUS_LABEL={NOT_APPLICABLE:'não se aplica',NOT_SUBJECT:'sem retenção',EXEMPT_OR_DISPENSED:'dispensado',REQUIRED:'retenção obrigatória',CONDITIONAL:'depende de confirmação',NEEDS_REVIEW:'precisa de revisão',BLOCKED:'bloqueado'};
+const PF_STATUS_CLS={NOT_APPLICABLE:'off',NOT_SUBJECT:'ok',EXEMPT_OR_DISPENSED:'ok',REQUIRED:'warn',CONDITIONAL:'warn',NEEDS_REVIEW:'warn',BLOCKED:'err'};
+
+function abrirPreflight(){preflightFatos={};conferirComMartyn();}
+function fecharPreflight(){const p=qs('#preflight-panel');if(p){p.style.display='none';p.innerHTML='';}}
+function pfResponder(id,valor){const cfg=PREFLIGHT_MAPA[id];if(!cfg)return;preflightFatos[cfg.fato]=cfg.tipo==='bool'?(valor==='sim'):valor;conferirComMartyn();}
+
+async function conferirComMartyn(){
+  const painel=qs('#preflight-panel');
+  const montagem=montarPayloadEmissao();
+  painel.style.display='block';
+  if(!montagem.ok){painel.innerHTML=`<div class="pf-head pf-err"><b>Faltam dados para conferir</b><button class="pf-x" type="button" onclick="fecharPreflight()" aria-label="Fechar">&times;</button></div><div class="pf-body">${esc(montagem.msg)}</div>`;painel.scrollIntoView({behavior:'smooth',block:'nearest'});return;}
+  painel.innerHTML='<div class="pf-body"><span class="sup-typing">Martyn está conferindo a nota…</span></div>';
+  painel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  try{
+    const pf=await api('/api/invoices/preflight',{method:'POST',body:JSON.stringify({...montagem.payload,martynFacts:preflightFatos})});
+    renderPreflight(pf);
+  }catch(error){
+    painel.innerHTML=`<div class="pf-head pf-err"><b>Não consegui conferir agora</b><button class="pf-x" type="button" onclick="fecharPreflight()" aria-label="Fechar">&times;</button></div><div class="pf-body">${esc(error.message||'Falha de comunicação com o servidor.')}</div>`;
+  }
+}
+function renderPreflight(pf){
+  const painel=qs('#preflight-panel');
+  painel.style.display='block';
+  const blocos=[...(pf.structuralBlocks||[]),...(pf.dpsFindings||[]).map(f=>f.message)];
+  const temPendencia=(pf.questions||[]).some(q=>q.answerType!=='CONFIRMACAO')||(pf.reviewFlags||[]).length;
+  const status=pf.blocked?{cls:'pf-err',txt:'Ainda não dá para emitir'}:temPendencia?{cls:'pf-warn',txt:'Quase lá — confirme os pontos abaixo'}:{cls:'pf-ok',txt:'Tudo certo para emitir'};
+  let html=`<div class="pf-head ${status.cls}"><b>${esc(status.txt)}</b><button class="pf-x" type="button" onclick="fecharPreflight()" aria-label="Fechar conferência">&times;</button></div><div class="pf-body">`;
+  if(blocos.length)html+='<div class="pf-sec"><span class="pf-sec-t pf-t-err">Impede a emissão</span><ul>'+blocos.map(b=>`<li>${esc(b)}</li>`).join('')+'</ul></div>';
+  if((pf.decisions||[]).length)html+='<div class="pf-sec"><span class="pf-sec-t">Retenções federais</span>'+pf.decisions.map(d=>{
+    const cls=PF_STATUS_CLS[d.status]||'off',label=PF_STATUS_LABEL[d.status]||d.status;
+    const tax=d.tax==='CSLL_PIS_COFINS'?'CSLL/PIS/COFINS':d.tax;
+    const calc=(d.amount!=null&&d.base!=null&&d.rate!=null)?` — base R$ ${brl(d.base)} × ${(d.rate*100).toFixed(2)}% = R$ ${brl(d.amount)}`:'';
+    return `<div class="pf-dec"><span class="d d-${cls}"></span><span><b>${esc(tax)}</b>: ${esc(label)}${esc(calc)}</span></div>`;
+  }).join('')+'</div>';
+  if((pf.reviewFlags||[]).length)html+='<div class="pf-sec"><span class="pf-sec-t pf-t-warn">Requer revisão do contador</span><ul>'+pf.reviewFlags.map(f=>`<li>${esc(f)}</li>`).join('')+'</ul></div>';
+  const perguntas=(pf.questions||[]).filter(q=>q.answerType!=='CONFIRMACAO');
+  const confirmacao=(pf.questions||[]).find(q=>q.answerType==='CONFIRMACAO');
+  if(perguntas.length)html+='<div class="pf-sec"><span class="pf-sec-t">Perguntas do Martyn</span>'+perguntas.map(q=>{
+    const cfg=PREFLIGHT_MAPA[q.id];let controle;
+    if(cfg&&cfg.tipo==='bool'){const atual=preflightFatos[cfg.fato];controle=`<div class="pf-q-acts"><button type="button" class="${atual===true?'on':''}" onclick="pfResponder('${q.id}','sim')">Sim</button><button type="button" class="${atual===false?'on':''}" onclick="pfResponder('${q.id}','nao')">Não</button></div>`;}
+    else if(cfg&&cfg.tipo==='enum'){const atual=preflightFatos[cfg.fato]||'';controle=`<select class="inp pf-q-sel" onchange="pfResponder('${q.id}',this.value)"><option value="">Selecione…</option>${cfg.opcoes.map(([lab,val])=>`<option value="${val}" ${atual===val?'selected':''}>${esc(lab)}</option>`).join('')}</select>`;}
+    else controle='<div class="pf-q-info">Confirme este ponto com seu contador antes de emitir.</div>';
+    return `<div class="pf-q"><div class="pf-q-topic">${esc(q.topic)}</div><div class="pf-q-prompt">${esc(q.prompt)}</div>${controle}</div>`;
+  }).join('')+'</div>';
+  html+='<div class="pf-foot">';
+  if(pf.blocked)html+='<div class="pf-foot-note">Resolva os pontos que impedem a emissão e confira de novo.</div><button class="btn" type="button" onclick="conferirComMartyn()">Conferir de novo</button>';
+  else{
+    if(confirmacao)html+=`<label class="pf-confirm"><input type="checkbox" id="pf-confirm-chk" onchange="qs('#pf-emitir').disabled=!this.checked"> ${esc(confirmacao.prompt)}</label>`;
+    html+=`<button class="btn-a btn" id="pf-emitir" type="button" ${confirmacao?'disabled':''} onclick="fecharPreflight();emitir()">Emitir agora</button>`;
+  }
+  html+='</div></div>';
+  painel.innerHTML=html;
 }
 
 /* ---------- rascunhos de emissão ---------- */
