@@ -3,7 +3,7 @@ import Link from "next/link";
 import LegalPageHeader from "../legal-page-header";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidade — TITAN NFS-e",
+  title: "Política de Privacidade do TITAN NFS-e",
   description:
     "Como o TITAN NFS-e trata os dados pessoais de clientes, usuários e tomadores de serviço, conforme a LGPD.",
 };
@@ -22,9 +22,9 @@ export default function Privacidade() {
           <p><b>TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA</b></p>
           <p>Nome fantasia: TITAN SOLUÇÕES</p>
           <p>CNPJ 67.261.200/0001-79</p>
-          <p>R. Frederico Müller, 510 — Campo Comprido</p>
-          <p>Curitiba/PR — CEP 81.220-170</p>
-          <p>E-mail: nfse@titanbackoffice.com.br · Telefone: (41) 3012-2998</p>
+          <p>R. Frederico Müller, 510, Campo Comprido</p>
+          <p>Curitiba/PR, CEP 81.220-170</p>
+          <p>E-mail: nfse@titanbackoffice.com.br. Telefone: (41) 3012-2998</p>
         </div>
         <p>
           Nesta política, “nós” se refere à Titan Backoffice e “você” se refere à pessoa ou
@@ -35,8 +35,8 @@ export default function Privacidade() {
         <p>Essa distinção é importante e define seus direitos:</p>
         <ul>
           <li>
-            <b>Somos controladores</b> dos dados da sua conta e da sua empresa — cadastro,
-            acesso, cobrança e suporte. Decidimos como tratá-los.
+            <b>Somos controladores</b> dos dados da sua conta e da sua empresa. Isso inclui
+            cadastro, acesso, cobrança e suporte. Decidimos como tratá-los.
           </li>
           <li>
             <b>Somos operadores</b> dos dados que você insere no sistema sobre <b>seus
@@ -46,8 +46,8 @@ export default function Privacidade() {
         </ul>
         <p>
           Se você é tomador de um serviço e teve seus dados incluídos numa nota fiscal
-          emitida pelo TITAN, o responsável por esses dados é o prestador que emitiu a nota —
-          procure-o diretamente. Podemos ajudar a encaminhar o pedido.
+          emitida pelo TITAN, o responsável por esses dados é o prestador que emitiu a nota.
+          Procure-o diretamente. Podemos ajudar a encaminhar o pedido.
         </p>
 
         <h2>3. Que dados tratamos</h2>
@@ -56,8 +56,8 @@ export default function Privacidade() {
         <ul>
           <li>Nome e e-mail</li>
           <li>
-            Senha, armazenada apenas como código embaralhado irreversível (<code>scrypt</code>)
-            — nunca guardamos sua senha legível
+            Senha armazenada apenas como código embaralhado irreversível (<code>scrypt</code>).
+            Nunca guardamos sua senha de forma legível.
           </li>
           <li>
             Registros de acesso, incluindo tentativas de login malsucedidas, usados para
@@ -94,8 +94,9 @@ export default function Privacidade() {
 
         <h3>3.6 Registros de auditoria</h3>
         <p>
-          Guardamos quem fez o quê e quando dentro do sistema — criação de usuário, mudança
-          de permissão, emissão, cancelamento. Isso protege você e é exigível em fiscalização.
+          Guardamos quem fez o quê e quando dentro do sistema. O registro abrange criação de
+          usuário, mudança de permissão, emissão e cancelamento. Isso protege você e pode ser
+          exigido em uma fiscalização.
         </p>
 
         <p>
@@ -110,12 +111,12 @@ export default function Privacidade() {
               <tr><th>Finalidade</th><th>Base legal (LGPD)</th></tr>
             </thead>
             <tbody>
-              <tr><td>Dar acesso ao sistema e emitir as notas que você solicita</td><td>Execução de contrato — Art. 7º, V</td></tr>
-              <tr><td>Transmitir a NFS-e ao ambiente nacional e guardar o documento fiscal</td><td>Obrigação legal e regulatória — Art. 7º, II</td></tr>
-              <tr><td>Proteger a conta: alertas de login suspeito, limites de tentativa, auditoria</td><td>Legítimo interesse — Art. 7º, IX</td></tr>
-              <tr><td>Cobrança de mensalidade e controle de plano</td><td>Execução de contrato — Art. 7º, V</td></tr>
-              <tr><td>Suporte técnico e comunicação sobre o serviço</td><td>Execução de contrato — Art. 7º, V</td></tr>
-              <tr><td>Integrações opcionais que você ativar (e-mail, arquivamento, WhatsApp)</td><td>Consentimento — Art. 7º, I</td></tr>
+              <tr><td>Dar acesso ao sistema e emitir as notas que você solicita</td><td>Execução de contrato (art. 7º, V, da LGPD)</td></tr>
+              <tr><td>Transmitir a NFS-e ao ambiente nacional e guardar o documento fiscal</td><td>Obrigação legal ou regulatória (art. 7º, II, da LGPD)</td></tr>
+              <tr><td>Proteger a conta: alertas de login suspeito, limites de tentativa, auditoria</td><td>Legítimo interesse (art. 7º, IX, da LGPD)</td></tr>
+              <tr><td>Cobrança de mensalidade e controle de plano</td><td>Execução de contrato (art. 7º, V, da LGPD)</td></tr>
+              <tr><td>Suporte técnico e comunicação sobre o serviço</td><td>Execução de contrato (art. 7º, V, da LGPD)</td></tr>
+              <tr><td>Integrações opcionais que você ativar (e-mail, arquivamento, WhatsApp)</td><td>Consentimento (art. 7º, I, da LGPD)</td></tr>
             </tbody>
           </table>
         </div>
@@ -131,7 +132,7 @@ export default function Privacidade() {
           <table>
             <thead><tr><th>Destinatário</th><th>O que recebe</th></tr></thead>
             <tbody>
-              <tr><td>Sefin Nacional / ADN — Ambiente Nacional da NFS-e</td><td>Os dados da nota fiscal, como exige a legislação</td></tr>
+              <tr><td>Sefin Nacional / ADN (Ambiente Nacional da NFS-e)</td><td>Os dados da nota fiscal, como exige a legislação</td></tr>
               <tr><td>Receita Federal (via BrasilAPI)</td><td>CNPJ consultado, para preencher dados cadastrais</td></tr>
               <tr><td>IBGE</td><td>Consulta ao catálogo de municípios (sem dados pessoais)</td></tr>
             </tbody>
@@ -156,9 +157,9 @@ export default function Privacidade() {
         <p>
           Quando uma emissão falha e você pede ajuda ao Martyn, <b>o texto da mensagem de
           erro</b> é enviado ao serviço de inteligência artificial da Cohere para gerar a
-          explicação. Não enviamos seu certificado, sua senha nem sua base de clientes — mas a
-          mensagem de erro devolvida pelo órgão fiscal pode conter dados da nota, como um CPF
-          ou CNPJ inválido. Se preferir não usar esse recurso, basta não acioná-lo.
+          explicação. Não enviamos seu certificado, sua senha nem sua base de clientes. No
+          entanto, a mensagem de erro devolvida pelo órgão fiscal pode conter dados da nota,
+          como um CPF ou CNPJ inválido. Se preferir não usar esse recurso, basta não acioná-lo.
         </p>
 
         <h3>5.4 Integrações que só funcionam se você ativar</h3>
@@ -259,13 +260,13 @@ export default function Privacidade() {
         <h2>13. Contato</h2>
         <p>
           Dúvidas sobre esta política ou sobre seus dados:{" "}
-          <b>nfse@titanbackoffice.com.br</b> · (41) 3012-2998
+          <b>nfse@titanbackoffice.com.br</b>. Telefone: (41) 3012-2998
         </p>
 
         <p className="legal-foot">
-          TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA — CNPJ 67.261.200/0001-79
+          TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA, CNPJ 67.261.200/0001-79
           <br />
-          R. Frederico Müller, 510 — Campo Comprido — Curitiba/PR — CEP 81.220-170
+          R. Frederico Müller, 510, Campo Comprido, Curitiba/PR, CEP 81.220-170
           <br />
           Veja também os <Link href="/termos-de-uso">Termos de Uso</Link>.
         </p>

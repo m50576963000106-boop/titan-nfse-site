@@ -569,6 +569,23 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
     assert.match(pagina,/class="home-button"/);
     assert.match(pagina,/id="conteudo"/);
   }
+  const fontesLegais=[
+    privacidade,
+    termos,
+    politicaAlias,
+    termosAlias,
+    exclusao,
+    legalHeader,
+    ...paginasEstaticas,
+  ];
+  for (const fonte of fontesLegais){
+    assert.doesNotMatch(fonte,/[—–·]/u,"página legal contém separador decorativo ou travessão");
+    assert.doesNotMatch(
+      fonte,
+      /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/u,
+      "página legal contém emoji ou pictograma",
+    );
+  }
   for (const cor of ["#0b1629","#1a2c4a","#c9a84c","#8f7833","#f5f4ef"]){
     assert.ok(legalCss.includes(cor), `legal.css: falta a cor ${cor} da página inicial`);
     assert.ok(css.includes(cor), `globals.css: falta a cor ${cor} da página inicial`);

@@ -3,7 +3,7 @@ import Link from "next/link";
 import LegalPageHeader from "../legal-page-header";
 
 export const metadata: Metadata = {
-  title: "Termos de Uso — TITAN NFS-e",
+  title: "Termos de Uso do TITAN NFS-e",
   description:
     "Condições de uso do TITAN NFS-e: responsabilidades, planos, certificado digital, disponibilidade e cancelamento.",
 };
@@ -25,9 +25,9 @@ export default function Termos() {
           <p><b>TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA</b></p>
           <p>Nome fantasia: TITAN SOLUÇÕES</p>
           <p>CNPJ 67.261.200/0001-79</p>
-          <p>R. Frederico Müller, 510 — Campo Comprido</p>
-          <p>Curitiba/PR — CEP 81.220-170</p>
-          <p>E-mail: nfse@titanbackoffice.com.br · Telefone: (41) 3012-2998</p>
+          <p>R. Frederico Müller, 510, Campo Comprido</p>
+          <p>Curitiba/PR, CEP 81.220-170</p>
+          <p>E-mail: nfse@titanbackoffice.com.br. Telefone: (41) 3012-2998</p>
         </div>
         <p>
           Estes Termos regem o uso do sistema. Ao criar uma conta, aceitar um convite de acesso
@@ -39,7 +39,7 @@ export default function Termos() {
           <Link href="/politica-de-privacidade">Política de Privacidade</Link>, que faz parte destes Termos.
         </p>
 
-        <h2>2. O que o TITAN faz — e o que ele não faz</h2>
+        <h2>2. O que o TITAN faz e quais são os limites do serviço</h2>
         <p>
           <b>O TITAN é uma ferramenta de emissão.</b> Ele monta o documento fiscal a partir dos
           dados que você informa, assina com o seu certificado digital e transmite ao ambiente
@@ -48,10 +48,10 @@ export default function Termos() {
         </p>
         <p>
           <b>O TITAN não é escritório de contabilidade e não presta consultoria fiscal ou
-          tributária.</b> As sugestões automáticas do sistema — inclusive as do assistente
-          Martyn e do motor de retenções — são apoio operacional, não parecer profissional. A
-          decisão sobre o que emitir, com quais valores, tributos e retenções, é sua e do seu
-          contador.
+          tributária.</b> As sugestões automáticas do sistema, incluindo as do assistente
+          Martyn e do motor de retenções, oferecem apoio operacional e não constituem parecer
+          profissional. A decisão sobre o que emitir, com quais valores, tributos e retenções,
+          é sua e do seu contador.
         </p>
         <p>
           <b>Cálculo de ISS municipal.</b> O motor fiscal automatiza as retenções federais
@@ -75,7 +75,7 @@ export default function Termos() {
         <ul>
           <li>
             As credenciais são <b>pessoais e intransferíveis</b>. Cada usuário deve ter seu
-            próprio acesso — contas compartilhadas comprometem a trilha de auditoria.
+            próprio acesso. Contas compartilhadas comprometem a trilha de auditoria.
           </li>
           <li>
             Você é responsável por tudo que for feito com as suas credenciais, inclusive
@@ -112,8 +112,8 @@ export default function Termos() {
         </ul>
         <p>
           O certificado e a senha são armazenados cifrados (AES-256-GCM), com a chave mantida
-          fora do banco de dados. Você pode removê-los a qualquer momento — o que interrompe a
-          emissão até o envio de um novo certificado.
+          fora do banco de dados. Você pode removê-los a qualquer momento. A remoção interrompe
+          a emissão até o envio de um novo certificado.
         </p>
         <p>
           <b>Certificado vencido é responsabilidade sua.</b> O sistema não renova certificados
@@ -133,8 +133,8 @@ export default function Termos() {
           </li>
           <li>
             <b>Conferir o documento antes de emitir.</b> A NFS-e é documento fiscal com efeitos
-            legais e tributários — depois de autorizada, sua correção depende de cancelamento ou
-            substituição, sujeitos a prazos e regras do próprio órgão fiscal;
+            legais e tributários. Depois de autorizada, sua correção depende de cancelamento ou
+            substituição, que estão sujeitos a prazos e regras do próprio órgão fiscal;
           </li>
           <li>
             <b>Obter autorização dos titulares</b> dos dados pessoais que você inserir no
@@ -226,8 +226,8 @@ export default function Termos() {
         <h2>11. Propriedade intelectual</h2>
         <p>
           O sistema, sua marca, código, layout e documentação pertencem à Titan Backoffice.
-          Nada nestes Termos transfere propriedade — você recebe apenas licença de uso,
-          revogável, não exclusiva e intransferível, enquanto a assinatura estiver ativa.
+          Nada nestes Termos transfere propriedade. Você recebe apenas uma licença de uso
+          revogável, não exclusiva e intransferível enquanto a assinatura estiver ativa.
         </p>
         <p>
           <b>Seus dados continuam seus.</b> Não reivindicamos propriedade sobre as notas,
@@ -270,13 +270,13 @@ export default function Termos() {
 
         <h2>15. Contato</h2>
         <p>
-          Dúvidas sobre estes Termos: <b>nfse@titanbackoffice.com.br</b> · (41) 3012-2998
+          Dúvidas sobre estes Termos: <b>nfse@titanbackoffice.com.br</b>. Telefone: (41) 3012-2998
         </p>
 
         <p className="legal-foot">
-          TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA — CNPJ 67.261.200/0001-79
+          TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA, CNPJ 67.261.200/0001-79
           <br />
-          R. Frederico Müller, 510 — Campo Comprido — Curitiba/PR — CEP 81.220-170
+          R. Frederico Müller, 510, Campo Comprido, Curitiba/PR, CEP 81.220-170
           <br />
           Veja também a <Link href="/politica-de-privacidade">Política de Privacidade</Link>.
         </p>

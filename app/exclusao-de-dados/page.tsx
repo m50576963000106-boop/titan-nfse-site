@@ -3,7 +3,7 @@ import Link from "next/link";
 import LegalPageHeader from "../legal-page-header";
 
 export const metadata: Metadata = {
-  title: "Exclusão de Dados — TITAN NFS-e",
+  title: "Exclusão de Dados no TITAN NFS-e",
   description:
     "Instruções para solicitar a exclusão de conta e de dados pessoais tratados pelo TITAN NFS-e e pelo Martyn.",
   alternates: { canonical: "/exclusao-de-dados" },
@@ -65,9 +65,9 @@ export default function ExclusaoDeDados() {
           <p><b>TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA</b></p>
           <p>Nome fantasia: TITAN SOLUÇÕES</p>
           <p>CNPJ 67.261.200/0001-79</p>
-          <p>R. Frederico Müller, 510 — Campo Comprido</p>
-          <p>Curitiba/PR — CEP 81.220-170</p>
-          <p>E-mail: nfse@titanbackoffice.com.br · Telefone: (41) 3012-2998</p>
+          <p>R. Frederico Müller, 510, Campo Comprido</p>
+          <p>Curitiba/PR, CEP 81.220-170</p>
+          <p>E-mail: nfse@titanbackoffice.com.br. Telefone: (41) 3012-2998</p>
         </div>
 
         <p className="legal-foot">

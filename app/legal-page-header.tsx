@@ -12,7 +12,7 @@ export default function LegalPageHeader({ title, updatedAt }: LegalPageHeaderPro
       <header className="legal-header">
         <div className="legal-nav-shell">
           <nav className="legal-nav" aria-label="Navegação principal">
-            <Link className="legal-brand" href="/" aria-label="TITAN NFS-e — página inicial">
+            <Link className="legal-brand" href="/" aria-label="Página inicial do TITAN NFS-e">
               <img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e" />
             </Link>
             <Link className="legal-home-button" href="/">Voltar ao TITAN</Link>
