@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     "Como o TITAN NFS-e trata os dados pessoais de clientes, usuários e tomadores de serviço, conforme a LGPD.",
 };
 
-const ATUALIZACAO = "27 de julho de 2026";
+const ATUALIZACAO = "31 de julho de 2026";
 
 export default function Privacidade() {
   return (
@@ -271,7 +271,7 @@ export default function Privacidade() {
           <br />
           R. Frederico Müller, 510 — Campo Comprido — Curitiba/PR — CEP 81.220-170
           <br />
-          Veja também os <Link href="/termos">Termos de Uso</Link>.
+          Veja também os <Link href="/termos-de-uso">Termos de Uso</Link>.
         </p>
       </article>
     </main>

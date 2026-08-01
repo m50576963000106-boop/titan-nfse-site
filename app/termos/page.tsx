@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     "Condições de uso do TITAN NFS-e: responsabilidades, planos, certificado digital, disponibilidade e cancelamento.",
 };
 
-const ATUALIZACAO = "27 de julho de 2026";
+const ATUALIZACAO = "31 de julho de 2026";
 
 export default function Termos() {
   return (
@@ -40,7 +40,7 @@ export default function Termos() {
         </p>
         <p>
           O tratamento de dados pessoais é descrito na{" "}
-          <Link href="/privacidade">Política de Privacidade</Link>, que faz parte destes Termos.
+          <Link href="/politica-de-privacidade">Política de Privacidade</Link>, que faz parte destes Termos.
         </p>
 
         <h2>2. O que o TITAN faz — e o que ele não faz</h2>
@@ -282,7 +282,7 @@ export default function Termos() {
           <br />
           R. Frederico Müller, 510 — Campo Comprido — Curitiba/PR — CEP 81.220-170
           <br />
-          Veja também a <Link href="/privacidade">Política de Privacidade</Link>.
+          Veja também a <Link href="/politica-de-privacidade">Política de Privacidade</Link>.
         </p>
       </article>
     </main>

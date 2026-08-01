@@ -491,6 +491,9 @@ test("portal expoe manifest e icones proprios para instalacao e empacotamento",a
 test("publica Termos de Uso e Política de Privacidade em rotas próprias",async()=>{
   const privacidade=await readFile(resolve(root,"app/privacidade/page.tsx"),"utf8");
   const termos=await readFile(resolve(root,"app/termos/page.tsx"),"utf8");
+  const politicaAlias=await readFile(resolve(root,"app/politica-de-privacidade/page.tsx"),"utf8");
+  const termosAlias=await readFile(resolve(root,"app/termos-de-uso/page.tsx"),"utf8");
+  const exclusao=await readFile(resolve(root,"app/exclusao-de-dados/page.tsx"),"utf8");
   const css=await readFile(resolve(root,"app/globals.css"),"utf8");
 
   // a rota catch-all faz notFound() fora da lista dela, entao estas paginas
@@ -501,7 +504,7 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
     assert.match(pagina,/67\.261\.200\/0001-79/, `${nome}: falta CNPJ`);
     assert.match(pagina,/nfse@titanbackoffice\.com\.br/, `${nome}: falta e-mail de contato`);
     assert.match(pagina,/className="legal"/, `${nome}: falta o container rolável`);
-    assert.match(pagina,/<Link href="\/(termos|privacidade)">/, `${nome}: falta link cruzado`);
+    assert.match(pagina,/<Link href="\/(?:termos(?:-de-uso)?|(?:politica-de-)?privacidade)">/, `${nome}: falta link cruzado`);
   }
   // exigencia do Art. 41 da LGPD: encarregado identificado publicamente
   assert.match(privacidade,/Marlon Garcia Beira/);
@@ -511,6 +514,12 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   assert.match(termos,/ISS\s+municipal <b>não é calculado automaticamente<\/b>/);
   assert.match(termos,/Limitação de responsabilidade/);
   assert.match(termos,/Curitiba\/PR para dirimir controvérsias/);
+  assert.match(politicaAlias,/canonical: "\/politica-de-privacidade"/);
+  assert.match(termosAlias,/canonical: "\/termos-de-uso"/);
+  assert.match(exclusao,/Solicitação de exclusão de dados/);
+  assert.match(exclusao,/nfse@titanbackoffice\.com\.br/);
+  assert.match(exclusao,/Meta ou pelo WhatsApp/);
+  assert.match(exclusao,/canonical: "\/exclusao-de-dados"/);
   // o body e overflow:hidden por causa do iframe; a rolagem vive no container
   assert.match(css,/\.legal \{[\s\S]*?overflow-y: auto;/);
 });
