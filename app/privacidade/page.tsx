@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LegalPageHeader from "../legal-page-header";
 
 export const metadata: Metadata = {
   title: "Política de Privacidade — TITAN NFS-e",
@@ -12,14 +13,9 @@ const ATUALIZACAO = "31 de julho de 2026";
 export default function Privacidade() {
   return (
     <main className="legal">
-      <header className="legal-head">
-        <div className="legal-in">
-          <h1>Política de Privacidade — TITAN NFS-e</h1>
-          <p>Última atualização: {ATUALIZACAO}</p>
-        </div>
-      </header>
+      <LegalPageHeader title="Política de Privacidade" updatedAt={ATUALIZACAO} />
 
-      <article className="legal-doc">
+      <article className="legal-doc" id="conteudo">
         <h2>1. Quem é o responsável pelos seus dados</h2>
         <p>O TITAN NFS-e é operado por:</p>
         <div className="legal-box">

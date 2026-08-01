@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LegalPageHeader from "../legal-page-header";
 
 export const metadata: Metadata = {
   title: "Exclusão de Dados — TITAN NFS-e",
@@ -13,14 +14,9 @@ const ATUALIZACAO = "31 de julho de 2026";
 export default function ExclusaoDeDados() {
   return (
     <main className="legal">
-      <header className="legal-head">
-        <div className="legal-in">
-          <h1>Exclusão de Dados — TITAN NFS-e</h1>
-          <p>Última atualização: {ATUALIZACAO}</p>
-        </div>
-      </header>
+      <LegalPageHeader title="Exclusão de Dados" updatedAt={ATUALIZACAO} />
 
-      <article className="legal-doc">
+      <article className="legal-doc" id="conteudo">
         <h2>1. Como solicitar</h2>
         <div className="legal-box">
           <p>

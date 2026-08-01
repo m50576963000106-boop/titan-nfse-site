@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LegalPageHeader from "../legal-page-header";
 
 export const metadata: Metadata = {
   title: "Termos de Uso — TITAN NFS-e",
@@ -12,14 +13,9 @@ const ATUALIZACAO = "31 de julho de 2026";
 export default function Termos() {
   return (
     <main className="legal">
-      <header className="legal-head">
-        <div className="legal-in">
-          <h1>Termos de Uso — TITAN NFS-e</h1>
-          <p>Última atualização: {ATUALIZACAO}</p>
-        </div>
-      </header>
+      <LegalPageHeader title="Termos de Uso" updatedAt={ATUALIZACAO} />
 
-      <article className="legal-doc">
+      <article className="legal-doc" id="conteudo">
         <h2>1. Quem somos e o que é este documento</h2>
         <p>
           O TITAN NFS-e é um sistema de emissão de Nota Fiscal de Serviço eletrônica no Padrão

@@ -519,7 +519,14 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   const politicaAlias=await readFile(resolve(root,"app/politica-de-privacidade/page.tsx"),"utf8");
   const termosAlias=await readFile(resolve(root,"app/termos-de-uso/page.tsx"),"utf8");
   const exclusao=await readFile(resolve(root,"app/exclusao-de-dados/page.tsx"),"utf8");
+  const legalHeader=await readFile(resolve(root,"app/legal-page-header.tsx"),"utf8");
   const css=await readFile(resolve(root,"app/globals.css"),"utf8");
+  const legalCss=await readFile(resolve(root,"public/legal.css"),"utf8");
+  const paginasEstaticas=await Promise.all([
+    "termos-de-uso.html",
+    "politica-de-privacidade.html",
+    "exclusao-de-dados.html",
+  ].map(nome=>readFile(resolve(root,"public",nome),"utf8")));
 
   // a rota catch-all faz notFound() fora da lista dela, entao estas paginas
   // precisam existir como rotas proprias para nao caírem em 404
@@ -545,6 +552,22 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   assert.match(exclusao,/nfse@titanbackoffice\.com\.br/);
   assert.match(exclusao,/Meta ou pelo WhatsApp/);
   assert.match(exclusao,/canonical: "\/exclusao-de-dados"/);
+  // as rotas estáticas são as publicadas no domínio e precisam conservar a
+  // mesma identidade visual navy/dourado da página inicial
+  assert.match(legalHeader,/\/titan-nfse-logo-transparent\.png/);
+  assert.match(legalHeader,/Voltar ao TITAN/);
+  for (const pagina of paginasEstaticas){
+    assert.match(pagina,/rel="canonical" href="https:\/\/nfse\.titanbackoffice\.com\.br\//);
+    assert.match(pagina,/src="\/titan-nfse-logo-transparent\.png"/);
+    assert.match(pagina,/class="home-button"/);
+    assert.match(pagina,/id="conteudo"/);
+  }
+  for (const cor of ["#0b1629","#1a2c4a","#c9a84c","#8f7833","#f5f4ef"]){
+    assert.ok(legalCss.includes(cor), `legal.css: falta a cor ${cor} da página inicial`);
+    assert.ok(css.includes(cor), `globals.css: falta a cor ${cor} da página inicial`);
+  }
+  assert.doesNotMatch(legalCss,/#064e59|#087f7c|#067c79/i);
+  assert.match(legalCss,/@media \(max-width: 640px\)/);
   // o body e overflow:hidden por causa do iframe; a rolagem vive no container
   assert.match(css,/\.legal \{[\s\S]*?overflow-y: auto;/);
 });
