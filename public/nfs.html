@@ -14,10 +14,16 @@
   <header class="site-header">
     <nav class="nav">
       <a class="brand" href="/" onclick="return irParaLogoDestino(event)" aria-label="TITAN NFS-e — página inicial"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a>
+      <nav class="nav-links" aria-label="Navegação da página">
+        <a href="#beneficios">Benefícios</a>
+        <a href="#planos">Planos</a>
+        <a href="#martyn">Martyn</a>
+        <a href="/faq">Dúvidas</a>
+      </nav>
       <div class="nav-actions">
         <button class="btn" id="login-button" type="button" aria-expanded="false" aria-controls="login-drawer">Entrar <i data-lucide="log-in"></i></button>
         <a class="btn" href="/martyn_ia">Ajuda Martyn</a>
-        <a class="btn btn-dark" href="#planos">Contratar plano</a>
+        <a class="btn btn-gold" href="#planos">Contratar plano</a>
       </div>
     </nav>
   </header>
@@ -44,57 +50,159 @@
   </div>
 
   <main>
-    <section class="hero">
-      <div class="badge"><i data-lucide="sparkles"></i> Pronto para a obrigatoriedade nacional de 01/09</div>
-      <h1>Sua nota fiscal emitida em segundos, com a força do <span>TITAN</span></h1>
-      <p>A partir de 01 de setembro, MEI e Simples Nacional passam a emitir pelo Portal Nacional. O TITAN organiza clientes, serviços e notas em um só lugar — e o Martyn, seu assistente no WhatsApp, ajuda a emitir sem enrolação.</p>
-      <div class="hero-actions"><a class="btn btn-gold" href="#recursos">Ver como funciona <i data-lucide="arrow-down"></i></a><a class="btn" href="#contratar">Quero começar agora</a></div>
-    </section>
+    <section class="hero" id="inicio">
+      <div class="hero-grid">
+        <div>
+          <div class="badge"><i data-lucide="sparkles"></i> Pronto para a obrigatoriedade nacional de 01/09</div>
+          <h1>Toda a segurança do Portal Nacional. <span>Toda a inteligência do TITAN.</span></h1>
+          <p class="hero-text">Emita notas com mais rapidez, reduza erros e organize clientes e serviços em um só lugar — tudo integrado ao Portal Nacional, com o Martyn, seu assistente no WhatsApp, ajudando a emitir e cancelar notas sem enrolação.</p>
+          <div class="hero-actions"><a class="btn btn-gold" href="#planos">Contratar agora</a><a class="btn" href="#funcionamento">Ver como funciona <i data-lucide="arrow-down"></i></a></div>
+          <div class="hero-points">
+            <span>Portal Nacional integrado</span>
+            <span>Martyn no WhatsApp</span>
+            <span>Acesso em qualquer dispositivo</span>
+          </div>
+        </div>
 
-    <section class="pricing" id="planos">
-      <div class="section-head"><div class="eyebrow">Planos sob medida</div><h2>Um plano para cada fase do seu negócio</h2><p>Os limites consideram NFS-e autorizadas no mês. A contratação e a liberação do acesso são confirmadas pela equipe TITAN.</p></div>
-      <div class="pricing-grid">
-        <article class="price-card"><h3>Plano MEI</h3><div class="price-value">R$ 29,90 <small>/ mês</small></div><p>Para começar: até 10 notas autorizadas por mês, com cadastros e emissão nacional inclusos.</p><a class="btn btn-gold" href="#contratar">Quero este plano</a></article>
-        <article class="price-card featured"><h3>Plano SN 20</h3><div class="price-value">R$ 49,90 <small>/ mês</small></div><p>O favorito das empresas do Simples Nacional: até 20 notas autorizadas por mês.</p><a class="btn btn-gold" href="#contratar">Quero este plano</a></article>
-        <article class="price-card"><h3>Plano SN 50</h3><div class="price-value">R$ 79,90 <small>/ mês</small></div><p>Para quem fatura mais: até 50 notas por mês, sem abrir mão da mesma simplicidade.</p><a class="btn btn-gold" href="#contratar">Quero este plano</a></article>
-        <article class="price-card custom"><h3>Personalizado</h3><div class="price-value">Sob consulta</div><p>Mais de 50 notas por mês? Montamos um limite sob medida para o seu volume.</p><a class="btn" href="#contratar">Fale com a gente</a></article>
+        <div class="system-window" aria-hidden="true">
+          <div class="system-bar"><i></i><i></i><i></i></div>
+          <div class="system-content">
+            <aside class="system-sidebar">
+              <div class="mini-brand">TITAN NFS-e</div>
+              <div class="menu-line active"></div>
+              <div class="menu-line"></div>
+              <div class="menu-line"></div>
+              <div class="menu-line"></div>
+              <div class="menu-line"></div>
+            </aside>
+            <div class="system-main">
+              <div class="system-title"></div>
+              <div class="system-kpis">
+                <div class="system-kpi"><small>Notas emitidas</small><strong>1.284</strong></div>
+                <div class="system-kpi"><small>Receita</small><strong>R$ 248 mil</strong></div>
+                <div class="system-kpi"><small>Validações</small><strong>96</strong></div>
+              </div>
+              <div class="system-chart"></div>
+              <div class="system-alert"><strong>Martyn:</strong> os dados foram validados e a nota está pronta para emissão.</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <p class="pricing-note">A cobrança automática via instituição financeira e os relatórios contábeis serão habilitados somente após a configuração segura das credenciais e do consentimento da empresa.</p>
     </section>
 
-    <section class="features" id="recursos">
-      <div class="section-head"><div class="eyebrow">Feito para o seu dia a dia</div><h2>Tudo o que você precisa para emitir sem dor de cabeça</h2><p>Ferramentas pensadas para MEI e Simples Nacional: menos retrabalho, mais controle, do cadastro até a nota autorizada.</p></div>
-      <div class="feature-grid">
-        <article class="feature"><div class="feature-icon"><i data-lucide="zap"></i></div><h3>Emissão em poucos cliques</h3><p>Preencha a DPS em uma interface direta, acompanhe cada etapa e receba a resposta da Sefin Nacional em tempo real.</p></article>
-        <article class="feature"><div class="feature-icon"><i data-lucide="contact-round"></i></div><h3>Clientes sempre à mão</h3><p>Consulte o CNPJ automaticamente, organize seus clientes e reaproveite dados fiscais nas próximas emissões.</p></article>
-        <article class="feature"><div class="feature-icon"><i data-lucide="clipboard-list"></i></div><h3>Orçamentos e O.S.</h3><p>Prepare orçamentos e ordens de serviço numerados e transforme tudo em NFS-e com um clique.</p></article>
-        <article class="feature"><div class="feature-icon"><i data-lucide="file-check-2"></i></div><h3>100% Portal Nacional</h3><p>Emissão, XML, DANFSe e cancelamento no mesmo fluxo oficial da NFS-e nacional — sem gambiarra.</p></article>
-        <article class="feature"><div class="feature-icon"><i data-lucide="folder-down"></i></div><h3>Exportação em lote</h3><p>Filtre as notas do período e baixe todos os XMLs em um pacote ZIP pronto para a contabilidade.</p></article>
-        <article class="feature"><div class="feature-icon"><i data-lucide="shield-check"></i></div><h3>Gestão sob controle</h3><p>Empresas, usuários, perfis, planos e permissões organizados em uma área administrativa exclusiva.</p></article>
+    <section class="content-section section-light" id="beneficios">
+      <div class="section-head center">
+        <div class="eyebrow">Benefícios</div>
+        <h2>Muito mais que uma tela para emitir notas</h2>
+        <p>O TITAN concentra os recursos que tornam a emissão mais rápida, organizada e segura.</p>
+      </div>
+      <div class="benefits">
+        <article class="benefit"><div class="benefit-number">01</div><h3>Emissão inteligente</h3><p>Preencha a DPS em uma interface direta, com cadastros reaproveitáveis e resposta da Sefin Nacional em tempo real.</p></article>
+        <article class="benefit"><div class="benefit-number">02</div><h3>Martyn no WhatsApp</h3><p>Peça uma nota pelo chat: o Martyn confirma os dados com você e emite — sem precisar abrir o sistema.</p></article>
+        <article class="benefit"><div class="benefit-number">03</div><h3>Validação fiscal</h3><p>Conferência das informações antes do envio, para reduzir inconsistências e rejeições.</p></article>
+        <article class="benefit"><div class="benefit-number">04</div><h3>Gestão de clientes</h3><p>Dados dos tomadores e serviços recorrentes reaproveitados nas próximas emissões.</p></article>
+        <article class="benefit"><div class="benefit-number">05</div><h3>Orçamentos e O.S.</h3><p>Prepare orçamentos e ordens de serviço numerados e transforme tudo em NFS-e com um clique.</p></article>
+        <article class="benefit"><div class="benefit-number">06</div><h3>100% Portal Nacional</h3><p>Emissão, XML, DANFSe e cancelamento no mesmo fluxo oficial da NFS-e nacional — sem gambiarra.</p></article>
+        <article class="benefit"><div class="benefit-number">07</div><h3>Exportação em lote</h3><p>Filtre as notas do período e baixe todos os XMLs em um pacote ZIP pronto para a contabilidade.</p></article>
+        <article class="benefit"><div class="benefit-number">08</div><h3>Cancelamento simplificado</h3><p>Pelo portal ou pelo WhatsApp — o Martyn cuida do PDF e do XML atualizados depois da confirmação.</p></article>
       </div>
     </section>
 
-    <section class="faq" id="faq">
-      <div class="section-head"><div class="eyebrow">Dúvidas frequentes</div><h2>Antes de migrar, tira essas dúvidas</h2><p>O que mais perguntam empresas do Simples Nacional e MEI se preparando para 01/09.</p></div>
-      <div class="faq-list">
-        <details class="faq-item"><summary>Preciso mesmo migrar até 01/09?</summary><p>Sim. A partir de 01 de setembro, empresas do Simples Nacional e MEI passam a emitir pelo Portal Nacional da NFS-e. O TITAN já está pronto para esse fluxo.</p></details>
-        <details class="faq-item"><summary>Preciso saber o código de tributação ou NBS do meu serviço?</summary><p>Não. Você escolhe o serviço numa lista e o TITAN indica automaticamente as opções mais próximas pela descrição — sem precisar decorar código nenhum.</p></details>
-        <details class="faq-item"><summary>Minha contabilidade continua responsável pelos impostos?</summary><p>Sim. O TITAN organiza clientes, notas e XMLs num pacote pronto para a contabilidade — ele não substitui o seu contador, só facilita o trabalho de ambos.</p></details>
-        <details class="faq-item"><summary>Posso testar antes de contratar de verdade?</summary><p>Sim. O ambiente de Produção Restrita simula toda a emissão sem gerar documentos com validade fiscal, para você validar o fluxo com calma.</p></details>
-        <details class="faq-item"><summary>E se eu ultrapassar o limite do meu plano?</summary><p>Sem problema — é só migrar para o plano seguinte ou pedir um limite personalizado. Fale com a gente a qualquer momento.</p></details>
-        <details class="faq-item"><summary>Preciso trocar de certificado digital?</summary><p>Não necessariamente. Você usa o certificado que já tem — o TITAN cuida da assinatura da nota a partir dele.</p></details>
+    <section class="content-section section-dark" id="comparacao">
+      <div class="section-head">
+        <div class="eyebrow">Portal Nacional e TITAN</div>
+        <h2>O Portal Nacional realiza a emissão. O TITAN melhora toda a operação.</h2>
+        <p>O TITAN utiliza a infraestrutura oficial e acrescenta produtividade, gestão, validação e inteligência.</p>
+      </div>
+      <div class="comparison">
+        <article class="comparison-card">
+          <h3>Portal Nacional</h3>
+          <div class="comparison-list">
+            <div class="comparison-item"><span class="status on"></span><span>Emissão oficial da NFS-e</span></div>
+            <div class="comparison-item"><span class="status"></span><span>Fluxo predominantemente manual</span></div>
+            <div class="comparison-item"><span class="status"></span><span>Sem assistente especializado integrado</span></div>
+            <div class="comparison-item"><span class="status"></span><span>Sem gestão operacional completa</span></div>
+            <div class="comparison-item"><span class="status"></span><span>Sem painel gerencial avançado</span></div>
+          </div>
+        </article>
+
+        <article class="comparison-card featured">
+          <h3>TITAN NFS-e</h3>
+          <div class="comparison-list">
+            <div class="comparison-item"><span class="status on"></span><span>Integração com o Portal Nacional</span></div>
+            <div class="comparison-item"><span class="status on"></span><span>Martyn no WhatsApp e no sistema, para emitir e cancelar notas</span></div>
+            <div class="comparison-item"><span class="status on"></span><span>Gestão de clientes e serviços</span></div>
+            <div class="comparison-item"><span class="status on"></span><span>Automação de processos e documentos</span></div>
+            <div class="comparison-item"><span class="status on"></span><span>Dashboard com indicadores da operação</span></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-section section-light" id="planos">
+      <div class="section-head center">
+        <div class="eyebrow">Planos sob medida</div>
+        <h2>Um plano para cada fase do seu negócio</h2>
+        <p>Os limites consideram NFS-e autorizadas no mês. A contratação e a liberação do acesso são confirmadas pela equipe TITAN.</p>
+      </div>
+      <div class="pricing">
+        <div class="pricing-grid">
+          <article class="price-card"><h3>Plano MEI</h3><div class="price-value">R$ 29,90 <small>/ mês</small></div><p>Para começar: até 10 notas autorizadas por mês, com cadastros e emissão nacional inclusos.</p><a class="btn btn-gold" href="#contratar">Quero este plano</a></article>
+          <article class="price-card featured"><h3>Plano SN 20</h3><div class="price-value">R$ 49,90 <small>/ mês</small></div><p>O favorito das empresas do Simples Nacional: até 20 notas autorizadas por mês.</p><a class="btn btn-gold" href="#contratar">Quero este plano</a></article>
+          <article class="price-card"><h3>Plano SN 50</h3><div class="price-value">R$ 79,90 <small>/ mês</small></div><p>Para quem fatura mais: até 50 notas por mês, sem abrir mão da mesma simplicidade.</p><a class="btn btn-gold" href="#contratar">Quero este plano</a></article>
+          <article class="price-card custom"><h3>Personalizado</h3><div class="price-value">Sob consulta</div><p>Mais de 50 notas por mês? Montamos um limite sob medida para o seu volume.</p><a class="btn" href="#contratar">Fale com a gente</a></article>
+        </div>
+        <p class="pricing-note">A cobrança automática via instituição financeira e os relatórios contábeis serão habilitados somente após a configuração segura das credenciais e do consentimento da empresa.</p>
+      </div>
+    </section>
+
+    <section class="content-section section-light" id="martyn">
+      <div class="martyn-layout">
+        <div class="section-head">
+          <div class="eyebrow">Martyn</div>
+          <h2>Um assistente especializado dentro da emissão</h2>
+          <p>Consulte erros, regras, retenções e informações necessárias para concluir a nota com mais segurança — e, pelo WhatsApp, o Martyn também emite e cancela notas depois de confirmar os dados com você.</p>
+        </div>
+
+        <div class="chat">
+          <div class="chat-header">Martyn, assistente TITAN</div>
+          <div class="chat-body">
+            <div class="message user">O que significa o erro E0121?</div>
+            <div class="message ai">Esse erro indica uma inconsistência nos dados da DPS. Revise os dados do prestador e a configuração do serviço antes de reenviar.</div>
+            <div class="message user">O ISS deve ser retido nesta operação?</div>
+            <div class="message ai">A retenção depende do serviço, do município de incidência e das regras aplicáveis ao tomador. O TITAN verifica os dados informados antes da emissão.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section section-dark" id="funcionamento">
+      <div class="section-head">
+        <div class="eyebrow">Como funciona</div>
+        <h2>Uma rotina mais simples do início ao fim</h2>
+        <p>O fluxo foi organizado para reduzir retrabalho e permitir que você conclua a emissão com clareza — no sistema ou no WhatsApp.</p>
+      </div>
+      <div class="steps">
+        <article class="step"><small>Etapa 01</small><h3>Configure a empresa</h3><p>Cadastre os dados necessários para utilizar o ambiente de emissão.</p></article>
+        <article class="step"><small>Etapa 02</small><h3>Selecione cliente e serviço</h3><p>Use dados já cadastrados, no sistema ou direto no WhatsApp com o Martyn.</p></article>
+        <article class="step"><small>Etapa 03</small><h3>Valide as informações</h3><p>O TITAN identifica inconsistências e orienta ajustes antes do envio.</p></article>
+        <article class="step"><small>Etapa 04</small><h3>Emita e compartilhe</h3><p>A nota é registrada no histórico; pelo WhatsApp, o PDF e o XML chegam automaticamente.</p></article>
       </div>
     </section>
 
     <section class="contact" id="contratar">
-      <div class="contact-shell"><div class="contact-copy"><span class="tag">Fale com a TITAN</span><h2>Vamos colocar sua empresa na nota fiscal nacional</h2><p>Conte um pouco sobre a sua empresa. Nossa equipe entra em contato para te ajudar com o cadastro e a implantação — rápido e sem burocracia.</p></div>
+      <div class="contact-shell"><div class="contact-copy"><span class="tag">Fale com a TITAN</span><h2>Utilize o Portal Nacional com mais inteligência</h2><p>Conte um pouco sobre a sua empresa. Nossa equipe entra em contato para te ajudar com o cadastro e a implantação — rápido e sem burocracia.</p></div>
       <form class="contact-form" id="contact-form"><input name="name" required placeholder="Seu nome"><input name="company" required placeholder="Empresa"><input name="email" type="email" required placeholder="E-mail"><input name="phone" required placeholder="Telefone / WhatsApp"><input class="full" name="federalTaxId" placeholder="CNPJ (opcional)"><textarea name="message" placeholder="Conte brevemente o que precisa"></textarea><button class="btn btn-gold full" type="submit">Enviar solicitação</button><div class="form-status full" id="contact-status" role="status"></div></form></div>
     </section>
   </main>
   <footer>
     <div class="footer-inner">
-      <span class="footer-copy">© 2026 TITAN NFS-e</span>
-      <nav class="footer-links" aria-label="Documentos legais">
+      <a class="footer-brand" href="/" aria-label="TITAN NFS-e"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a>
+      <nav class="footer-links" aria-label="Navegação e documentos legais">
+        <a href="#beneficios">Benefícios</a>
+        <a href="#planos">Planos</a>
+        <a href="#martyn">Martyn</a>
+        <a href="/faq">Dúvidas</a>
         <a href="/termos-de-uso">Termos de Uso</a>
         <a href="/politica-de-privacidade">Privacidade</a>
         <a href="/exclusao-de-dados">Exclusão de Dados</a>
