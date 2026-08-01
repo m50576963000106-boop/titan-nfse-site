@@ -801,7 +801,14 @@ main{margin-left:258px;padding-top:72px}
 .atend-composer{display:flex;flex-direction:column;gap:8px;padding:11px 12px;background:#fff;border-top:1px solid var(--line)}
 .atend-as{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-2);font-weight:600}
 .atend-as input{flex:1;max-width:240px;padding:5px 9px;font-size:12px}
-.atend-composer-row{display:flex;gap:8px;align-items:flex-end}
+.atend-composer-row{display:flex;gap:8px;align-items:flex-end;border-radius:10px;transition:background .15s ease,box-shadow .15s ease}
 .atend-composer-row textarea{flex:1;resize:vertical;min-height:42px}
+.atend-composer-row.drag{background:#fff6e6;box-shadow:0 0 0 2px var(--gold,#c9a84c) inset}
+.atend-attach-btn{flex:none;padding:0;width:38px;min-height:38px;font-size:16px;line-height:1}
+.atend-file-input{display:none}
+.atend-attach-preview{display:flex;flex-wrap:wrap;gap:6px}
+.atend-attach-chip{display:inline-flex;align-items:center;gap:8px;padding:5px 8px 5px 11px;border:1px solid var(--line);border-radius:999px;background:#f5f4ef;font-size:11.5px;color:var(--ink-2);max-width:100%}
+.atend-attach-remove{border:0;background:transparent;color:var(--ink-3);font-size:15px;line-height:1;cursor:pointer;padding:0 2px}
+.atend-attach-remove:hover{color:#9b2226}
 #atend-thread-open .hint{padding:2px 14px 11px}
 @media(max-width:860px){.atend-wrap{grid-template-columns:1fr;min-height:0}.atend-conversas{max-height:320px}.atend-messages{max-height:360px}}

@@ -892,8 +892,11 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
                 <div id="atend-th-messages" class="atend-messages"></div>
                 <form class="atend-composer" onsubmit="return enviarRespostaAtendimento(event)">
                   <label class="atend-as">Respondendo como <input id="atend-agent-name" class="inp" placeholder="seu nome de atendente" maxlength="60" autocomplete="off" oninput="salvarNomeAtendente()"></label>
-                  <div class="atend-composer-row">
-                    <textarea id="atend-reply" class="inp" rows="2" placeholder="Escreva uma resposta..." maxlength="4096"></textarea>
+                  <div id="atend-attach-preview" class="atend-attach-preview" style="display:none"></div>
+                  <div class="atend-composer-row" id="atend-drop-zone" ondragover="event.preventDefault();qs('#atend-drop-zone').classList.add('drag')" ondragleave="qs('#atend-drop-zone').classList.remove('drag')" ondrop="receberArquivoArrastadoAtendimento(event)">
+                    <button type="button" class="btn btn-s atend-attach-btn" id="atend-attach-btn" title="Anexar imagem ou arquivo" aria-label="Anexar imagem ou arquivo" onclick="qs('#atend-file-input').click()">📎</button>
+                    <input type="file" id="atend-file-input" class="atend-file-input" accept="image/jpeg,image/png,image/webp,application/pdf,.doc,.docx,.xls,.xlsx" onchange="selecionarAnexoAtendimento(event.target.files[0])">
+                    <textarea id="atend-reply" class="inp" rows="2" placeholder="Escreva uma resposta ou arraste um arquivo aqui..." maxlength="4096"></textarea>
                     <button class="btn btn-p" type="submit" id="atend-send-btn">Enviar</button>
                   </div>
                 </form>
@@ -2936,7 +2939,9 @@ function masterTab(tab,button){
 }
 
 /* ── Atendimentos: espelho do WhatsApp Web para o Master ─────────────────── */
-const atendState={conversas:[],atual:null,pollTimer:null,pollMs:8000,buscaTimer:null};
+const atendState={conversas:[],atual:null,pollTimer:null,pollMs:8000,buscaTimer:null,anexo:null};
+const ATEND_TIPOS_ANEXO=['image/jpeg','image/png','image/webp','application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+const ATEND_ANEXO_MAX_BYTES=10*1024*1024;
 const ATEND_NOME_KEY='titan_atendente_nome';
 function salvarNomeAtendente(){try{localStorage.setItem(ATEND_NOME_KEY,qs('#atend-agent-name')?.value.trim()||'');}catch(e){}}
 function nomeAtendente(){return (qs('#atend-agent-name')?.value.trim())||'';}
@@ -2976,6 +2981,7 @@ function renderListaAtendimentos(){
 }
 async function abrirConversa(phoneKey,opts={}){
   atendState.atual=phoneKey;
+  if(atendState.anexo)removerAnexoAtendimento();
   const vazio=qs('#atend-thread-empty'),aberto=qs('#atend-thread-open');
   if(vazio)vazio.style.display='none';if(aberto)aberto.style.display='';
   qsa('.atend-conv').forEach(b=>b.classList.toggle('on',(b.getAttribute('onclick')||'').includes("'"+phoneKey+"'")));
@@ -2996,21 +3002,56 @@ function renderConversa(d,opts={}){
     const saida=m.direction==='out',humano=m.agent==='human';
     // Sempre identifica quem falou: cliente (nome), Martyn (atendente virtual) ou o atendente humano.
     const autor=saida?(humano?(m.agentName||'Atendente'):'Martyn'):clienteNome;
-    const corpo=esc(m.body||(m.mediaMimeType?('['+m.mediaMimeType+']'):'[arquivo]'));
+    const prefixoAnexo=m.kind==='image'?'🖼️ ':m.kind==='document'?'📎 ':'';
+    const corpo=esc(prefixoAnexo+(m.body||(m.mediaMimeType?('['+m.mediaMimeType+']'):'[arquivo]')));
     return `<div class="atend-msg ${saida?(humano?'m-human':'m-bot'):'m-in'}"><span class="atend-msg-author">${esc(autor)}</span><span class="atend-msg-body">${corpo}</span><span class="atend-msg-time">${esc(formatarHora(m.createdAt))}</span></div>`;
   }).join('')||'<div class="atend-empty">Sem mensagens.</div>';
   if(perto||!opts.silencioso)box.scrollTop=box.scrollHeight;
 }
+function selecionarAnexoAtendimento(file){
+  const status=qs('#atend-th-status');
+  if(!file)return;
+  if(!ATEND_TIPOS_ANEXO.includes(file.type)){if(status)status.textContent='Tipo de arquivo não aceito. Envie imagem (JPEG/PNG/WEBP), PDF, Word ou Excel.';return}
+  if(file.size>ATEND_ANEXO_MAX_BYTES){if(status)status.textContent='Arquivo maior que 10 MB — envie uma versão menor.';return}
+  atendState.anexo=file;
+  renderAnexoAtendimento();
+}
+function receberArquivoArrastadoAtendimento(event){
+  event.preventDefault();
+  qs('#atend-drop-zone')?.classList.remove('drag');
+  selecionarAnexoAtendimento(event.dataTransfer?.files?.[0]);
+}
+function removerAnexoAtendimento(){
+  atendState.anexo=null;
+  const input=qs('#atend-file-input');if(input)input.value='';
+  renderAnexoAtendimento();
+}
+function renderAnexoAtendimento(){
+  const box=qs('#atend-attach-preview');if(!box)return;
+  const file=atendState.anexo;
+  if(!file){box.style.display='none';box.innerHTML='';return}
+  const kb=(file.size/1024).toFixed(0);
+  box.style.display='';
+  box.innerHTML=`<span class="atend-attach-chip">📎 ${esc(file.name)} · ${kb} KB<button type="button" class="atend-attach-remove" onclick="removerAnexoAtendimento()" aria-label="Remover anexo">×</button></span>`;
+}
 async function enviarRespostaAtendimento(event){
   event.preventDefault();
   const ta=qs('#atend-reply'),btn=qs('#atend-send-btn'),status=qs('#atend-th-status'),campo=qs('#atend-agent-name');
-  const texto=ta.value.trim();if(!texto||!atendState.atual)return false;
+  const texto=ta.value.trim(),anexo=atendState.anexo;
+  if((!texto&&!anexo)||!atendState.atual)return false;
   const nome=nomeAtendente();
   if(!nome){status.textContent='Diga seu nome de atendente antes de responder — assim fica registrado quem falou.';campo?.focus();return false;}
   btn.disabled=true;status.textContent='Enviando...';
   try{
-    const d=await api('/api/master/whatsapp/conversations/'+encodeURIComponent(atendState.atual)+'/reply',{method:'POST',body:JSON.stringify({text:texto,agentName:nome})});
-    ta.value='';status.textContent='Enviado como '+nome+'. O Martyn ficou pausado para este contato até você reativá-lo.';
+    let d;
+    if(anexo){
+      const form=new FormData();
+      form.append('file',anexo);form.append('caption',texto);form.append('agentName',nome);
+      d=await api('/api/master/whatsapp/conversations/'+encodeURIComponent(atendState.atual)+'/reply-media',{method:'POST',body:form});
+    }else{
+      d=await api('/api/master/whatsapp/conversations/'+encodeURIComponent(atendState.atual)+'/reply',{method:'POST',body:JSON.stringify({text:texto,agentName:nome})});
+    }
+    ta.value='';removerAnexoAtendimento();status.textContent='Enviado como '+nome+'. O Martyn ficou pausado para este contato até você reativá-lo.';
     renderConversa(d);carregarAtendimentos({silencioso:true});
   }catch(error){status.textContent=error.message;}
   finally{btn.disabled=false;}
