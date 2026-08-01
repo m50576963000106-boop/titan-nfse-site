@@ -458,6 +458,30 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .emit-check{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--line);border-radius:var(--r);background:#fff;font-size:11.5px;color:var(--ink-2)}
 .emit-check i{width:8px;height:8px;border-radius:50%;background:var(--gold);flex:none}
 .emit-actions{display:grid;gap:8px}.emit-actions .btn{width:100%;justify-content:center;text-align:center}
+#btn-preflight{background:var(--navy);border-color:var(--navy);color:var(--cream)}#btn-preflight:hover{background:var(--navy-2)}#btn-preflight svg{stroke:var(--gold)}
+/* ---------- Preflight fiscal do Martyn ---------- */
+.preflight-panel{margin:4px 0 12px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--paper);box-shadow:0 10px 28px rgba(11,22,41,.08)}
+.pf-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;color:#fff;font-size:14px}
+.pf-head.pf-ok{background:var(--ok)}.pf-head.pf-warn{background:var(--warn)}.pf-head.pf-err{background:var(--err)}
+.pf-x{width:26px;height:26px;border-radius:7px;color:rgba(255,255,255,.85);font-size:20px;line-height:1;display:grid;place-items:center;flex:none}.pf-x:hover{background:rgba(255,255,255,.18);color:#fff}
+.pf-body{padding:14px 16px;font-size:13px;color:var(--ink)}
+.pf-sec{margin-bottom:14px}.pf-sec:last-child{margin-bottom:0}
+.pf-sec-t{display:block;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
+.pf-sec-t.pf-t-err{color:var(--err)}.pf-sec-t.pf-t-warn{color:var(--warn)}
+.pf-sec ul{margin:0;padding-left:18px}.pf-sec li{margin:3px 0;line-height:1.5}
+.pf-dec{display:flex;align-items:flex-start;gap:8px;margin:5px 0;line-height:1.5}
+.pf-dec .d{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none}
+.pf-dec .d-ok{background:var(--ok)}.pf-dec .d-warn{background:var(--warn)}.pf-dec .d-err{background:var(--err)}.pf-dec .d-off{background:var(--ink-3)}
+.pf-q{padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--cream);margin-bottom:8px}
+.pf-q-topic{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:4px}
+.pf-q-prompt{color:var(--ink);line-height:1.5;margin-bottom:9px}
+.pf-q-acts{display:flex;gap:8px}.pf-q-acts button{padding:7px 20px;border-radius:20px;border:1px solid var(--line);background:#fff;font-weight:650;font-size:12px}.pf-q-acts button:hover{border-color:var(--navy)}.pf-q-acts button.on{background:var(--navy);border-color:var(--navy);color:var(--cream)}
+.pf-q-sel{max-width:100%}
+.pf-q-info{font-size:12px;color:var(--ink-2);font-style:italic}
+.pf-foot{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:10px}
+.pf-foot-note{font-size:12px;color:var(--ink-2)}
+.pf-confirm{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:var(--ink);line-height:1.5;cursor:pointer}.pf-confirm input{margin-top:2px;flex:none}
+.pf-foot .btn{width:100%;justify-content:center}.pf-foot .btn:disabled{opacity:.5;cursor:not-allowed}
 .municipality-results{display:none;position:absolute;z-index:15;left:0;right:0;top:100%;margin-top:4px;max-height:220px;overflow:auto;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 12px 24px rgba(9,22,44,.14)}
 .municipality-results.on{display:block}.municipality-option{display:block;width:100%;padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);font-size:12px}.municipality-option:hover{background:var(--cream)}
 .draft-list{display:grid;gap:8px}.draft-item{padding:10px;border:1px solid var(--line);border-radius:var(--r);background:#fff}.draft-item b{display:block;font-size:12px}.draft-item span{font-size:10.5px;color:var(--ink-3)}
