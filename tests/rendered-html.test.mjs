@@ -109,6 +109,7 @@ test("oferece municípios pesquisáveis, rascunhos, clientes e documentos comerc
 
 test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async()=>{
   const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
+  const landingCss=await readFile(resolve(root,"public/nfs.css"),"utf8");
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(landing,/Vamos colocar sua empresa na nota fiscal nacional/);
   assert.match(landing,/\/api\/contact/);
@@ -123,6 +124,12 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
   assert.match(landing,/authLogin\(\{federalTaxId:cnpj,password\}\)/);
   assert.match(landing,/authLogin\(\{email,password\}\)/);
   assert.doesNotMatch(landing,/location\.replace\(access\.user\.isMaster/);
+  assert.match(landing,/<nav class="footer-links" aria-label="Documentos legais">/);
+  assert.match(landing,/href="\/termos-de-uso">Termos de Uso<\/a>/);
+  assert.match(landing,/href="\/politica-de-privacidade">Privacidade<\/a>/);
+  assert.match(landing,/href="\/exclusao-de-dados">Exclusão de Dados<\/a>/);
+  assert.match(landingCss,/\.footer-links a\{[^}]*font-size:12px[^}]*text-decoration:none/);
+  assert.match(landingCss,/\.footer-links a:hover,\.footer-links a:focus-visible\{color:var\(--gold\)\}/);
   assert.match(html,/pipe-detail/);
   assert.match(html,/mostrarDetalheEtapa/);
   assert.match(html,/journey-card/);
