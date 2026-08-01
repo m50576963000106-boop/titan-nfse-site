@@ -498,20 +498,30 @@
         <p>Histórico completo com XML de distribuição e DANFSe guardados no servidor.</p>
       </div>
 
-      <div class="card" style="margin-bottom:14px">
+      <div class="card" id="nt-filtro-card" style="margin-bottom:14px">
         <div class="card-b" style="padding:12px">
-          <div class="flex wrap">
-            <input id="nt-search" class="inp" placeholder="Buscar por tomador, chave ou nº da nota" style="flex:1;min-width:200px">
-            <select id="nt-status" class="inp" style="width:auto"><option value="">Todas as situações</option><option value="authorized">Autorizada</option><option value="sending">Processando</option><option value="rejected">Rejeitada</option><option value="canceled">Cancelada</option></select>
-            <select id="nt-period" class="inp" style="width:auto"><option value="">Todas as competências</option><option value="2026-07">Julho/2026</option><option value="2026-06">Junho/2026</option><option value="2026-05">Maio/2026</option></select>
+          <div class="flex wrap" style="align-items:center">
+            <input id="nt-search" class="inp" placeholder="Buscar por tomador, chave ou nº da nota" style="flex:1;min-width:200px" oninput="filtrarNotas()">
+            <select id="nt-status" class="inp" style="width:auto" onchange="filtrarNotas()"><option value="">Todas as situações</option><option value="authorized">Autorizada</option><option value="sending">Processando</option><option value="rejected">Rejeitada</option><option value="canceled">Cancelada</option></select>
+            <button class="btn btn-s" type="button" id="nt-filtro-btn" onclick="alternarFiltrosNotas()" title="Mais filtros" aria-expanded="false" aria-controls="nt-filtros-avancados"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z"/></svg> Filtros</button>
+            <button class="btn btn-s" type="button" onclick="imprimirNotas()">Exportar PDF</button>
             <button class="btn" onclick="exportarXmls(this)">Exportar XMLs</button>
           </div>
+          <div id="nt-filtros-avancados" class="nt-filtros-avancados" style="display:none">
+            <div class="field"><label for="nt-numero">Número da nota</label><input id="nt-numero" class="inp" placeholder="Ex.: 128" oninput="filtrarNotas()"></div>
+            <div class="field"><label for="nt-competencia">Competência</label><select id="nt-competencia" class="inp" onchange="filtrarNotas()"><option value="">Todas</option></select></div>
+            <div class="field"><label for="nt-data-de">Emitidas de</label><input id="nt-data-de" type="date" class="inp" onchange="filtrarNotas()"></div>
+            <div class="field"><label for="nt-data-ate">até</label><input id="nt-data-ate" type="date" class="inp" onchange="filtrarNotas()"></div>
+            <div class="field"><label for="nt-servico">Tipo de serviço</label><select id="nt-servico" class="inp" onchange="filtrarNotas()"><option value="">Todos</option></select></div>
+            <div class="field nt-limpar-wrap"><button class="btn btn-s" type="button" onclick="limparFiltrosNotas()">Limpar filtros</button></div>
+          </div>
+          <div id="nt-filtro-resumo" class="hint" style="display:none"></div>
         </div>
       </div>
 
       <div class="card">
         <div class="tbl-scroll">
-          <table>
+          <table class="tbl-cards-mobile">
             <thead><tr><th>Nº</th><th>Emissão</th><th>Tomador</th><th>Serviço</th><th style="text-align:right">Valor</th><th>Situação</th><th style="text-align:right">Ações</th></tr></thead>
             <tbody id="tb-notas"></tbody>
           </table>
@@ -1527,7 +1537,8 @@ async function carregarNotasServidor(){
   const rows=await api('/api/invoices');
   notas.splice(0,notas.length,...rows.map(row=>({
     id:row.id,key:row.access_key,n:row.dps_number,date:row.created_at,d:new Date(row.created_at).toLocaleDateString('pt-BR'),t:row.borrower_name,
-    s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='canceled'?'canc':row.status==='rejected'||row.status==='error'?'err':'proc',emailTo:row.email_to||'',emailSentAt:row.email_sent_at||'',emailProviderId:row.email_provider_id||'',emailLastError:row.email_last_error||''
+    s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='canceled'?'canc':row.status==='rejected'||row.status==='error'?'err':'proc',emailTo:row.email_to||'',emailSentAt:row.email_sent_at||'',emailProviderId:row.email_provider_id||'',emailLastError:row.email_last_error||'',
+    comp:(row.competence_date||'').slice(0,7)
   })));
   tabelas();chart();renderDashboard();
 }
@@ -2123,22 +2134,92 @@ function pill(s){return `<span class="pill ${sit[s][0]}">${sit[s][1]}</span>`}
 function tabelas(){
   if(!notas.length){
     qs('#ult').innerHTML='<tr><td colspan="5"><div class="empty-state">Nenhuma emissão registrada para este cliente.</div></td></tr>';
-    qs('#tb-notas').innerHTML='<tr><td colspan="7"><div class="empty-state">O histórico está vazio. As emissões de teste aparecerão aqui.</div></td></tr>';
-    return;
+  }else{
+    qs('#ult').innerHTML=notas.slice(0,5).map(x=>`
+      <tr><td class="num">${x.d}</td><td>${esc(x.t)}</td><td style="color:var(--ink-2)">${esc(x.s)}</td>
+      <td class="r">${brl(x.v)}</td><td>${pill(x.st)}</td></tr>`).join('');
   }
-  qs('#ult').innerHTML=notas.slice(0,5).map(x=>`
-    <tr><td class="num">${x.d}</td><td>${esc(x.t)}</td><td style="color:var(--ink-2)">${esc(x.s)}</td>
-    <td class="r">${brl(x.v)}</td><td>${pill(x.st)}</td></tr>`).join('');
+  popularFiltrosNotas();
+  filtrarNotas();
+}
 
-  qs('#tb-notas').innerHTML=notas.map(x=>`
+const NOME_MES=['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function popularFiltrosNotas(){
+  const compSel=qs('#nt-competencia');
+  if(compSel){
+    const atual=compSel.value;
+    const comps=[...new Set(notas.map(n=>n.comp).filter(Boolean))].sort().reverse();
+    compSel.innerHTML='<option value="">Todas</option>'+comps.map(c=>{
+      const [ano,mes]=c.split('-');
+      return `<option value="${esc(c)}">${NOME_MES[Number(mes)]||mes}/${ano}</option>`;
+    }).join('');
+    compSel.value=comps.includes(atual)?atual:'';
+  }
+  const servSel=qs('#nt-servico');
+  if(servSel){
+    const atual=servSel.value;
+    const servs=[...new Set(notas.map(n=>n.s).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+    servSel.innerHTML='<option value="">Todos</option>'+servs.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+    servSel.value=servs.includes(atual)?atual:'';
+  }
+}
+function alternarFiltrosNotas(){
+  const painel=qs('#nt-filtros-avancados'),btn=qs('#nt-filtro-btn');if(!painel)return;
+  const abrir=painel.style.display==='none';
+  painel.style.display=abrir?'':'none';
+  btn?.classList.toggle('on',abrir);
+  btn?.setAttribute('aria-expanded',abrir?'true':'false');
+}
+function limparFiltrosNotas(){
+  ['nt-search','nt-numero','nt-competencia','nt-servico','nt-data-de','nt-data-ate','nt-status'].forEach(id=>{const el=qs('#'+id);if(el)el.value=''});
+  filtrarNotas();
+}
+const STATUS_BACKEND_PARA_CURTO={authorized:'ok',canceled:'canc',rejected:'err',error:'err',sending:'proc'};
+function filtrarNotas(){
+  const buscaGeral=(qs('#nt-search')?.value||'').trim().toLocaleLowerCase('pt-BR');
+  const numero=(qs('#nt-numero')?.value||'').trim().toLocaleLowerCase('pt-BR');
+  const status=qs('#nt-status')?.value||'';
+  const statusCurto=STATUS_BACKEND_PARA_CURTO[status]||'';
+  const competencia=qs('#nt-competencia')?.value||'';
+  const servico=qs('#nt-servico')?.value||'';
+  const dataDe=qs('#nt-data-de')?.value||'';
+  const dataAte=qs('#nt-data-ate')?.value||'';
+
+  const lista=notas.filter(x=>{
+    if(buscaGeral){
+      const alvo=[x.n,x.t,x.key].map(v=>String(v||'').toLocaleLowerCase('pt-BR'));
+      if(!alvo.some(v=>v.includes(buscaGeral)))return false;
+    }
+    if(numero&&!String(x.n||'').toLocaleLowerCase('pt-BR').includes(numero))return false;
+    if(statusCurto&&x.st!==statusCurto)return false;
+    if(competencia&&x.comp!==competencia)return false;
+    if(servico&&x.s!==servico)return false;
+    if(dataDe&&(!x.date||new Date(x.date)<new Date(dataDe+'T00:00:00')))return false;
+    if(dataAte&&(!x.date||new Date(x.date)>new Date(dataAte+'T23:59:59')))return false;
+    return true;
+  });
+  renderTabelaNotas(lista);
+
+  const resumo=qs('#nt-filtro-resumo');
+  if(resumo){
+    const algumFiltro=buscaGeral||numero||status||competencia||servico||dataDe||dataAte;
+    resumo.style.display=algumFiltro?'':'none';
+    if(algumFiltro)resumo.textContent=`${lista.length} nota${lista.length===1?'':'s'} encontrada${lista.length===1?'':'s'} com os filtros aplicados.`;
+  }
+}
+function renderTabelaNotas(lista){
+  const tbody=qs('#tb-notas');if(!tbody)return;
+  if(!notas.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state">O histórico está vazio. As emissões de teste aparecerão aqui.</div></td></tr>';return}
+  if(!lista.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state">Nenhuma nota encontrada com esses filtros. <button class="btn btn-s" type="button" onclick="limparFiltrosNotas()">Limpar filtros</button></div></td></tr>';return}
+  tbody.innerHTML=lista.map(x=>`
     <tr>
-      <td class="mono" style="font-size:12px">${esc(x.n)}</td>
-      <td class="num">${x.d}</td>
-      <td>${esc(x.t)}</td>
-      <td style="color:var(--ink-2)">${esc(x.s)}</td>
-      <td class="r">${brl(x.v)}</td>
-      <td>${pill(x.st)}${x.emailSentAt?`<div class="foot-note">E-mail: ${esc(x.emailTo||'enviado')} · ${esc(new Date(x.emailSentAt).toLocaleString('pt-BR'))}${x.emailProviderId?` · ID ${esc(x.emailProviderId)}`:''}</div>`:x.emailLastError?`<div class="foot-note" style="color:#b91c1c">E-mail: ${esc(x.emailLastError)}</div>`:''}</td>
-      <td>
+      <td class="mono" data-th="Nº" style="font-size:12px">${esc(x.n)}</td>
+      <td class="num" data-th="Emissão">${x.d}</td>
+      <td data-th="Tomador">${esc(x.t)}</td>
+      <td data-th="Serviço" style="color:var(--ink-2)">${esc(x.s)}</td>
+      <td class="r" data-th="Valor">${brl(x.v)}</td>
+      <td data-th="Situação"><div>${pill(x.st)}${x.emailSentAt?`<div class="foot-note">E-mail: ${esc(x.emailTo||'enviado')} · ${esc(new Date(x.emailSentAt).toLocaleString('pt-BR'))}${x.emailProviderId?` · ID ${esc(x.emailProviderId)}`:''}</div>`:x.emailLastError?`<div class="foot-note" style="color:#b91c1c">E-mail: ${esc(x.emailLastError)}</div>`:''}</div></td>
+      <td data-th="Ações">
         <div class="acts">
           <button class="ico-btn" title="Baixar XML" onclick="baixarXml('${x.id}','${x.n}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
           <button class="ico-btn" title="Abrir DANFSe em PDF" onclick="abrirDanfse('${x.id}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -2149,6 +2230,7 @@ function tabelas(){
       </td>
     </tr>`).join('');
 }
+function imprimirNotas(){document.body.classList.add('printing-notas');window.print();window.setTimeout(()=>document.body.classList.remove('printing-notas'),1000)}
 
 function dashUserName(){
   const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}'),user=access.user||{};
@@ -2192,7 +2274,7 @@ function renderDashboard(){
 async function exportarXmls(btn){
   const search=qs('#nt-search')?.value.trim()||'';
   const status=qs('#nt-status')?.value||'';
-  const month=qs('#nt-period')?.value||'';
+  const month=qs('#nt-competencia')?.value||'';
   const params=new URLSearchParams();
   if(search)params.set('search',search);
   if(status)params.set('status',status);
