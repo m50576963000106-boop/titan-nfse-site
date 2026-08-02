@@ -3724,16 +3724,6 @@ function supPrepararCancelamento(id){
   supBubble(`<b>Cancelamento preparado para a DPS ${esc(n.n)}.</b><br>Vou abrir a tela oficial para você informar o motivo e confirmar o envio. Nenhuma ação fiscal será feita sem essa confirmação.`,'bot');
   abrirCancelamento(n.id,n.n);
 }
-function supPareceCancelamento(q){return /(cancelar|cancelamento|anular|estornar|substituir|tornar sem efeito)/.test(supNorm(q))}
-async function supExecutarCancelamento(text){
-  const holder=supBubble('Localizando NFS-e autorizadas na empresa ativa…','bot');
-  try{
-    await carregarNotasServidor();
-    const {lista}=supFiltrarNotas(text),autorizadas=lista.filter(n=>n.st==='ok').sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
-    if(!autorizadas.length){holder.innerHTML='Não encontrei uma NFS-e autorizada correspondente. Informe o número da nota ou abra o histórico completo.'+supActs([['Abrir Notas emitidas','notas']]);supScroll();return}
-    holder.innerHTML=`Encontrei <b>${autorizadas.length}</b> NFS-e autorizada(s). Selecione a nota para preparar o cancelamento — a confirmação final continua na tela oficial.`+autorizadas.slice(0,8).map(supNotaCard).join('');supScroll();
-  }catch(error){holder.innerHTML=`Não consegui consultar as notas agora: ${esc(error.message)}`;supScroll()}
-}
 function supPareceFerramenta(q){return /(buscar|pesquisar|listar|mostrar|localizar|detalhe|baixar|download|xml|pdf|danfse|chave)/.test(q)&&/(nota|nfse|nfs-e|dps|xml|pdf|danfse|chave)/.test(q)}
 async function supExecutarFerramenta(text){
   const holder=supBubble('Consultando as notas da empresa ativa…','bot');
@@ -3792,6 +3782,9 @@ async function supPerguntarIA(texto){
     supHistoricoIA.push({role:'user',content:texto},{role:'assistant',content:dados.resposta});
     supHistoricoIA=supHistoricoIA.slice(-SUP_HISTORICO_MAX);
     aplicarAcaoMartyn(dados.action);
+    // O Martyn cancelou uma nota pelo próprio bate-papo: recarrega a lista para a
+    // tela de Notas emitidas (e qualquer pergunta seguinte) já refletir o status novo.
+    if(Array.isArray(dados.ferramentasUsadas)&&dados.ferramentasUsadas.includes('cancelar_nota'))carregarNotasServidor().catch(()=>{});
   }catch(error){
     if(holder){holder.innerHTML=`Não consegui pensar nisso agora: ${esc(error.message||'falha de comunicação')}. Pode tentar de novo?`;supScroll();}
   }
@@ -3799,7 +3792,8 @@ async function supPerguntarIA(texto){
 function supSend(e){e.preventDefault();const inp=qs('#sup-in');const v=(inp.value||'').trim();if(!v)return false;inp.value='';supBubble(esc(v),'me');const q=supNorm(v);
   if(/(^|\s)(oi|ola|bom dia|boa tarde|boa noite|hello|hi)(\s|$)/.test(q)){supBubble('Olá! Como posso ajudar? Toque em um assunto abaixo ou descreva sua dúvida.','bot');return false}
   if(q.indexOf('analis')>-1||q.indexOf('diagnost')>-1||q.indexOf('minha conta')>-1||q.indexOf('meu status')>-1){supAnalisar();return false}
-  if(supPareceCancelamento(q)){supExecutarCancelamento(v);return false}
+  // Cancelamento não tem mais atalho local: vai direto pro Martyn de verdade, que
+  // agora sabe localizar a nota, pedir motivo/justificativa, confirmar e executar.
   if(supPareceFerramenta(q)){supExecutarFerramenta(v);return false}
   if(q.indexOf('humano')>-1||q.indexOf('atendente')>-1||q.indexOf('falar com')>-1||q.indexOf('pessoa')>-1){supBubble(`Para atendimento do sistema, fale com o responsável pelo TITAN. Para orientação normativa ou indisponibilidade do ambiente nacional, consulte os canais oficiais. Posso adiantar sua dúvida por aqui enquanto isso.${supFonte(SUP_OFICIAL.canais,'Canais oficiais da NFS-e')}`,'bot');return false}
   // Os tópicos prontos (supMatch) só respondem aos chips, clicados de propósito —
@@ -3811,7 +3805,7 @@ function supSend(e){e.preventDefault();const inp=qs('#sup-in');const v=(inp.valu
 }
 
 let supGreeted=false;
-function supGreet(){const emp=(typeof empresaAtual!=='undefined')?empresaAtual:null;let msg='Olá! Sou o <b>Martyn</b>, assistente do TITAN NFS-e. Respondo com base oficial, navego pelos módulos e posso consultar suas notas, entregar XML/DANFSe e preparar um cancelamento para sua confirmação.';let act;
+function supGreet(){const emp=(typeof empresaAtual!=='undefined')?empresaAtual:null;let msg='Olá! Sou o <b>Martyn</b>, assistente do TITAN NFS-e. Respondo com base oficial, navego pelos módulos, consulto suas notas, entrego XML/DANFSe e posso cancelar uma NFS-e autorizada depois da sua confirmação.';let act;
   if(!emp||!emp.rs){msg+='<br><br>Notei que <b>ainda não há empresa ativa</b>. Quer começar pelo cadastro?';act=[['Cadastrar empresa','emitente']];}
   else{msg+=`<br><br>Empresa ativa: <b>${esc(emp.rs)}</b> · ${supAmb()}.`;act=[['🔎 Analisar minha conta','diag']];}
   supBubble(msg+supActs(act),'bot');}
