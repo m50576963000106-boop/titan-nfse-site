@@ -35,6 +35,19 @@ test("oferece documentos e cancelamento oficial sem identidade visual", async()=
   assert.doesNotMatch(html,/v-marca/);
 });
 
+test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma origem do portal", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const fn=html.slice(html.indexOf("async function abrirDanfse"),html.indexOf("async function reenviarEmailNota"));
+  // o HTML do DANFSe (dado que passou pelo cliente) nunca é escrito direto no
+  // document da aba/janela — sempre por dentro de um iframe sandbox sem
+  // allow-same-origin, então mesmo um furo de escape no servidor não alcança
+  // sessionStorage nem a janela autenticada do portal
+  assert.doesNotMatch(fn,/document\.write\(html\)/);
+  assert.match(fn,/const danfseUrl=URL\.createObjectURL\(new Blob\(\[html\],\{type:'text\/html'\}\)\)/);
+  assert.match(fn,/<iframe src="'\+danfseUrl\+'" sandbox=""><\/iframe>/);
+  assert.match(fn,/tab\.document\.write\(wrapperHtml\)/);
+});
+
 test("isola as rotas do master e de cada CNPJ",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");
@@ -157,7 +170,11 @@ test("raiz limpa (sem /nfs) separa os acessos de cliente e administrador",async(
   assert.match(landing,/function aplicarIntencaoLogin/);
   assert.match(landing,/openLoginDrawer\(intent==='admin'\?'admin':'client'\)/);
   assert.match(landing,/function navegarAposLogin\(defaultTarget\)\{window\.top\.location\.href=safeNext\(defaultTarget\)\}/);
-  assert.match(landing,/function safeNext\(defaultTarget\)\{const next=PAGE_QUERY\.get\('next'\)\|\|'';return \/\^\\\/\(\?!\\\/\)\/\.test\(next\)\?next:defaultTarget\}/);
+  // safeNext valida a origem de verdade (new URL().origin) em vez de um regex de
+  // prefixo — "/\evil.com" passava no regex antigo (começa com "/", segundo
+  // caractere não é "/") mas o navegador normaliza "\" para "/" e navega para
+  // fora do site; new URL() já resolve isso e recusa qualquer origem diferente.
+  assert.match(landing,/function safeNext\(defaultTarget\)\{const next=PAGE_QUERY\.get\('next'\)\|\|'';if\(!next\)return defaultTarget;try\{const url=new URL\(next,location\.origin\);return url\.origin===location\.origin\?url\.pathname\+url\.search\+url\.hash:defaultTarget\}catch\{return defaultTarget\}\}/);
   assert.match(landing,/navegarAposLogin\('\/admin'\)/);
   assert.match(landing,/navegarAposLogin\('\/dashboard'\)/);
   assert.doesNotMatch(landing,/[^.]location\.href=safeNext/);
@@ -596,6 +613,24 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   assert.match(css,/\.legal \{[\s\S]*?overflow-y: auto;/);
 });
 
+test("worker manda Content-Security-Policy restrita, cobrindo só as origens de verdade usadas no site",async()=>{
+  const worker=await readFile(resolve(root,"worker/index.ts"),"utf8");
+  assert.match(worker,/headers\.set\("Content-Security-Policy", CSP\)/);
+  assert.match(worker,/"default-src 'self'"/);
+  // handlers inline (onclick=...) e atributos style=... por toda a página —
+  // sem 'unsafe-inline' aqui a emissão inteira quebraria
+  assert.match(worker,/"script-src 'self' 'unsafe-inline' https:\/\/cdn\.jsdelivr\.net"/);
+  assert.match(worker,/"style-src 'self' 'unsafe-inline' https:\/\/fonts\.googleapis\.com"/);
+  assert.match(worker,/"font-src 'self' https:\/\/fonts\.gstatic\.com"/);
+  assert.match(worker,/"img-src 'self' data:"/);
+  assert.match(worker,/"connect-src 'self' https:\/\/titan-nfse-api\.onrender\.com"/);
+  // blob: — o iframe sandbox do DANFSe (abrirDanfse em titan.html) carrega o
+  // documento por uma blob: URL
+  assert.match(worker,/"frame-src 'self' blob:"/);
+  assert.match(worker,/"object-src 'none'"/);
+  assert.match(worker,/"frame-ancestors 'self'"/);
+});
+
 test("painel Master mostra a prontidão real do WhatsApp e do Martyn",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/id="set-wa-webhook-url"/);
@@ -604,4 +639,24 @@ test("painel Master mostra a prontidão real do WhatsApp e do Martyn",async()=>{
   assert.match(html,/id="master-martyn-provider-state"/);
   assert.match(html,/data\.martynProviderReady\?'Provedor conectado':'Chave de IA ausente'/);
   assert.match(html,/data\.hasWhatsappWebhookVerifyToken/);
+});
+
+test("escapa consistentemente com o mesmo esc() em todo o portal — nada de escape parcial reinventado",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/const esc=value=>String\(value\?\?''\)\.replaceAll\('&','&amp;'\)\.replaceAll\('<','&lt;'\)\.replaceAll\('>','&gt;'\)\.replaceAll\('"','&quot;'\);/);
+  // cert.subject (X.509) e error.message iam pro innerHTML só com um
+  // replaceAll('<','&lt;') solto — escapava a tag mas não '&'/'>'/'"', diferente
+  // do resto do portal, que sempre usa o esc() compartilhado
+  assert.match(html,/<b>\$\{esc\(cert\.subject\)\}<\/b>/);
+  assert.match(html,/<div class="chave" style="color:#7d1c1f">\$\{esc\(error\.message\)\}<\/div>/);
+});
+
+test("exportarMasterLogs neutraliza injeção de fórmula no CSV (campo iniciado por =,+,-,@)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const fn=html.slice(html.indexOf("function exportarMasterLogs"),html.indexOf("async function salvarPerfilAcesso"));
+  // Excel/Sheets tratam célula iniciada por =,+,-,@ (ou tab/CR) como fórmula ao
+  // abrir o CSV — um valor gravado no log de auditoria (ex.: dentro de
+  // "detalhes") viraria código executado na planilha de quem exportou
+  assert.match(fn,/\/\^\[=\+\\-@\\t\\r\]\//);
+  assert.match(fn,/\?`'\$\{text\}`:text\)/);
 });

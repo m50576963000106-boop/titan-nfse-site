@@ -2045,7 +2045,7 @@ async function carregarCertificado(){
     status.className='pill '+(cert.expired?'p-err':'p-ok')+' right';
     status.textContent=cert.expired?'Vencido':'Válido';
     const validade=new Date(cert.validTo).toLocaleDateString('pt-BR');
-    details.innerHTML=`<b>${String(cert.subject).replaceAll('<','&lt;')}</b><br>Válido até ${validade}. Armazenado criptografado no cofre seguro.`;
+    details.innerHTML=`<b>${esc(cert.subject)}</b><br>Válido até ${validade}. Armazenado criptografado no cofre seguro.`;
   }catch(error){status.textContent='Indisponível';details.textContent=error.message}
 }
 
@@ -2299,13 +2299,22 @@ async function abrirDanfse(id){
   }
   try{
     const html=await (await apiBlob('/api/invoices/'+id+'/danfse')).text();
-    if(tab){tab.document.open();tab.document.write(html);tab.document.close();}
+    // O DANFSe é HTML gerado a partir de dado que passou pelo cliente (nome do
+    // tomador, descrição do serviço etc.) — escapado no servidor, mas escrever
+    // isso direto no document da aba (mesma origem do portal autenticado)
+    // faria qualquer furo de escape rodar com acesso à sessão de verdade. O
+    // iframe sandbox sem allow-same-origin isola o conteúdo numa origem opaca:
+    // mesmo que algo escape, não alcança sessionStorage nem a janela do portal.
+    const danfseUrl=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+    const wrapperHtml='<!doctype html><title>DANFSe</title><style>html,body{margin:0;height:100%}iframe{display:block;width:100%;height:100%;border:0}</style><iframe src="'+danfseUrl+'" sandbox=""></iframe>';
+    if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
     else{
-      const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));
-      const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';
+      const wrapperUrl=URL.createObjectURL(new Blob([wrapperHtml],{type:'text/html'}));
+      const a=document.createElement('a');a.href=wrapperUrl;a.target='_blank';a.rel='noopener';
       document.body.appendChild(a);a.click();a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),120000);
+      setTimeout(()=>URL.revokeObjectURL(wrapperUrl),120000);
     }
+    setTimeout(()=>URL.revokeObjectURL(danfseUrl),120000);
   }catch(error){if(tab)tab.close();alert(error.message)}
 }
 
@@ -2495,7 +2504,7 @@ async function emitir(){
     await carregarNotasServidor();
   }catch(error){
     const current=qsa('.stage.run').at(-1);if(current){current.className='stage fail';qs('.dot',current).innerHTML=xSvg}
-    qs('#result').innerHTML=`<div class="result no"><span class="pill p-err">Emissão não autorizada</span><div class="chave" style="color:#7d1c1f">${String(error.message).replaceAll('<','&lt;')}</div><div class="foot-note">Nenhuma NFS-e válida foi gerada.</div></div>`;
+    qs('#result').innerHTML=`<div class="result no"><span class="pill p-err">Emissão não autorizada</span><div class="chave" style="color:#7d1c1f">${esc(error.message)}</div><div class="foot-note">Nenhuma NFS-e válida foi gerada.</div></div>`;
     dispararMartynPorErro(error.message);
   }finally{
     rodando=false;
@@ -3457,7 +3466,10 @@ function exportarMasterLogs(){
   if(!masterLogs.length){alert('Carregue os registros antes de exportar.');return}
   const header=['data','ator','acao','recurso','id','detalhes'];
   const rows=masterLogs.map(item=>[new Date(item.created_at).toISOString(),item.actor_email,item.action,item.resource_type,item.resource_id||'',JSON.stringify(item.details||{})]);
-  const csv=[header,...rows].map(row=>row.map(value=>`"${String(value??'').replaceAll('"','""')}"`).join(';')).join('\n');
+  // Campo iniciado por =,+,-,@ (ou tab/CR) vira fórmula quando o Excel/Sheets
+  // abre o CSV — um valor gravado no log (ex.: dentro de "detalhes") viraria
+  // código executado na planilha de quem exportou. O apóstrofo força texto puro.
+  const csv=[header,...rows].map(row=>row.map(value=>{const text=String(value??'');return `"${(/^[=+\-@\t\r]/.test(text)?`'${text}`:text).replaceAll('"','""')}"`}).join(';')).join('\n');
   const blob=new Blob([`\ufeff${csv}`],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`titan-auditoria-${new Date().toISOString().slice(0,10)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 

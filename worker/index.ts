@@ -117,16 +117,41 @@ const worker = {
 
 // Cabeçalhos básicos contra clickjacking cross-site e MIME-sniffing. SAMEORIGIN
 // (não DENY): a própria página raiz embute /titan.html e /nfs.html num iframe
-// same-origin — DENY bloquearia o app inteiro de carregar. Sem CSP: o app usa
-// handlers inline (onclick=...) em toda a página, então uma CSP sem
-// 'unsafe-inline' quebraria a emissão inteira — fica de fora até uma
-// revisão dedicada disso.
+// same-origin — DENY bloquearia o app inteiro de carregar.
+//
+// A CSP abaixo precisa de 'unsafe-inline' em script-src e style-src: o app é
+// um HTML escrito à mão com handlers inline (onclick=...) e atributos
+// style=... por toda a página — uma CSP sem isso quebraria a emissão inteira.
+// Continua valendo como defesa: bloqueia carregar script/estilo/frame de
+// qualquer origem não listada aqui, o que é o que realmente importa contra
+// XSS que tenta puxar payload de fora (a maioria dos XSS reais na prática).
+// Cada origem abaixo tem um uso real e rastreável no código:
+//   script-src cdn.jsdelivr.net — ícones lucide (nfs.html)
+//   style-src/font-src fonts.google(apis|static).com — fonte Inter/JetBrains Mono (titan.html)
+//   connect-src titan-nfse-api.onrender.com — TITAN_API_URL (public/config.js)
+//   img-src data: — logo do portal e logo comercial, salvas como data URL
+//   frame-src blob: — DANFSe sandbox (abrirDanfse em titan.html)
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data:",
+  "connect-src 'self' https://titan-nfse-api.onrender.com",
+  "frame-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'"
+].join("; ");
+
 function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("X-Frame-Options", "SAMEORIGIN");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+  headers.set("Content-Security-Policy", CSP);
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
