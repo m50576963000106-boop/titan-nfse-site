@@ -448,6 +448,25 @@ test("orienta configurações de Gmail, Outlook e Google Drive no Master",async(
   assert.match(html,/hasGoogleDriveServiceAccountKey/);
 });
 
+test("avisa que Gmail/Outlook estão em desenvolvimento e não engana o cliente sobre o remetente real",async()=>{
+  // src/email/nfseEmail.ts sempre usa Resend com remetente fixo, ignorando
+  // qualquer provedor configurado aqui — a tela precisa deixar isso explícito
+  // em vez de sugerir que Gmail/Outlook já funcionam.
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/Em desenvolvimento — o envio hoje usa sempre o remetente padrão da TITAN, independente do que for configurado aqui\./);
+  assert.match(html,/id="set-gmail-client-id" class="inp" autocomplete="off" disabled title="Em desenvolvimento/);
+  assert.match(html,/id="set-gmail-secret" class="inp" type="password" placeholder="Deixe vazio para manter" disabled title="Em desenvolvimento/);
+  assert.match(html,/id="set-gmail-refresh" class="inp" type="password" placeholder="Deixe vazio para manter" disabled title="Em desenvolvimento/);
+  assert.match(html,/id="set-outlook-tenant" class="inp" autocomplete="off" disabled title="Em desenvolvimento/);
+  assert.match(html,/id="set-outlook-client-id" class="inp" autocomplete="off" disabled title="Em desenvolvimento/);
+  assert.match(html,/id="set-outlook-secret" class="inp" type="password" placeholder="Deixe vazio para manter" disabled title="Em desenvolvimento/);
+  assert.match(html,/id="set-outlook-user" class="inp" placeholder="notas@empresa\.com\.br" disabled title="Em desenvolvimento/);
+  // o seletor de provedor e os campos de remetente/responder continuam
+  // habilitados: só as credenciais de OAuth (que não fazem nada hoje) ficam bloqueadas
+  assert.doesNotMatch(html,/id="set-invoice-email-provider" class="inp" disabled/);
+  assert.doesNotMatch(html,/id="set-invoice-email-from" class="inp" type="email" placeholder="notas@empresa\.com\.br" disabled/);
+});
+
 test("envia NFS-e por e-mail com copia cadastrada e reenvio manual",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   const logo=await readFile(resolve(root,"public/assets/logo-email-titan-nfse.png"));
