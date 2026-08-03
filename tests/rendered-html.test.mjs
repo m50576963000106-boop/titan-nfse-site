@@ -640,3 +640,23 @@ test("painel Master mostra a prontidão real do WhatsApp e do Martyn",async()=>{
   assert.match(html,/data\.martynProviderReady\?'Provedor conectado':'Chave de IA ausente'/);
   assert.match(html,/data\.hasWhatsappWebhookVerifyToken/);
 });
+
+test("escapa consistentemente com o mesmo esc() em todo o portal — nada de escape parcial reinventado",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/const esc=value=>String\(value\?\?''\)\.replaceAll\('&','&amp;'\)\.replaceAll\('<','&lt;'\)\.replaceAll\('>','&gt;'\)\.replaceAll\('"','&quot;'\);/);
+  // cert.subject (X.509) e error.message iam pro innerHTML só com um
+  // replaceAll('<','&lt;') solto — escapava a tag mas não '&'/'>'/'"', diferente
+  // do resto do portal, que sempre usa o esc() compartilhado
+  assert.match(html,/<b>\$\{esc\(cert\.subject\)\}<\/b>/);
+  assert.match(html,/<div class="chave" style="color:#7d1c1f">\$\{esc\(error\.message\)\}<\/div>/);
+});
+
+test("exportarMasterLogs neutraliza injeção de fórmula no CSV (campo iniciado por =,+,-,@)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const fn=html.slice(html.indexOf("function exportarMasterLogs"),html.indexOf("async function salvarPerfilAcesso"));
+  // Excel/Sheets tratam célula iniciada por =,+,-,@ (ou tab/CR) como fórmula ao
+  // abrir o CSV — um valor gravado no log de auditoria (ex.: dentro de
+  // "detalhes") viraria código executado na planilha de quem exportou
+  assert.match(fn,/\/\^\[=\+\\-@\\t\\r\]\//);
+  assert.match(fn,/\?`'\$\{text\}`:text\)/);
+});
