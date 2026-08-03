@@ -22,12 +22,24 @@ export default async function TenantPortal({ params, searchParams }: Props) {
   const isFirstAccess = tenant.length === 1 && ["primeiro-acesso", "primeiroacesso"].includes(target.toLowerCase());
   const isPasswordReset = tenant.length === 1 && ["redefinir-senha", "redefinirsenha"].includes(target.toLowerCase());
   const isDashboard = tenant.length === 1 && target.toLowerCase() === "dashboard";
-  if (!isAdmin && !isClientLogin && !isHelp && !isFirstAccess && !isPasswordReset && !isDashboard) notFound();
+  // Portal do Parceiro (Fase F): tela própria e mínima, fora do shell grande
+  // de titan.html — só lista GET /api/partner/companies, sem menu nenhum de
+  // créditos/comissões/financeiro (não existe no backend ainda).
+  const isPartner = tenant.length === 1 && target.toLowerCase() === "parceiro";
+  if (!isAdmin && !isClientLogin && !isHelp && !isFirstAccess && !isPasswordReset && !isDashboard && !isPartner) notFound();
 
   if (isClientLogin) {
     return (
       <main className="prototype-shell">
         <iframe className="prototype-frame" src="/nfs.html?login=client" title="TITAN NFS-e — Acesso" />
+      </main>
+    );
+  }
+
+  if (isPartner) {
+    return (
+      <main className="prototype-shell">
+        <iframe className="prototype-frame" src="/parceiro.html" title="TITAN NFS-e — Portal do Parceiro" />
       </main>
     );
   }

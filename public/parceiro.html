@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <script>if(location.hostname!=='nfse.titanbackoffice.com.br')window.top.location.replace('https://nfse.titanbackoffice.com.br'+location.pathname+location.search+location.hash);</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="TITAN NFS-e: Portal do Parceiro — carteira de empresas indicadas.">
+  <title>TITAN NFS-e — Portal do Parceiro</title>
+  <script src="/config.js"></script>
+  <link rel="stylesheet" href="/nfs.css">
+  <style>
+    /* Escopo mínimo (Fase F): só listar a carteira do parceiro — sem menu de
+       créditos/comissões/financeiro, que ainda não existe no backend. */
+    body{background:var(--cream)}
+    .partner-shell{max-width:960px;margin:0 auto;padding:32px 24px 64px}
+    .partner-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;background:var(--navy);color:#fff}
+    .partner-topbar img{display:block;height:34px}
+    .partner-head{margin:28px 0 20px}
+    .partner-head h1{color:var(--navy);font-size:26px;letter-spacing:-.03em}
+    .partner-head p{margin-top:6px;color:var(--muted);font-size:14px}
+    .partner-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+    table{width:100%;border-collapse:collapse}
+    th,td{text-align:left;padding:13px 18px;font-size:13.5px;border-bottom:1px solid var(--line)}
+    th{background:#fbfaf7;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+    tr:last-child td{border-bottom:0}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700}
+    .pill.on{background:#e5f3ea;color:var(--ok)}
+    .pill.off{background:#f5e4e1;color:#9b2226}
+    .partner-empty,.partner-error{padding:32px 18px;text-align:center;color:var(--muted);font-size:14px}
+    .partner-error{color:#9b2226}
+    .partner-error a{color:var(--gold-dark);font-weight:700}
+  </style>
+</head>
+<body>
+  <header class="partner-topbar">
+    <a href="/" aria-label="TITAN NFS-e"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a>
+    <button class="btn" type="button" id="partner-logout">Sair</button>
+  </header>
+
+  <main class="partner-shell">
+    <div class="partner-head">
+      <h1>Portal do Parceiro</h1>
+      <p>Empresas da sua carteira comercial (companies.partner_id) e o status de emissão de cada uma.</p>
+    </div>
+    <div class="partner-card">
+      <div id="partner-status" class="partner-empty">Carregando carteira...</div>
+      <table id="partner-table" style="display:none">
+        <thead><tr><th>Empresa</th><th>CNPJ</th><th>Status de emissão</th></tr></thead>
+        <tbody id="partner-rows"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const STORAGE_TOKEN='titan_nfse_session_v1',STORAGE_SESSION='titan_nfse_access_v1';
+    const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+    function formatarCnpj(value){
+      const digits=String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+      return digits.length===14?digits.replace(/^(.{2})(.{3})(.{3})(.{4})(\d{2})$/,'$1.$2.$3/$4-$5'):(value||'');
+    }
+    function sair(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_SESSION);location.href='/'}
+    document.querySelector('#partner-logout').addEventListener('click',sair);
+
+    async function carregarCarteira(){
+      const status=document.querySelector('#partner-status'),tabela=document.querySelector('#partner-table'),corpo=document.querySelector('#partner-rows');
+      const token=sessionStorage.getItem(STORAGE_TOKEN);
+      let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{}
+      // Sessão vem sempre do login por e-mail em nfs.html (mesmo formulário do
+      // Master) — esta tela não tem form de login próprio, só confere o que já
+      // foi salvo antes do redirecionamento para /parceiro.
+      if(!token||!access.user?.isPartner){
+        status.className='partner-error';
+        status.innerHTML='Sessão de parceiro não encontrada ou expirada. <a href="/">Entrar de novo</a>.';
+        return;
+      }
+      try{
+        const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/partner/companies',{headers:{Authorization:'Bearer '+token}});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok)throw new Error(data.error||'Não foi possível carregar a carteira.');
+        const empresas=data.companies||[];
+        if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
+        corpo.innerHTML=empresas.map(company=>`<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td class="mono">${esc(formatarCnpj(company.federal_tax_id))}</td><td><span class="pill ${company.emission_enabled?'on':'off'}">${company.emission_enabled?'Emissão liberada':'Emissão suspensa'}</span></td></tr>`).join('');
+        status.style.display='none';tabela.style.display='table';
+      }catch(error){
+        status.className='partner-error';
+        status.textContent=error.message;
+      }
+    }
+    carregarCarteira();
+  </script>
+</body>
+</html>
