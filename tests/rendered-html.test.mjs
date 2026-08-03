@@ -543,6 +543,38 @@ test("Master aplica verificação de inadimplência sob demanda e vê o total de
   assert.match(html,/masterData\.monthlyAuthorizedInvoices/);
 });
 
+test("busca de empresas no painel Master vai pro servidor, não filtra mais a lista inteira no cliente",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/oninput="buscarClientesMaster\(\)"/);
+  assert.match(html,/function buscarClientesMaster\(\)\{/);
+  assert.match(html,/masterClientSearchDebounce=setTimeout\(\(\)=>carregarMaster\(\),320\)/);
+  assert.match(html,/const params=new URLSearchParams\(\);if\(masterClientSearchTerm\)params\.set\('search',masterClientSearchTerm\)/);
+  assert.match(html,/masterData=await api\('\/api\/master\/overview'\+\(params\.toString\(\)\?'\?'\+params\.toString\(\):''\)\)/);
+  // o filtro por nome de usuário/e-mail do usuário saiu do cliente (o backend
+  // só casa nome/CNPJ/e-mail da empresa) — a função não lê mais o valor bruto
+  // do campo de busca pra montar um array de candidatos e comparar substring
+  assert.doesNotMatch(html,/user\.name,user\.email,user\.profile_name,user\.partner_nickname\]\.some/);
+  assert.match(html,/id="master-companies-truncated"/);
+});
+
+test("suspender/liberar acesso de usuário e reativar empresa atualizam a tabela sem recarregar o painel Master inteiro",async()=>{
+  // carregarMaster() refaz GET /master/overview inteiro (empresas+usuários+
+  // perfis+convites+parceiros+planos) — os dois fluxos mais comuns do dia a
+  // dia trocaram isso por atualização local + re-render só da tabela afetada.
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const salvarAcesso=html.slice(html.indexOf("async function salvarAcesso(userId,companyId,active){"),html.indexOf("async function gerarRedefinicaoSenha"));
+  assert.match(salvarAcesso,/const alvo=masterData\?\.users\.find\(item=>item\.id===userId&&item\.company_id===companyId\)/);
+  assert.match(salvarAcesso,/if\(alvo\)\{alvo\.profile_id=data\.profileId;alvo\.profile_name=next\?\.name\|\|alvo\.profile_name;alvo\.access_active=data\.active\}/);
+  assert.match(salvarAcesso,/renderMasterClients\(\)/);
+  assert.doesNotMatch(salvarAcesso,/carregarMaster\(\)/);
+
+  const reativar=html.slice(html.indexOf("async function reativarEmpresaMaster(companyId){"),html.indexOf("async function ",html.indexOf("async function reativarEmpresaMaster(companyId){")+10));
+  assert.match(reativar,/Object\.assign\(empresa,data\)/);
+  assert.match(reativar,/configurarEmpresasAdmin\(masterData\.companies\)/);
+  assert.match(reativar,/renderMasterClients\(\)/);
+  assert.doesNotMatch(reativar,/carregarMaster\(\)/);
+});
+
 test("menu lateral no mobile fecha ao tocar fora, no Escape e ao escolher item",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");
