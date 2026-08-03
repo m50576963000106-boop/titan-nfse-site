@@ -35,6 +35,19 @@ test("oferece documentos e cancelamento oficial sem identidade visual", async()=
   assert.doesNotMatch(html,/v-marca/);
 });
 
+test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma origem do portal", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const fn=html.slice(html.indexOf("async function abrirDanfse"),html.indexOf("async function reenviarEmailNota"));
+  // o HTML do DANFSe (dado que passou pelo cliente) nunca é escrito direto no
+  // document da aba/janela — sempre por dentro de um iframe sandbox sem
+  // allow-same-origin, então mesmo um furo de escape no servidor não alcança
+  // sessionStorage nem a janela autenticada do portal
+  assert.doesNotMatch(fn,/document\.write\(html\)/);
+  assert.match(fn,/const danfseUrl=URL\.createObjectURL\(new Blob\(\[html\],\{type:'text\/html'\}\)\)/);
+  assert.match(fn,/<iframe src="'\+danfseUrl\+'" sandbox=""><\/iframe>/);
+  assert.match(fn,/tab\.document\.write\(wrapperHtml\)/);
+});
+
 test("isola as rotas do master e de cada CNPJ",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");

@@ -2299,13 +2299,22 @@ async function abrirDanfse(id){
   }
   try{
     const html=await (await apiBlob('/api/invoices/'+id+'/danfse')).text();
-    if(tab){tab.document.open();tab.document.write(html);tab.document.close();}
+    // O DANFSe é HTML gerado a partir de dado que passou pelo cliente (nome do
+    // tomador, descrição do serviço etc.) — escapado no servidor, mas escrever
+    // isso direto no document da aba (mesma origem do portal autenticado)
+    // faria qualquer furo de escape rodar com acesso à sessão de verdade. O
+    // iframe sandbox sem allow-same-origin isola o conteúdo numa origem opaca:
+    // mesmo que algo escape, não alcança sessionStorage nem a janela do portal.
+    const danfseUrl=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+    const wrapperHtml='<!doctype html><title>DANFSe</title><style>html,body{margin:0;height:100%}iframe{display:block;width:100%;height:100%;border:0}</style><iframe src="'+danfseUrl+'" sandbox=""></iframe>';
+    if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
     else{
-      const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));
-      const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';
+      const wrapperUrl=URL.createObjectURL(new Blob([wrapperHtml],{type:'text/html'}));
+      const a=document.createElement('a');a.href=wrapperUrl;a.target='_blank';a.rel='noopener';
       document.body.appendChild(a);a.click();a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),120000);
+      setTimeout(()=>URL.revokeObjectURL(wrapperUrl),120000);
     }
+    setTimeout(()=>URL.revokeObjectURL(danfseUrl),120000);
   }catch(error){if(tab)tab.close();alert(error.message)}
 }
 
