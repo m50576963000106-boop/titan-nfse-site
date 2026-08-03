@@ -178,7 +178,9 @@ test("raiz limpa (sem /nfs) separa os acessos de cliente e administrador",async(
   // caractere não é "/") mas o navegador normaliza "\" para "/" e navega para
   // fora do site; new URL() já resolve isso e recusa qualquer origem diferente.
   assert.match(landing,/function safeNext\(defaultTarget\)\{const next=PAGE_QUERY\.get\('next'\)\|\|'';if\(!next\)return defaultTarget;try\{const url=new URL\(next,location\.origin\);return url\.origin===location\.origin\?url\.pathname\+url\.search\+url\.hash:defaultTarget\}catch\{return defaultTarget\}\}/);
-  assert.match(landing,/navegarAposLogin\('\/admin'\)/);
+  // Fase F: o mesmo formulário de e-mail agora também abre o Portal do
+  // Parceiro — vai para /admin ou /parceiro conforme o que o login devolver.
+  assert.match(landing,/navegarAposLogin\(access\.user\.isMaster\?'\/admin':'\/parceiro'\)/);
   assert.match(landing,/navegarAposLogin\('\/dashboard'\)/);
   assert.doesNotMatch(landing,/[^.]location\.href=safeNext/);
   assert.doesNotMatch(landing,/\/nfs\//);
@@ -771,4 +773,43 @@ test("exportarMasterLogs neutraliza injeção de fórmula no CSV (campo iniciado
   // "detalhes") viraria código executado na planilha de quem exportou
   assert.match(fn,/\/\^\[=\+\\-@\\t\\r\]\//);
   assert.match(fn,/\?`'\$\{text\}`:text\)/);
+});
+
+// ── Fase F: Portal do Parceiro (interface mínima) ───────────────────────────
+// Backend já pronto (POST /api/auth/login reconhece isPartner, GET
+// /api/partner/companies devolve a carteira) — aqui só a interface: entrada
+// pelo mesmo formulário de e-mail do Master, uma rota própria e uma tela que
+// só lista a carteira, sem menu de créditos/comissões/financeiro.
+
+test("login por e-mail em nfs.html reconhece Master OU Parceiro e redireciona para /admin ou /parceiro",async()=>{
+  const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
+  const form=landing.slice(landing.indexOf('<form class="login-panel" id="admin-login-form">'),landing.indexOf('<div class="drawer-links">'));
+  assert.match(form,/<h3>Master ou Parceiro<\/h3>/);
+  const handler=landing.slice(landing.indexOf("document.querySelector('#admin-login-form').addEventListener"),landing.indexOf("function aplicarIntencaoLogin"));
+  assert.match(handler,/const access=await authLogin\(\{email,password\}\)/);
+  assert.match(handler,/if\(!access\.user\?\.isMaster&&!access\.user\?\.isPartner\)throw new Error/);
+  assert.match(handler,/saveSession\(access,null\);navegarAposLogin\(access\.user\.isMaster\?'\/admin':'\/parceiro'\)/);
+});
+
+test("rota /parceiro abre parceiro.html num iframe próprio, fora do shell de titan.html",async()=>{
+  const route=await readFile(resolve(root,"app/[[...tenant]]/page.tsx"),"utf8");
+  assert.match(route,/const isPartner = tenant\.length === 1 && target\.toLowerCase\(\) === "parceiro"/);
+  assert.match(route,/!isPasswordReset && !isDashboard && !isPartner\) notFound\(\)/);
+  assert.match(route,/if \(isPartner\) \{\s*return \(\s*<main className="prototype-shell">\s*<iframe className="prototype-frame" src="\/parceiro\.html" title="TITAN NFS-e — Portal do Parceiro" \/>/);
+});
+
+test("parceiro.html lista a carteira do parceiro (GET /api/partner/companies) sem ação além de listar",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  // Sessão vem só do login em nfs.html — sem form de login próprio nesta tela
+  assert.doesNotMatch(html,/<form/);
+  assert.match(html,/if\(!token\|\|!access\.user\?\.isPartner\)\{/);
+  assert.match(html,/await fetch\(\(window\.TITAN_API_URL\|\|''\)\.replace\(\/\\\/\$\/,''\)\+'\/api\/partner\/companies',\{headers:\{Authorization:'Bearer '\+token\}\}\)/);
+  assert.match(html,/company\.trade_name\|\|company\.legal_name/);
+  assert.match(html,/formatarCnpj\(company\.federal_tax_id\)/);
+  assert.match(html,/company\.emission_enabled\?'Emissão liberada':'Emissão suspensa'/);
+  // escopo mínimo: o único controle interativo da tela é "Sair" — nada de
+  // menu de créditos/comissões/financeiro, nem desabilitado
+  const botoes=html.match(/<button/g)||[];
+  assert.equal(botoes.length,1);
+  assert.match(html,/function sair\(\)\{sessionStorage\.removeItem\(STORAGE_TOKEN\);sessionStorage\.removeItem\(STORAGE_SESSION\);location\.href='\/'\}/);
 });
