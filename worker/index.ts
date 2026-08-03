@@ -33,14 +33,19 @@ const LEGACY_HOSTS = new Set(["titanbackoffice.com.br", "www.titanbackoffice.com
 const CANONICAL_ORIGIN = "https://nfse.titanbackoffice.com.br";
 
 // A API (titan-nfse-api, no Render) manda ao cliente, pelo WhatsApp, o link para
-// baixar o PDF/XML/ZIP de uma nota emitida ou cancelada. Esse link precisa abrir
-// no domínio oficial — um endereço "onrender.com" cru no WhatsApp do cliente não
-// passa confiança nenhuma. Este worker só faz o proxy do caminho exato de
+// baixar o XML/ZIP de uma nota emitida ou cancelada. Esse link precisa abrir no
+// domínio oficial — um endereço "onrender.com" cru no WhatsApp do cliente não
+// passa confiança nenhuma. Este worker só faz o proxy dos caminhos exatos de
 // download (não a API inteira: o resto do site já chama a API direto por
 // TITAN_API_URL, ver public/config.js), então o link sai com a cara do site mas
 // o arquivo em si continua vindo do backend de verdade.
+//
+// /n/ é o link curto atual (código sequencial curto, ver
+// martyn/entrega-nota-whatsapp.ts no titan-nfse-api). /api/whatsapp/download/
+// é o formato antigo (token longo); mantido só para os links já mandados a
+// clientes continuarem abrindo dentro da janela de validade deles.
 const API_ORIGIN = "https://titan-nfse-api.onrender.com";
-const DOWNLOAD_PATH_PREFIX = "/api/whatsapp/download/";
+const DOWNLOAD_PATH_PREFIXES = ["/n/", "/api/whatsapp/download/"];
 
 function mapLegacyPath(pathname: string): string {
   if (pathname === "/index.html") return "/";
@@ -62,9 +67,9 @@ const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    // Link de download de nota (PDF/XML/ZIP) mandado pelo Martyn: repassa para a
+    // Link de download de nota (XML/ZIP) mandado pelo Martyn: repassa para a
     // API real, sem redirecionar — o cliente nunca vê o domínio do Render.
-    if (url.pathname.startsWith(DOWNLOAD_PATH_PREFIX)) {
+    if (DOWNLOAD_PATH_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
       const target = new URL(url.pathname + url.search, API_ORIGIN);
       return fetch(new Request(target, request));
     }
