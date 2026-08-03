@@ -505,6 +505,44 @@ test("Master lista empresas suspensas em subtela propria com reativacao",async()
   assert.match(css,/\.client-subtab-btn\.on/);
 });
 
+test("sessão administrativa do Master exibe faixa persistente de impersonação",async()=>{
+  // POST /master/companies/:id/session emite token de 20min com impersonatedBy
+  // — nada avisava na tela que o operador estava atuando como a empresa X.
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  assert.match(html,/const STORAGE_IMPERSONATING='titan_nfse_impersonating_v1'/);
+  assert.match(html,/function faixaImpersonacao\(\)\{/);
+  assert.match(html,/Sessão administrativa — operando como/);
+  // gravado dentro de entrarViaGestor (único caminho que consome o handoff do
+  // Master) e limpo em sairPortal — persiste num reload da mesma aba e nunca
+  // vaza pra aba original do painel Master (sessionStorage é por aba)
+  assert.match(html,/sessionStorage\.setItem\(STORAGE_IMPERSONATING,data\.companies\[0\]\.trade_name\|\|data\.companies\[0\]\.legal_name\|\|'empresa selecionada'\)/);
+  assert.match(html,/sessionStorage\.removeItem\(STORAGE_IMPERSONATING\)/);
+  assert.match(html,/render\(\);faixaImpersonacao\(\);PORTAL_HELP/);
+  assert.match(html,/^faixaImpersonacao\(\);$/m);
+  assert.match(css,/#impersonation-banner\{/);
+  assert.match(css,/html\.impersonating \.sidebar,html\.impersonating \.topbar\{top:38px\}/);
+});
+
+test("logs de auditoria do Master filtram por ator (e-mail) e por ação",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="master-log-actor"/);
+  assert.match(html,/id="master-log-action"/);
+  assert.match(html,/function limparFiltrosLogsMaster\(\)/);
+  assert.match(html,/if\(actorEmail\)params\.set\('actorEmail',actorEmail\);if\(action\)params\.set\('action',action\)/);
+});
+
+test("Master aplica verificação de inadimplência sob demanda e vê o total de notas do mês",async()=>{
+  // POST /api/billing/enforce já existia mas não estava ligado a nada na tela.
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/onclick="aplicarBloqueioInadimplenciaMaster\(\)"/);
+  assert.match(html,/async function aplicarBloqueioInadimplenciaMaster\(\)\{/);
+  assert.match(html,/await api\('\/api\/billing\/enforce',\{method:'POST'\}\)/);
+  assert.match(html,/const resultados=data\.results\|\|\[\],bloqueadas=resultados\.filter\(item=>item\.blocked\)\.length/);
+  assert.match(html,/id="master-monthly-invoices"/);
+  assert.match(html,/masterData\.monthlyAuthorizedInvoices/);
+});
+
 test("menu lateral no mobile fecha ao tocar fora, no Escape e ao escolher item",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");
