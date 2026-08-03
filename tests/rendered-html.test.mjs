@@ -124,24 +124,27 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
   const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
   const landingCss=await readFile(resolve(root,"public/nfs.css"),"utf8");
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
-  assert.match(landing,/Vamos colocar sua empresa na nota fiscal nacional/);
+  // A landing foi redesenhada (headline, benefícios e comparação com o Portal
+  // Nacional) — as asserções abaixo casam com o conteúdo real de hoje, não
+  // com o headline antigo "Vamos colocar sua empresa na nota fiscal nacional".
+  assert.match(landing,/Toda a segurança do Portal Nacional\. <span>Toda a inteligência do TITAN\.<\/span>/);
   assert.match(landing,/\/api\/contact/);
   assert.match(landing,/titan-nfse-logo-transparent\.png/);
   assert.match(landing,/\/api\/system\/branding/);
   assert.match(landing,/carregarBrandingPortal/);
-  assert.match(landing,/com a força do/);
-  assert.match(landing,/Tudo o que você precisa para emitir sem dor de cabeça/);
+  assert.match(landing,/Emita notas com mais rapidez, reduza erros e organize clientes e serviços em um só lugar/);
+  assert.match(landing,/Muito mais que uma tela para emitir notas/);
   assert.match(landing,/id="login-drawer"/);
   assert.match(landing,/client-login-form/);
   assert.match(landing,/admin-login-form/);
   assert.match(landing,/authLogin\(\{federalTaxId:cnpj,password\}\)/);
   assert.match(landing,/authLogin\(\{email,password\}\)/);
   assert.doesNotMatch(landing,/location\.replace\(access\.user\.isMaster/);
-  assert.match(landing,/<nav class="footer-links" aria-label="Documentos legais">/);
+  assert.match(landing,/<nav class="footer-links" aria-label="Navegação e documentos legais">/);
   assert.match(landing,/href="\/termos-de-uso">Termos de Uso<\/a>/);
   assert.match(landing,/href="\/politica-de-privacidade">Privacidade<\/a>/);
   assert.match(landing,/href="\/exclusao-de-dados">Exclusão de Dados<\/a>/);
-  assert.match(landingCss,/\.footer-links a\{[^}]*font-size:12px[^}]*text-decoration:none/);
+  assert.match(landingCss,/\.footer-links a\{[^}]*font-size:12\.5px[^}]*text-decoration:none/);
   assert.match(landingCss,/\.footer-links a:hover,\.footer-links a:focus-visible\{color:var\(--gold\)\}/);
   assert.match(html,/pipe-detail/);
   assert.match(html,/mostrarDetalheEtapa/);
@@ -358,7 +361,10 @@ test("replica logica de recebimentos com agendamento recorrencia cobranca e NFS-
   assert.match(html,/Financeiro de honorários/);
   assert.match(html,/Rascunhos financeiros/);
   assert.match(html,/Boletos \(rascunho\)/);
-  assert.match(html,/MVP aprovado pelo conselho/);
+  // Linguagem voltada ao cliente pagante, não jargão de governança interna —
+  // mesma informação honesta (o que está pronto vs. em desenvolvimento).
+  assert.match(html,/Recebíveis de honorários, recorrências, cobrança revisada e pré-NFS-e já estão disponíveis\. Boletos, conciliação bancária, contas a pagar e automações adicionais estão em desenvolvimento\./);
+  assert.doesNotMatch(html,/MVP aprovado pelo conselho/);
 });
 
 test("protege e otimiza login e redefinicao de senha no front",async()=>{
@@ -424,11 +430,18 @@ test("exibe planos SaaS com limites e valores publicados",async()=>{
   assert.match(html,/Sob consulta/);
 });
 
-test("landing tem seção de dúvidas frequentes sobre a migração de 01\\/09",async()=>{
-  const html=await readFile(resolve(root,"public/nfs.html"),"utf8");
-  assert.match(html,/id="faq"/);
-  assert.match(html,/Preciso mesmo migrar até 01\/09\?/);
-  const perguntas=html.match(/<summary>/g)||[];
+test("FAQ sobre a migração de 01\\/09 vive em rota própria (\\/faq), linkada a partir da landing",async()=>{
+  // O FAQ deixou de ser uma seção dentro de nfs.html e virou rota própria
+  // (app/faq/page.tsx) — a landing só linka pra ela (nav e rodapé).
+  const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
+  const faq=await readFile(resolve(root,"app/faq/page.tsx"),"utf8");
+  assert.match(landing,/href="\/faq">Dúvidas<\/a>/);
+  assert.match(faq,/Preciso mesmo migrar até 01\/09\?/);
+  // A rota é data-driven (PERGUNTAS.map(...)) — só existe um <summary> literal
+  // no JSX-fonte, então contar perguntas de verdade é contar entradas do array.
+  assert.match(faq,/<details className="faq-item" key=\{item\.pergunta\}>/);
+  assert.match(faq,/<summary>\{item\.pergunta\}<\/summary>/);
+  const perguntas=faq.match(/pergunta:/g)||[];
   assert.ok(perguntas.length>=6);
 });
 
