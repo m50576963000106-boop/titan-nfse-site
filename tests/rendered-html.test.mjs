@@ -651,6 +651,16 @@ test("escapa consistentemente com o mesmo esc() em todo o portal — nada de esc
   assert.match(html,/<div class="chave" style="color:#7d1c1f">\$\{esc\(error\.message\)\}<\/div>/);
 });
 
+test("tela de detalhes do cliente edita o parceiro comercial da empresa (diferente de quem opera o CNPJ)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/<select id="master-detail-partner" class="inp"><option value="">Cliente direto<\/option><\/select>/);
+  const abrir=html.slice(html.indexOf("async function abrirDetalhesCliente"),html.indexOf("function fecharDetalhesCliente"));
+  assert.match(abrir,/partnerSelect\.innerHTML='<option value="">Cliente direto<\/option>'\+\(masterData\?\.partners\|\|\[\]\)\.map\(p=>`<option value="\$\{p\.id\}">\$\{esc\(p\.nickname\)\}<\/option>`\)\.join\(''\);/);
+  assert.match(abrir,/partnerSelect\.value=data\.partner_id\|\|'';/);
+  const salvar=html.slice(html.indexOf("async function salvarDetalhesCliente"),html.indexOf("async function salvarDetalhesCliente")+900);
+  assert.match(salvar,/partnerId:qs\('#master-detail-partner'\)\.value\|\|null/);
+});
+
 test("exportarMasterLogs neutraliza injeção de fórmula no CSV (campo iniciado por =,+,-,@)",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   const fn=html.slice(html.indexOf("function exportarMasterLogs"),html.indexOf("async function salvarPerfilAcesso"));
