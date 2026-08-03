@@ -157,7 +157,11 @@ test("raiz limpa (sem /nfs) separa os acessos de cliente e administrador",async(
   assert.match(landing,/function aplicarIntencaoLogin/);
   assert.match(landing,/openLoginDrawer\(intent==='admin'\?'admin':'client'\)/);
   assert.match(landing,/function navegarAposLogin\(defaultTarget\)\{window\.top\.location\.href=safeNext\(defaultTarget\)\}/);
-  assert.match(landing,/function safeNext\(defaultTarget\)\{const next=PAGE_QUERY\.get\('next'\)\|\|'';return \/\^\\\/\(\?!\\\/\)\/\.test\(next\)\?next:defaultTarget\}/);
+  // safeNext valida a origem de verdade (new URL().origin) em vez de um regex de
+  // prefixo — "/\evil.com" passava no regex antigo (começa com "/", segundo
+  // caractere não é "/") mas o navegador normaliza "\" para "/" e navega para
+  // fora do site; new URL() já resolve isso e recusa qualquer origem diferente.
+  assert.match(landing,/function safeNext\(defaultTarget\)\{const next=PAGE_QUERY\.get\('next'\)\|\|'';if\(!next\)return defaultTarget;try\{const url=new URL\(next,location\.origin\);return url\.origin===location\.origin\?url\.pathname\+url\.search\+url\.hash:defaultTarget\}catch\{return defaultTarget\}\}/);
   assert.match(landing,/navegarAposLogin\('\/admin'\)/);
   assert.match(landing,/navegarAposLogin\('\/dashboard'\)/);
   assert.doesNotMatch(landing,/[^.]location\.href=safeNext/);
