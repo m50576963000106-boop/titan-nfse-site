@@ -613,6 +613,24 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   assert.match(css,/\.legal \{[\s\S]*?overflow-y: auto;/);
 });
 
+test("worker manda Content-Security-Policy restrita, cobrindo só as origens de verdade usadas no site",async()=>{
+  const worker=await readFile(resolve(root,"worker/index.ts"),"utf8");
+  assert.match(worker,/headers\.set\("Content-Security-Policy", CSP\)/);
+  assert.match(worker,/"default-src 'self'"/);
+  // handlers inline (onclick=...) e atributos style=... por toda a página —
+  // sem 'unsafe-inline' aqui a emissão inteira quebraria
+  assert.match(worker,/"script-src 'self' 'unsafe-inline' https:\/\/cdn\.jsdelivr\.net"/);
+  assert.match(worker,/"style-src 'self' 'unsafe-inline' https:\/\/fonts\.googleapis\.com"/);
+  assert.match(worker,/"font-src 'self' https:\/\/fonts\.gstatic\.com"/);
+  assert.match(worker,/"img-src 'self' data:"/);
+  assert.match(worker,/"connect-src 'self' https:\/\/titan-nfse-api\.onrender\.com"/);
+  // blob: — o iframe sandbox do DANFSe (abrirDanfse em titan.html) carrega o
+  // documento por uma blob: URL
+  assert.match(worker,/"frame-src 'self' blob:"/);
+  assert.match(worker,/"object-src 'none'"/);
+  assert.match(worker,/"frame-ancestors 'self'"/);
+});
+
 test("painel Master mostra a prontidão real do WhatsApp e do Martyn",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/id="set-wa-webhook-url"/);
