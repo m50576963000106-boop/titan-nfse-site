@@ -821,3 +821,14 @@ test("parceiro.html lista a carteira do parceiro (GET /api/partner/companies) se
   assert.equal(botoes.length,1);
   assert.match(html,/function sair\(\)\{sessionStorage\.removeItem\(STORAGE_TOKEN\);sessionStorage\.removeItem\(STORAGE_SESSION\);location\.href='\/'\}/);
 });
+
+// ── Item 1: botão "Buscar" explícito no filtro de notas ─────────────────────
+// O filtro já é ao vivo (oninput/onchange chamando filtrarNotas()); o botão
+// é só por familiaridade de quem espera um botão de busca — não substitui
+// o comportamento ao vivo existente.
+test("filtro de notas emitidas tem botão Buscar além dos campos ao vivo",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const card=html.slice(html.indexOf('id="nt-filtro-card"'),html.indexOf('id="nt-filtro-card"')+2000);
+  assert.match(card,/<input id="nt-search"[^>]*oninput="filtrarNotas\(\)"/);
+  assert.match(card,/<button class="btn btn-s" type="button" onclick="filtrarNotas\(\)" title="Buscar">/);
+});

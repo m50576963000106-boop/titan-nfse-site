@@ -503,6 +503,7 @@
           <div class="flex wrap" style="align-items:center">
             <input id="nt-search" class="inp" placeholder="Buscar por tomador, chave ou nº da nota" style="flex:1;min-width:200px" oninput="filtrarNotas()">
             <select id="nt-status" class="inp" style="width:auto" onchange="filtrarNotas()"><option value="">Todas as situações</option><option value="authorized">Autorizada</option><option value="sending">Processando</option><option value="rejected">Rejeitada</option><option value="canceled">Cancelada</option></select>
+            <button class="btn btn-s" type="button" onclick="filtrarNotas()" title="Buscar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Buscar</button>
             <button class="btn btn-s" type="button" id="nt-filtro-btn" onclick="alternarFiltrosNotas()" title="Mais filtros" aria-expanded="false" aria-controls="nt-filtros-avancados"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z"/></svg> Filtros</button>
             <button class="btn btn-s" type="button" onclick="imprimirNotas()">Exportar PDF</button>
             <button class="btn" onclick="exportarXmls(this)">Exportar XMLs</button>
