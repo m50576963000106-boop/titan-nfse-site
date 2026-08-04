@@ -775,6 +775,22 @@ test("tela de detalhes do cliente edita o parceiro comercial da empresa (diferen
   assert.match(salvar,/partnerId:qs\('#master-detail-partner'\)\.value\|\|null/);
 });
 
+// ── Item 4: filtro por parceiro na lista de empresas do Master ─────────────
+
+test("Gestão por CNPJ tem select de parceiro ao lado da busca, mandando partnerId pro servidor",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/<select id="master-client-partner" class="inp" onchange="filtrarParceiroClientesMaster\(\)"><option value="">Todos os parceiros<\/option><\/select>/);
+  const carregar=html.slice(html.indexOf("async function carregarMaster"),html.indexOf("async function carregarMaster")+900);
+  assert.match(carregar,/if\(masterClientPartnerFilter\)params\.set\('partnerId',masterClientPartnerFilter\)/);
+  assert.match(carregar,/renderMasterClientPartnerFilter\(\)/);
+  const render=html.slice(html.indexOf("function renderMasterClientPartnerFilter"),html.indexOf("function renderMasterClientPartnerFilter")+500);
+  // populado a partir de masterData.partners, a mesma fonte que a aba
+  // Gestão de Parceiros já usa — mais a opção "clientes diretos" (sem parceiro)
+  assert.match(render,/<option value="none">Somente clientes diretos<\/option>/);
+  assert.match(render,/masterData\.partners\.map\(p=>`<option value="\$\{p\.id\}">\$\{esc\(p\.nickname\)\}<\/option>`\)/);
+  assert.match(html,/function filtrarParceiroClientesMaster\(\)\{\s*masterClientPartnerFilter=qs\('#master-client-partner'\)\?\.value\|\|'';/);
+});
+
 test("exportarMasterLogs neutraliza injeção de fórmula no CSV (campo iniciado por =,+,-,@)",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   const fn=html.slice(html.indexOf("function exportarMasterLogs"),html.indexOf("async function salvarPerfilAcesso"));
