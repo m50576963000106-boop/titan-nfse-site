@@ -9,12 +9,19 @@
   <script src="/config.js"></script>
   <link rel="stylesheet" href="/nfs.css">
   <style>
-    /* Escopo mínimo (Fase F): só listar a carteira do parceiro — sem menu de
-       créditos/comissões/financeiro, que ainda não existe no backend. */
+    /* Fase F: só listar a carteira do parceiro. A navegação abaixo só torna
+       visíveis os menus de créditos/comissões/financeiro (desabilitados,
+       "em breve") — nenhuma lógica de cálculo de comissão, saldo de crédito
+       ou split de pagamento existe ainda, isso é decisão de produto maior. */
     body{background:var(--cream)}
     .partner-shell{max-width:960px;margin:0 auto;padding:32px 24px 64px}
-    .partner-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;background:var(--navy);color:#fff}
+    .partner-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;background:var(--navy);color:#fff;flex-wrap:wrap}
     .partner-topbar img{display:block;height:34px}
+    .partner-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+    .partner-nav-link{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid transparent;color:rgba(255,255,255,.7);font:inherit;font-size:13.5px;font-weight:700;padding:8px 14px;border-radius:8px}
+    span.partner-nav-link.on{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.28)}
+    button.partner-nav-link{cursor:not-allowed;opacity:.6}
+    .partner-nav-soon{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;background:rgba(255,255,255,.18);padding:2px 6px;border-radius:999px}
     .partner-head{margin:28px 0 20px}
     .partner-head h1{color:var(--navy);font-size:26px;letter-spacing:-.03em}
     .partner-head p{margin-top:6px;color:var(--muted);font-size:14px}
@@ -34,6 +41,12 @@
 <body>
   <header class="partner-topbar">
     <a href="/" aria-label="TITAN NFS-e"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a>
+    <nav class="partner-nav" aria-label="Navegação do Portal do Parceiro">
+      <span class="partner-nav-link on" aria-current="page">Carteira</span>
+      <button class="partner-nav-link" type="button" disabled aria-disabled="true" title="Em desenvolvimento — ainda não disponível no Portal do Parceiro">Créditos<span class="partner-nav-soon">em breve</span></button>
+      <button class="partner-nav-link" type="button" disabled aria-disabled="true" title="Em desenvolvimento — ainda não disponível no Portal do Parceiro">Comissões<span class="partner-nav-soon">em breve</span></button>
+      <button class="partner-nav-link" type="button" disabled aria-disabled="true" title="Em desenvolvimento — ainda não disponível no Portal do Parceiro">Financeiro<span class="partner-nav-soon">em breve</span></button>
+    </nav>
     <button class="btn" type="button" id="partner-logout">Sair</button>
   </header>
 
