@@ -7,7 +7,9 @@ const root = resolve(import.meta.dirname, "..");
 
 test("carrega a configuração externa do backend", async () => {
   const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  const config = await readFile(resolve(root, "public/config.js"), "utf8");
   assert.match(html, /<script src="\/config\.js"><\/script>/);
+  assert.match(config, /https:\/\/martyn-api-titan\.onrender\.com/);
   assert.match(html, /\/api\/invoices\/emit/);
   assert.match(html, /\/api\/auth\/login/);
 });
@@ -599,7 +601,7 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
 test("painel Master mostra a prontidão real do WhatsApp e do Martyn",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/id="set-wa-webhook-url"/);
-  assert.match(html,/https:\/\/titan-nfse-api\.onrender\.com\/api\/whatsapp\/webhook/);
+  assert.match(html,/https:\/\/martyn-api-titan\.onrender\.com\/api\/whatsapp\/webhook/);
   assert.doesNotMatch(html,/endpoint de webhook[^<]*ainda não está publicado/i);
   assert.match(html,/id="master-martyn-provider-state"/);
   assert.match(html,/data\.martynProviderReady\?'Provedor conectado':'Chave de IA ausente'/);
