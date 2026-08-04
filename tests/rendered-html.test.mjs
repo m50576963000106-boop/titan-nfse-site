@@ -9,7 +9,10 @@ test("carrega a configuração externa do backend", async () => {
   const html = await readFile(resolve(root, "public/titan.html"), "utf8");
   const config = await readFile(resolve(root, "public/config.js"), "utf8");
   assert.match(html, /<script src="\/config\.js"><\/script>/);
-  assert.match(config, /https:\/\/martyn-api-titan\.onrender\.com/);
+  // Trava o backend do emissor. Trocar esta URL troca o banco inteiro (cada
+  // serviço Render tem o seu DATABASE_URL), o que já derrubou o login em
+  // produção uma vez — ver o comentário em public/config.js.
+  assert.match(config, /window\.TITAN_API_URL = window\.TITAN_API_URL \|\| "https:\/\/titan-nfse-api\.onrender\.com"/);
   assert.match(html, /\/api\/invoices\/emit/);
   assert.match(html, /\/api\/auth\/login/);
 });
