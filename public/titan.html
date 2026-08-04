@@ -2332,16 +2332,23 @@ async function abrirDanfse(id){
     // faria qualquer furo de escape rodar com acesso à sessão de verdade. O
     // iframe sandbox sem allow-same-origin isola o conteúdo numa origem opaca:
     // mesmo que algo escape, não alcança sessionStorage nem a janela do portal.
-    const danfseUrl=URL.createObjectURL(new Blob([html],{type:'text/html'}));
-    const wrapperHtml='<!doctype html><title>DANFSe</title><style>html,body{margin:0;height:100%}iframe{display:block;width:100%;height:100%;border:0}</style><iframe src="'+danfseUrl+'" sandbox=""></iframe>';
+    // srcdoc em vez de um segundo blob: URL: um blob criado nesta janela e
+    // referenciado de dentro da aba aberta por window.open é o tipo de coisa
+    // que navegador mais restritivo (Safari/iOS, parte real da base de
+    // clientes) trata de forma inconsistente entre abas — srcdoc é conteúdo
+    // embutido de verdade, não depende de um blob: sobreviver noutro contexto.
+    const wrapperHtml='<!doctype html><meta charset="utf-8"><title>DANFSe</title><style>html,body{margin:0;height:100%}iframe{display:block;width:100%;height:100%;border:0}</style><iframe sandbox="" srcdoc="'+esc(html)+'"></iframe>';
     if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
     else{
-      const wrapperUrl=URL.createObjectURL(new Blob([wrapperHtml],{type:'text/html'}));
+      // charset explícito no blob (não só no <meta>): navegação direta pro
+      // blob: (caminho mobile) é o único ponto onde o HTML passa por um
+      // round-trip de bytes de verdade — sem isso, acento em nome de tomador
+      // ou de serviço (comuníssimo em português) saía corrompido.
+      const wrapperUrl=URL.createObjectURL(new Blob([wrapperHtml],{type:'text/html;charset=utf-8'}));
       const a=document.createElement('a');a.href=wrapperUrl;a.target='_blank';a.rel='noopener';
       document.body.appendChild(a);a.click();a.remove();
       setTimeout(()=>URL.revokeObjectURL(wrapperUrl),120000);
     }
-    setTimeout(()=>URL.revokeObjectURL(danfseUrl),120000);
   }catch(error){if(tab)tab.close();alert(error.message)}
 }
 
