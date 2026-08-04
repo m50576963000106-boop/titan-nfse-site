@@ -46,8 +46,12 @@ test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma orig
   // srcdoc (conteúdo embutido), não um segundo blob: URL referenciado de
   // dentro da aba aberta por window.open — um blob criado numa janela e
   // consumido noutra é o tipo de coisa que Safari/iOS trata de forma
-  // inconsistente entre contextos, diferente de Chrome
-  assert.match(fn,/<iframe sandbox="" srcdoc="'\+esc\(html\)\+'"><\/iframe>/);
+  // inconsistente entre contextos, diferente de Chrome. allow-scripts porque
+  // o layout DANFSe v2.0 é populado por script embutido no próprio HTML;
+  // allow-same-origin continua de fora — combinado com allow-scripts seria o
+  // padrão documentado como inseguro (daria acesso à origem real do portal)
+  assert.match(fn,/<iframe sandbox="allow-scripts" srcdoc="'\+esc\(html\)\+'"><\/iframe>/);
+  assert.doesNotMatch(fn,/sandbox="[^"]*allow-same-origin/);
   assert.match(fn,/tab\.document\.write\(wrapperHtml\)/);
   // charset explícito: o caminho mobile navega direto pro blob: (único ponto
   // com round-trip de bytes de verdade) — sem isso, acento em nome de

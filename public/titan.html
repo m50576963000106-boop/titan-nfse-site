@@ -2330,14 +2330,23 @@ async function abrirDanfse(id){
     // tomador, descrição do serviço etc.) — escapado no servidor, mas escrever
     // isso direto no document da aba (mesma origem do portal autenticado)
     // faria qualquer furo de escape rodar com acesso à sessão de verdade. O
-    // iframe sandbox sem allow-same-origin isola o conteúdo numa origem opaca:
-    // mesmo que algo escape, não alcança sessionStorage nem a janela do portal.
+    // iframe sandbox isola o conteúdo numa origem opaca: mesmo que algo
+    // escape, não alcança sessionStorage nem a janela do portal. allow-scripts
+    // é necessário porque o layout DANFSe v2.0 (NT 008/2026) é populado por um
+    // script embutido no próprio HTML (o markup estático vem com os campos
+    // vazios, um script preenche em runtime) — sem isso a aba mostra só o
+    // esqueleto do formulário, sem nenhum dado real da nota. allow-same-origin
+    // continua deliberadamente de fora: só com os dois juntos o conteúdo do
+    // iframe ganharia acesso à origem real do portal (o combo documentado
+    // como inseguro) — sem allow-same-origin, mesmo com scripts habilitados,
+    // o iframe fica em origem "null", sem alcançar window.top nem
+    // sessionStorage do portal (verificado).
     // srcdoc em vez de um segundo blob: URL: um blob criado nesta janela e
     // referenciado de dentro da aba aberta por window.open é o tipo de coisa
     // que navegador mais restritivo (Safari/iOS, parte real da base de
     // clientes) trata de forma inconsistente entre abas — srcdoc é conteúdo
     // embutido de verdade, não depende de um blob: sobreviver noutro contexto.
-    const wrapperHtml='<!doctype html><meta charset="utf-8"><title>DANFSe</title><style>html,body{margin:0;height:100%}iframe{display:block;width:100%;height:100%;border:0}</style><iframe sandbox="" srcdoc="'+esc(html)+'"></iframe>';
+    const wrapperHtml='<!doctype html><meta charset="utf-8"><title>DANFSe</title><style>html,body{margin:0;height:100%}iframe{display:block;width:100%;height:100%;border:0}</style><iframe sandbox="allow-scripts" srcdoc="'+esc(html)+'"></iframe>';
     if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
     else{
       // charset explícito no blob (não só no <meta>): navegação direta pro
