@@ -1404,6 +1404,13 @@ function garantirBarreiraInicial(){
   if(!token){qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide');}
 }
 window.addEventListener('pageshow',garantirBarreiraInicial);
+// Listener para ações da janela do DANFSe (iframe sandbox não pode
+// acessar a API diretamente, então usa postMessage via window.opener).
+window.addEventListener('message',(e)=>{
+  if(e.data?.titan==='baixarXml' && e.data?.invoiceId){
+    baixarXml(String(e.data.invoiceId),'');
+  }
+});
 function alternarGrupoMenu(id,button){const menu=qs('#'+id),open=!menu.classList.contains('on');menu.classList.toggle('on',open);button.classList.toggle('expanded',open)}
 function alternarMenuLateral(forcar){
   const sb=qs('#sb');if(!sb)return;
@@ -2318,6 +2325,52 @@ async function baixarXml(id,numero){
 }
 
 async function abrirDanfse(id){
+  const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  let tab=null;
+  if(!isMobile){
+    tab=window.open('','_blank');
+    if(tab)tab.document.write('<title>Preparando DANFSe...</title><p style="font-family:sans-serif;padding:24px">Gerando DANFSe com dados reais...</p>');
+  }
+  try{
+    const html=await (await apiBlob('/api/invoices/'+id+'/danfse')).text();
+    // Barra de ações + iframe sandbox. A barra fica FORA do sandbox (acesso
+    // à API para baixar XML); o DANFSe fica DENTRO do iframe sandbox
+    // (isolação de segurança). O botão "Salvar PDF" chama print() no iframe
+    // via contentWindow — funciona porque allow-scripts permite JS no iframe.
+    const wrapperHtml='<!doctype html><meta charset="utf-8"><title>DANFSe</title>'+
+      '<style>'+
+        'html,body{margin:0;height:100%;font-family:Arial,Helvetica,sans-serif}'+
+        '.bar{display:flex;gap:8px;padding:8px 12px;background:#111;color:#fff;align-items:center;font-size:13px}'+
+        '.bar span{margin-right:auto;font-weight:600}'+
+        '.bar button{font-size:13px;font-weight:600;padding:6px 14px;border:0;border-radius:4px;cursor:pointer}'+
+        '.bar .btn-sec{background:#333;color:#fff}'+
+        '.bar .btn-sec:hover{background:#444}'+
+        '.bar .btn-pri{background:#c9a84c;color:#111}'+
+        '.bar .btn-pri:hover{background:#d4b55a}'+
+        'iframe{display:block;width:100%;border:0;flex:1}'+
+        '.wrap{display:flex;flex-direction:column;height:100vh}'+
+      '</style>'+
+      '<div class="wrap">'+
+        '<div class="bar">'+
+          '<span>DANFSe v2.0 · Documento Auxiliar da NFS-e</span>'+
+          '<button class="btn-sec" onclick="baixarXml()">⬇️ Baixar XML</button>'+
+          '<button class="btn-pri" onclick="imprimirDanfse()">🖨️ Salvar PDF</button>'+
+        '</div>'+
+        '<iframe sandbox="allow-scripts" id="danfseFrame" srcdoc="'+esc(html)+'"></iframe>'+
+      '</div>'+
+      '<script>'+
+        'function baixarXml(){window.opener.postMessage({titan:\'baixarXml\',invoiceId:\''+id+'\'},\'*\');}'+
+        'function imprimirDanfse(){const f=document.getElementById(\'danfseFrame\');if(f&&f.contentWindow)f.contentWindow.print();}'+
+      '</script>';
+    if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
+    else{
+      const wrapperUrl=URL.createObjectURL(new Blob([wrapperHtml],{type:'text/html;charset=utf-8'}));
+      const a=document.createElement('a');a.href=wrapperUrl;a.target='_blank';a.rel='noopener';
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(wrapperUrl),120000);
+    }
+  }catch(error){if(tab)tab.close();alert(error.message)}
+}
   const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   let tab=null;
   if(!isMobile){
