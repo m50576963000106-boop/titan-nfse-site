@@ -43,9 +43,17 @@ test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma orig
   // allow-same-origin, então mesmo um furo de escape no servidor não alcança
   // sessionStorage nem a janela autenticada do portal
   assert.doesNotMatch(fn,/document\.write\(html\)/);
-  assert.match(fn,/const danfseUrl=URL\.createObjectURL\(new Blob\(\[html\],\{type:'text\/html'\}\)\)/);
-  assert.match(fn,/<iframe src="'\+danfseUrl\+'" sandbox=""><\/iframe>/);
+  // srcdoc (conteúdo embutido), não um segundo blob: URL referenciado de
+  // dentro da aba aberta por window.open — um blob criado numa janela e
+  // consumido noutra é o tipo de coisa que Safari/iOS trata de forma
+  // inconsistente entre contextos, diferente de Chrome
+  assert.match(fn,/<iframe sandbox="" srcdoc="'\+esc\(html\)\+'"><\/iframe>/);
   assert.match(fn,/tab\.document\.write\(wrapperHtml\)/);
+  // charset explícito: o caminho mobile navega direto pro blob: (único ponto
+  // com round-trip de bytes de verdade) — sem isso, acento em nome de
+  // tomador/serviço saía corrompido
+  assert.match(fn,/<!doctype html><meta charset="utf-8"><title>DANFSe<\/title>/);
+  assert.match(fn,/new Blob\(\[wrapperHtml\],\{type:'text\/html;charset=utf-8'\}\)/);
 });
 
 test("isola as rotas do master e de cada CNPJ",async()=>{
@@ -738,9 +746,9 @@ test("worker manda Content-Security-Policy restrita, cobrindo só as origens de 
   assert.match(worker,/"font-src 'self' https:\/\/fonts\.gstatic\.com"/);
   assert.match(worker,/"img-src 'self' data:"/);
   assert.match(worker,/"connect-src 'self' https:\/\/titan-nfse-api\.onrender\.com"/);
-  // blob: — o iframe sandbox do DANFSe (abrirDanfse em titan.html) carrega o
-  // documento por uma blob: URL
-  assert.match(worker,/"frame-src 'self' blob:"/);
+  // DANFSe (abrirDanfse em titan.html) usa srcdoc no iframe sandbox, então
+  // não precisa mais de blob: aqui — só 'self' mesmo
+  assert.match(worker,/"frame-src 'self'"/);
   assert.match(worker,/"object-src 'none'"/);
   assert.match(worker,/"frame-ancestors 'self'"/);
 });

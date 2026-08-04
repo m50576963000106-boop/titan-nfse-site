@@ -130,7 +130,8 @@ const worker = {
 //   style-src/font-src fonts.google(apis|static).com — fonte Inter/JetBrains Mono (titan.html)
 //   connect-src titan-nfse-api.onrender.com — TITAN_API_URL (public/config.js)
 //   img-src data: — logo do portal e logo comercial, salvas como data URL
-//   frame-src blob: — DANFSe sandbox (abrirDanfse em titan.html)
+//   frame-src 'self' — DANFSe sandbox (abrirDanfse em titan.html) usa srcdoc,
+//     não precisa mais de blob: aqui (o próprio iframe já é same-origin)
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
@@ -138,7 +139,7 @@ const CSP = [
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data:",
   "connect-src 'self' https://titan-nfse-api.onrender.com",
-  "frame-src 'self' blob:",
+  "frame-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
