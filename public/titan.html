@@ -958,7 +958,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
             </div>
 
             <div class="comm-tab-panel" id="comm-tab-meta" style="display:none">
-              <div class="hint" style="margin-bottom:10px">Webhook oficial já publicado: <code id="set-wa-webhook-url">https://titan-nfse-api.onrender.com/api/whatsapp/webhook</code>. Use exatamente essa URL na Meta e o mesmo Verify Token salvo abaixo.</div>
+              <div class="hint" style="margin-bottom:10px">Webhook oficial já publicado: <code id="set-wa-webhook-url">https://martyn-api-titan.onrender.com/api/whatsapp/webhook</code>. Use exatamente essa URL na Meta e o mesmo Verify Token salvo abaixo.</div>
               <div class="row r2">
                 <div class="field"><label for="set-wa-enabled">Integração WhatsApp (Meta)</label><select id="set-wa-enabled" class="inp"><option value="false">Desativada</option><option value="true">Ativada</option></select></div>
                 <div class="field"><label for="set-wa-display-name">Nome de exibição</label><input id="set-wa-display-name" class="inp" placeholder="TITAN NFS-e"></div>
@@ -2361,51 +2361,9 @@ async function abrirDanfse(id){
       '<script>'+
         'function baixarXml(){window.opener.postMessage({titan:\'baixarXml\',invoiceId:\''+id+'\'},\'*\');}'+
         'function imprimirDanfse(){const f=document.getElementById(\'danfseFrame\');if(f&&f.contentWindow)f.contentWindow.print();}'+
-      '</script>';
+      '<\/script>';
     if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
     else{
-      const wrapperUrl=URL.createObjectURL(new Blob([wrapperHtml],{type:'text/html;charset=utf-8'}));
-      const a=document.createElement('a');a.href=wrapperUrl;a.target='_blank';a.rel='noopener';
-      document.body.appendChild(a);a.click();a.remove();
-      setTimeout(()=>URL.revokeObjectURL(wrapperUrl),120000);
-    }
-  }catch(error){if(tab)tab.close();alert(error.message)}
-}
-  const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-  let tab=null;
-  if(!isMobile){
-    tab=window.open('','_blank');
-    if(tab)tab.document.write('<title>Preparando DANFSe...</title><p style="font-family:sans-serif;padding:24px">Gerando DANFSe com dados reais...</p>');
-  }
-  try{
-    const html=await (await apiBlob('/api/invoices/'+id+'/danfse')).text();
-    // O DANFSe é HTML gerado a partir de dado que passou pelo cliente (nome do
-    // tomador, descrição do serviço etc.) — escapado no servidor, mas escrever
-    // isso direto no document da aba (mesma origem do portal autenticado)
-    // faria qualquer furo de escape rodar com acesso à sessão de verdade. O
-    // iframe sandbox isola o conteúdo numa origem opaca: mesmo que algo
-    // escape, não alcança sessionStorage nem a janela do portal. allow-scripts
-    // é necessário porque o layout DANFSe v2.0 (NT 008/2026) é populado por um
-    // script embutido no próprio HTML (o markup estático vem com os campos
-    // vazios, um script preenche em runtime) — sem isso a aba mostra só o
-    // esqueleto do formulário, sem nenhum dado real da nota. allow-same-origin
-    // continua deliberadamente de fora: só com os dois juntos o conteúdo do
-    // iframe ganharia acesso à origem real do portal (o combo documentado
-    // como inseguro) — sem allow-same-origin, mesmo com scripts habilitados,
-    // o iframe fica em origem "null", sem alcançar window.top nem
-    // sessionStorage do portal (verificado).
-    // srcdoc em vez de um segundo blob: URL: um blob criado nesta janela e
-    // referenciado de dentro da aba aberta por window.open é o tipo de coisa
-    // que navegador mais restritivo (Safari/iOS, parte real da base de
-    // clientes) trata de forma inconsistente entre abas — srcdoc é conteúdo
-    // embutido de verdade, não depende de um blob: sobreviver noutro contexto.
-    const wrapperHtml='<!doctype html><meta charset="utf-8"><title>DANFSe</title><style>html,body{margin:0;height:100%}iframe{display:block;width:100%;height:100%;border:0}</style><iframe sandbox="allow-scripts" srcdoc="'+esc(html)+'"></iframe>';
-    if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
-    else{
-      // charset explícito no blob (não só no <meta>): navegação direta pro
-      // blob: (caminho mobile) é o único ponto onde o HTML passa por um
-      // round-trip de bytes de verdade — sem isso, acento em nome de tomador
-      // ou de serviço (comuníssimo em português) saía corrompido.
       const wrapperUrl=URL.createObjectURL(new Blob([wrapperHtml],{type:'text/html;charset=utf-8'}));
       const a=document.createElement('a');a.href=wrapperUrl;a.target='_blank';a.rel='noopener';
       document.body.appendChild(a);a.click();a.remove();
@@ -3292,7 +3250,7 @@ async function carregarConfiguracoesMaster(){
     qs('#set-wa-waba-id').value=data.whatsappBusinessAccountId||'';
     qs('#set-wa-phone-number-id').value=data.whatsappPhoneNumberId||'';
     qs('#set-wa-app-id').value=data.metaAppId||'';
-    const webhook=qs('#set-wa-webhook-url');if(webhook)webhook.textContent=data.whatsappWebhookUrl||'https://titan-nfse-api.onrender.com/api/whatsapp/webhook';
+    const webhook=qs('#set-wa-webhook-url');if(webhook)webhook.textContent=data.whatsappWebhookUrl||'https://martyn-api-titan.onrender.com/api/whatsapp/webhook';
     qs('#set-wa-access-token').value='';qs('#set-wa-app-secret').value='';qs('#set-wa-verify-token').value='';
     qs('#set-martyn-wa-enabled').value=String(Boolean(data.martynWhatsAppEnabled));
     qs('#set-martyn-mode').value=data.martynOperationMode||'automatico_escalonamento';
@@ -3400,6 +3358,9 @@ async function abrirEmpresaEmissao(companyId){
 }
 function abrirEmpresaSelecionada(){const id=sessionStorage.getItem(STORAGE_COMPANY_ID)||empresasAdmin[0]?.id;if(!id){alert('Selecione uma empresa.');return}abrirEmpresaEmissao(id)}
 async function carregarMaster(){
+  const summary=qs('#master-summary'),companies=qs('#master-companies');
+  if(summary)summary.textContent='Carregando a gestão de clientes...';
+  if(companies&&!companies.children.length)companies.innerHTML='<tr><td colspan="6">Conectando ao servidor. No primeiro acesso, isso pode levar alguns segundos...</td></tr>';
   try{
     const params=new URLSearchParams();if(masterClientSearchTerm)params.set('search',masterClientSearchTerm);if(masterClientPartnerFilter)params.set('partnerId',masterClientPartnerFilter);
     masterData=await api('/api/master/overview'+(params.toString()?'?'+params.toString():''));
@@ -3419,7 +3380,17 @@ async function carregarMaster(){
     // apagar a seleção de quem está no meio da edição de um plano.
     renderPlanFeatures(qs('#plan-features')?.children.length?lerPlanFeatures():[]);
     renderEmpresasAdmin();
-  }catch(error){alert(error.message)}
+  }catch(error){
+    if(error?.status===401){
+      limparSessaoLocal();
+      document.documentElement.classList.remove('titan-boot-auth');
+      mostrarErroLogin('Sua sessão administrativa expirou. Entre novamente para continuar.');
+      qs('#li-mail')?.focus();
+      return;
+    }
+    if(summary)summary.textContent='Não foi possível carregar a gestão agora.';
+    if(companies)companies.innerHTML='<tr><td colspan="6"><div class="empty-state"><b>Falha ao conectar com o servidor.</b><br><span>'+esc(error.message||'Tente novamente em alguns segundos.')+'</span><br><button class="btn btn-p" type="button" style="margin-top:12px" onclick="carregarMaster()">Tentar novamente</button></div></td></tr>';
+  }
 }
 
 function usuariosDoCnpj(companyId){return (masterData?.users||[]).filter(u=>u.company_id===companyId&&!u.is_master&&u.access_origin!=='master')}
