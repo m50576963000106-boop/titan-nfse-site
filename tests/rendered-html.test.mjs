@@ -833,11 +833,27 @@ test("parceiro.html lista a carteira do parceiro (GET /api/partner/companies) se
   assert.match(html,/company\.trade_name\|\|company\.legal_name/);
   assert.match(html,/formatarCnpj\(company\.federal_tax_id\)/);
   assert.match(html,/company\.emission_enabled\?'Emissão liberada':'Emissão suspensa'/);
-  // escopo mínimo: o único controle interativo da tela é "Sair" — nada de
-  // menu de créditos/comissões/financeiro, nem desabilitado
-  const botoes=html.match(/<button/g)||[];
-  assert.equal(botoes.length,1);
   assert.match(html,/function sair\(\)\{sessionStorage\.removeItem\(STORAGE_TOKEN\);sessionStorage\.removeItem\(STORAGE_SESSION\);location\.href='\/'\}/);
+});
+
+// ── Item 5: menus de créditos/comissões/financeiro do parceiro (visíveis,
+// desabilitados) ─────────────────────────────────────────────────────────
+// Só torna a navegação visível — nenhuma lógica de cálculo de comissão,
+// saldo de crédito ou split de pagamento (decisão de produto fora de escopo).
+
+test("topbar do parceiro mostra Carteira/Créditos/Comissões/Financeiro, os três últimos desabilitados",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  const topbar=html.slice(html.indexOf('<header class="partner-topbar">'),html.indexOf('</header>'));
+  assert.match(topbar,/<span class="partner-nav-link on" aria-current="page">Carteira<\/span>/);
+  for(const item of ['Créditos','Comissões','Financeiro']){
+    // regex já exige que o botão inteiro (disabled, sem onclick) case
+    // exatamente — qualquer onclick adicionado quebraria este match
+    const re=new RegExp(`<button class="partner-nav-link" type="button" disabled aria-disabled="true" title="[^"]*">${item}<span class="partner-nav-soon">em breve</span></button>`);
+    assert.match(topbar,re);
+  }
+  // "Sair" continua sendo o único controle que de fato faz alguma coisa
+  const botoes=html.match(/<button/g)||[];
+  assert.equal(botoes.length,4,"Sair + 3 itens de navegação desabilitados");
 });
 
 // ── Item 1: botão "Buscar" explícito no filtro de notas ─────────────────────
