@@ -1426,10 +1426,21 @@ function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.re
 function faixaImpersonacao(){
   const empresa=sessionStorage.getItem(STORAGE_IMPERSONATING);
   let faixa=qs('#impersonation-banner');
-  if(!empresa){faixa?.remove();document.documentElement.classList.remove('impersonating');return}
+  if(!empresa){faixa?.remove();document.documentElement.classList.remove('impersonating');document.documentElement.style.removeProperty('--imp-h');return}
   if(!faixa){faixa=document.createElement('div');faixa.id='impersonation-banner';faixa.setAttribute('role','status');document.body.prepend(faixa)}
   faixa.innerHTML=`Sessão administrativa — operando como <b>${esc(empresa)}</b>. Saia para voltar ao painel Master.<button type="button" onclick="sairPortal()">Sair</button>`;
   document.documentElement.classList.add('impersonating');
+  // Nome de empresa comprido ou janela estreita quebra a faixa em mais de uma
+  // linha (flex-wrap:wrap no CSS) — um deslocamento fixo pro menu cobria a
+  // faixa quando ela crescia além de uma linha. Mede a altura de verdade em
+  // vez de supor, e reage a resize/redimensionamento da janela.
+  const medir=()=>document.documentElement.style.setProperty('--imp-h',faixa.offsetHeight+'px');
+  medir();
+  if(!faixa.dataset.medidorLigado){
+    faixa.dataset.medidorLigado='1';
+    if(window.ResizeObserver)new ResizeObserver(medir).observe(faixa);
+    else window.addEventListener('resize',medir);
+  }
 }
 function go(v,el){
   if(!sessionStorage.getItem(STORAGE_TOKEN)){qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide');return}
