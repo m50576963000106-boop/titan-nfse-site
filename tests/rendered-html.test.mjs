@@ -447,7 +447,7 @@ test("FAQ sobre a migração de 01\\/09 vive em rota própria (\\/faq), linkada 
   assert.ok(perguntas.length>=6);
 });
 
-test("orienta configurações de Gmail, Outlook e Google Drive no Master",async()=>{
+test("orienta Google Drive no Master e não expõe mais configuração de e-mail dos clientes",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/Envio de NFS-e ao tomador/);
   assert.match(html,/Identidade visual do portal/);
@@ -455,31 +455,33 @@ test("orienta configurações de Gmail, Outlook e Google Drive no Master",async(
   assert.match(html,/portalLogoDataUrl/);
   assert.match(html,/function prepararLogoPortalMaster/);
   assert.match(html,/\/api\/system\/branding/);
-  assert.match(html,/Gmail \/ Google Workspace/);
-  assert.match(html,/Outlook \/ Microsoft 365/);
-  assert.match(html,/O plugin conectado no Codex não é usado como credencial do site/);
   assert.match(html,/id="set-drive-enabled"/);
   assert.match(html,/googleDriveArchiveEnabled/);
   assert.match(html,/hasGoogleDriveServiceAccountKey/);
-});
-
-test("avisa que Gmail/Outlook estão em desenvolvimento e não engana o cliente sobre o remetente real",async()=>{
-  // src/email/nfseEmail.ts sempre usa Resend com remetente fixo, ignorando
-  // qualquer provedor configurado aqui — a tela precisa deixar isso explícito
-  // em vez de sugerir que Gmail/Outlook já funcionam.
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
-  assert.match(html,/Em desenvolvimento — o envio hoje usa sempre o remetente padrão da TITAN, independente do que for configurado aqui\./);
-  assert.match(html,/id="set-gmail-client-id" class="inp" autocomplete="off" disabled title="Em desenvolvimento/);
-  assert.match(html,/id="set-gmail-secret" class="inp" type="password" placeholder="Deixe vazio para manter" disabled title="Em desenvolvimento/);
-  assert.match(html,/id="set-gmail-refresh" class="inp" type="password" placeholder="Deixe vazio para manter" disabled title="Em desenvolvimento/);
-  assert.match(html,/id="set-outlook-tenant" class="inp" autocomplete="off" disabled title="Em desenvolvimento/);
-  assert.match(html,/id="set-outlook-client-id" class="inp" autocomplete="off" disabled title="Em desenvolvimento/);
-  assert.match(html,/id="set-outlook-secret" class="inp" type="password" placeholder="Deixe vazio para manter" disabled title="Em desenvolvimento/);
-  assert.match(html,/id="set-outlook-user" class="inp" placeholder="notas@empresa\.com\.br" disabled title="Em desenvolvimento/);
-  // o seletor de provedor e os campos de remetente/responder continuam
-  // habilitados: só as credenciais de OAuth (que não fazem nada hoje) ficam bloqueadas
-  assert.doesNotMatch(html,/id="set-invoice-email-provider" class="inp" disabled/);
-  assert.doesNotMatch(html,/id="set-invoice-email-from" class="inp" type="email" placeholder="notas@empresa\.com\.br" disabled/);
+  // src/email/nfseEmail.ts sempre usa Resend com remetente fixo
+  // (nfse@titanbackoffice.com.br), ignorando qualquer provedor configurado
+  // pelo cliente — por isso o seletor de provedor e os blocos de credencial
+  // de Gmail/Outlook foram removidos por completo, não só desabilitados.
+  assert.match(html,/Sempre pelo remetente padrão da TITAN\./);
+  assert.match(html,/nfse@titanbackoffice\.com\.br via Resend/);
+  assert.doesNotMatch(html,/Gmail \/ Google Workspace/);
+  assert.doesNotMatch(html,/Outlook \/ Microsoft 365/);
+  assert.doesNotMatch(html,/id="set-invoice-email-provider"/);
+  assert.doesNotMatch(html,/id="set-invoice-email-from"/);
+  assert.doesNotMatch(html,/id="set-invoice-email-reply"/);
+  assert.doesNotMatch(html,/id="set-gmail-client-id"/);
+  assert.doesNotMatch(html,/id="set-gmail-secret"/);
+  assert.doesNotMatch(html,/id="set-gmail-refresh"/);
+  assert.doesNotMatch(html,/id="set-outlook-tenant"/);
+  assert.doesNotMatch(html,/id="set-outlook-client-id"/);
+  assert.doesNotMatch(html,/id="set-outlook-secret"/);
+  assert.doesNotMatch(html,/id="set-outlook-user"/);
+  assert.doesNotMatch(html,/id="master-invoice-email-state"/);
+  // salvarConfiguracoesMaster() e o carregamento não podem mais referenciar
+  // esses ids — senão dariam TypeError ao rodar (qs(...) retornaria null)
+  assert.doesNotMatch(html,/invoiceEmailProvider:qs/);
+  assert.doesNotMatch(html,/gmailClientId:qs/);
+  assert.doesNotMatch(html,/outlookTenantId:qs/);
 });
 
 test("envia NFS-e por e-mail com copia cadastrada e reenvio manual",async()=>{
