@@ -1,0 +1,13 @@
+# O repositório já guarda estes arquivos com LF, mas core.autocrlf=true faz o
+# checkout no Windows gravá-los com CRLF. Os testes de tests/*.test.mjs casam
+# trechos de código com \n literal, então no Windows 3 deles falhavam sempre —
+# ruído permanente que em 04/08/2026 escondeu 2 regressões de verdade (o
+# resultado local ficou "5 falhas", e as 3 fantasma fizeram as 2 novas passarem
+# por pré-existentes). Fixando LF no working tree, `npm test` local vale a
+# mesma coisa que o CI.
+*.html text eol=lf
+*.mjs  text eol=lf
+*.js   text eol=lf
+*.ts   text eol=lf
+*.json text eol=lf
+*.css  text eol=lf
