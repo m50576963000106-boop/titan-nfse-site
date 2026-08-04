@@ -536,7 +536,15 @@ test("sessão administrativa do Master exibe faixa persistente de impersonação
   assert.match(html,/render\(\);faixaImpersonacao\(\);PORTAL_HELP/);
   assert.match(html,/^faixaImpersonacao\(\);$/m);
   assert.match(css,/#impersonation-banner\{/);
-  assert.match(css,/html\.impersonating \.sidebar,html\.impersonating \.topbar\{top:38px\}/);
+  // top fixo em 38px só cobria o caso de uma linha — nome de empresa comprido
+  // ou janela estreita quebra a faixa (flex-wrap:wrap) e a altura de verdade
+  // passa de 38px, cobrindo o topo do menu. --imp-h é medida em JS a partir da
+  // altura real do elemento (faixaImpersonacao), com 38px só como valor do
+  // primeiro paint, antes da medição.
+  assert.match(css,/html\.impersonating \.sidebar,html\.impersonating \.topbar\{top:var\(--imp-h,38px\)\}/);
+  const funcaoFaixa=html.slice(html.indexOf("function faixaImpersonacao"),html.indexOf("function go(v,el)"));
+  assert.match(funcaoFaixa,/document\.documentElement\.style\.setProperty\('--imp-h',faixa\.offsetHeight\+'px'\)/);
+  assert.match(funcaoFaixa,/new ResizeObserver\(medir\)\.observe\(faixa\)/);
 });
 
 test("logs de auditoria do Master filtram por ator (e-mail) e por ação",async()=>{
