@@ -959,7 +959,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
             </div>
 
             <div class="comm-tab-panel" id="comm-tab-meta" style="display:none">
-              <div class="hint" style="margin-bottom:10px">Webhook oficial já publicado: <code id="set-wa-webhook-url">https://martyn-api-titan.onrender.com/api/whatsapp/webhook</code>. Use exatamente essa URL na Meta e o mesmo Verify Token salvo abaixo.</div>
+              <div class="hint" style="margin-bottom:10px">Webhook oficial já publicado: <code id="set-wa-webhook-url">https://titan-nfse-api.onrender.com/api/whatsapp/webhook</code>. Use exatamente essa URL na Meta e o mesmo Verify Token salvo abaixo.</div>
               <div class="row r2">
                 <div class="field"><label for="set-wa-enabled">Integração WhatsApp (Meta)</label><select id="set-wa-enabled" class="inp"><option value="false">Desativada</option><option value="true">Ativada</option></select></div>
                 <div class="field"><label for="set-wa-display-name">Nome de exibição</label><input id="set-wa-display-name" class="inp" placeholder="TITAN NFS-e"></div>
@@ -3291,7 +3291,7 @@ async function carregarConfiguracoesMaster(){
     qs('#set-wa-waba-id').value=data.whatsappBusinessAccountId||'';
     qs('#set-wa-phone-number-id').value=data.whatsappPhoneNumberId||'';
     qs('#set-wa-app-id').value=data.metaAppId||'';
-    const webhook=qs('#set-wa-webhook-url');if(webhook)webhook.textContent=data.whatsappWebhookUrl||'https://martyn-api-titan.onrender.com/api/whatsapp/webhook';
+    const webhook=qs('#set-wa-webhook-url');if(webhook)webhook.textContent=data.whatsappWebhookUrl||'https://titan-nfse-api.onrender.com/api/whatsapp/webhook';
     qs('#set-wa-access-token').value='';qs('#set-wa-app-secret').value='';qs('#set-wa-verify-token').value='';
     qs('#set-martyn-wa-enabled').value=String(Boolean(data.martynWhatsAppEnabled));
     qs('#set-martyn-mode').value=data.martynOperationMode||'automatico_escalonamento';
