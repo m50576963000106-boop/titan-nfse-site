@@ -2361,7 +2361,12 @@ async function abrirDanfse(id){
       '</div>'+
       '<script>'+
         'function baixarXml(){window.opener.postMessage({titan:\'baixarXml\',invoiceId:\''+id+'\'},\'*\');}'+
-        'function imprimirDanfse(){const f=document.getElementById(\'danfseFrame\');if(f&&f.contentWindow)f.contentWindow.print();}'+
+        // contentWindow.print() nao funciona aqui: o iframe tem sandbox
+        // allow-scripts SEM allow-same-origin, entao a origem e opaca e tocar
+        // no contentWindow levanta SecurityError. Este botao nunca imprimiu.
+        // postMessage cruza a fronteira sem afrouxar o sandbox, e quem chama
+        // print() e o proprio documento do DANFSe (listener no layout v2.0).
+        'function imprimirDanfse(){const f=document.getElementById(\'danfseFrame\');if(f&&f.contentWindow)f.contentWindow.postMessage({titan:\'printDanfse\'},\'*\');}'+
       '<\/script>';
     if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
     else{
