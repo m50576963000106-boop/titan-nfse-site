@@ -878,3 +878,33 @@ test("filtro de notas emitidas tem botão Buscar além dos campos ao vivo",async
   assert.match(card,/<input id="nt-search"[^>]*oninput="filtrarNotas\(\)"/);
   assert.match(card,/<button class="btn btn-s" type="button" onclick="filtrarNotas\(\)" title="Buscar">/);
 });
+
+test("pré-inscrição da home exige CNPJ (não é mais opcional) e aplica a máscara existente",async()=>{
+  const html=await readFile(resolve(root,"public/nfs.html"),"utf8");
+  const form=html.slice(html.indexOf('id="contact-form"'),html.indexOf('id="contact-form"')+600);
+  assert.match(form,/<input class="full" name="federalTaxId" id="contact-cnpj" required/);
+  assert.doesNotMatch(form,/CNPJ \(opcional\)/);
+  assert.match(html,/document\.querySelector\('#contact-cnpj'\)\.addEventListener\('input',maskCnpjInput\)/);
+  // valida o formato antes de gastar uma requisição — mesma regex do login por CNPJ
+  assert.match(html,/normalizeTaxId\(data\.federalTaxId\|\|''\)/);
+});
+
+test("painel Master ganha aba Inscrições, listando as pré-inscrições da home com filtro por status",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // precisa existir nos dois lugares que replicam a navegação do Master
+  // (menu dentro da sidebar do cliente, e a sidebar exclusiva do admin)
+  const ocorrencias=html.split('data-master-tab="inscricoes"').length-1;
+  assert.ok(ocorrencias>=2,"aba Inscrições deve aparecer nas duas navegações do Master");
+  assert.match(html,/\['clientes','inscricoes','atendimentos','parceiros','perfis','planos','config','logs'\]/);
+  assert.match(html,/id="master-panel-inscricoes"/);
+  assert.match(html,/if\(tab==='inscricoes'\)carregarMasterInscricoes\(\)/);
+  const painel=html.slice(html.indexOf('id="master-panel-inscricoes"'),html.indexOf('id="master-panel-inscricoes"')+1600);
+  assert.match(painel,/id="master-inscricoes-search"/);
+  assert.match(painel,/id="master-inscricoes-status"/);
+  assert.match(painel,/<option value="pre_approved">/);
+  assert.match(painel,/<option value="needs_review">/);
+  assert.match(html,/async function carregarMasterInscricoes\(\)/);
+  assert.match(html,/api\('\/api\/master\/inscricoes\?'\+params\.toString\(\)\)/);
+  assert.match(html,/async function moverStatusInscricao\(id,status\)/);
+  assert.match(html,/api\('\/api\/master\/inscricoes\/'\+id\+'\/status',\{method:'PUT'/);
+});
