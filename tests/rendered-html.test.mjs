@@ -7,7 +7,12 @@ const root = resolve(import.meta.dirname, "..");
 
 test("carrega a configuração externa do backend", async () => {
   const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  const config = await readFile(resolve(root, "public/config.js"), "utf8");
   assert.match(html, /<script src="\/config\.js"><\/script>/);
+  // Trava o backend do emissor. Trocar esta URL troca o banco inteiro (cada
+  // serviço Render tem o seu DATABASE_URL), o que já derrubou o login em
+  // produção uma vez — ver o comentário em public/config.js.
+  assert.match(config, /window\.TITAN_API_URL = window\.TITAN_API_URL \|\| "https:\/\/titan-nfse-api\.onrender\.com"/);
   assert.match(html, /\/api\/invoices\/emit/);
   assert.match(html, /\/api\/auth\/login/);
 });
@@ -50,7 +55,11 @@ test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma orig
   // o layout DANFSe v2.0 é populado por script embutido no próprio HTML;
   // allow-same-origin continua de fora — combinado com allow-scripts seria o
   // padrão documentado como inseguro (daria acesso à origem real do portal)
-  assert.match(fn,/<iframe sandbox="allow-scripts" srcdoc="'\+esc\(html\)\+'"><\/iframe>/);
+  // [^>]* tolera atributos no iframe (hoje id="danfseFrame", que a barra de
+  // ações usa pra chamar print() via contentWindow). O que importa travar é
+  // sandbox="allow-scripts" + srcdoc a partir de esc(html) — a ausência de
+  // allow-same-origin continua garantida pela asserção logo abaixo.
+  assert.match(fn,/<iframe sandbox="allow-scripts"[^>]*srcdoc="'\+esc\(html\)\+'"><\/iframe>/);
   assert.doesNotMatch(fn,/sandbox="[^"]*allow-same-origin/);
   assert.match(fn,/tab\.document\.write\(wrapperHtml\)/);
   // charset explícito: o caminho mobile navega direto pro blob: (único ponto
@@ -792,7 +801,11 @@ test("tela de detalhes do cliente edita o parceiro comercial da empresa (diferen
 test("Gestão por CNPJ tem select de parceiro ao lado da busca, mandando partnerId pro servidor",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/<select id="master-client-partner" class="inp" onchange="filtrarParceiroClientesMaster\(\)"><option value="">Todos os parceiros<\/option><\/select>/);
-  const carregar=html.slice(html.indexOf("async function carregarMaster"),html.indexOf("async function carregarMaster")+900);
+  // Recorta até a próxima função, não uma janela fixa de caracteres: qualquer
+  // linha nova no começo de carregarMaster (foi o que aconteceu ao adicionar
+  // o estado de carregamento) empurrava a chamada pra fora da janela e
+  // quebrava o teste sem que o recurso tivesse saído do código.
+  const carregar=html.slice(html.indexOf("async function carregarMaster"),html.indexOf("function usuariosDoCnpj"));
   assert.match(carregar,/if\(masterClientPartnerFilter\)params\.set\('partnerId',masterClientPartnerFilter\)/);
   assert.match(carregar,/renderMasterClientPartnerFilter\(\)/);
   const render=html.slice(html.indexOf("function renderMasterClientPartnerFilter"),html.indexOf("function renderMasterClientPartnerFilter")+500);
