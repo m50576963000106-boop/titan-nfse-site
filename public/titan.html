@@ -898,7 +898,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
               <div id="atend-thread-open" style="display:none">
                 <header class="atend-thread-head">
                   <div class="atend-th-id"><strong id="atend-th-name">—</strong><span id="atend-th-sub" class="atend-th-sub"></span></div>
-                  <div class="atend-th-actions"><span id="atend-th-pausestate" class="pill p-ok">Martyn ativo</span><button id="atend-th-pausebtn" class="btn btn-s" type="button" onclick="alternarPausaAtendimento()">Assumir conversa</button></div>
+                  <div class="atend-th-actions"><span id="atend-th-pausestate" class="pill p-ok">Martyn ativo</span><button id="atend-th-pausebtn" class="btn btn-s" type="button" onclick="alternarPausaAtendimento()">Assumir conversa</button><button id="atend-th-closebtn" class="btn btn-s" type="button" title="Encerra o atendimento humano e devolve o contato ao Martyn" onclick="encerrarAtendimento()">Encerrar e devolver ao Martyn</button></div>
                 </header>
                 <div id="atend-th-messages" class="atend-messages"></div>
                 <form class="atend-composer" onsubmit="return enviarRespostaAtendimento(event)">
@@ -3202,6 +3202,24 @@ async function enviarRespostaAtendimento(event){
   }catch(error){status.textContent=error.message;}
   finally{btn.disabled=false;}
   return false;
+}
+// "Reativar Martyn" só desfaz a pausa — não basta. A conversa também precisa
+// sair de 'customer_wait'/'active', porque uma mensagem nova só volta a ser
+// tratada pela IA quando o status é 'resolved'; em qualquer outro ela fica
+// presa e o contato nunca mais recebe resposta automática. Este botão fecha os
+// três bloqueios de uma vez (status, atribuição e pausa).
+async function encerrarAtendimento(){
+  if(!atendState.atual)return;
+  const btn=qs('#atend-th-closebtn'),status=qs('#atend-th-status');
+  if(!await titanConfirm('Encerrar este atendimento e devolver o contato ao Martyn?\n\nA conversa sai da fila humana e a próxima mensagem deste número volta a ser respondida pela IA.','Encerrar atendimento'))return;
+  btn.disabled=true;
+  try{
+    const d=await api('/api/master/whatsapp/conversations/'+encodeURIComponent(atendState.atual)+'/encerrar',{method:'POST'});
+    renderConversa(d);
+    status.textContent='Atendimento encerrado. A próxima mensagem deste contato volta para o Martyn.';
+    carregarAtendimentos({silencioso:true});
+  }catch(error){status.textContent=error.message;}
+  finally{btn.disabled=false;}
 }
 async function alternarPausaAtendimento(){
   if(!atendState.atual)return;
