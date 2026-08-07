@@ -492,7 +492,7 @@ test("FAQ sobre a migração de 01\\/09 vive em rota própria (\\/faq), linkada 
   assert.ok(perguntas.length>=6);
 });
 
-test("orienta Google Drive no Master e não expõe mais configuração de e-mail dos clientes",async()=>{
+test("não expõe mais configuração de e-mail dos clientes nem o arquivamento fiscal no Google Drive",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/Envio de NFS-e ao tomador/);
   assert.match(html,/Identidade visual do portal/);
@@ -500,9 +500,18 @@ test("orienta Google Drive no Master e não expõe mais configuração de e-mail
   assert.match(html,/portalLogoDataUrl/);
   assert.match(html,/function prepararLogoPortalMaster/);
   assert.match(html,/\/api\/system\/branding/);
-  assert.match(html,/id="set-drive-enabled"/);
-  assert.match(html,/googleDriveArchiveEnabled/);
-  assert.match(html,/hasGoogleDriveServiceAccountKey/);
+  // Item 8 da auditoria de lançamento: era só o toggle, zero implementação
+  // real por trás (nenhum código de verdade subia arquivo pro Drive) —
+  // removido do Master por completo, não só desabilitado, pra não passar a
+  // falsa impressão de um backup que não existe.
+  assert.doesNotMatch(html,/Arquivo fiscal no Google Drive/);
+  assert.doesNotMatch(html,/id="set-drive-enabled"/);
+  assert.doesNotMatch(html,/id="set-drive-folder"/);
+  assert.doesNotMatch(html,/id="set-drive-service-email"/);
+  assert.doesNotMatch(html,/id="set-drive-key"/);
+  assert.doesNotMatch(html,/id="master-drive-state"/);
+  assert.doesNotMatch(html,/googleDriveArchiveEnabled/);
+  assert.doesNotMatch(html,/hasGoogleDriveServiceAccountKey/);
   // src/email/nfseEmail.ts sempre usa Resend com remetente fixo
   // (nfse@titanbackoffice.com.br), ignorando qualquer provedor configurado
   // pelo cliente — por isso o seletor de provedor e os blocos de credencial
