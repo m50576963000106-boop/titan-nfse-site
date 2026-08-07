@@ -53,17 +53,15 @@ test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma orig
   // consumido noutra é o tipo de coisa que Safari/iOS trata de forma
   // inconsistente entre contextos, diferente de Chrome. allow-scripts porque
   // o layout DANFSe v2.0 é populado por script embutido no próprio HTML;
-  // allow-modals é obrigatório para o botão "Salvar PDF": sem ele o
-  // sandboxed modals flag do HTML Standard bloqueia window.print() em
-  // silêncio (nenhum erro, nenhum efeito), mesmo chamado de dentro do
-  // próprio iframe via postMessage. allow-same-origin continua de fora —
-  // combinado com allow-scripts seria o padrão documentado como inseguro
-  // (daria acesso à origem real do portal)
-  // [^>]* tolera atributos no iframe (hoje id="danfseFrame", que a barra de
-  // ações usa pra chamar print() via contentWindow). O que importa travar é
-  // sandbox="allow-scripts allow-modals" + srcdoc a partir de esc(html) — a
+  // allow-same-origin continua de fora — combinado com allow-scripts seria o
+  // padrão documentado como inseguro (daria acesso à origem real do portal).
+  // Nem "Baixar XML" nem "Salvar PDF" tocam o conteúdo do iframe — os dois
+  // só mandam postMessage pro opener, que baixa o arquivo pela API — então
+  // não há mais nenhuma dependência de allow-modals aqui.
+  // [^>]* tolera atributos no iframe (hoje id="danfseFrame"). O que importa
+  // travar é sandbox="allow-scripts" + srcdoc a partir de esc(html) — a
   // ausência de allow-same-origin continua garantida pela asserção logo abaixo.
-  assert.match(fn,/<iframe sandbox="allow-scripts allow-modals"[^>]*srcdoc="'\+esc\(html\)\+'"><\/iframe>/);
+  assert.match(fn,/<iframe sandbox="allow-scripts"[^>]*srcdoc="'\+esc\(html\)\+'"><\/iframe>/);
   assert.doesNotMatch(fn,/sandbox="[^"]*allow-same-origin/);
   assert.match(fn,/tab\.document\.write\(wrapperHtml\)/);
   // charset explícito: o caminho mobile navega direto pro blob: (único ponto
@@ -71,13 +69,28 @@ test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma orig
   // tomador/serviço saía corrompido
   assert.match(fn,/<!doctype html><meta charset="utf-8"><title>DANFSe<\/title>/);
   assert.match(fn,/new Blob\(\[wrapperHtml\],\{type:'text\/html;charset=utf-8'\}\)/);
-  // Botão "Baixar XML" da barra depende de window.opener.postMessage no
-  // documento aberto. No caminho mobile (abertura via <a target=_blank> pra
-  // um blob:), rel="noopener" deixaria window.opener nulo e o clique
-  // quebrava em silêncio; rel="opener" mantém o vínculo — o conteúdo é
-  // gerado por este mesmo código, então preservar o opener não expõe nada.
+  // Botões "Baixar XML" e "Salvar PDF" da barra dependem de
+  // window.opener.postMessage no documento aberto. No caminho mobile
+  // (abertura via <a target=_blank> pra um blob:), rel="noopener" deixaria
+  // window.opener nulo e o clique quebrava em silêncio; rel="opener" mantém
+  // o vínculo — o conteúdo é gerado por este mesmo código, então preservar
+  // o opener não expõe nada.
   assert.match(fn,/a\.rel='opener'/);
   assert.doesNotMatch(fn,/a\.rel='noopener'/);
+  // "Salvar PDF" baixa o PDF real da API (GET /:id/pdf) via postMessage —
+  // não abre mais o diálogo de impressão do navegador (contentWindow.print
+  // levantava SecurityError pelo sandbox opaco, e window.print() de dentro
+  // do próprio iframe era bloqueado em silêncio sem allow-modals; os dois
+  // problemas somem trocando "imprimir" por "baixar o arquivo de verdade").
+  assert.doesNotMatch(fn,/imprimirDanfse/);
+  assert.doesNotMatch(fn,/printDanfse/);
+  assert.doesNotMatch(fn,/\.print\(\)/);
+  assert.match(fn,/onclick="baixarPdf\(\)"/);
+  assert.match(fn,/function baixarPdf\(\)\{window\.opener\.postMessage\(\{titan:\\'baixarPdf\\',invoiceId:/);
+  // número da NFS-e viaja junto pro nome do arquivo ter sentido mesmo se o
+  // Content-Disposition do servidor falhar por algum motivo
+  assert.match(fn,/numero:\\''\+esc\(numero\|\|''\)\+'\\'/);
+  assert.match(fn,/empresa:\\''\+esc\(empresa\|\|''\)\+'\\'/);
 });
 
 test("isola as rotas do master e de cada CNPJ",async()=>{

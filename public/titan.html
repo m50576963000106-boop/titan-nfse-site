@@ -1225,6 +1225,24 @@ async function apiBlob(path,options={}){
   if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||'Não foi possível obter o documento.');}
   return response.blob();
 }
+// Nome do arquivo vem do servidor (Content-Disposition, exposto no CORS via
+// exposedHeaders) — fonte única da verdade, sem duplicar a montagem do nome
+// (número da NFS-e, empresa) aqui no cliente. fallbackName cobre só o caso
+// de um proxy no meio do caminho engolir o header.
+function nomeDeContentDisposition(header){
+  const match=/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(header||'');
+  return match?decodeURIComponent(match[1]):null;
+}
+async function apiDownload(path,fallbackName){
+  if(!API_URL)throw new Error('O servidor seguro ainda não foi vinculado a este endereço.');
+  const token=sessionStorage.getItem(STORAGE_TOKEN),companyId=sessionStorage.getItem(STORAGE_COMPANY_ID);
+  const response=await fetchSeguro(API_URL+path,{headers:{...(token?{Authorization:'Bearer '+token}:{}),...(companyId?{'X-Company-Id':companyId}:{})}});
+  if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||'Não foi possível obter o documento.');}
+  const blob=await response.blob();
+  const filename=nomeDeContentDisposition(response.headers.get('content-disposition'))||fallbackName;
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
 
 const MARTYN_TARGETS={
   emitir:['s-desc','s-nbs-search','s-cod-search','s-mun-search','t-doc','t-nome','t-mail','t-cep','s-comp','s-ret-pc'],
@@ -1410,7 +1428,10 @@ window.addEventListener('pageshow',garantirBarreiraInicial);
 // acessar a API diretamente, então usa postMessage via window.opener).
 window.addEventListener('message',(e)=>{
   if(e.data?.titan==='baixarXml' && e.data?.invoiceId){
-    baixarXml(String(e.data.invoiceId),'');
+    baixarXml(String(e.data.invoiceId),String(e.data.numero||''));
+  }
+  if(e.data?.titan==='baixarPdf' && e.data?.invoiceId){
+    baixarPdf(String(e.data.invoiceId),String(e.data.numero||''),String(e.data.empresa||''));
   }
 });
 function alternarGrupoMenu(id,button){const menu=qs('#'+id),open=!menu.classList.contains('on');menu.classList.toggle('on',open);button.classList.toggle('expanded',open)}
@@ -2258,7 +2279,7 @@ function renderTabelaNotas(lista){
       <td data-th="Ações">
         <div class="acts">
           <button class="ico-btn" title="Baixar XML" onclick="baixarXml('${x.id}','${x.n}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
-          <button class="ico-btn" title="Abrir DANFSe em PDF" onclick="abrirDanfse('${x.id}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ico-btn" title="Abrir DANFSe em PDF" onclick="abrirDanfse('${x.id}','${x.n}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
           <button class="btn btn-s" type="button" onclick="reenviarEmailNota('${x.id}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}>Reenviar por e-mail</button>
           <button class="ico-btn" title="Enviar por WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5a8.4 8.4 0 0 1-.9-3.9 8.4 8.4 0 0 1 8.4-9 8.4 8.4 0 0 1 8.6 8.4Z"/></svg></button>
           <button class="ico-btn danger" title="Cancelar nota" onclick="abrirCancelamento('${x.id}','${x.n}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></button>
@@ -2323,10 +2344,14 @@ async function exportarXmls(btn){
   finally{if(btn){btn.disabled=false;btn.textContent=original;}}
 }
 async function baixarXml(id,numero){
-  try{const blob=await apiBlob('/api/invoices/'+id+'/xml'),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='nfse-'+numero+'.xml';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(error){alert(error.message)}
+  try{await apiDownload('/api/invoices/'+id+'/xml','NFSe '+(numero||'')+'.xml')}catch(error){alert(error.message)}
+}
+async function baixarPdf(id,numero,empresa){
+  try{await apiDownload('/api/invoices/'+id+'/pdf','NFSe '+(numero||'')+(empresa?' - '+empresa:'')+'.pdf')}catch(error){alert(error.message)}
 }
 
-async function abrirDanfse(id){
+async function abrirDanfse(id,numero){
+  const empresa=empresaAtual?.rs||'';
   const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   let tab=null;
   if(!isMobile){
@@ -2335,13 +2360,14 @@ async function abrirDanfse(id){
   }
   try{
     const html=await (await apiBlob('/api/invoices/'+id+'/danfse')).text();
-    // Barra de ações + iframe sandbox. A barra fica FORA do sandbox (acesso
-    // à API para baixar XML); o DANFSe fica DENTRO do iframe sandbox
-    // (isolação de segurança). allow-modals é necessário para o print(): sem
-    // ele o sandboxed modals flag bloqueia window.print() silenciosamente
-    // (nenhum erro, nenhum efeito) mesmo chamado de dentro do próprio iframe.
-    // allow-same-origin continua FORA da lista — a origem do iframe segue
-    // opaca, sem acesso à sessão/localStorage do portal.
+    // Barra de ações fica FORA do sandbox (acesso à API pra baixar XML/PDF);
+    // o DANFSe fica DENTRO do iframe sandbox (isolação de segurança).
+    // "Salvar PDF" baixa o PDF real gerado pelo servidor (GET
+    // /api/invoices/:id/pdf) em vez de abrir o diálogo de impressão do
+    // navegador — não depende de nada do iframe, só de postMessage pro
+    // opener, igual "Baixar XML". allow-same-origin continua fora da lista
+    // do sandbox — a origem do iframe segue opaca, sem acesso à
+    // sessão/localStorage do portal.
     const wrapperHtml='<!doctype html><meta charset="utf-8"><title>DANFSe</title>'+
       '<style>'+
         'html,body{margin:0;height:100%;font-family:Arial,Helvetica,sans-serif}'+
@@ -2359,20 +2385,13 @@ async function abrirDanfse(id){
         '<div class="bar">'+
           '<span>DANFSe v2.0 · Documento Auxiliar da NFS-e</span>'+
           '<button class="btn-sec" onclick="baixarXml()">⬇️ Baixar XML</button>'+
-          '<button class="btn-pri" onclick="imprimirDanfse()">🖨️ Salvar PDF</button>'+
+          '<button class="btn-pri" onclick="baixarPdf()">📄 Salvar PDF</button>'+
         '</div>'+
-        '<iframe sandbox="allow-scripts allow-modals" id="danfseFrame" srcdoc="'+esc(html)+'"></iframe>'+
+        '<iframe sandbox="allow-scripts" id="danfseFrame" srcdoc="'+esc(html)+'"></iframe>'+
       '</div>'+
       '<script>'+
-        'function baixarXml(){window.opener.postMessage({titan:\'baixarXml\',invoiceId:\''+id+'\'},\'*\');}'+
-        // contentWindow.print() nao funciona aqui: o iframe tem sandbox
-        // allow-scripts SEM allow-same-origin, entao a origem e opaca e tocar
-        // no contentWindow levanta SecurityError. postMessage cruza a
-        // fronteira sem afrouxar o sandbox, e quem chama print() e o proprio
-        // documento do DANFSe (listener no layout v2.0). allow-modals no
-        // sandbox e obrigatorio tambem: sem ele o print() interno e um no-op
-        // silencioso (sandboxed modals flag do HTML Standard).
-        'function imprimirDanfse(){const f=document.getElementById(\'danfseFrame\');if(f&&f.contentWindow)f.contentWindow.postMessage({titan:\'printDanfse\'},\'*\');}'+
+        'function baixarXml(){window.opener.postMessage({titan:\'baixarXml\',invoiceId:\''+id+'\',numero:\''+esc(numero||'')+'\'},\'*\');}'+
+        'function baixarPdf(){window.opener.postMessage({titan:\'baixarPdf\',invoiceId:\''+id+'\',numero:\''+esc(numero||'')+'\',empresa:\''+esc(empresa||'')+'\'},\'*\');}'+
       '<\/script>';
     if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
     else{
@@ -3953,14 +3972,14 @@ function supFiltrarNotas(text){
 }
 function supNotaCard(n){
   const status=sit[n.st]?.[1]||n.st;
-  let acoes=n.key?`<div class="sup-act"><button type="button" onclick="supNotaDetalhe('${n.id}')">Detalhes</button><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}')">Abrir PDF</button>`:'<span>Documento ainda sem XML autorizado.</span>';
+  let acoes=n.key?`<div class="sup-act"><button type="button" onclick="supNotaDetalhe('${n.id}')">Detalhes</button><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}','${n.n}')">Abrir PDF</button>`:'<span>Documento ainda sem XML autorizado.</span>';
   if(n.key&&n.st==='ok')acoes+=`<button type="button" onclick="supPrepararCancelamento('${n.id}')">Preparar cancelamento</button>`;
   if(n.key)acoes+='</div>';
   return `<div class="sup-note-card"><b>DPS ${esc(n.n)} · ${esc(status)}</b><span>${esc(n.d)} · ${esc(n.t||'Tomador não informado')}</span><span>${esc(n.s||'Serviço')} · R$ ${brl(Number(n.v||0))}</span>${acoes}</div>`;
 }
 function supNotaDetalhe(id){
   const n=notas.find(item=>item.id===id);if(!n){supBubble('Não encontrei mais essa nota na empresa ativa. Atualize o histórico e tente novamente.','bot');return}
-  supBubble(`<b>Detalhes da DPS ${esc(n.n)}</b><ul><li>Situação: <b>${esc(sit[n.st]?.[1]||n.st)}</b></li><li>Emissão: ${esc(n.d)}</li><li>Tomador: ${esc(n.t||'Não informado')}</li><li>Serviço: ${esc(n.s||'Não informado')}</li><li>Valor: R$ ${brl(Number(n.v||0))}</li></ul>${n.key?`<span class="sup-note-key">Chave: ${esc(n.key)}</span><div class="sup-act"><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}')">Abrir DANFSe</button>${n.st==='ok'?`<button type="button" onclick="supPrepararCancelamento('${n.id}')">Preparar cancelamento</button>`:''}</div>`:'<br>Esta emissão ainda não possui chave autorizada.'}`,'bot');
+  supBubble(`<b>Detalhes da DPS ${esc(n.n)}</b><ul><li>Situação: <b>${esc(sit[n.st]?.[1]||n.st)}</b></li><li>Emissão: ${esc(n.d)}</li><li>Tomador: ${esc(n.t||'Não informado')}</li><li>Serviço: ${esc(n.s||'Não informado')}</li><li>Valor: R$ ${brl(Number(n.v||0))}</li></ul>${n.key?`<span class="sup-note-key">Chave: ${esc(n.key)}</span><div class="sup-act"><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}','${n.n}')">Abrir DANFSe</button>${n.st==='ok'?`<button type="button" onclick="supPrepararCancelamento('${n.id}')">Preparar cancelamento</button>`:''}</div>`:'<br>Esta emissão ainda não possui chave autorizada.'}`,'bot');
 }
 function supPrepararCancelamento(id){
   const n=notas.find(item=>item.id===id);
