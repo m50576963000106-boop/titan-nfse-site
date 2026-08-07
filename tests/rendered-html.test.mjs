@@ -71,6 +71,13 @@ test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma orig
   // tomador/serviço saía corrompido
   assert.match(fn,/<!doctype html><meta charset="utf-8"><title>DANFSe<\/title>/);
   assert.match(fn,/new Blob\(\[wrapperHtml\],\{type:'text\/html;charset=utf-8'\}\)/);
+  // Botão "Baixar XML" da barra depende de window.opener.postMessage no
+  // documento aberto. No caminho mobile (abertura via <a target=_blank> pra
+  // um blob:), rel="noopener" deixaria window.opener nulo e o clique
+  // quebrava em silêncio; rel="opener" mantém o vínculo — o conteúdo é
+  // gerado por este mesmo código, então preservar o opener não expõe nada.
+  assert.match(fn,/a\.rel='opener'/);
+  assert.doesNotMatch(fn,/a\.rel='noopener'/);
 });
 
 test("isola as rotas do master e de cada CNPJ",async()=>{

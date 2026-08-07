@@ -2377,7 +2377,12 @@ async function abrirDanfse(id){
     if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
     else{
       const wrapperUrl=URL.createObjectURL(new Blob([wrapperHtml],{type:'text/html;charset=utf-8'}));
-      const a=document.createElement('a');a.href=wrapperUrl;a.target='_blank';a.rel='noopener';
+      // rel="opener" explícito (não omitir e não usar noopener): o botão
+      // "Baixar XML" da barra manda postMessage via window.opener, e
+      // navegações para blob: em nova aba perdem o opener por padrão no
+      // Chrome mesmo sem noopener — wrapperHtml é conteúdo 100% gerado por
+      // este mesmo código, então manter o opener aqui não expõe nada.
+      const a=document.createElement('a');a.href=wrapperUrl;a.target='_blank';a.rel='opener';
       document.body.appendChild(a);a.click();a.remove();
       setTimeout(()=>URL.revokeObjectURL(wrapperUrl),120000);
     }
