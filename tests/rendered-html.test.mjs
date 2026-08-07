@@ -754,6 +754,22 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
     legalHeader,
     ...paginasEstaticas,
   ];
+  // item 10 da auditoria de lançamento: as páginas estáticas legadas
+  // (public/*.html, ainda publicamente acessíveis) e as rotas React atuais
+  // (app/*/page.tsx) tinham telefones de contato diferentes — dado de
+  // contato contraditório num documento legal/LGPD é ruim de verdade.
+  // Confere as duas fontes reais com telefone (privacidade/termos/exclusao;
+  // os aliases só reexportam, e legalHeader não tem telefone) contra o
+  // mesmo número, e que o antigo não sobrevive em lugar nenhum.
+  for (const [nome,pagina] of [["privacidade",privacidade],["termos",termos],["exclusao",exclusao]]){
+    assert.match(pagina,/\(41\) 3790-0311/,`${nome}: telefone de contato divergente do resto do site`);
+  }
+  for (const pagina of paginasEstaticas){
+    assert.match(pagina,/\(41\) 3790-0311/,"página legal estática: telefone de contato divergente do resto do site");
+  }
+  for (const fonte of fontesLegais){
+    assert.doesNotMatch(fonte,/3012-2998/,"telefone antigo (3012-2998) não pode sobreviver em nenhuma página legal");
+  }
   for (const fonte of fontesLegais){
     assert.doesNotMatch(fonte,/[—–·]/u,"página legal contém separador decorativo ou travessão");
     assert.doesNotMatch(

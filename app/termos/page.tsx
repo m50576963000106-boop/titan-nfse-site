@@ -27,7 +27,7 @@ export default function Termos() {
           <p>CNPJ 67.261.200/0001-79</p>
           <p>R. Frederico Müller, 510, Campo Comprido</p>
           <p>Curitiba/PR, CEP 81.220-170</p>
-          <p>E-mail: nfse@titanbackoffice.com.br. Telefone: (41) 3012-2998</p>
+          <p>E-mail: nfse@titanbackoffice.com.br. Telefone: (41) 3790-0311</p>
         </div>
         <p>
           Estes Termos regem o uso do sistema. Ao criar uma conta, aceitar um convite de acesso
@@ -270,7 +270,7 @@ export default function Termos() {
 
         <h2>15. Contato</h2>
         <p>
-          Dúvidas sobre estes Termos: <b>nfse@titanbackoffice.com.br</b>. Telefone: (41) 3012-2998
+          Dúvidas sobre estes Termos: <b>nfse@titanbackoffice.com.br</b>. Telefone: (41) 3790-0311
         </p>
 
         <p className="legal-foot">

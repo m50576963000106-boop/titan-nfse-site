@@ -24,7 +24,7 @@ export default function Privacidade() {
           <p>CNPJ 67.261.200/0001-79</p>
           <p>R. Frederico Müller, 510, Campo Comprido</p>
           <p>Curitiba/PR, CEP 81.220-170</p>
-          <p>E-mail: nfse@titanbackoffice.com.br. Telefone: (41) 3012-2998</p>
+          <p>E-mail: nfse@titanbackoffice.com.br. Telefone: (41) 3790-0311</p>
         </div>
         <p>
           Nesta política, “nós” se refere à Titan Backoffice e “você” se refere à pessoa ou
@@ -260,7 +260,7 @@ export default function Privacidade() {
         <h2>13. Contato</h2>
         <p>
           Dúvidas sobre esta política ou sobre seus dados:{" "}
-          <b>nfse@titanbackoffice.com.br</b>. Telefone: (41) 3012-2998
+          <b>nfse@titanbackoffice.com.br</b>. Telefone: (41) 3790-0311
         </p>
 
         <p className="legal-foot">

@@ -67,7 +67,7 @@ export default function ExclusaoDeDados() {
           <p>CNPJ 67.261.200/0001-79</p>
           <p>R. Frederico Müller, 510, Campo Comprido</p>
           <p>Curitiba/PR, CEP 81.220-170</p>
-          <p>E-mail: nfse@titanbackoffice.com.br. Telefone: (41) 3012-2998</p>
+          <p>E-mail: nfse@titanbackoffice.com.br. Telefone: (41) 3790-0311</p>
         </div>
 
         <p className="legal-foot">
