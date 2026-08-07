@@ -6,7 +6,11 @@ import { sites } from "./build/sites-vite-plugin";
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
 
-const { d1, r2 } = hostingConfig;
+// hosting.json hoje só declara project_id neste projeto — d1/r2 são
+// opcionais, preenchidos só quando o hosting provisiona esses bindings.
+// resolveJsonModule infere o tipo do conteúdo literal do arquivo (só
+// project_id), então o destructuring precisa do tipo alargado explícito.
+const { d1, r2 } = hostingConfig as typeof hostingConfig & { d1?: string; r2?: string };
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";

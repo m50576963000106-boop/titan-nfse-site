@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+
+      - run: npm ci
+
+      # Item 13 da auditoria de prontidão pro lançamento: até aqui, tsc
+      # --noEmit, eslint e a checagem de sintaxe dos <script> inline só
+      # rodavam se alguém lembrasse de rodar na mão. npm test já builda e
+      # roda os testes de node --test, então ele fecha o pacote.
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run check:html
+      - run: npm test
