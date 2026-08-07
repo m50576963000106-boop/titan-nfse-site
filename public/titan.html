@@ -2337,8 +2337,11 @@ async function abrirDanfse(id){
     const html=await (await apiBlob('/api/invoices/'+id+'/danfse')).text();
     // Barra de ações + iframe sandbox. A barra fica FORA do sandbox (acesso
     // à API para baixar XML); o DANFSe fica DENTRO do iframe sandbox
-    // (isolação de segurança). O botão "Salvar PDF" chama print() no iframe
-    // via contentWindow — funciona porque allow-scripts permite JS no iframe.
+    // (isolação de segurança). allow-modals é necessário para o print(): sem
+    // ele o sandboxed modals flag bloqueia window.print() silenciosamente
+    // (nenhum erro, nenhum efeito) mesmo chamado de dentro do próprio iframe.
+    // allow-same-origin continua FORA da lista — a origem do iframe segue
+    // opaca, sem acesso à sessão/localStorage do portal.
     const wrapperHtml='<!doctype html><meta charset="utf-8"><title>DANFSe</title>'+
       '<style>'+
         'html,body{margin:0;height:100%;font-family:Arial,Helvetica,sans-serif}'+
@@ -2358,15 +2361,17 @@ async function abrirDanfse(id){
           '<button class="btn-sec" onclick="baixarXml()">⬇️ Baixar XML</button>'+
           '<button class="btn-pri" onclick="imprimirDanfse()">🖨️ Salvar PDF</button>'+
         '</div>'+
-        '<iframe sandbox="allow-scripts" id="danfseFrame" srcdoc="'+esc(html)+'"></iframe>'+
+        '<iframe sandbox="allow-scripts allow-modals" id="danfseFrame" srcdoc="'+esc(html)+'"></iframe>'+
       '</div>'+
       '<script>'+
         'function baixarXml(){window.opener.postMessage({titan:\'baixarXml\',invoiceId:\''+id+'\'},\'*\');}'+
         // contentWindow.print() nao funciona aqui: o iframe tem sandbox
         // allow-scripts SEM allow-same-origin, entao a origem e opaca e tocar
-        // no contentWindow levanta SecurityError. Este botao nunca imprimiu.
-        // postMessage cruza a fronteira sem afrouxar o sandbox, e quem chama
-        // print() e o proprio documento do DANFSe (listener no layout v2.0).
+        // no contentWindow levanta SecurityError. postMessage cruza a
+        // fronteira sem afrouxar o sandbox, e quem chama print() e o proprio
+        // documento do DANFSe (listener no layout v2.0). allow-modals no
+        // sandbox e obrigatorio tambem: sem ele o print() interno e um no-op
+        // silencioso (sandboxed modals flag do HTML Standard).
         'function imprimirDanfse(){const f=document.getElementById(\'danfseFrame\');if(f&&f.contentWindow)f.contentWindow.postMessage({titan:\'printDanfse\'},\'*\');}'+
       '<\/script>';
     if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}

@@ -53,13 +53,17 @@ test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma orig
   // consumido noutra é o tipo de coisa que Safari/iOS trata de forma
   // inconsistente entre contextos, diferente de Chrome. allow-scripts porque
   // o layout DANFSe v2.0 é populado por script embutido no próprio HTML;
-  // allow-same-origin continua de fora — combinado com allow-scripts seria o
-  // padrão documentado como inseguro (daria acesso à origem real do portal)
+  // allow-modals é obrigatório para o botão "Salvar PDF": sem ele o
+  // sandboxed modals flag do HTML Standard bloqueia window.print() em
+  // silêncio (nenhum erro, nenhum efeito), mesmo chamado de dentro do
+  // próprio iframe via postMessage. allow-same-origin continua de fora —
+  // combinado com allow-scripts seria o padrão documentado como inseguro
+  // (daria acesso à origem real do portal)
   // [^>]* tolera atributos no iframe (hoje id="danfseFrame", que a barra de
   // ações usa pra chamar print() via contentWindow). O que importa travar é
-  // sandbox="allow-scripts" + srcdoc a partir de esc(html) — a ausência de
-  // allow-same-origin continua garantida pela asserção logo abaixo.
-  assert.match(fn,/<iframe sandbox="allow-scripts"[^>]*srcdoc="'\+esc\(html\)\+'"><\/iframe>/);
+  // sandbox="allow-scripts allow-modals" + srcdoc a partir de esc(html) — a
+  // ausência de allow-same-origin continua garantida pela asserção logo abaixo.
+  assert.match(fn,/<iframe sandbox="allow-scripts allow-modals"[^>]*srcdoc="'\+esc\(html\)\+'"><\/iframe>/);
   assert.doesNotMatch(fn,/sandbox="[^"]*allow-same-origin/);
   assert.match(fn,/tab\.document\.write\(wrapperHtml\)/);
   // charset explícito: o caminho mobile navega direto pro blob: (único ponto
