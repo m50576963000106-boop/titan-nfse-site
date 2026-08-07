@@ -866,11 +866,11 @@ test("exportarMasterLogs neutraliza injeção de fórmula no CSV (campo iniciado
   assert.match(fn,/\?`'\$\{text\}`:text\)/);
 });
 
-// ── Fase F: Portal do Parceiro (interface mínima) ───────────────────────────
+// ── Fase F/G: Portal do Parceiro (carteira + créditos/comissões/financeiro) ─
 // Backend já pronto (POST /api/auth/login reconhece isPartner, GET
-// /api/partner/companies devolve a carteira) — aqui só a interface: entrada
-// pelo mesmo formulário de e-mail do Master, uma rota própria e uma tela que
-// só lista a carteira, sem menu de créditos/comissões/financeiro.
+// /api/partner/{companies,creditos,comissoes,financeiro} devolvem a carteira
+// e seus três recortes) — aqui só a interface: entrada pelo mesmo formulário
+// de e-mail do Master, uma rota própria e uma tela com quatro abas.
 
 test("login por e-mail em nfs.html reconhece Master OU Parceiro e redireciona para /admin ou /parceiro",async()=>{
   const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
@@ -889,36 +889,74 @@ test("rota /parceiro abre parceiro.html num iframe próprio, fora do shell de ti
   assert.match(route,/if \(isPartner\) \{\s*return \(\s*<main className="prototype-shell">\s*<iframe className="prototype-frame" src="\/parceiro\.html" title="TITAN NFS-e — Portal do Parceiro" \/>/);
 });
 
-test("parceiro.html lista a carteira do parceiro (GET /api/partner/companies) sem ação além de listar",async()=>{
+test("parceiro.html carrega a carteira do parceiro (GET /api/partner/companies) sem form de login próprio",async()=>{
   const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
   // Sessão vem só do login em nfs.html — sem form de login próprio nesta tela
   assert.doesNotMatch(html,/<form/);
-  assert.match(html,/if\(!token\|\|!access\.user\?\.isPartner\)\{/);
-  assert.match(html,/await fetch\(\(window\.TITAN_API_URL\|\|''\)\.replace\(\/\\\/\$\/,''\)\+'\/api\/partner\/companies',\{headers:\{Authorization:'Bearer '\+token\}\}\)/);
+  assert.match(html,/return token&&access\.user\?\.isPartner\?token:null;/);
+  assert.match(html,/await fetch\(\(window\.TITAN_API_URL\|\|''\)\.replace\(\/\\\/\$\/,''\)\+caminho,\{headers:\{Authorization:'Bearer '\+token\}\}\)/);
+  assert.match(html,/buscarApiParceiro\('\/api\/partner\/companies'\)/);
   assert.match(html,/company\.trade_name\|\|company\.legal_name/);
   assert.match(html,/formatarCnpj\(company\.federal_tax_id\)/);
   assert.match(html,/company\.emission_enabled\?'Emissão liberada':'Emissão suspensa'/);
   assert.match(html,/function sair\(\)\{sessionStorage\.removeItem\(STORAGE_TOKEN\);sessionStorage\.removeItem\(STORAGE_SESSION\);location\.href='\/'\}/);
 });
 
-// ── Item 5: menus de créditos/comissões/financeiro do parceiro (visíveis,
-// desabilitados) ─────────────────────────────────────────────────────────
-// Só torna a navegação visível — nenhuma lógica de cálculo de comissão,
-// saldo de crédito ou split de pagamento (decisão de produto fora de escopo).
+// ── Fase G: menus de créditos/comissões/financeiro do parceiro, com dados
+// reais ───────────────────────────────────────────────────────────────────
+// Sem inventar número: cota/uso de nota e funções vêm de invoices+master_plans
+// (creditos), a comissão é o % que o Master define sobre a mensalidade do
+// plano vigente (comissoes), e o financeiro é status de implantação +
+// mensalidade (financeiro). Ainda não há split de pagamento nem lançamento
+// financeiro automático — só visibilidade.
 
-test("topbar do parceiro mostra Carteira/Créditos/Comissões/Financeiro, os três últimos desabilitados",async()=>{
+test("topbar do parceiro tem Carteira/Créditos/Comissões/Financeiro, todas as quatro abas clicáveis",async()=>{
   const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
   const topbar=html.slice(html.indexOf('<header class="partner-topbar">'),html.indexOf('</header>'));
-  assert.match(topbar,/<span class="partner-nav-link on" aria-current="page">Carteira<\/span>/);
-  for(const item of ['Créditos','Comissões','Financeiro']){
-    // regex já exige que o botão inteiro (disabled, sem onclick) case
-    // exatamente — qualquer onclick adicionado quebraria este match
-    const re=new RegExp(`<button class="partner-nav-link" type="button" disabled aria-disabled="true" title="[^"]*">${item}<span class="partner-nav-soon">em breve</span></button>`);
+  assert.match(topbar,/<button class="partner-nav-link on" type="button" data-partner-tab="carteira" onclick="partnerTab\('carteira',this\)" aria-current="page">Carteira<\/button>/);
+  for(const [tab,label] of [['creditos','Créditos'],['comissoes','Comissões'],['financeiro','Financeiro']]){
+    const re=new RegExp(`<button class="partner-nav-link" type="button" data-partner-tab="${tab}" onclick="partnerTab\\('${tab}',this\\)">${label}<\\/button>`);
     assert.match(topbar,re);
   }
-  // "Sair" continua sendo o único controle que de fato faz alguma coisa
-  const botoes=html.match(/<button/g)||[];
-  assert.equal(botoes.length,4,"Sair + 3 itens de navegação desabilitados");
+  assert.doesNotMatch(topbar,/disabled|em breve/);
+});
+
+test("partnerTab troca a seção visível e recarrega os dados da aba escolhida",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/const PARTNER_LOADERS=\{carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro\};/);
+  assert.match(html,/function partnerTab\(nome,botao\)\{/);
+  assert.match(html,/secao\.style\.display=secao\.id==='partner-view-'\+nome\?'block':'none'/);
+  assert.match(html,/PARTNER_LOADERS\[nome\]\?\.\(\);/);
+});
+
+test("aba Créditos mostra cota mensal, uso do mês corrente e funções contratadas (GET /api/partner/creditos)",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/buscarApiParceiro\('\/api\/partner\/creditos'\)/);
+  assert.match(html,/const limite=Number\(company\.monthly_limit\|\|0\),uso=Number\(company\.monthly_used\|\|0\);/);
+  assert.match(html,/\(company\.features\|\|\[\]\)\.map\(nome=>`<span class="tag">\$\{esc\(nome\)\}<\/span>`\)\.join\(''\)/);
+});
+
+test("aba Comissões calcula a estimativa a partir do % que o Master configurou, sem inventar valor (GET /api/partner/comissoes)",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/buscarApiParceiro\('\/api\/partner\/comissoes'\)/);
+  assert.match(html,/Comissão configurada pelo Master: <b>\$\{brl\(data\.commissionPercent\)\}%<\/b>/);
+  assert.match(html,/Number\(company\.commission_cents\|\|0\)\/100/);
+});
+
+test("aba Financeiro mostra plano, mensalidade e status de implantação por empresa (GET /api/partner/financeiro)",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/buscarApiParceiro\('\/api\/partner\/financeiro'\)/);
+  assert.match(html,/const IMPLANTACAO_LABEL=\{self_service:'Autoimplantação',paid_pending:'Implantação paga — pendente',paid_active:'Implantação paga — ativa'\};/);
+  assert.match(html,/Number\(company\.implementation_fee_cents\|\|0\)/);
+});
+
+test("Master define a comissão (%) do parceiro, usada pela aba Comissões do Portal do Parceiro",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/<input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex\.: 10">/);
+  assert.match(html,/commissionPercent=dinheiro\(qs\('#partner-commission'\)\.value\)/);
+  assert.match(html,/JSON\.stringify\(\{name,nickname,active,commissionPercent\}\)/);
+  assert.match(html,/qs\('#partner-commission'\)\.value=String\(Number\(partner\.commission_percent\|\|0\)\)\.replace\('\.',','\);/);
+  assert.match(html,/commissionPercent:Number\(partner\.commission_percent\|\|0\)/);
 });
 
 // ── Item 1: botão "Buscar" explícito no filtro de notas ─────────────────────

@@ -4,28 +4,30 @@
   <script>if(location.hostname!=='nfse.titanbackoffice.com.br')window.top.location.replace('https://nfse.titanbackoffice.com.br'+location.pathname+location.search+location.hash);</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="TITAN NFS-e: Portal do Parceiro — carteira de empresas indicadas.">
+  <meta name="description" content="TITAN NFS-e: Portal do Parceiro — carteira, créditos, comissões e financeiro das empresas indicadas.">
   <title>TITAN NFS-e — Portal do Parceiro</title>
   <script src="/config.js"></script>
   <link rel="stylesheet" href="/nfs.css">
   <style>
-    /* Fase F: só listar a carteira do parceiro. A navegação abaixo só torna
-       visíveis os menus de créditos/comissões/financeiro (desabilitados,
-       "em breve") — nenhuma lógica de cálculo de comissão, saldo de crédito
-       ou split de pagamento existe ainda, isso é decisão de produto maior. */
+    /* Fase G: Créditos (cota/uso de notas e funções contratadas), Comissões
+       (estimativa sobre a mensalidade do plano, % definido pelo Master em
+       master_partners.commission_percent) e Financeiro (mensalidade e status
+       de implantação) — primeira versão real, sem inventar número: tudo vem
+       do que já existe no cadastro (invoices, master_plans, companies) ou de
+       uma taxa que o próprio Master configura. Não há split de pagamento nem
+       lançamento financeiro automático ainda; o repasse continua manual. */
     body{background:var(--cream)}
     .partner-shell{max-width:960px;margin:0 auto;padding:32px 24px 64px}
     .partner-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;background:var(--navy);color:#fff;flex-wrap:wrap}
     .partner-topbar img{display:block;height:34px}
     .partner-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-    .partner-nav-link{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid transparent;color:rgba(255,255,255,.7);font:inherit;font-size:13.5px;font-weight:700;padding:8px 14px;border-radius:8px}
-    span.partner-nav-link.on{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.28)}
-    button.partner-nav-link{cursor:not-allowed;opacity:.6}
-    .partner-nav-soon{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;background:rgba(255,255,255,.18);padding:2px 6px;border-radius:999px}
+    .partner-nav-link{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid transparent;color:rgba(255,255,255,.7);font:inherit;font-size:13.5px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer}
+    .partner-nav-link.on{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.28)}
     .partner-head{margin:28px 0 20px}
     .partner-head h1{color:var(--navy);font-size:26px;letter-spacing:-.03em}
     .partner-head p{margin-top:6px;color:var(--muted);font-size:14px}
     .partner-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+    .partner-summary{padding:14px 18px;font-size:13.5px;color:var(--ink,#1c2430);border-bottom:1px solid var(--line);background:#fbfaf7}
     table{width:100%;border-collapse:collapse}
     th,td{text-align:left;padding:13px 18px;font-size:13.5px;border-bottom:1px solid var(--line)}
     th{background:#fbfaf7;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
@@ -33,6 +35,7 @@
     .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700}
     .pill.on{background:#e5f3ea;color:var(--ok)}
     .pill.off{background:#f5e4e1;color:#9b2226}
+    .tag{display:inline-flex;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;background:#eef1f6;color:var(--navy);margin:2px 4px 2px 0}
     .partner-empty,.partner-error{padding:32px 18px;text-align:center;color:var(--muted);font-size:14px}
     .partner-error{color:#9b2226}
     .partner-error a{color:var(--gold-dark);font-weight:700}
@@ -42,10 +45,10 @@
   <header class="partner-topbar">
     <a href="/" aria-label="TITAN NFS-e"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a>
     <nav class="partner-nav" aria-label="Navegação do Portal do Parceiro">
-      <span class="partner-nav-link on" aria-current="page">Carteira</span>
-      <button class="partner-nav-link" type="button" disabled aria-disabled="true" title="Em desenvolvimento — ainda não disponível no Portal do Parceiro">Créditos<span class="partner-nav-soon">em breve</span></button>
-      <button class="partner-nav-link" type="button" disabled aria-disabled="true" title="Em desenvolvimento — ainda não disponível no Portal do Parceiro">Comissões<span class="partner-nav-soon">em breve</span></button>
-      <button class="partner-nav-link" type="button" disabled aria-disabled="true" title="Em desenvolvimento — ainda não disponível no Portal do Parceiro">Financeiro<span class="partner-nav-soon">em breve</span></button>
+      <button class="partner-nav-link on" type="button" data-partner-tab="carteira" onclick="partnerTab('carteira',this)" aria-current="page">Carteira</button>
+      <button class="partner-nav-link" type="button" data-partner-tab="creditos" onclick="partnerTab('creditos',this)">Créditos</button>
+      <button class="partner-nav-link" type="button" data-partner-tab="comissoes" onclick="partnerTab('comissoes',this)">Comissões</button>
+      <button class="partner-nav-link" type="button" data-partner-tab="financeiro" onclick="partnerTab('financeiro',this)">Financeiro</button>
     </nav>
     <button class="btn" type="button" id="partner-logout">Sair</button>
   </header>
@@ -53,20 +56,55 @@
   <main class="partner-shell">
     <div class="partner-head">
       <h1>Portal do Parceiro</h1>
-      <p>Empresas da sua carteira comercial (companies.partner_id) e o status de emissão de cada uma.</p>
+      <p>Empresas da sua carteira comercial (companies.partner_id) e o que cada uma representa em cota, comissão e financeiro.</p>
     </div>
-    <div class="partner-card">
-      <div id="partner-status" class="partner-empty">Carregando carteira...</div>
-      <table id="partner-table" style="display:none">
-        <thead><tr><th>Empresa</th><th>CNPJ</th><th>Status de emissão</th></tr></thead>
-        <tbody id="partner-rows"></tbody>
-      </table>
-    </div>
+
+    <section class="partner-view" id="partner-view-carteira">
+      <div class="partner-card">
+        <div id="partner-status" class="partner-empty">Carregando carteira...</div>
+        <table id="partner-table" style="display:none">
+          <thead><tr><th>Empresa</th><th>CNPJ</th><th>Status de emissão</th></tr></thead>
+          <tbody id="partner-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="partner-view" id="partner-view-creditos" style="display:none">
+      <div class="partner-card">
+        <div id="creditos-status" class="partner-empty">Carregando créditos...</div>
+        <table id="creditos-table" style="display:none">
+          <thead><tr><th>Empresa</th><th>Plano</th><th>Cota de notas (mês corrente)</th><th>Funções contratadas</th></tr></thead>
+          <tbody id="creditos-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="partner-view" id="partner-view-comissoes" style="display:none">
+      <div class="partner-card">
+        <div id="comissoes-status" class="partner-empty">Carregando comissões...</div>
+        <div id="comissoes-summary" class="partner-summary" style="display:none"></div>
+        <table id="comissoes-table" style="display:none">
+          <thead><tr><th>Empresa</th><th>Mensalidade</th><th>Comissão estimada</th></tr></thead>
+          <tbody id="comissoes-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="partner-view" id="partner-view-financeiro" style="display:none">
+      <div class="partner-card">
+        <div id="financeiro-status" class="partner-empty">Carregando financeiro...</div>
+        <table id="financeiro-table" style="display:none">
+          <thead><tr><th>Empresa</th><th>Plano</th><th>Mensalidade</th><th>Implantação</th></tr></thead>
+          <tbody id="financeiro-rows"></tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
   <script>
     const STORAGE_TOKEN='titan_nfse_session_v1',STORAGE_SESSION='titan_nfse_access_v1';
     const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+    const brl=n=>Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
     function formatarCnpj(value){
       const digits=String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
       return digits.length===14?digits.replace(/^(.{2})(.{3})(.{3})(.{4})(\d{2})$/,'$1.$2.$3/$4-$5'):(value||'');
@@ -74,31 +112,109 @@
     function sair(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_SESSION);location.href='/'}
     document.querySelector('#partner-logout').addEventListener('click',sair);
 
-    async function carregarCarteira(){
-      const status=document.querySelector('#partner-status'),tabela=document.querySelector('#partner-table'),corpo=document.querySelector('#partner-rows');
+    // Sessão vem sempre do login por e-mail em nfs.html (mesmo formulário do
+    // Master) — esta tela não tem form de login próprio, só confere o que já
+    // foi salvo antes do redirecionamento para /parceiro.
+    function tokenDeSessaoParceiro(){
       const token=sessionStorage.getItem(STORAGE_TOKEN);
       let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{}
-      // Sessão vem sempre do login por e-mail em nfs.html (mesmo formulário do
-      // Master) — esta tela não tem form de login próprio, só confere o que já
-      // foi salvo antes do redirecionamento para /parceiro.
-      if(!token||!access.user?.isPartner){
-        status.className='partner-error';
-        status.innerHTML='Sessão de parceiro não encontrada ou expirada. <a href="/">Entrar de novo</a>.';
-        return;
-      }
+      return token&&access.user?.isPartner?token:null;
+    }
+    async function buscarApiParceiro(caminho){
+      const token=tokenDeSessaoParceiro();
+      if(!token)throw new Error('SEM_SESSAO');
+      const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+caminho,{headers:{Authorization:'Bearer '+token}});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||'Não foi possível carregar os dados.');
+      return data;
+    }
+    function mostrarErroSessao(status){
+      status.className='partner-error';
+      status.innerHTML='Sessão de parceiro não encontrada ou expirada. <a href="/">Entrar de novo</a>.';
+    }
+
+    async function carregarCarteira(){
+      const status=document.querySelector('#partner-status'),tabela=document.querySelector('#partner-table'),corpo=document.querySelector('#partner-rows');
+      status.className='partner-empty';status.textContent='Carregando carteira...';tabela.style.display='none';
       try{
-        const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/partner/companies',{headers:{Authorization:'Bearer '+token}});
-        const data=await response.json().catch(()=>({}));
-        if(!response.ok)throw new Error(data.error||'Não foi possível carregar a carteira.');
+        const data=await buscarApiParceiro('/api/partner/companies');
         const empresas=data.companies||[];
         if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
         corpo.innerHTML=empresas.map(company=>`<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td class="mono">${esc(formatarCnpj(company.federal_tax_id))}</td><td><span class="pill ${company.emission_enabled?'on':'off'}">${company.emission_enabled?'Emissão liberada':'Emissão suspensa'}</span></td></tr>`).join('');
         status.style.display='none';tabela.style.display='table';
       }catch(error){
-        status.className='partner-error';
-        status.textContent=error.message;
+        if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
+        status.className='partner-error';status.textContent=error.message;
       }
     }
+
+    async function carregarCreditos(){
+      const status=document.querySelector('#creditos-status'),tabela=document.querySelector('#creditos-table'),corpo=document.querySelector('#creditos-rows');
+      status.className='partner-empty';status.textContent='Carregando créditos...';tabela.style.display='none';
+      try{
+        const data=await buscarApiParceiro('/api/partner/creditos');
+        const empresas=data.companies||[];
+        if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
+        corpo.innerHTML=empresas.map(company=>{
+          const limite=Number(company.monthly_limit||0),uso=Number(company.monthly_used||0);
+          const pertoDoLimite=limite>0&&uso>=Math.ceil(limite*.8);
+          const cota=limite?`<span class="pill ${pertoDoLimite?'off':'on'}">${uso} / ${limite} notas</span>`:`${uso} notas`;
+          const funcoes=(company.features||[]).map(nome=>`<span class="tag">${esc(nome)}</span>`).join('')||'—';
+          return `<tr><td><b>${esc(company.trade_name||company.legal_name)}</b><br><span class="mono">${esc(formatarCnpj(company.federal_tax_id))}</span></td><td>${esc(company.plan_name||company.plan_code||'—')}</td><td>${cota}</td><td>${funcoes}</td></tr>`;
+        }).join('');
+        status.style.display='none';tabela.style.display='table';
+      }catch(error){
+        if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
+        status.className='partner-error';status.textContent=error.message;
+      }
+    }
+
+    async function carregarComissoes(){
+      const status=document.querySelector('#comissoes-status'),tabela=document.querySelector('#comissoes-table'),corpo=document.querySelector('#comissoes-rows'),resumo=document.querySelector('#comissoes-summary');
+      status.className='partner-empty';status.textContent='Carregando comissões...';tabela.style.display='none';resumo.style.display='none';
+      try{
+        const data=await buscarApiParceiro('/api/partner/comissoes');
+        const empresas=data.companies||[];
+        resumo.style.display='block';
+        resumo.innerHTML=`Comissão configurada pelo Master: <b>${brl(data.commissionPercent)}%</b> sobre a mensalidade de cada empresa com emissão liberada. Estimativa do mês corrente: <b>R$ ${brl(Number(data.totalCents||0)/100)}</b>. Valor de visibilidade — o repasse continua manual.`;
+        if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa com emissão liberada na carteira ainda.';return}
+        corpo.innerHTML=empresas.map(company=>`<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td>R$ ${brl(Number(company.price_cents||0)/100)}</td><td>R$ ${brl(Number(company.commission_cents||0)/100)}</td></tr>`).join('');
+        status.style.display='none';tabela.style.display='table';
+      }catch(error){
+        resumo.style.display='none';
+        if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
+        status.className='partner-error';status.textContent=error.message;
+      }
+    }
+
+    const IMPLANTACAO_LABEL={self_service:'Autoimplantação',paid_pending:'Implantação paga — pendente',paid_active:'Implantação paga — ativa'};
+    async function carregarFinanceiro(){
+      const status=document.querySelector('#financeiro-status'),tabela=document.querySelector('#financeiro-table'),corpo=document.querySelector('#financeiro-rows');
+      status.className='partner-empty';status.textContent='Carregando financeiro...';tabela.style.display='none';
+      try{
+        const data=await buscarApiParceiro('/api/partner/financeiro');
+        const empresas=data.companies||[];
+        if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
+        corpo.innerHTML=empresas.map(company=>{
+          const implantacao=IMPLANTACAO_LABEL[company.implementation_status]||'—';
+          const taxa=Number(company.implementation_fee_cents||0);
+          return `<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td>${esc(company.plan_name||company.plan_code||'—')}</td><td>R$ ${brl(Number(company.price_cents||0)/100)}</td><td>${esc(implantacao)}${taxa?` · taxa R$ ${brl(taxa/100)}`:''}</td></tr>`;
+        }).join('');
+        status.style.display='none';tabela.style.display='table';
+      }catch(error){
+        if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
+        status.className='partner-error';status.textContent=error.message;
+      }
+    }
+
+    const PARTNER_LOADERS={carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro};
+    function partnerTab(nome,botao){
+      document.querySelectorAll('.partner-view').forEach(secao=>{secao.style.display=secao.id==='partner-view-'+nome?'block':'none'});
+      document.querySelectorAll('.partner-nav-link').forEach(link=>{link.classList.remove('on');link.removeAttribute('aria-current')});
+      botao.classList.add('on');botao.setAttribute('aria-current','page');
+      PARTNER_LOADERS[nome]?.();
+    }
+
     carregarCarteira();
   </script>
 </body>
