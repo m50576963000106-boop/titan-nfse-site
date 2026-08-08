@@ -988,6 +988,16 @@ test("filtro de notas emitidas tem botão Buscar além dos campos ao vivo",async
   assert.match(card,/<button class="btn btn-s" type="button" onclick="filtrarNotas\(\)" title="Buscar">/);
 });
 
+test("CST PIS/COFINS inclui a opção 00 (empresa fora do Simples, ex.: Lucro Presumido, também usa esse código)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // Faltava nos dois seletores (emissão manual e cadastro de serviço) —
+  // confirmado contra DANFSe real de outro emissor (empresa "Não optante"
+  // do Simples, com CST=00 na tag piscofins), que o backend já aceita
+  // (src/nfse/types.ts: pisCofinsCst é regex /^\d{2}$/, sem lista fixa).
+  assert.match(html,/<label for="s-cst">CST PIS\/COFINS<\/label><select id="s-cst" class="inp"><option value="">Não informar<\/option><option>00<\/option>/);
+  assert.match(html,/<label for="cad-cst">CST PIS\/COFINS<\/label><select id="cad-cst" class="inp"><option value="">Não informar<\/option><option>00<\/option>/);
+});
+
 test("pré-inscrição da home exige CNPJ (não é mais opcional) e aplica a máscara existente",async()=>{
   const html=await readFile(resolve(root,"public/nfs.html"),"utf8");
   const form=html.slice(html.indexOf('id="contact-form"'),html.indexOf('id="contact-form"')+600);
