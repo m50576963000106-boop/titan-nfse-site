@@ -889,7 +889,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
       </div>
 
       <div class="master-panel" id="master-panel-atendimentos">
-        <div class="card"><div class="card-h"><div><h3>Atendimentos no WhatsApp</h3><p>Espelho das conversas do Martyn. Acompanhe e, quando precisar, assuma o atendimento — ao responder, o Martyn é pausado para aquele contato até você reativá-lo.</p></div><div class="flex wrap"><span id="atend-auto" class="foot-note"></span><button class="btn btn-s" type="button" onclick="carregarAtendimentos()">Atualizar</button></div></div><div class="card-b">
+        <div class="card"><div class="card-h"><div><h3>Atendimentos no WhatsApp</h3><p>Espelho das conversas do Martyn. Acompanhe e, quando precisar, assuma o atendimento — ao responder, o Martyn é pausado para aquele contato até você reativá-lo.</p></div><div class="flex wrap"><span id="atend-deepseek-saldo" class="pill p-off" style="display:none"></span><span id="atend-auto" class="foot-note"></span><button class="btn btn-s" type="button" onclick="carregarAtendimentos()">Atualizar</button></div></div><div class="card-b">
           <div class="atend-wrap">
             <aside class="atend-list">
               <input id="atend-search" class="inp" placeholder="Buscar por nome, telefone ou empresa" oninput="filtrarAtendimentos()">
@@ -3160,11 +3160,23 @@ function nomeAtendente(){return (qs('#atend-agent-name')?.value.trim())||'';}
 function iniciarAtendimentos(){
   const campo=qs('#atend-agent-name');if(campo&&!campo.value){try{campo.value=localStorage.getItem(ATEND_NOME_KEY)||'';}catch(e){}}
   carregarAtendimentos();
+  carregarSaldoDeepSeek();
   pararPollingAtendimentos();
   atendState.pollTimer=setInterval(()=>{
     if(qs('#master-panel-atendimentos')?.classList.contains('active'))tickAtendimentos();else pararPollingAtendimentos();
   },atendState.pollMs);
   const auto=qs('#atend-auto');if(auto)auto.textContent='Atualiza sozinho a cada 8s';
+}
+async function carregarSaldoDeepSeek(){
+  const pill=qs('#atend-deepseek-saldo');if(!pill)return;
+  try{
+    const data=await api('/api/master/settings');
+    const saldo=data.deepseekBalance;
+    if(!saldo){pill.style.display='none';return}
+    pill.style.display='inline-flex';
+    pill.className=`pill ${saldo.disponivel?'p-ok':'p-err'}`;
+    pill.textContent=`DeepSeek: ${saldo.moeda} ${saldo.total}`;
+  }catch(e){pill.style.display='none'}
 }
 function pararPollingAtendimentos(){if(atendState.pollTimer){clearInterval(atendState.pollTimer);atendState.pollTimer=null;}}
 async function tickAtendimentos(){await carregarAtendimentos({silencioso:true});if(atendState.atual)await abrirConversa(atendState.atual,{silencioso:true});}

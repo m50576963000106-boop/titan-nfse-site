@@ -1058,3 +1058,16 @@ test("botões de orientação (i) explicam o onboard e o certificado A1 num popu
   // O campo de senha do certificado também deixa claro, no próprio hint, que não é a senha do TITAN.
   assert.match(html,/<div class="hint">Não é a senha de login do TITAN — é a senha definida pela Autoridade Certificadora/);
 });
+
+test("painel de Atendimentos mostra o saldo da DeepSeek (GET /api/master/settings), escondido quando não há saldo",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/<span id="atend-deepseek-saldo" class="pill p-off" style="display:none"><\/span>/);
+  assert.match(html,/carregarSaldoDeepSeek\(\);/);
+  const inicio=html.indexOf("async function carregarSaldoDeepSeek()");
+  assert.notEqual(inicio,-1);
+  const bloco=html.slice(inicio,inicio+500);
+  assert.match(bloco,/api\('\/api\/master\/settings'\)/);
+  assert.match(bloco,/data\.deepseekBalance/);
+  assert.match(bloco,/if\(!saldo\)\{pill\.style\.display='none';return\}/);
+  assert.match(bloco,/pill\.className=`pill \$\{saldo\.disponivel\?'p-ok':'p-err'\}`/);
+});
