@@ -998,6 +998,19 @@ test("CST PIS/COFINS inclui a opção 00 (empresa fora do Simples, ex.: Lucro Pr
   assert.match(html,/<label for="cad-cst">CST PIS\/COFINS<\/label><select id="cad-cst" class="inp"><option value="">Não informar<\/option><option>00<\/option>/);
 });
 
+test("Dados da Empresa tem os três percentuais de tributos (Federal/Estadual/Municipal) pra empresa fora do Simples, ida e volta com o servidor",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // Equivalente do percentual único do Simples (e-simple-total), só que em
+  // três campos — a DPS de quem não é 'simples' pede pTotTribFed/Est/Mun
+  // em vez de pTotTribSN. Opcional: some no corpo do PUT se não preenchido.
+  assert.match(html,/<label for="e-tax-fed">Tributos federais aproximados \(%\)<\/label><input id="e-tax-fed"/);
+  assert.match(html,/<label for="e-tax-est">Tributos estaduais aproximados \(%\)<\/label><input id="e-tax-est"/);
+  assert.match(html,/<label for="e-tax-mun">Tributos municipais aproximados \(%\)<\/label><input id="e-tax-mun"/);
+  assert.match(html,/taxFed:qs\('#e-tax-fed'\)\.value\.trim\(\)===''\?'':dinheiro\(qs\('#e-tax-fed'\)\.value\)/);
+  assert.match(html,/totalTaxRateFederal:regime!=='simples'&&empresa\.taxFed!==''\?empresa\.taxFed:undefined/);
+  assert.match(html,/qs\('#e-tax-fed'\)\.value=empresaAtual\.taxFed===''\|\|empresaAtual\.taxFed==null\?'':String\(empresaAtual\.taxFed\)\.replace\('\.',','\)/);
+});
+
 test("pré-inscrição da home exige CNPJ (não é mais opcional) e aplica a máscara existente",async()=>{
   const html=await readFile(resolve(root,"public/nfs.html"),"utf8");
   const form=html.slice(html.indexOf('id="contact-form"'),html.indexOf('id="contact-form"')+600);
