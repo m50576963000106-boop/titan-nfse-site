@@ -1040,3 +1040,21 @@ test("painel Master ganha aba Inscrições, listando as pré-inscrições da hom
   assert.match(html,/async function moverStatusInscricao\(id,status\)/);
   assert.match(html,/api\('\/api\/master\/inscricoes\/'\+id\+'\/status',\{method:'PUT'/);
 });
+
+test("botões de orientação (i) explicam o onboard e o certificado A1 num popup, sem sair da tela",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // Emitente: botão "i" no cabeçalho da página explica os dois passos do onboard.
+  assert.match(html,/<h1>Emitente<\/h1><button class="info-btn" type="button" title="[^"]*" onclick="orientacaoOnboardingEmitente\(\)">/);
+  assert.match(html,/function orientacaoOnboardingEmitente\(\)\{/);
+  // Certificado A1: botão "i" no cabeçalho explica o que é, onde conseguir e como enviar.
+  assert.match(html,/<h1>Certificado A1<\/h1><button class="info-btn" type="button" title="[^"]*" onclick="orientacaoCertificadoA1\(\)">/);
+  assert.match(html,/function orientacaoCertificadoA1\(\)\{/);
+  // Reaproveita o popup padrão do sistema (titanAlert -> system-dialog), em vez de um componente novo.
+  const inicioOrientacao=html.indexOf("function orientacaoCertificadoA1()");
+  const blocoOrientacao=html.slice(inicioOrientacao,inicioOrientacao+1600);
+  assert.match(blocoOrientacao,/titanAlert\(`/);
+  assert.match(blocoOrientacao,/Autoridade Certificadora/);
+  assert.match(blocoOrientacao,/não é a senha do seu login no TITAN/);
+  // O campo de senha do certificado também deixa claro, no próprio hint, que não é a senha do TITAN.
+  assert.match(html,/<div class="hint">Não é a senha de login do TITAN — é a senha definida pela Autoridade Certificadora/);
+});

@@ -534,7 +534,7 @@
     <!-- ---------- EMITENTE ---------- -->
     <section class="view" id="v-emitente">
       <div class="page-h">
-        <h1>Emitente</h1>
+        <div class="h-row"><h1>Emitente</h1><button class="info-btn" type="button" title="O que é preciso para começar a emitir" onclick="orientacaoOnboardingEmitente()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></div>
         <p>Dados que compõem o prestador na DPS e definem por onde esta empresa pode emitir.</p>
       </div>
 
@@ -638,7 +638,7 @@
     <!-- ---------- CERTIFICADO ---------- -->
     <section class="view" id="v-cert">
       <div class="page-h">
-        <h1>Certificado A1</h1>
+        <div class="h-row"><h1>Certificado A1</h1><button class="info-btn" type="button" title="O que é, onde conseguir e como enviar" onclick="orientacaoCertificadoA1()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></div>
         <p>Usado em duas frentes: assinar o XML da DPS e abrir o canal mTLS com a Sefin Nacional.</p>
       </div>
 
@@ -661,7 +661,7 @@
               <div class="field" style="margin-top:14px">
                 <label for="c-pw">Senha do certificado</label>
                 <input id="c-pw" name="certificate_passphrase" class="inp" type="password" autocomplete="new-password" data-lpignore="true" placeholder="••••••••••">
-                <div class="hint">Guardada com AES-256-GCM. A chave mestra fica fora do banco e fora do <span class="mono">.env</span> da aplicação.</div>
+                <div class="hint">Não é a senha de login do TITAN — é a senha definida pela Autoridade Certificadora na emissão do certificado. Guardada com AES-256-GCM. A chave mestra fica fora do banco e fora do <span class="mono">.env</span> da aplicação.</div>
               </div>
               <button class="btn btn-p" id="btn-cert" style="width:100%" onclick="enviarCertificado()">Enviar ao cofre seguro</button>
             </div>
@@ -2088,6 +2088,26 @@ function travarRetencoes(locked){
     hint.style.display=locked?'':'none';
     if(locked)hint.innerHTML=`Impostos aplicados a esta nota: ISSQN ${esc(resumoOpcaoTexto('s-trib-iss'))}, ${esc(resumoOpcaoTexto('s-ret-iss'))}. <button class="btn btn-s" type="button" onclick="abrirGestaoServicoAtual()">Editar cadastro do serviço</button>`;
   }
+}
+
+function orientacaoOnboardingEmitente(){
+  titanAlert(`Para esta empresa emitir NFS-e pelo padrão nacional, dois passos são necessários:
+
+1. Cadastro da empresa (esta tela): razão social, CNPJ, inscrição municipal, regime tributário e endereço.
+
+2. Certificado digital A1: um arquivo .pfx ou .p12 com senha, emitido por uma Autoridade Certificadora credenciada pela ICP-Brasil. Ele assina a nota e abre o canal seguro com a Sefin Nacional. Envie em "Certificado A1", no menu lateral — lá tem orientação completa de onde conseguir e como enviar.
+
+Sem os dois, a emissão de notas não é liberada.`,'Como funciona o onboard','info');
+}
+
+function orientacaoCertificadoA1(){
+  titanAlert(`O que é: um arquivo de identidade digital da empresa (extensão .pfx ou .p12), emitido por uma Autoridade Certificadora credenciada pela ICP-Brasil. Ele assina a nota fiscal e abre o canal seguro com a Sefin Nacional — sem ele, a emissão não funciona.
+
+Onde conseguir: se a empresa já usa certificado digital para outras finalidades (contabilidade, e-CAC, Conectividade Social), ela provavelmente já tem um — pergunte ao seu contador. Se não tiver, compre com uma Autoridade Certificadora credenciada (ex.: Serasa, Certisign, Soluti, entre outras).
+
+A senha: é definida no momento da emissão do certificado pela Autoridade Certificadora — não é a senha do seu login no TITAN. Guarde-a com cuidado: se for perdida, não há como recuperar, só reemitir o certificado.
+
+Como enviar aqui: arraste o arquivo .pfx ou .p12 na área de upload (ou clique para escolher), digite a senha do certificado no campo abaixo e clique em "Enviar ao cofre seguro". O arquivo fica criptografado e é usado somente pelo backend desta empresa.`,'Certificado digital A1','info');
 }
 
 async function carregarCertificado(){

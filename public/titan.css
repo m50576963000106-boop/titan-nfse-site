@@ -208,6 +208,16 @@ main{margin-left:230px;padding:58px 0 0}
 .page-h{margin-bottom:20px}
 .page-h h1{font-size:24px;font-weight:750;letter-spacing:-.025em;line-height:1.2}
 .page-h p{color:var(--ink-2);font-size:13px;margin-top:5px;max-width:62ch}
+.h-row{display:flex;align-items:center;gap:8px}
+
+/* botão "i" de orientação: abre uma explicação passo a passo em popup */
+.info-btn{
+  width:20px;height:20px;flex:none;display:grid;place-items:center;
+  border-radius:50%;border:1.5px solid var(--gold-dim);color:var(--gold-dim);
+  background:transparent;cursor:pointer;line-height:0;
+}
+.info-btn:hover{background:var(--gold);border-color:var(--gold);color:var(--navy)}
+.info-btn svg{width:12px;height:12px}
 
 /* ---------- CENTRAL DE AJUDA MARTYN ---------- */
 .help-hero{display:flex;align-items:center;justify-content:space-between;gap:26px;padding:26px 28px;margin-bottom:16px;border:1px solid #2a4166;border-radius:10px;background:linear-gradient(120deg,var(--navy),#18345a 65%,#244d73);color:#fff;overflow:hidden}
