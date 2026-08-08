@@ -1071,3 +1071,44 @@ test("painel de Atendimentos mostra o saldo da DeepSeek (GET /api/master/setting
   assert.match(bloco,/if\(!saldo\)\{pill\.style\.display='none';return\}/);
   assert.match(bloco,/pill\.className=`pill \$\{saldo\.disponivel\?'p-ok':'p-err'\}`/);
 });
+
+test("seletor de município não quebra em cidade com apóstrofo no nome (ex.: Sant'Ana do Livramento)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // Antes, o onclick embutia JSON.stringify(row) inteiro dentro de aspas simples — um
+  // apóstrofo no nome da cidade fechava o atributo cedo e corrompia o HTML/JS ao redor.
+  // Agora só o código IBGE (sempre numérico) vai pro atributo; o resto é procurado em memória.
+  assert.doesNotMatch(html,/onclick='selecionarMunicipio\("\$\{tipo\}",\$\{JSON\.stringify\(row\)\}\)'/);
+  assert.match(html,/onclick="selecionarMunicipioPorCodigo\('\$\{tipo\}','\$\{row\.code\}'\)"/);
+  assert.match(html,/function selecionarMunicipioPorCodigo\(tipo,code\)\{\s*const row=municipiosCatalogo\.find\(r=>r\.code===code\);\s*if\(row\)selecionarMunicipio\(tipo,row\);\s*\}/);
+});
+
+test("modais têm teto de altura e rolagem — conteúdo longo não fica inacessível em tela pequena",async()=>{
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  assert.match(css,/\.modal-card\{[^}]*max-height:calc\(100vh - 36px\)[^}]*display:flex;flex-direction:column\}/);
+  assert.match(css,/\.modal-body\{padding:20px;overflow-y:auto;flex:1 1 auto;min-height:0\}/);
+  assert.match(css,/\.system-dialog \.modal-card\{[^}]*max-height:calc\(100vh - min\(18vh,120px\) - 18px\)/);
+  assert.match(css,/\.system-dialog \.modal-body\{padding:8px 18px 14px;overflow-y:auto;flex:1 1 auto;min-height:0\}/);
+});
+
+test("botão 'Enviar por WhatsApp' sem função nenhuma foi removido da lista de notas (não existia backend pra isso)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.doesNotMatch(html,/title="Enviar por WhatsApp"/);
+});
+
+test("cadastro da empresa exige inscrição municipal e endereço antes de salvar, não só razão social e CNPJ",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const inicio=html.indexOf("async function salvarCadastro()");
+  const bloco=html.slice(inicio,inicio+2000);
+  assert.match(bloco,/if\(!empresa\.rs\|\|!empresa\.cnpj\|\|!empresa\.im\|\|!empresa\.endereco\)\{/);
+});
+
+test("recebimentos e recorrências recusam valor zero ou negativo, não só valor vazio",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/if\(!body\.title\|\|!body\.customerName\|\|!body\.dueDate\|\|!\(amount>0\)\)\{/);
+  assert.match(html,/if\(!body\.title\|\|!body\.customerName\|\|!body\.startDate\|\|!\(amount>0\)\)\{/);
+});
+
+test("município digitado em checarHabilitacao passa por esc() antes de virar innerHTML",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/Município selecionado: \$\{esc\(mun\)\}\./);
+});

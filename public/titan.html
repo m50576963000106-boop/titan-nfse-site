@@ -1539,7 +1539,7 @@ async function salvarRecebimento(){
   const customerName=qs('#rec-client').value.trim(),c=clientePorNomeRecebimento(customerName),amount=Number(qs('#rec-value').value.replace(/\./g,'').replace(',','.'));
   const issueNfse=qs('#rec-issue').value==='true',chargeChannel=qs('#rec-channel').value;
   const body={title:qs('#rec-title').value.trim(),customerName,customerId:c?.id,customerTaxId:c?.tax_id,amount,dueDate:qs('#rec-due').value,competence:qs('#rec-competence').value.trim()||undefined,category:qs('#rec-category').value.trim()||undefined,costCenter:qs('#rec-cost-center').value.trim()||undefined,status:'scheduled',fiscalStatus:issueNfse?'pending_issue':'not_applicable',collectionStatus:chargeChannel==='none'?'not_sent':'review_pending',chargeChannel,issueNfse,notes:qs('#rec-notes').value.trim()||undefined,nfsePayload:c?{borrower:{name:c.legal_name,taxId:c.tax_id,email:c.email,phone:c.phone,address:c.address,municipalityCode:c.municipality_code}}:undefined};
-  if(!body.title||!body.customerName||!body.dueDate||!amount){alert('Informe descrição, cliente, valor e vencimento.');return}
+  if(!body.title||!body.customerName||!body.dueDate||!(amount>0)){alert('Informe descrição, cliente, valor maior que zero e vencimento.');return}
   try{await api('/api/workspace/receivables',{method:'POST',body:JSON.stringify(body)});['#rec-title','#rec-client','#rec-value','#rec-due','#rec-competence','#rec-category','#rec-cost-center','#rec-notes'].forEach(id=>qs(id).value='');await carregarRecebimentos();alert('Recebimento agendado.')}catch(error){alert(error.message)}
 }
 async function mudarStatusRecebimento(id,status,channel){
@@ -1564,7 +1564,7 @@ async function salvarRecorrenciaRecebimento(){
   const customerName=qs('#rr-client').value.trim(),c=clientePorNomeRecebimento(customerName),amount=Number(qs('#rr-value').value.replace(/\./g,'').replace(',','.'));
   const body={title:qs('#rr-title').value.trim(),customerName,customerId:c?.id,customerTaxId:c?.tax_id,amount,dayOfMonth:Number(qs('#rr-day').value||5),startDate:qs('#rr-start').value,issueNfse:qs('#rr-issue').value==='true',nfsePayload:c?{borrower:{name:c.legal_name,taxId:c.tax_id,email:c.email,phone:c.phone,address:c.address,municipalityCode:c.municipality_code}}:undefined};
   body.category=qs('#rr-category').value.trim()||undefined;body.costCenter=qs('#rr-cost-center').value.trim()||undefined;
-  if(!body.title||!body.customerName||!body.startDate||!amount){alert('Informe descrição, cliente, valor e início.');return}
+  if(!body.title||!body.customerName||!body.startDate||!(amount>0)){alert('Informe descrição, cliente, valor maior que zero e início.');return}
   try{await api('/api/workspace/recurrences',{method:'POST',body:JSON.stringify(body)});['#rr-title','#rr-client','#rr-value','#rr-start','#rr-category','#rr-cost-center'].forEach(id=>qs(id).value='');await carregarRecebimentos();alert('Recorrência criada.')}catch(error){alert(error.message)}
 }
 
@@ -1688,9 +1688,13 @@ async function pesquisarMunicipio(tipo){
       await carregarMunicipiosCatalogo();
       const q=supNorm(term),digits=term.replace(/\D/g,'');
       const rows=municipiosCatalogo.filter(row=>(digits&&row.code.includes(digits))||supNorm(`${row.name} ${row.state}`).includes(q)).slice(0,25);
-      box.innerHTML=rows.length?rows.map(row=>`<button type="button" class="municipality-option" onclick='selecionarMunicipio("${tipo}",${JSON.stringify(row)})'><b>${esc(row.name)}/${esc(row.state)}</b><br><span class="mono">${esc(row.code)}</span></button>`).join(''):'<div class="empty-state" style="padding:12px">Nenhum município encontrado.</div>';
+      box.innerHTML=rows.length?rows.map(row=>`<button type="button" class="municipality-option" onclick="selecionarMunicipioPorCodigo('${tipo}','${row.code}')"><b>${esc(row.name)}/${esc(row.state)}</b><br><span class="mono">${esc(row.code)}</span></button>`).join(''):'<div class="empty-state" style="padding:12px">Nenhum município encontrado.</div>';
     }catch(error){box.innerHTML=`<div class="empty-state" style="padding:12px">Catálogo de municípios indisponível no momento — tente novamente em instantes.</div>`}
   },200);
+}
+function selecionarMunicipioPorCodigo(tipo,code){
+  const row=municipiosCatalogo.find(r=>r.code===code);
+  if(row)selecionarMunicipio(tipo,row);
 }
 function selecionarMunicipio(tipo,row){
   qs(`#${tipo}-mun`).value=row.code;qs(`#${tipo}-mun-search`).value=`${row.name}/${row.state} — ${row.code}`;qs(`#${tipo}-mun-results`).classList.remove('on');
@@ -2303,7 +2307,6 @@ function renderTabelaNotas(lista){
           <button class="ico-btn" title="Baixar XML" onclick="baixarXml('${x.id}','${x.n}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
           <button class="ico-btn" title="Abrir DANFSe em PDF" onclick="abrirDanfse('${x.id}','${x.n}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
           <button class="btn btn-s" type="button" onclick="reenviarEmailNota('${x.id}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}>Reenviar por e-mail</button>
-          <button class="ico-btn" title="Enviar por WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.9-.9L3 21l1.9-5a8.4 8.4 0 0 1-.9-3.9 8.4 8.4 0 0 1 8.4-9 8.4 8.4 0 0 1 8.6 8.4Z"/></svg></button>
           <button class="ico-btn danger" title="Cancelar nota" onclick="abrirCancelamento('${x.id}','${x.n}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></button>
         </div>
       </td>
@@ -2502,7 +2505,7 @@ function checarHabilitacao(){
       </div>
       <div class="alert a-info">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        <div>Município selecionado: ${mun}. A consulta aos parâmetros municipais será executada quando o backend seguro estiver configurado.</div>
+        <div>Município selecionado: ${esc(mun)}. A consulta aos parâmetros municipais será executada quando o backend seguro estiver configurado.</div>
       </div>`;
   }else{
     box.innerHTML=`
@@ -3005,8 +3008,8 @@ async function salvarCadastro(){
     postalCode:empresaAtual?.postalCode||'',street:empresaAtual?.street||'',number:empresaAtual?.number||'',complement:empresaAtual?.complement||'',district:empresaAtual?.district||'',city:empresaAtual?.city||'',state:empresaAtual?.state||'',email:qs('#e-email').value.trim(),phone:qs('#e-phone').value.trim(),whatsapp:qs('#e-zap').value.trim(),
     series:Number(qs('#e-series').value),next:qs('#e-next').value.replace(/\D/g,''),simpleAp:Number(qs('#e-simple-ap').value),simpleTotal:qs('#e-simple-total').value.trim()===''?'':dinheiro(qs('#e-simple-total').value),taxFed:qs('#e-tax-fed').value.trim()===''?'':dinheiro(qs('#e-tax-fed').value),taxEst:qs('#e-tax-est').value.trim()===''?'':dinheiro(qs('#e-tax-est').value),taxMun:qs('#e-tax-mun').value.trim()===''?'':dinheiro(qs('#e-tax-mun').value),special:Number(qs('#e-special').value)
   };
-  if(!empresa.rs||!empresa.cnpj){
-    alert('Preencha razão social e CNPJ para salvar.');
+  if(!empresa.rs||!empresa.cnpj||!empresa.im||!empresa.endereco){
+    alert('Preencha razão social, CNPJ, inscrição municipal e endereço para salvar.');
     return;
   }
   if(!Number.isInteger(empresa.series)||empresa.series<1||empresa.series>99999||!empresa.next){alert('Informe uma série entre 1 e 99999 e o próximo número da DPS.');return}
