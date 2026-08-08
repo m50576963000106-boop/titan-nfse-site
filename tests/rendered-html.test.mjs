@@ -64,14 +64,23 @@ test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma orig
   assert.match(fn,/<iframe sandbox="allow-scripts"[^>]*srcdoc="'\+esc\(html\)\+'"><\/iframe>/);
   assert.doesNotMatch(fn,/sandbox="[^"]*allow-same-origin/);
   assert.match(fn,/tab\.document\.write\(wrapperHtml\)/);
-  // charset explícito: o caminho mobile navega direto pro blob: (único ponto
-  // com round-trip de bytes de verdade) — sem isso, acento em nome de
-  // tomador/serviço saía corrompido
+  // window.open() precisa ser chamado ANTES de qualquer await (ainda dentro
+  // do gesto de clique) em qualquer plataforma — depois de um fetch, o
+  // navegador já não credita a chamada como resposta direta ao toque, e
+  // window.open()/clique em <a target=_blank> pra um blob: são bloqueados
+  // em silêncio. Por isso não há distinção por user agent aqui: tab= vem
+  // logo no começo da função, sem esperar isMobile.
+  assert.doesNotMatch(fn,/isMobile/);
+  assert.match(fn,/^\s*let tab=window\.open\('','_blank'\);/m);
+  // charset explícito: o fallback (só quando window.open foi bloqueado
+  // mesmo tendo sido chamado no gesto de clique) navega direto pro blob:
+  // (único ponto com round-trip de bytes de verdade) — sem isso, acento em
+  // nome de tomador/serviço saía corrompido
   assert.match(fn,/<!doctype html><meta charset="utf-8"><title>DANFSe<\/title>/);
   assert.match(fn,/new Blob\(\[wrapperHtml\],\{type:'text\/html;charset=utf-8'\}\)/);
   // Botões "Baixar XML" e "Salvar PDF" da barra dependem de
-  // window.opener.postMessage no documento aberto. No caminho mobile
-  // (abertura via <a target=_blank> pra um blob:), rel="noopener" deixaria
+  // window.opener.postMessage no documento aberto. No fallback (abertura
+  // via <a target=_blank> pra um blob:), rel="noopener" deixaria
   // window.opener nulo e o clique quebrava em silêncio; rel="opener" mantém
   // o vínculo — o conteúdo é gerado por este mesmo código, então preservar
   // o opener não expõe nada.

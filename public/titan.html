@@ -2352,12 +2352,16 @@ async function baixarPdf(id,numero,empresa){
 
 async function abrirDanfse(id,numero){
   const empresa=empresaAtual?.rs||'';
-  const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-  let tab=null;
-  if(!isMobile){
-    tab=window.open('','_blank');
-    if(tab)tab.document.write('<title>Preparando DANFSe...</title><p style="font-family:sans-serif;padding:24px">Gerando DANFSe com dados reais...</p>');
-  }
+  // window.open() precisa acontecer AINDA DENTRO do gesto de clique, antes
+  // de qualquer await — depois de uma busca de rede, o navegador já não
+  // credita a chamada como resposta direta ao toque, e tanto window.open()
+  // quanto o clique num <a target=_blank> pra um blob: são bloqueados em
+  // silêncio (Safari iOS é o pior caso, mas não é só ele — era exatamente
+  // isso que quebrava o botão no celular: só o desktop abria a aba em
+  // branco antes do await, o mobile ia direto pro fallback de blob depois
+  // do fetch, que a maioria dos navegadores mobile já chega bloqueando).
+  let tab=window.open('','_blank');
+  if(tab)tab.document.write('<title>Preparando DANFSe...</title><p style="font-family:sans-serif;padding:24px">Gerando DANFSe com dados reais...</p>');
   try{
     const html=await (await apiBlob('/api/invoices/'+id+'/danfse')).text();
     // Barra de ações fica FORA do sandbox (acesso à API pra baixar XML/PDF);
@@ -2395,6 +2399,10 @@ async function abrirDanfse(id,numero){
       '<\/script>';
     if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
     else{
+      // Só cai aqui se o window.open() do início — feito ainda dentro do
+      // gesto de clique — tiver sido bloqueado mesmo assim (navegador
+      // configurado pra nunca permitir popup, por exemplo). Fallback
+      // residual, não o caminho normal de nenhuma plataforma.
       const wrapperUrl=URL.createObjectURL(new Blob([wrapperHtml],{type:'text/html;charset=utf-8'}));
       // rel="opener" explícito (não omitir e não usar noopener): o botão
       // "Baixar XML" da barra manda postMessage via window.opener, e
