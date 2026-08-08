@@ -1059,17 +1059,20 @@ test("botões de orientação (i) explicam o onboard e o certificado A1 num popu
   assert.match(html,/<div class="hint">Não é a senha de login do TITAN — é a senha definida pela Autoridade Certificadora/);
 });
 
-test("painel de Atendimentos mostra o saldo da DeepSeek (GET /api/master/settings), escondido quando não há saldo",async()=>{
+test("painel de Atendimentos mostra o saldo do provedor de IA (GET /api/master/settings) — DeepSeek nativo se houver, senão OpenRouter (a chave paga real)",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
-  assert.match(html,/<span id="atend-deepseek-saldo" class="pill p-off" style="display:none"><\/span>/);
-  assert.match(html,/carregarSaldoDeepSeek\(\);/);
-  const inicio=html.indexOf("async function carregarSaldoDeepSeek()");
+  assert.match(html,/<span id="atend-ia-saldo" class="pill p-off" style="display:none"><\/span>/);
+  assert.match(html,/carregarSaldoProvedorIA\(\);/);
+  const inicio=html.indexOf("async function carregarSaldoProvedorIA()");
   assert.notEqual(inicio,-1);
-  const bloco=html.slice(inicio,inicio+500);
+  const bloco=html.slice(inicio,inicio+900);
   assert.match(bloco,/api\('\/api\/master\/settings'\)/);
   assert.match(bloco,/data\.deepseekBalance/);
-  assert.match(bloco,/if\(!saldo\)\{pill\.style\.display='none';return\}/);
-  assert.match(bloco,/pill\.className=`pill \$\{saldo\.disponivel\?'p-ok':'p-err'\}`/);
+  assert.match(bloco,/data\.openrouterBalance/);
+  assert.match(bloco,/pill\.className=`pill \$\{deepseek\.disponivel\?'p-ok':'p-err'\}`/);
+  // sem conta nativa da DeepSeek, cai pro saldo da OpenRouter — a chave paga que a TITAN de fato mantém.
+  assert.match(bloco,/OpenRouter: \$\$\{openrouter\.restante\.toFixed\(2\)\} restantes/);
+  assert.match(bloco,/else\{[\s\S]{0,20}pill\.style\.display='none';/);
 });
 
 test("seletor de município não quebra em cidade com apóstrofo no nome (ex.: Sant'Ana do Livramento)",async()=>{
