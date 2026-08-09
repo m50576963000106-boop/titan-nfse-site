@@ -99,7 +99,7 @@
       <button class="sb-link" data-permission="emit" onclick="go('emitir',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Emitir NFS-e</button>
       <button class="sb-link" data-permission="invoices" onclick="go('notas',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>Notas emitidas</button>
       <button class="sb-link" data-permission="emit" onclick="abrirRascunhos(this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg>Rascunhos</button>
-      <button class="sb-link" type="button" disabled aria-disabled="true" title="Em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg>Notas recorrentes</button>
+      <button class="sb-link" data-permission="emit" onclick="go('recorrentes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg>Notas recorrentes</button>
       <button class="sb-link" data-permission="import" onclick="go('importar',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Importar do Portal</button>
 
       <div class="sb-sec">Vendas e serviços</div>
@@ -472,6 +472,20 @@
         <div class="field"><label>Endereço</label><input id="cl-end" class="inp" placeholder="Logradouro, número, bairro, CEP"></div><div class="row r2"><div class="field"><label>Município</label><input id="cl-cidade" class="inp" placeholder="Cidade"></div><div class="field"><label>UF</label><input id="cl-uf" class="inp mono" maxlength="2" placeholder="UF"></div></div><div class="row r2"><div class="field mb0"><label>Código IBGE</label><input id="cl-mun" class="inp mono" inputmode="numeric" maxlength="7"></div><div class="field mb0"><label>CEP</label><input id="cl-cep" class="inp mono" inputmode="numeric"></div></div>
         <div class="setup-actions"><span class="foot-note" style="margin:0">A busca preenche os dados públicos; confirme antes de salvar.</span><button class="btn btn-a right" type="button" onclick="salvarCliente()">Salvar cliente</button></div>
       </div></div><div class="card"><div class="card-h"><h2>Clientes cadastrados</h2><button class="btn btn-s right" onclick="carregarClientesCadastro()">Atualizar</button></div><div class="card-b"><div id="client-list" class="draft-list"></div></div></div></div>
+    </section>
+
+    <section class="view" id="v-recorrentes">
+      <div class="page-h"><h1>Notas recorrentes</h1><p>Configure uma vez e o TITAN emite sozinho todo mês, no dia escolhido — sem precisar abrir o portal.</p></div>
+      <div class="grid g2" style="align-items:start">
+        <div class="card"><div class="card-h"><h2 id="rc-form-title">Nova recorrência</h2></div><div class="card-b">
+          <div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="rc-customer" class="inp" list="rc-customer-list" placeholder="Pesquise pela razão social" autocomplete="off"><button type="button" class="btn btn-s" onclick="abrirClientes()">Clientes</button></div><datalist id="rc-customer-list"></datalist></div>
+          <div class="field"><label>Meu serviço</label><div class="input-action"><select id="rc-service" class="inp"><option value="">Selecione um serviço cadastrado</option></select><button type="button" class="btn btn-s" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint">Só serviço cujo ISS incide no seu próprio estabelecimento pode virar recorrência automática — sem obra (CNO) nem evento, que exigem dado que ninguém confirma todo mês sozinho.</div></div>
+          <div class="row r2"><div class="field"><label>Valor (R$)</label><input id="rc-amount" class="inp num" inputmode="decimal" value="0,00"></div><div class="field"><label>Dia do mês</label><input id="rc-day" class="inp num" inputmode="numeric" maxlength="2" placeholder="1 a 28"></div></div>
+          <div class="field"><label>Observação (opcional)</label><input id="rc-description" class="inp" placeholder="Ex.: mensalidade contábil"></div>
+          <div class="setup-actions"><span class="foot-note" style="margin:0">A emissão sai sozinha no dia escolhido, sem aprovação manual.</span><button class="btn btn-s" type="button" id="rc-cancel-btn" style="display:none" onclick="cancelarEdicaoRecorrencia()">Cancelar edição</button><button class="btn btn-a right" type="button" onclick="salvarRecorrencia()">Salvar recorrência</button></div>
+        </div></div>
+        <div class="card"><div class="card-h"><h2>Recorrências cadastradas</h2><button class="btn btn-s right" onclick="carregarRecorrencias()">Atualizar</button></div><div class="card-b"><div id="recurrence-list" class="draft-list"></div></div></div>
+      </div>
     </section>
 
     <section class="view" id="v-comercial">
@@ -1548,6 +1562,7 @@ function go(v,el){
   if(v==='master')carregarMaster();
   if(v==='emitir'){carregarRascunhos();exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true);atualizarResumoCtnNbs(perfisServico.find(profile=>profile.id===qs('#s-profile')?.value)||null)}
   if(v==='clientes')carregarClientesCadastro();
+  if(v==='recorrentes')carregarRecorrencias();
   if(v==='comercial'){renderEmpresaComercial();carregarComerciais();popularClientesComercial();carregarPerfisServico().then(popularServicosComercial);}
   if(v==='recebimentos')carregarRecebimentos();
   if(v==='financeiro')carregarBilling();
@@ -2774,6 +2789,80 @@ async function carregarClientesCadastro(){try{clientesCadastro=await api('/api/c
 function editarClienteCadastro(index){const cliente=clientesCadastro[index];if(!cliente)return;preencherClienteCadastro(cliente);qs('#cl-doc').scrollIntoView({behavior:'smooth',block:'center'});qs('#cl-nome').focus();}
 function usarClienteNaEmissao(index){preencherCliente(clientesCadastro[index]);go('emitir',qs('.sb-link[onclick*="emitir"]'));}
 function abrirClientes(){go('clientes',qs('.sb-link[onclick*="clientes"]'));}
+
+/* ---------- notas recorrentes (agendamento automático de emissão) ---------- */
+let recorrencias=[],recorrenciaEditando=null;
+function popularServicosRecorrencia(){
+  const select=qs('#rc-service');if(!select)return;
+  const atual=select.value;
+  select.innerHTML='<option value="">Selecione um serviço cadastrado</option>'+perfisServico.map(item=>`<option value="${item.id}">${esc(item.name)} — ${esc(item.national_code)}</option>`).join('');
+  if(perfisServico.some(item=>item.id===atual))select.value=atual;
+}
+function clienteSelecionadoRecorrencia(){
+  const value=(qs('#rc-customer')?.value||'').trim().toLocaleLowerCase('pt-BR');
+  return clientesCadastro.find(c=>String(c.legal_name||'').trim().toLocaleLowerCase('pt-BR')===value)||null;
+}
+async function carregarRecorrencias(){
+  try{
+    if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');
+    await carregarPerfisServico();
+    if(qs('#rc-customer-list'))qs('#rc-customer-list').innerHTML=clientesCadastro.map(c=>`<option value="${esc(c.legal_name)}">${esc(formatarCnpj(c.tax_id||''))}</option>`).join('');
+    popularServicosRecorrencia();
+    recorrencias=await api('/api/invoice-recurrences');
+    renderRecorrencias();
+  }catch(error){const box=qs('#recurrence-list');if(box)box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+}
+function renderRecorrencias(){
+  const box=qs('#recurrence-list');if(!box)return;
+  box.innerHTML=recorrencias.length?recorrencias.map(item=>{
+    const proxima=new Date(item.next_run_date+'T00:00:00').toLocaleDateString('pt-BR');
+    const status=!item.active?'<span class="pill p-off">Pausada</span>':item.last_error?'<span class="pill p-err">Falhou — revise abaixo</span>':'<span class="pill p-ok">Ativa</span>';
+    return `<div class="draft-item"><b>${esc(item.customer_name)}</b> — ${esc(item.service_name)}<br><span>R$ ${brl(Number(item.amount))} · todo dia ${item.day_of_month} · próxima emissão ${proxima}</span><br>${status}${item.last_error?`<br><span class="foot-note">${esc(item.last_error)}</span>`:''}<div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="editarRecorrencia('${item.id}')">Editar</button><button class="btn btn-s" onclick="alternarRecorrencia('${item.id}',${!item.active})">${item.active?'Pausar':'Reativar'}</button><button class="btn btn-s" onclick="emitirRecorrenciaAgora('${item.id}')">Emitir agora</button><button class="ico-btn danger" title="Excluir" onclick="excluirRecorrencia('${item.id}')">×</button></div></div>`;
+  }).join(''):'<div class="empty-state">Nenhuma recorrência cadastrada — configure uma nota que se repete todo mês e o TITAN emite sozinho.</div>';
+}
+async function salvarRecorrencia(){
+  const cliente=clienteSelecionadoRecorrencia(),serviceProfileId=qs('#rc-service')?.value,amount=dinheiro(qs('#rc-amount').value),dayOfMonth=Number(qs('#rc-day').value);
+  if(!cliente){alert('Selecione um cliente cadastrado.');return}
+  if(!serviceProfileId){alert('Selecione um serviço cadastrado.');return}
+  if(!amount||amount<=0){alert('Informe um valor maior que zero.');return}
+  if(!dayOfMonth||dayOfMonth<1||dayOfMonth>28){alert('Informe um dia do mês entre 1 e 28.');return}
+  const payload={customerId:cliente.id,serviceProfileId,amount,dayOfMonth,description:qs('#rc-description').value.trim()||undefined};
+  try{
+    if(recorrenciaEditando)await api('/api/invoice-recurrences/'+recorrenciaEditando,{method:'PUT',body:JSON.stringify(payload)});
+    else await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify(payload)});
+    cancelarEdicaoRecorrencia();
+    await carregarRecorrencias();
+  }catch(error){alert(error.message)}
+}
+function editarRecorrencia(id){
+  const item=recorrencias.find(r=>r.id===id);if(!item)return;
+  recorrenciaEditando=id;
+  qs('#rc-customer').value=item.customer_name;
+  qs('#rc-service').value=item.service_profile_id;
+  qs('#rc-amount').value=Number(item.amount).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  qs('#rc-day').value=item.day_of_month;
+  qs('#rc-description').value=item.description||'';
+  qs('#rc-form-title').textContent='Editar recorrência';
+  qs('#rc-cancel-btn').style.display='';
+  qs('#rc-customer').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function cancelarEdicaoRecorrencia(){
+  recorrenciaEditando=null;
+  qs('#rc-customer').value='';qs('#rc-service').value='';qs('#rc-amount').value='0,00';qs('#rc-day').value='';qs('#rc-description').value='';
+  qs('#rc-form-title').textContent='Nova recorrência';
+  qs('#rc-cancel-btn').style.display='none';
+}
+async function alternarRecorrencia(id,ativar){
+  try{await api('/api/invoice-recurrences/'+id,{method:'PUT',body:JSON.stringify({active:ativar})});await carregarRecorrencias()}catch(error){alert(error.message)}
+}
+async function excluirRecorrencia(id){
+  if(!await titanConfirm('Excluir esta recorrência? As notas já emitidas continuam preservadas.','Excluir recorrência','err'))return;
+  try{await api('/api/invoice-recurrences/'+id,{method:'DELETE'});await carregarRecorrencias()}catch(error){alert(error.message)}
+}
+async function emitirRecorrenciaAgora(id){
+  try{await api('/api/invoice-recurrences/'+id+'/run-now',{method:'POST'});alert('Nota enviada para processamento fiscal.');await carregarRecorrencias()}catch(error){alert(error.message)}
+}
+
 let clienteComercialSelecionado=null;
 let servicoComercialSelecionado=null;
 async function popularClientesComercial(){

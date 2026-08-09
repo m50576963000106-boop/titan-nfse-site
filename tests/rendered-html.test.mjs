@@ -1133,3 +1133,20 @@ test("novidades: sino do topo abre painel real (não mais alert de pendências) 
   assert.match(html,/api\('\/api\/master\/announcements',\{method:'POST'/);
   assert.doesNotMatch(html,/alert\(message\|\| \(pending\?/);
 });
+
+test("notas recorrentes: nav habilitado, view e chamadas às rotas de agendamento automático existem",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/onclick="go\('recorrentes',this\)"/);
+  assert.doesNotMatch(html,/disabled aria-disabled="true" title="Em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"\/><\/svg>Notas recorrentes/);
+  assert.match(html,/id="v-recorrentes"/);
+  assert.match(html,/id="rc-customer"/);
+  assert.match(html,/id="rc-service"/);
+  assert.match(html,/id="rc-day"/);
+  assert.match(html,/async function carregarRecorrencias\(\)/);
+  assert.match(html,/api\('\/api\/invoice-recurrences'\)/);
+  assert.match(html,/async function salvarRecorrencia\(\)/);
+  assert.match(html,/async function emitirRecorrenciaAgora\(id\)/);
+  // valor e dia do mês são conferidos antes de enviar — não confia só na validação do servidor
+  assert.match(html,/if\(!amount\|\|amount<=0\)\{alert\('Informe um valor maior que zero\.'\);return\}/);
+  assert.match(html,/if\(!dayOfMonth\|\|dayOfMonth<1\|\|dayOfMonth>28\)/);
+});
