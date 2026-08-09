@@ -1115,3 +1115,21 @@ test("município digitado em checarHabilitacao passa por esc() antes de virar in
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/Município selecionado: \$\{esc\(mun\)\}\./);
 });
+
+test("indicador de ambiente (topo) é exclusivo do Master — antes ficava invertido (escondido do admin, visível pro cliente)",async()=>{
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  assert.match(css,/body:not\(\.portal-admin\) \.env\{display:none\}/);
+  assert.doesNotMatch(css,/\.portal-admin \.tenant,\.portal-admin \.env\{display:none\}/);
+});
+
+test("novidades: sino do topo abre painel real (não mais alert de pendências) e Master consegue publicar",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="announcements-modal"/);
+  assert.match(html,/id="announcement-title"/);
+  assert.match(html,/id="announcement-body"/);
+  assert.match(html,/async function abrirNovidades\(\)/);
+  assert.match(html,/api\('\/api\/announcements'\)/);
+  assert.match(html,/api\('\/api\/announcements\/seen',\{method:'POST'\}\)/);
+  assert.match(html,/api\('\/api\/master\/announcements',\{method:'POST'/);
+  assert.doesNotMatch(html,/alert\(message\|\| \(pending\?/);
+});

@@ -1054,6 +1054,20 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
   </div>
 </div>
 
+<div class="modal-backdrop" id="announcements-modal" role="dialog" aria-modal="true" aria-labelledby="announcements-title">
+  <div class="modal-card"><div class="modal-head"><div><h2 id="announcements-title">Novidades</h2><p style="font-size:12px;color:var(--ink-3);margin-top:4px">Atualizações publicadas pela equipe TITAN</p></div></div>
+    <div class="modal-body">
+      <div id="announcements-composer" style="display:none;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #e5e9f0">
+        <div class="field"><label for="announcement-title">Título</label><input id="announcement-title" class="inp" maxlength="160" placeholder="Ex.: Novo motor de retenções federais"></div>
+        <div class="field" style="margin-top:8px"><label for="announcement-body">Descrição</label><textarea id="announcement-body" class="inp" rows="3" maxlength="4000" placeholder="O que mudou e o que o cliente precisa saber"></textarea></div>
+        <button class="btn btn-p" type="button" style="margin-top:8px" onclick="publicarNovidade()">Publicar novidade</button>
+      </div>
+      <div id="announcements-list">Carregando...</div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharNovidades()">Fechar</button></div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="master-company-modal" role="dialog" aria-modal="true" aria-labelledby="master-company-title">
   <div class="modal-card"><div class="modal-head"><div><h2 id="master-company-title">Detalhes do cliente</h2><p id="master-company-subtitle" style="font-size:12px;color:var(--ink-3);margin-top:4px"></p></div></div><div class="modal-body"><input id="master-detail-company-id" type="hidden"><div class="row r2"><div class="field"><label>Emissão</label><select id="master-detail-emission" class="inp"><option value="true">Liberada</option><option value="false">Suspensa</option></select></div><div class="field"><label>Implantação</label><select id="master-detail-implementation" class="inp"><option value="self_service">Autoimplantação</option><option value="paid_pending">Implantação paga — pendente</option><option value="paid_active">Implantação paga — ativa</option></select></div><div class="field"><label>Parceiro comercial</label><select id="master-detail-partner" class="inp"><option value="">Cliente direto</option></select><div class="hint">Vínculo comercial da empresa — diferente de quem opera o CNPJ na aba "Gestão de Parceiros"</div></div><div class="field"><label>Valor de implantação (R$)</label><input id="master-detail-fee" class="inp" inputmode="decimal"></div><div class="field"><label>Ambiente fiscal</label><select id="master-detail-environment" class="inp"><option value="">Padrão do servidor</option><option value="restricted">Empresa de testes — sempre homologação</option><option value="production">Sempre produção (mesmo com servidor em testes)</option></select><div class="hint">Empresa de testes nunca emite NFS-e real, mesmo que o servidor inteiro esteja em produção — use para treinar Portal, WhatsApp e Martyn sem risco.</div></div></div><div class="field"><label>Observações</label><textarea id="master-detail-notes" class="inp" rows="3"></textarea></div><div id="master-detail-consumption" class="alert a-info" style="margin-top:12px">Consumo deste mês: carregando...</div></div><div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharDetalhesCliente()">Fechar</button><button class="btn btn-p" type="button" onclick="salvarDetalhesCliente()">Salvar alterações</button></div></div>
 </div>
@@ -1200,8 +1214,39 @@ function abrirResultadoBusca(){
   if(input){input.value='';input.title='';}buscaPortalView='';
 }
 function mostrarNotificacoes(message){
-  const pending=Number(qs('#dash-pendencias')?.textContent||0);
-  alert(message|| (pending?`Você tem ${pending} item(ns) que precisam de atenção no painel.`:'Não há novas notificações no momento.'));
+  if(message){alert(message);return}
+  abrirNovidades();
+}
+function fecharNovidades(){qs('#announcements-modal').classList.remove('on')}
+function formatarDataNovidade(iso){return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})}
+async function abrirNovidades(){
+  qs('#announcements-composer').style.display=PORTAL_ADMIN?'block':'none';
+  qs('#announcements-list').textContent='Carregando...';
+  qs('#announcements-modal').classList.add('on');
+  try{
+    const data=await api('/api/announcements');
+    qs('#announcements-list').innerHTML=data.announcements.length
+      ?data.announcements.map(item=>`<div style="padding:10px 0;border-bottom:1px solid #edf0f4"><b>${esc(item.title)}</b><br><small style="color:var(--ink-3)">${formatarDataNovidade(item.published_at)}</small><p style="margin-top:6px;white-space:pre-wrap">${esc(item.body)}</p></div>`).join('')
+      :'<div class="empty-state">Nenhuma novidade publicada ainda.</div>';
+    await api('/api/announcements/seen',{method:'POST'});
+    const badge=qs('#top-notification-badge');if(badge)badge.textContent='0';
+  }catch(error){qs('#announcements-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+}
+async function publicarNovidade(){
+  const title=qs('#announcement-title').value.trim(),body=qs('#announcement-body').value.trim();
+  if(title.length<3||body.length<3){alert('Preencha título e descrição.');return}
+  try{
+    await api('/api/master/announcements',{method:'POST',body:JSON.stringify({title,body})});
+    qs('#announcement-title').value='';qs('#announcement-body').value='';
+    await abrirNovidades();
+  }catch(error){alert(error.message)}
+}
+async function atualizarBadgeNovidades(){
+  try{
+    const data=await api('/api/announcements');
+    const badge=qs('#top-notification-badge');
+    if(badge)badge.textContent=String(data.unreadCount||0);
+  }catch{}
 }
 
 async function api(path,options={}){
@@ -1370,6 +1415,7 @@ function abrirAreaAutenticada(access){
   aplicarAcesso(access);
   carregarEstado();
   render();
+  atualizarBadgeNovidades().catch(()=>{});
   if(PORTAL_ADMIN){
     go('master',qs('.admin-sidebar .sb-link'));const requestedAdminTab=PORTAL_QUERY.get('tab');setTimeout(()=>masterTab(['clientes','inscricoes','atendimentos','parceiros','perfis','planos','config','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes',qs(`.admin-sidebar [data-master-tab="${['clientes','inscricoes','atendimentos','parceiros','perfis','planos','config','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes'}"]`)),0);
   }else if(PORTAL_HELP){
