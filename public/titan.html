@@ -99,8 +99,8 @@
       <button class="sb-link" data-permission="emit" onclick="go('emitir',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Emitir NFS-e</button>
       <button class="sb-link" data-permission="invoices" onclick="go('notas',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>Notas emitidas</button>
       <button class="sb-link" data-permission="emit" onclick="abrirRascunhos(this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg>Rascunhos</button>
-      <button class="sb-link" data-permission="emit" onclick="go('recorrentes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg>Notas recorrentes</button>
-      <button class="sb-link" data-permission="import" onclick="go('importar',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Importar do Portal</button>
+      <button class="sb-link" data-permission="emit" data-feature="invoice_recurrences" onclick="go('recorrentes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg>Notas recorrentes</button>
+      <button class="sb-link" data-permission="import" data-feature="portal_import" onclick="go('importar',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Importar do Portal</button>
 
       <div class="sb-sec">Vendas e serviços</div>
       <button class="sb-link" data-permission="emit" onclick="abrirComercial('quote',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg>Orçamentos</button>
@@ -109,7 +109,7 @@
 
       <div class="sb-sec">Financeiro</div>
       <button class="sb-link" type="button" data-permission="financial" onclick="alternarGrupoMenu('financeiro-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg>Financeiro<span class="nav-alert">⚠</span><span class="sb-chevron">›</span></button>
-      <div class="sb-submenu" id="financeiro-menu"><button class="sb-link" type="button" data-permission="financial" onclick="go('recebimentos',this)">Recebimentos</button><button class="sb-link" type="button" onclick="go('financeiro',this)">Cobranças TITAN</button><button class="sb-link" type="button" onclick="go('dasn',this)">DASN-SIMEI</button><button class="sb-link" type="button" data-permission="financial_drafts" disabled aria-disabled="true">Boletos (rascunho)</button><button class="sb-link" type="button" data-permission="financial_drafts" disabled aria-disabled="true">Conciliação bancária</button><button class="sb-link" type="button" data-permission="financial_drafts" disabled aria-disabled="true">Fluxo de caixa completo</button></div>
+      <div class="sb-submenu" id="financeiro-menu"><button class="sb-link" type="button" data-permission="financial" data-feature="receivables" onclick="go('recebimentos',this)">Recebimentos</button><button class="sb-link" type="button" onclick="go('financeiro',this)">Cobranças TITAN</button><button class="sb-link" type="button" data-feature="dasn_simei" onclick="go('dasn',this)">DASN-SIMEI</button><button class="sb-link" type="button" data-permission="financial_drafts" disabled aria-disabled="true">Boletos (rascunho)</button><button class="sb-link" type="button" data-permission="financial_drafts" disabled aria-disabled="true">Conciliação bancária</button><button class="sb-link" type="button" data-permission="financial_drafts" disabled aria-disabled="true">Fluxo de caixa completo</button></div>
 
       <div class="sb-sec">Cadastros</div>
       <button class="sb-link" data-permission="customers" onclick="go('clientes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Clientes</button>
@@ -239,7 +239,7 @@
             <button class="quick-action" type="button" onclick="go('clientes',qs('.sb-link[onclick*=&quot;clientes&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21c.7-4 3-6 7-6s6.3 2 7 6M19 8v6M16 11h6"/></svg><b>Novo cliente</b><span>Cadastre ou consulte por CNPJ</span></button>
             <button class="quick-action" type="button" onclick="go('comercial',qs('.sb-link[onclick*=&quot;comercial&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5M8 17h7"/></svg><b>Orçamento / O.S.</b><span>Prepare um documento comercial</span></button>
             <button class="quick-action" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"/></svg><b>Ver notas</b><span>Histórico e ações fiscais</span></button>
-            <button class="quick-action" type="button" onclick="go('importar',qs('.sb-link[onclick*=&quot;importar&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><b>Importar portal</b><span>Sincronize documentos do ADN</span></button>
+            <button class="quick-action" type="button" data-feature="portal_import" onclick="go('importar',qs('.sb-link[onclick*=&quot;importar&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><b>Importar portal</b><span>Sincronize documentos do ADN</span></button>
             <button class="quick-action" type="button" onclick="go('cert',qs('.sb-link[onclick*=&quot;cert&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><b>Certificado A1</b><span>Confira a validade do certificado</span></button>
           </div>
         </div>
@@ -1435,8 +1435,17 @@ function entrar(){iniciarCadastro()}
 function aplicarAcesso(login){
   const access=login||JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}'),user=access.user||{};
   qs('#master-menu').style.display=user.isMaster?'block':'none';
-  const companyId=sessionStorage.getItem(STORAGE_COMPANY_ID),company=(access.companies||[]).find(c=>c.id===companyId)||(access.companies||[])[0],permissions=company?.permissions||[];
-  qsa('[data-permission]').forEach(el=>{const visible=user.isMaster||permissions.includes(el.dataset.permission);el.style.display=visible?(el.tagName==='DIV'?'':'flex'):'none'});
+  const companyId=sessionStorage.getItem(STORAGE_COMPANY_ID),company=(access.companies||[]).find(c=>c.id===companyId)||(access.companies||[])[0],permissions=company?.permissions||[],features=company?.features||['portal_emission'];
+  // Permissão (o que o perfil do usuário libera) e feature (o que o PLANO da
+  // empresa vende) são checagens independentes — um elemento só fica visível
+  // se passar nas duas quando as duas se aplicam. Uma única passagem evita que
+  // uma pise no resultado da outra no mesmo botão (ex.: Notas recorrentes tem
+  // data-permission="emit" e data-feature="invoice_recurrences" juntos).
+  qsa('[data-permission],[data-feature]').forEach(el=>{
+    const okPermissao=!el.dataset.permission||user.isMaster||permissions.includes(el.dataset.permission);
+    const okFeature=!el.dataset.feature||user.isMaster||features.includes(el.dataset.feature);
+    el.style.display=(okPermissao&&okFeature)?(el.tagName==='DIV'?'':''):'none';
+  });
   qsa('[data-master-only]').forEach(el=>el.style.display=user.isMaster?'flex':'none');
   if(access.companies?.length){
     const visible=PORTAL_CNPJ?access.companies.filter(c=>normalizarDocumento(c.federal_tax_id)===PORTAL_CNPJ):access.companies;

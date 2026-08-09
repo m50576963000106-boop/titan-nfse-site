@@ -1150,3 +1150,24 @@ test("notas recorrentes: nav habilitado, view e chamadas às rotas de agendament
   assert.match(html,/if\(!amount\|\|amount<=0\)\{alert\('Informe um valor maior que zero\.'\);return\}/);
   assert.match(html,/if\(!dayOfMonth\|\|dayOfMonth<1\|\|dayOfMonth>28\)/);
 });
+
+test("vistoria de 09/08/2026: nav das ferramentas fora do Light some quando o plano não vende, sem depender só do backend",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // As 4 ferramentas gateadas por requireFeature no backend precisam do
+  // mesmo gate na tela — senão o botão fica visível e só falha ao clicar.
+  assert.match(html,/data-permission="emit" data-feature="invoice_recurrences" onclick="go\('recorrentes',this\)"/);
+  assert.match(html,/data-permission="import" data-feature="portal_import" onclick="go\('importar',this\)"/);
+  assert.match(html,/data-permission="financial" data-feature="receivables" onclick="go\('recebimentos',this\)"/);
+  assert.match(html,/data-feature="dasn_simei" onclick="go\('dasn',this\)"/);
+  // Cobranças TITAN (o que a própria TITAN cobra do cliente) não é uma
+  // ferramenta vendida por plano — não pode ganhar gate nenhum.
+  assert.doesNotMatch(html,/data-feature="[^"]*" onclick="go\('financeiro',this\)"/);
+  // aplicarAcesso() precisa ler company.features do login e aplicar as duas
+  // checagens (permissão do perfil E feature do plano) no mesmo elemento,
+  // numa única passagem — duas passagens separadas se pisariam quando os
+  // dois atributos estão juntos no mesmo botão.
+  assert.match(html,/features=company\?\.features\|\|\['portal_emission'\]/);
+  assert.match(html,/qsa\('\[data-permission\],\[data-feature\]'\)\.forEach/);
+  assert.match(html,/const okPermissao=!el\.dataset\.permission\|\|user\.isMaster\|\|permissions\.includes\(el\.dataset\.permission\)/);
+  assert.match(html,/const okFeature=!el\.dataset\.feature\|\|user\.isMaster\|\|features\.includes\(el\.dataset\.feature\)/);
+});
