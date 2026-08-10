@@ -186,6 +186,11 @@ export default function Termos() {
             não concordar, você pode cancelar antes da vigência do novo valor.
           </li>
         </ul>
+        <p>
+          As condições comerciais de contratação, pagamento, ativação e renovação de cada plano
+          estão detalhadas no{" "}
+          <Link href="/contrato-de-uso">Contrato de Prestação de Serviços de Sessão de Uso</Link>.
+        </p>
 
         <h2>9. Disponibilidade do serviço</h2>
         <p>

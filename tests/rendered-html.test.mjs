@@ -476,7 +476,7 @@ test("convite operacional cria apenas senha e confirmação",async()=>{
 test("exibe planos SaaS com limites e valores publicados",async()=>{
   const html=await readFile(resolve(root,"public/nfs.html"),"utf8");
   assert.match(html,/id="planos"/);
-  assert.match(html,/Plano MEI/);
+  assert.match(html,/Plano Light/);
   assert.match(html,/R\$ 29,90/);
   assert.match(html,/Plano SN 20/);
   assert.match(html,/R\$ 49,90/);
@@ -720,6 +720,7 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   const politicaAlias=await readFile(resolve(root,"app/politica-de-privacidade/page.tsx"),"utf8");
   const termosAlias=await readFile(resolve(root,"app/termos-de-uso/page.tsx"),"utf8");
   const exclusao=await readFile(resolve(root,"app/exclusao-de-dados/page.tsx"),"utf8");
+  const contrato=await readFile(resolve(root,"app/contrato-de-uso/page.tsx"),"utf8");
   const legalHeader=await readFile(resolve(root,"app/legal-page-header.tsx"),"utf8");
   const css=await readFile(resolve(root,"app/globals.css"),"utf8");
   const legalCss=await readFile(resolve(root,"public/legal.css"),"utf8");
@@ -727,6 +728,7 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
     "termos-de-uso.html",
     "politica-de-privacidade.html",
     "exclusao-de-dados.html",
+    "contrato-de-uso.html",
   ].map(nome=>readFile(resolve(root,"public",nome),"utf8")));
 
   // a rota catch-all faz notFound() fora da lista dela, entao estas paginas
@@ -753,6 +755,18 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   assert.match(exclusao,/nfse@titanbackoffice\.com\.br/);
   assert.match(exclusao,/Meta ou pelo WhatsApp/);
   assert.match(exclusao,/canonical: "\/exclusao-de-dados"/);
+  // pedido do usuário (10/08/2026): contrato de sessão de uso, com o plano
+  // contratado como objeto e o pagamento confirmado como aceite registrado.
+  assert.match(contrato,/export const metadata/);
+  assert.match(contrato,/canonical: "\/contrato-de-uso"/);
+  assert.match(contrato,/TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA/);
+  assert.match(contrato,/67\.261\.200\/0001-79/);
+  assert.match(contrato,/className="legal"/);
+  assert.match(contrato,/objeto especificamente o\s+plano então selecionado/);
+  assert.match(contrato,/aceite formal das condições comerciais do plano correspondente/);
+  assert.match(contrato,/permanece pendente, sem prazo de expiração automático/);
+  assert.match(contrato,/<Link href="\/termos-de-uso">Termos de Uso<\/Link>/);
+  assert.match(contrato,/<Link href="\/politica-de-privacidade">Política de Privacidade<\/Link>/);
   // as rotas estáticas são as publicadas no domínio e precisam conservar a
   // mesma identidade visual navy/dourado da página inicial
   assert.match(legalHeader,/\/titan-nfse-logo-transparent\.png/);
@@ -769,6 +783,7 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
     politicaAlias,
     termosAlias,
     exclusao,
+    contrato,
     legalHeader,
     ...paginasEstaticas,
   ];
@@ -779,7 +794,7 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   // Confere as duas fontes reais com telefone (privacidade/termos/exclusao;
   // os aliases só reexportam, e legalHeader não tem telefone) contra o
   // mesmo número, e que o antigo não sobrevive em lugar nenhum.
-  for (const [nome,pagina] of [["privacidade",privacidade],["termos",termos],["exclusao",exclusao]]){
+  for (const [nome,pagina] of [["privacidade",privacidade],["termos",termos],["exclusao",exclusao],["contrato",contrato]]){
     assert.match(pagina,/\(41\) 3790-0311/,`${nome}: telefone de contato divergente do resto do site`);
   }
   for (const pagina of paginasEstaticas){
