@@ -184,6 +184,10 @@ html.impersonating .sidebar,html.impersonating .topbar{top:var(--imp-h,38px)}
 .admin-company-menu.on{display:block}.admin-company-search{margin:0 10px 9px;width:calc(100% - 20px);padding:9px 11px;border:1px solid #ced7e5;border-radius:4px;outline:none}.admin-company-search:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.14)}
 .admin-company-options{max-height:260px;overflow:auto}.admin-company-option{display:block;width:100%;padding:11px 13px;text-align:left;border-top:1px solid #edf0f4;background:#fff}.admin-company-option:hover{background:#f8f7f2}.admin-company-option.active{border-left:4px solid var(--gold);padding-left:9px;background:#eaf6ef}.admin-company-option b{display:block;font-size:12px}.admin-company-option span{display:block;margin-top:2px;color:#60708a;font-size:10.5px}
 .portal-admin .tenant{display:none}.portal-admin .admin-company-switch{display:block}.portal-admin .sb-link[data-admin-hidden="true"],.portal-admin .sb-sec[data-admin-hidden="true"]{display:none!important}
+/* Pagamento não identificado (pedido do usuário, 10/08/2026): só Notas emitidas
+   fica no menu, o resto do portal desaparece — o servidor já barra com 402
+   ACCOUNT_RESTRICTED, isto só evita que o cliente veja um botão que só falha. */
+body.conta-restrita .sb-link:not([data-restrito-ok]),body.conta-restrita .sb-sec,body.conta-restrita .quick-grid,body.conta-restrita .sb-submenu{display:none!important}
 body:not(.portal-admin) .env{display:none}
 .env{
   display:flex;align-items:center;gap:7px;margin-left:auto;

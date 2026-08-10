@@ -1231,3 +1231,24 @@ test("pedido do usuário (10/08/2026): contrato editável e versionado, com Meu 
   assert.match(html,/async function baixarContrato\(\)/);
   assert.match(html,/apiBlob\('\/api\/contract\/pdf'\)/);
 });
+
+test("pedido do usuário (10/08/2026): modo restrito por falta de pagamento esconde tudo, exceto Notas emitidas e Sair",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  // api() precisa expor error.code pro front distinguir ACCOUNT_RESTRICTED
+  // de qualquer outro erro genérico.
+  assert.match(html,/error\.code=data\.code;throw error;/);
+  assert.match(html,/function aplicarModoRestrito\(restrita\)/);
+  assert.match(html,/document\.body\.classList\.toggle\('conta-restrita',restrita\)/);
+  // carregarEmpresaServidor captura especificamente o 402 restrito, sem
+  // deixar o erro genérico estourar (empresaAtual continua null nesse caso).
+  assert.match(html,/if\(error\.code==='ACCOUNT_RESTRICTED'\)\{aplicarModoRestrito\(true\);empresaAtual=null;return\}/);
+  // Notas emitidas e Sair são as únicas exceções — todo o resto do menu
+  // (inclusive submenus e ações rápidas do painel) some via CSS.
+  assert.match(html,/data-permission="invoices" data-restrito-ok onclick="go\('notas',this\)"/);
+  assert.match(html,/data-restrito-ok onclick="sairPortal\(\)"/);
+  assert.match(css,/body\.conta-restrita \.sb-link:not\(\[data-restrito-ok\]\),body\.conta-restrita \.sb-sec,body\.conta-restrita \.quick-grid,body\.conta-restrita \.sb-submenu\{display:none!important\}/);
+  // login sem empresa restringido cai em Notas emitidas, não em Configurações
+  // (que ficaria escondida e sem sentido pra abrir primeiro).
+  assert.match(html,/\}else if\(contaRestrita\)\{\s*go\('notas',qs\('\.sb-link\[onclick\*="notas"\]'\)\);/);
+});
