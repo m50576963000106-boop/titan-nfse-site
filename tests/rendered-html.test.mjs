@@ -1171,3 +1171,28 @@ test("vistoria de 09/08/2026: nav das ferramentas fora do Light some quando o pl
   assert.match(html,/const okPermissao=!el\.dataset\.permission\|\|user\.isMaster\|\|permissions\.includes\(el\.dataset\.permission\)/);
   assert.match(html,/const okFeature=!el\.dataset\.feature\|\|user\.isMaster\|\|features\.includes\(el\.dataset\.feature\)/);
 });
+
+test("pedido de upgrade automático (vistoria de 09/08/2026): empresa pede pelo portal, Master aprova/recusa no painel",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // Lado da empresa: card "Meu plano" dentro de Emitente/Configurações, carregado
+  // ao navegar para lá — não é uma tela nova que ninguém vai encontrar.
+  assert.match(html,/if\(v==='emitente'\)carregarMeuPlano\(\);/);
+  assert.match(html,/id="plan-upgrade-box"/);
+  assert.match(html,/async function carregarMeuPlano\(\)/);
+  assert.match(html,/api\('\/api\/plans'\)/);
+  assert.match(html,/api\('\/api\/plans\/upgrade-requests'\)/);
+  assert.match(html,/async function solicitarUpgradePlano\(\)/);
+  assert.match(html,/api\('\/api\/plans\/upgrade-requests',\{method:'POST',body:JSON\.stringify\(\{requestedPlanCode,note:note\|\|undefined\}\)\}\)/);
+  assert.match(html,/async function cancelarPedidoUpgrade\(id\)/);
+  // Lado do Master: fila de pedidos dentro do painel de Planos, com contador
+  // no sino do painel (pill) para não depender de abrir a tela pra saber que
+  // tem pedido parado.
+  assert.match(html,/id="master-plan-upgrade-requests"/);
+  assert.match(html,/id="plan-upgrade-pending-pill"/);
+  assert.match(html,/async function carregarPlanUpgradeRequests\(\)/);
+  assert.match(html,/api\('\/api\/master\/plan-upgrade-requests'\)/);
+  assert.match(html,/async function aprovarUpgradePlano\(id\)/);
+  assert.match(html,/api\('\/api\/master\/plan-upgrade-requests\/'\+id\+'\/approve',\{method:'POST'\}\)/);
+  assert.match(html,/async function recusarUpgradePlano\(id\)/);
+  assert.match(html,/api\('\/api\/master\/plan-upgrade-requests\/'\+id\+'\/reject'/);
+});
