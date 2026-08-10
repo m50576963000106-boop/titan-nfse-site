@@ -1191,7 +1191,7 @@ test("pedido de upgrade automático (vistoria de 09/08/2026): empresa pede pelo 
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   // Lado da empresa: card "Meu plano" dentro de Emitente/Configurações, carregado
   // ao navegar para lá — não é uma tela nova que ninguém vai encontrar.
-  assert.match(html,/if\(v==='emitente'\)carregarMeuPlano\(\);/);
+  assert.match(html,/if\(v==='emitente'\)\{carregarMeuPlano\(\);carregarMeuContrato\(\)\}/);
   assert.match(html,/id="plan-upgrade-box"/);
   assert.match(html,/async function carregarMeuPlano\(\)/);
   assert.match(html,/api\('\/api\/plans'\)/);
@@ -1210,4 +1210,24 @@ test("pedido de upgrade automático (vistoria de 09/08/2026): empresa pede pelo 
   assert.match(html,/api\('\/api\/master\/plan-upgrade-requests\/'\+id\+'\/approve',\{method:'POST'\}\)/);
   assert.match(html,/async function recusarUpgradePlano\(id\)/);
   assert.match(html,/api\('\/api\/master\/plan-upgrade-requests\/'\+id\+'\/reject'/);
+});
+
+test("pedido do usuário (10/08/2026): contrato editável e versionado, com Meu contrato no portal do cliente",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // Master: editor de texto + histórico + publicação com bump de versão.
+  assert.match(html,/id="contract-body"/);
+  assert.match(html,/id="contract-versions-history"/);
+  assert.match(html,/async function carregarContratoMaster\(\)/);
+  assert.match(html,/api\('\/api\/master\/contract-versions'\)/);
+  assert.match(html,/async function publicarVersaoContrato\(bump\)/);
+  assert.match(html,/api\('\/api\/master\/contract-versions',\{method:'POST',body:JSON\.stringify\(\{body,bump\}\)\}\)/);
+  // Cliente: consulta, aceita e baixa dentro de Emitente\/Configurações.
+  assert.match(html,/if\(v==='emitente'\)\{carregarMeuPlano\(\);carregarMeuContrato\(\)\}/);
+  assert.match(html,/id="contract-box"/);
+  assert.match(html,/async function carregarMeuContrato\(\)/);
+  assert.match(html,/api\('\/api\/contract'\)/);
+  assert.match(html,/async function aceitarContrato\(\)/);
+  assert.match(html,/api\('\/api\/contract\/accept',\{method:'POST'\}\)/);
+  assert.match(html,/async function baixarContrato\(\)/);
+  assert.match(html,/apiBlob\('\/api\/contract\/pdf'\)/);
 });

@@ -649,6 +649,11 @@
             <div class="card-h"><h2>Meu plano</h2><span class="pill p-gold right" id="plan-current-pill">—</span></div>
             <div class="card-b" id="plan-upgrade-box"><div class="empty-state">Carregando planos disponíveis...</div></div>
           </div>
+
+          <div class="card">
+            <div class="card-h"><h2>Meu contrato</h2><span class="pill p-gold right" id="contract-status-pill">—</span></div>
+            <div class="card-b" id="contract-box"><div class="empty-state">Carregando...</div></div>
+          </div>
         </div>
       </div>
     </section>
@@ -943,7 +948,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
 
       <div class="master-panel" id="master-panel-perfis"><div class="card"><div class="card-h"><div><h3 id="profile-form-title">Criar novo perfil</h3><p>Escolha um modelo operacional e ajuste somente o necessário. Permissões sensíveis ficam destacadas.</p></div></div><div class="card-b"><input id="profile-id" type="hidden"><div class="row r2"><div class="field"><label for="profile-preset">Modelo inicial</label><select id="profile-preset" class="inp" onchange="aplicarModeloPerfil(this.value)"><option value="operator">Operador básico</option><option value="issuer">Emissor fiscal</option><option value="financial">Financeiro</option><option value="company_admin">Administrador da empresa</option><option value="custom">Personalizado</option></select></div><div class="field"><label for="profile-name">Nome do perfil</label><input id="profile-name" class="inp" placeholder="Ex.: Financeiro"></div><div class="field"><label for="profile-plan">Plano mínimo</label><select id="profile-plan" class="inp"><option value="light">Plano Light</option><option value="sn20">Plano SN 20</option><option value="sn50">Plano SN 50</option><option value="completo">Completo</option></select></div></div><div id="profile-permissions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0"></div><div class="hint">Novo perfil não nasce mais com tudo marcado. Use rascunhos financeiros, integrações, certificado e configurações da empresa somente quando o usuário realmente precisar.</div><div class="flex wrap"><button class="btn btn-p" id="profile-save" onclick="salvarPerfilAcesso()">Criar perfil</button><button class="btn" id="profile-cancel" style="display:none" onclick="cancelarEdicaoPerfil()">Cancelar edição</button></div></div></div><div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Perfis existentes</h3></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Plano mínimo</th><th>Em uso</th><th>Permissões</th><th>Ação</th></tr></thead><tbody id="master-profiles"></tbody></table></div></div></div>
 
-      <div class="master-panel" id="master-panel-planos"><div class="card"><div class="card-h"><div><h3>Planos</h3><p>Defina nome, preço e limite de NFS-e autorizadas por mês.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="plan-code">Código</label><input id="plan-code" class="inp" placeholder="ex.: pro100"></div><div class="field"><label for="plan-name">Nome do plano</label><input id="plan-name" class="inp" placeholder="Plano Profissional"></div><div class="field"><label for="plan-price">Preço mensal (R$)</label><input id="plan-price" class="inp" inputmode="decimal" placeholder="99,90"></div><div class="field"><label for="plan-limit">Limite de notas / mês</label><input id="plan-limit" class="inp" type="number" min="1" placeholder="100"></div></div><div class="row r2"><div class="field"><label for="plan-description">Descrição</label><input id="plan-description" class="inp" placeholder="Resumo do que está incluído"></div><div class="field"><label for="plan-active">Status</label><select id="plan-active" class="inp"><option value="true">Ativo</option><option value="false">Inativo</option></select></div></div><div class="field"><label>Ferramentas incluídas no plano</label><div id="plan-features" class="alert a-info" style="margin:0;padding:10px;display:grid;gap:7px"></div><div class="hint">O que estiver marcado é o que o cliente contrata. O que é padrão do produto aparece travado. A recusa também acontece na API: desmarcar aqui bloqueia de verdade, não só esconde o botão.</div></div><div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarPlanoMaster()">Salvar plano</button><button class="btn" id="plan-cancel" style="display:none" type="button" onclick="cancelarEdicaoPlanoMaster()">Cancelar edição</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Plano</th><th>Preço</th><th>Limite</th><th>Ferramentas</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-plans"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Pedidos de upgrade</h3><p>O cliente pede pelo portal; aprovar troca o plano na hora e avisa a empresa no sino.</p></div><span class="pill p-warn right" id="plan-upgrade-pending-pill" style="display:none">0 pendentes</span></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>De</th><th>Para</th><th>Nota</th><th>Pedido em</th><th>Ação</th></tr></thead><tbody id="master-plan-upgrade-requests"><tr><td colspan="6" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div></div></div>
+      <div class="master-panel" id="master-panel-planos"><div class="card"><div class="card-h"><div><h3>Planos</h3><p>Defina nome, preço e limite de NFS-e autorizadas por mês.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="plan-code">Código</label><input id="plan-code" class="inp" placeholder="ex.: pro100"></div><div class="field"><label for="plan-name">Nome do plano</label><input id="plan-name" class="inp" placeholder="Plano Profissional"></div><div class="field"><label for="plan-price">Preço mensal (R$)</label><input id="plan-price" class="inp" inputmode="decimal" placeholder="99,90"></div><div class="field"><label for="plan-limit">Limite de notas / mês</label><input id="plan-limit" class="inp" type="number" min="1" placeholder="100"></div></div><div class="row r2"><div class="field"><label for="plan-description">Descrição</label><input id="plan-description" class="inp" placeholder="Resumo do que está incluído"></div><div class="field"><label for="plan-active">Status</label><select id="plan-active" class="inp"><option value="true">Ativo</option><option value="false">Inativo</option></select></div></div><div class="field"><label>Ferramentas incluídas no plano</label><div id="plan-features" class="alert a-info" style="margin:0;padding:10px;display:grid;gap:7px"></div><div class="hint">O que estiver marcado é o que o cliente contrata. O que é padrão do produto aparece travado. A recusa também acontece na API: desmarcar aqui bloqueia de verdade, não só esconde o botão.</div></div><div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarPlanoMaster()">Salvar plano</button><button class="btn" id="plan-cancel" style="display:none" type="button" onclick="cancelarEdicaoPlanoMaster()">Cancelar edição</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Plano</th><th>Preço</th><th>Limite</th><th>Ferramentas</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-plans"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Pedidos de upgrade</h3><p>O cliente pede pelo portal; aprovar troca o plano na hora e avisa a empresa no sino.</p></div><span class="pill p-warn right" id="plan-upgrade-pending-pill" style="display:none">0 pendentes</span></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>De</th><th>Para</th><th>Nota</th><th>Pedido em</th><th>Ação</th></tr></thead><tbody id="master-plan-upgrade-requests"><tr><td colspan="6" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Contrato de Sessão de Uso</h3><p>Editar e publicar cria uma versão nova — a que o cliente já assinou nunca é sobrescrita.</p></div><span class="pill p-gold right" id="contract-current-pill">—</span></div><div class="card-b"><div class="field"><label for="contract-body">Texto do contrato (versão vigente)</label><textarea id="contract-body" class="inp" rows="16" style="font-family:inherit;line-height:1.5" oninput="this.dataset.dirty='1'"></textarea><div class="hint">Publicar avisa todas as empresas no sino: elas precisam ler e aceitar a versão nova para a Sessão de Uso continuar valendo.</div></div><div class="flex wrap"><button class="btn btn-s" type="button" onclick="publicarVersaoContrato('minor')">Publicar correção (versão menor)</button><button class="btn btn-p" type="button" onclick="publicarVersaoContrato('major')">Publicar revisão (versão maior)</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Versão</th><th>Publicada em</th><th>Por</th><th>Aceites</th></tr></thead><tbody id="contract-versions-history"><tr><td colspan="4" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div></div></div>
 
       <div class="master-panel" id="master-panel-config">
         <div class="card"><div class="card-h"><div><h3>Contas Master</h3><p>Quem tem acesso administrativo total ao TITAN. As demais telas se recusam a alterar uma conta Master — esta é a única que administra. Toda mudança fica registrada nos Logs de auditoria.</p></div><button class="btn btn-s" type="button" onclick="carregarContasMaster()">Atualizar</button></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>E-mail</th><th>Nome</th><th>Situação</th><th>Ação</th></tr></thead><tbody id="master-accounts"><tr><td colspan="4">Carregando contas Master...</td></tr></tbody></table></div><span id="master-accounts-status" class="foot-note"></span></div></div>
@@ -1551,7 +1556,7 @@ function go(v,el){
   if(v==='recebimentos')carregarRecebimentos();
   if(v==='financeiro')carregarBilling();
   if(v==='dasn')carregarDasn();
-  if(v==='emitente')carregarMeuPlano();
+  if(v==='emitente'){carregarMeuPlano();carregarMeuContrato()}
 }
 
 let recebimentos=[],recorrenciasRecebimento=[];
@@ -2892,6 +2897,33 @@ async function cancelarPedidoUpgrade(id){
   try{await api('/api/plans/upgrade-requests/'+id,{method:'DELETE'});await carregarMeuPlano()}catch(error){alert(error.message)}
 }
 
+async function carregarMeuContrato(){
+  const box=qs('#contract-box');if(!box)return;
+  try{
+    const dados=await api('/api/contract');
+    if(!dados.current){box.innerHTML='<div class="empty-state">Nenhum contrato publicado ainda.</div>';qs('#contract-status-pill').textContent='—';return}
+    const emDia=dados.acceptance&&dados.acceptance.current;
+    qs('#contract-status-pill').textContent='v'+dados.current.version;
+    qs('#contract-status-pill').className='pill right '+(emDia?'p-ok':'p-warn');
+    const textoContrato=`<div class="alert a-info" style="max-height:260px;overflow:auto;white-space:pre-wrap;font-size:13px;line-height:1.6;margin:0 0 12px">${esc(dados.current.body)}</div>`;
+    if(emDia){
+      box.innerHTML=`<div class="alert a-ok"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><div>Você aceitou a versão ${esc(dados.acceptance.version)} em ${formatarDataNovidade(dados.acceptance.acceptedAt)}.</div></div>
+        ${textoContrato}
+        <button class="btn btn-s" type="button" onclick="baixarContrato()">Baixar contrato (PDF)</button>`;
+    }else{
+      box.innerHTML=`<div class="alert a-warn"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div>${dados.acceptance?`Uma versão nova (${esc(dados.current.version)}) foi publicada. `:''}Leia e aceite o contrato para continuar com a Sessão de Uso ativa.</div></div>
+        ${textoContrato}
+        <button class="btn btn-a" type="button" onclick="aceitarContrato()">Li e concordo com o Contrato de Sessão de Uso</button>`;
+    }
+  }catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+}
+async function aceitarContrato(){
+  try{await api('/api/contract/accept',{method:'POST'});await carregarMeuContrato()}catch(error){alert(error.message)}
+}
+async function baixarContrato(){
+  try{const blob=await apiBlob('/api/contract/pdf'),url=URL.createObjectURL(blob),tab=window.open(url,'_blank');if(!tab){const a=document.createElement('a');a.href=url;a.download='contrato-titan-nfse.pdf';a.click()}setTimeout(()=>URL.revokeObjectURL(url),120000)}catch(error){alert(error.message)}
+}
+
 let clienteComercialSelecionado=null;
 let servicoComercialSelecionado=null;
 async function popularClientesComercial(){
@@ -3666,6 +3698,7 @@ async function carregarMaster(){
     const pendPill=qs('#plan-upgrade-pending-pill');
     if(pendPill){const n=Number(masterData.pendingUpgradeRequests||0);pendPill.style.display=n?'':'none';pendPill.textContent=n+' pendente'+(n>1?'s':'');}
     carregarPlanUpgradeRequests();
+    carregarContratoMaster();
   }catch(error){
     if(error?.status===401){
       limparSessaoLocal();
@@ -3770,6 +3803,31 @@ async function recusarUpgradePlano(id){
   const reviewNote=await titanPrompt('Motivo da recusa (opcional — a empresa vê esta mensagem no sino):','','Recusar pedido de upgrade');
   if(reviewNote===null)return;
   try{await api('/api/master/plan-upgrade-requests/'+id+'/reject',{method:'POST',body:JSON.stringify({reviewNote:reviewNote||undefined})});await carregarMaster()}catch(error){alert(error.message)}
+}
+
+let contractVersionsHistorico=[];
+async function carregarContratoMaster(){
+  const box=qs('#contract-versions-history');if(!box)return;
+  try{
+    contractVersionsHistorico=await api('/api/master/contract-versions');
+    const atual=contractVersionsHistorico[0];
+    qs('#contract-current-pill').textContent=atual?('v'+atual.major+'.'+atual.minor):'—';
+    if(atual&&!qs('#contract-body').dataset.dirty)qs('#contract-body').value=atual.body;
+    box.innerHTML=contractVersionsHistorico.map(v=>`<tr><td><b>v${v.major}.${v.minor}</b></td><td>${formatarDataNovidade(v.created_at)}</td><td>${esc(v.created_by_name||'—')}</td><td>${v.acceptances_count}</td></tr>`).join('')||'<tr><td colspan="4" class="empty-state">Nenhuma versão publicada.</td></tr>';
+  }catch(error){box.innerHTML=`<tr><td colspan="4"><div class="empty-state">${esc(error.message)}</div></td></tr>`}
+}
+async function publicarVersaoContrato(bump){
+  const body=qs('#contract-body').value.trim();
+  if(body.length<20){alert('O texto do contrato precisa ter conteúdo suficiente.');return}
+  const atual=contractVersionsHistorico[0];
+  const proxima=atual?(bump==='major'?(atual.major+1)+'.0':atual.major+'.'+(atual.minor+1)):'1.0';
+  if(!await titanConfirm(`Publicar a versão ${proxima}? Todas as empresas serão avisadas no sino e precisarão aceitar de novo para continuar usando o sistema.`,'Publicar contrato'))return;
+  try{
+    await api('/api/master/contract-versions',{method:'POST',body:JSON.stringify({body,bump})});
+    delete qs('#contract-body').dataset.dirty;
+    await carregarContratoMaster();
+    alert('Versão '+proxima+' publicada. As empresas foram avisadas no sino.');
+  }catch(error){alert(error.message)}
 }
 let masterNewLookup=null,masterEditingPlanCode='';
 function abrirNovoCliente(){qs('#master-client-modal').classList.add('on');qs('#master-new-cnpj').focus();}
