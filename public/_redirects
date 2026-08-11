@@ -1,10 +1,13 @@
-# Link de download de nota (XML/ZIP) mandado pelo Martyn pelo WhatsApp: repassa
-# pra API real sem redirecionar, pra o cliente nunca ver o domínio onrender.com.
+# Link de download de nota (XML/ZIP) mandado pelo Martyn pelo WhatsApp.
 # Regra que existia em worker/index.ts (escrita pra Cloudflare Workers) nunca
 # rodou de verdade: o serviço no Render é Static Site, não executa código,
 # só reconhece _redirects/_headers. Achado em 11/08/2026: /n/:code devolvia
-# 404 genérico do Render em vez do 410 real do backend (link expirado/inválido).
-/n/*  https://titan-nfse-api.onrender.com/n/:splat  200
-/api/whatsapp/download/*  https://titan-nfse-api.onrender.com/api/whatsapp/download/:splat  200
+# 404 genérico do Render em vez do 410/200 real do backend.
+# Tentativa 1 (200, proxy real sem trocar de domínio) não funcionou: Render
+# Static Site, diferente do Netlify, não faz proxy (200) pra host externo,
+# só redirect. 302 é o que sobra pra site estático — mostra onrender.com no
+# navegador por um instante, mas entrega o arquivo de verdade.
+/n/*  https://titan-nfse-api.onrender.com/n/:splat  302
+/api/whatsapp/download/*  https://titan-nfse-api.onrender.com/api/whatsapp/download/:splat  302
 
 /index.html / 301
