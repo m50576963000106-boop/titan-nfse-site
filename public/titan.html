@@ -1099,6 +1099,18 @@ const qs=(s,r=document)=>r.querySelector(s);
 const qsa=(s,r=document)=>[...r.querySelectorAll(s)];
 const brl=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+/**
+ * Achado da auditoria de 11/08/2026: dados externos (ex.: número da NFS-e
+ * devolvido pela Sefin) interpolados em onclick="fn('${valor}')" — esc()
+ * sozinho não basta aqui, porque não escapa aspas simples, que é o
+ * caractere que de fato rompe o argumento de string JS dentro do atributo
+ * (mesma classe de bug do caso "Sant'Ana do Livramento", motivo pelo qual o
+ * código de município nunca colocou row.name em onclick, só row.code).
+ * Escapa primeiro pra virar texto-fonte JS seguro (\\ e '), depois pra
+ * virar atributo HTML seguro (reaproveita esc()) — nessa ordem, porque o
+ * navegador decodifica o HTML antes do JS ler a string.
+ */
+const escAttr=value=>esc(String(value??'').replaceAll('\\','\\\\').replaceAll("'","\\'"));
 let systemDialogResolve=null;
 function titanDialog({title='Aviso do TITAN',subtitle='Mensagem do sistema',label='Mensagem',message='',summary='Confira os detalhes abaixo.',variant='info',mode='alert',okLabel='OK',cancelLabel='Cancelar',defaultValue=''}={}){
   return new Promise(resolve=>{
@@ -1492,6 +1504,12 @@ window.addEventListener('pageshow',garantirBarreiraInicial);
 // Listener para ações da janela do DANFSe (iframe sandbox não pode
 // acessar a API diretamente, então usa postMessage via window.opener).
 window.addEventListener('message',(e)=>{
+  // Achado da auditoria de 11/08/2026: sem checar e.origin, qualquer janela
+  // com referência a esta aba podia forjar a mensagem e disparar um download
+  // com invoiceId arbitrário. A aba do DANFSe é aberta via window.open('','_blank')
+  // (mesma origem, nunca navega pra outro domínio) — e.origin===location.origin
+  // sempre bate no fluxo real, então isso não muda o comportamento esperado.
+  if(e.origin!==location.origin)return;
   if(e.data?.titan==='baixarXml' && e.data?.invoiceId){
     baixarXml(String(e.data.invoiceId),String(e.data.numero||''));
   }
@@ -2404,10 +2422,10 @@ function renderTabelaNotas(lista){
       <td data-th="Situação"><div>${pill(x.st)}${x.emailSentAt?`<div class="foot-note">E-mail: ${esc(x.emailTo||'enviado')} · ${esc(new Date(x.emailSentAt).toLocaleString('pt-BR'))}${x.emailProviderId?` · ID ${esc(x.emailProviderId)}`:''}</div>`:x.emailLastError?`<div class="foot-note" style="color:#b91c1c">E-mail: ${esc(x.emailLastError)}</div>`:''}</div></td>
       <td data-th="Ações">
         <div class="acts">
-          <button class="ico-btn" title="Baixar XML" onclick="baixarXml('${x.id}','${x.n}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
-          <button class="ico-btn" title="Abrir DANFSe em PDF" onclick="abrirDanfse('${x.id}','${x.n}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ico-btn" title="Baixar XML" onclick="baixarXml('${x.id}','${escAttr(x.n)}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
+          <button class="ico-btn" title="Abrir DANFSe em PDF" onclick="abrirDanfse('${x.id}','${escAttr(x.n)}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
           <button class="btn btn-s" type="button" onclick="reenviarEmailNota('${x.id}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}>Reenviar por e-mail</button>
-          <button class="ico-btn danger" title="Cancelar nota" onclick="abrirCancelamento('${x.id}','${x.n}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></button>
+          <button class="ico-btn danger" title="Cancelar nota" onclick="abrirCancelamento('${x.id}','${escAttr(x.n)}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></button>
         </div>
       </td>
     </tr>`).join('');
@@ -2611,7 +2629,7 @@ function checarHabilitacao(){
     box.innerHTML=`
       <div class="alert a-warn">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
-        <div><b>Depende do município.</b> Fora do Simples, a emissão exige consulta oficial da adesão e do modo adotado por ${mun}. Essa verificação ainda não foi executada.</div>
+        <div><b>Depende do município.</b> Fora do Simples, a emissão exige consulta oficial da adesão e do modo adotado por ${esc(mun)}. Essa verificação ainda não foi executada.</div>
       </div>`;
   }
 }
@@ -2649,7 +2667,7 @@ let rodando=false;
  * conferir. Devolve {ok:true,payload} ou {ok:false,msg,...} para quem chamou
  * decidir como avisar (alert na emissão, painel no preflight).
  */
-function montarPayloadEmissao(){
+async function montarPayloadEmissao(){
   if(!empresaAtual) return {ok:false,msg:'Cadastre e salve a empresa antes de emitir.',view:'emitente'};
   const valor=Number(qs('#s-val').value.replace(/\./g,'').replace(',','.'));
   const documento=normalizarDocumento(qs('#t-doc').value);
@@ -2666,6 +2684,17 @@ function montarPayloadEmissao(){
     borrower:{name:qs('#t-nome').value.trim(),taxId:documento,email:qs('#t-mail').value.trim()||undefined,municipalityCode:qs('#t-municipio').value.replace(/\D/g,'')||undefined,postalCode:qs('#t-cep').value.replace(/\D/g,'')||undefined,street:qs('#t-end').value.trim()||undefined,number:qs('#t-num').value.trim()||undefined,district:qs('#t-bairro').value.trim()||undefined,city:qs('#t-cidade').value.trim()||undefined,state:qs('#t-uf').value.trim().toUpperCase()||undefined},
     service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,municipalTaxCode:perfil?.municipal_code||undefined,nbsCode:nbs||undefined,description:qs('#s-desc').value.trim(),amount:valor,additionalItems,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value.replace(/\D/g,'')||undefined,eventCode:qs('#s-event-code')?.value.trim()||undefined,eventLocation:qs('#s-event-location')?.value.trim()||undefined,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,issRate:perfil?.iss_rate==null?undefined:Number(perfil.iss_rate),pisCofinsCst:cst||undefined,pisCofinsWithholding:tipoPisCofins||undefined,pisCofinsBase:retevePisCofins?dinheiro(qs('#s-pc-base').value):undefined,pisRate:retevePisCofins?dinheiro(qs('#s-pis-rate').value):undefined,cofinsRate:retevePisCofins?dinheiro(qs('#s-cofins-rate').value):undefined,pisAmount:retevePisCofins?dinheiro(qs('#s-pis-amount').value):undefined,cofinsAmount:retevePisCofins?dinheiro(qs('#s-cofins-amount').value):undefined,retCp:dinheiro(qs('#s-ret-cp').value),retIrrf:dinheiro(qs('#s-ret-irrf').value),retCsll:retevePisCofins?dinheiro(qs('#s-ret-csll').value):0,ibscbsCst:perfil?.ibscbs_cst||undefined,ibscbsClassTrib:perfil?.ibscbs_class_trib||undefined}
   };
+  // Achado da auditoria de 11/08/2026: #s-mun-search (texto exibido) só
+  // sincronizava com #s-mun (código IBGE realmente enviado à Sefin) quando o
+  // usuário clicava a sugestão do dropdown. Digitar e sair do campo sem
+  // clicar (Tab, autocomplete do navegador) deixava a nota sair com o
+  // município antigo enquanto a tela mostrava o texto novo — sem aviso
+  // nenhum. Trava aqui: o texto exibido precisa bater com o retorno do
+  // catálogo (config de municípios) para o código que será de fato enviado.
+  try{await carregarMunicipiosCatalogo();}catch{}
+  const munConfirmado=municipiosCatalogo.find(row=>row.code===payload.service.municipalityCode);
+  const munTextoEsperado=munConfirmado?`${munConfirmado.name}/${munConfirmado.state} — ${munConfirmado.code}`:null;
+  if(!munConfirmado||qs('#s-mun-search').value.trim()!==munTextoEsperado) return {ok:false,msg:'O município de incidência não foi confirmado — clique numa opção da lista de municípios antes de emitir.',foco:'#s-mun-search'};
   if(!payload.competenceDate||!payload.borrower.name||!payload.borrower.taxId||!payload.service.nationalTaxCode||!payload.service.description||!Number.isFinite(valor)||valor<=0) return {ok:false,msg:'Preencha competência, tomador, CPF/CNPJ, código nacional, descrição e valor do serviço.'};
   if(!/^\d{11}$/.test(documento)&&!cnpjComFormatoValido(documento)) return {ok:false,msg:'O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 caracteres válidos.',foco:'#t-doc'};
   if(!/^\d{9}$/.test(nbs)) return {ok:false,msg:'O código NBS é obrigatório e deve conter exatamente 9 dígitos.',foco:'#s-nbs'};
@@ -2681,7 +2710,7 @@ function tratarFalhaPayload(m){
   if(el){m.scroll?el.scrollIntoView({behavior:'smooth',block:'center'}):el.focus();}
 }
 async function emitir(){
-  const montagem=montarPayloadEmissao();
+  const montagem=await montarPayloadEmissao();
   if(!montagem.ok){tratarFalhaPayload(montagem);return;}
   const payload=montagem.payload,valor=payload.service.amount;
   if(ambienteAtual==='production'){
@@ -2761,7 +2790,7 @@ function pfResponder(id,valor){const cfg=PREFLIGHT_MAPA[id];if(!cfg)return;prefl
 
 async function conferirComMartyn(){
   const painel=qs('#preflight-panel');
-  const montagem=montarPayloadEmissao();
+  const montagem=await montarPayloadEmissao();
   painel.style.display='block';
   if(!montagem.ok){painel.innerHTML=`<div class="pf-head pf-err"><b>Faltam dados para conferir</b><button class="pf-x" type="button" onclick="fecharPreflight()" aria-label="Fechar">&times;</button></div><div class="pf-body">${esc(montagem.msg)}</div>`;painel.scrollIntoView({behavior:'smooth',block:'nearest'});return;}
   painel.innerHTML='<div class="pf-body"><span class="sup-typing">Martyn está conferindo a nota…</span></div>';
@@ -3300,7 +3329,12 @@ function aplicarEmpresa(){
   qs('#e-mun').value=empresaAtual.mun;exibirMunicipioPorCodigo('e',empresaAtual.mun);
   qs('#e-end').value=empresaAtual.endereco;qs('#e-email').value=empresaAtual.email||'';qs('#e-phone').value=empresaAtual.phone||'';qs('#e-zap').value=empresaAtual.whatsapp||'';
   qs('#e-series').value=empresaAtual.series||1;qs('#e-next').value=empresaAtual.next||1;qs('#e-simple-ap').value=String(empresaAtual.simpleAp||1);qs('#e-simple-total').value=empresaAtual.simpleTotal===''?'':String(empresaAtual.simpleTotal).replace('.',',');qs('#e-tax-fed').value=empresaAtual.taxFed===''||empresaAtual.taxFed==null?'':String(empresaAtual.taxFed).replace('.',',');qs('#e-tax-est').value=empresaAtual.taxEst===''||empresaAtual.taxEst==null?'':String(empresaAtual.taxEst).replace('.',',');qs('#e-tax-mun').value=empresaAtual.taxMun===''||empresaAtual.taxMun==null?'':String(empresaAtual.taxMun).replace('.',',');qs('#e-special').value=String(empresaAtual.special||0);
-  if(empresaAtual.mun)qs('#s-mun').value=empresaAtual.mun;
+  // Antes só setava o campo oculto (#s-mun) — #s-mun-search (texto exibido)
+  // ficava vazio até o usuário mexer manualmente, o que faria a nova trava de
+  // confirmação em montarPayloadEmissao() bloquear até o caso padrão (empresa
+  // sem nunca ter trocado o município do serviço). exibirMunicipioPorCodigo já
+  // sincroniza os dois campos a partir do catálogo, igual ao que a aba 'e' já fazia.
+  if(empresaAtual.mun)exibirMunicipioPorCodigo('s',empresaAtual.mun);
   qs('#resumo-regime').textContent=empresaAtual.reg;
   qs('#kpi-empresas').textContent='1';
   qs('#kpi-cadastro').textContent='Concluído';
@@ -4308,14 +4342,14 @@ function supFiltrarNotas(text){
 }
 function supNotaCard(n){
   const status=sit[n.st]?.[1]||n.st;
-  let acoes=n.key?`<div class="sup-act"><button type="button" onclick="supNotaDetalhe('${n.id}')">Detalhes</button><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}','${n.n}')">Abrir PDF</button>`:'<span>Documento ainda sem XML autorizado.</span>';
+  let acoes=n.key?`<div class="sup-act"><button type="button" onclick="supNotaDetalhe('${n.id}')">Detalhes</button><button type="button" onclick="baixarXml('${n.id}','${escAttr(n.n)}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}','${escAttr(n.n)}')">Abrir PDF</button>`:'<span>Documento ainda sem XML autorizado.</span>';
   if(n.key&&n.st==='ok')acoes+=`<button type="button" onclick="supPrepararCancelamento('${n.id}')">Preparar cancelamento</button>`;
   if(n.key)acoes+='</div>';
   return `<div class="sup-note-card"><b>DPS ${esc(n.n)} · ${esc(status)}</b><span>${esc(n.d)} · ${esc(n.t||'Tomador não informado')}</span><span>${esc(n.s||'Serviço')} · R$ ${brl(Number(n.v||0))}</span>${acoes}</div>`;
 }
 function supNotaDetalhe(id){
   const n=notas.find(item=>item.id===id);if(!n){supBubble('Não encontrei mais essa nota na empresa ativa. Atualize o histórico e tente novamente.','bot');return}
-  supBubble(`<b>Detalhes da DPS ${esc(n.n)}</b><ul><li>Situação: <b>${esc(sit[n.st]?.[1]||n.st)}</b></li><li>Emissão: ${esc(n.d)}</li><li>Tomador: ${esc(n.t||'Não informado')}</li><li>Serviço: ${esc(n.s||'Não informado')}</li><li>Valor: R$ ${brl(Number(n.v||0))}</li></ul>${n.key?`<span class="sup-note-key">Chave: ${esc(n.key)}</span><div class="sup-act"><button type="button" onclick="baixarXml('${n.id}','${n.n}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}','${n.n}')">Abrir DANFSe</button>${n.st==='ok'?`<button type="button" onclick="supPrepararCancelamento('${n.id}')">Preparar cancelamento</button>`:''}</div>`:'<br>Esta emissão ainda não possui chave autorizada.'}`,'bot');
+  supBubble(`<b>Detalhes da DPS ${esc(n.n)}</b><ul><li>Situação: <b>${esc(sit[n.st]?.[1]||n.st)}</b></li><li>Emissão: ${esc(n.d)}</li><li>Tomador: ${esc(n.t||'Não informado')}</li><li>Serviço: ${esc(n.s||'Não informado')}</li><li>Valor: R$ ${brl(Number(n.v||0))}</li></ul>${n.key?`<span class="sup-note-key">Chave: ${esc(n.key)}</span><div class="sup-act"><button type="button" onclick="baixarXml('${n.id}','${escAttr(n.n)}')">Baixar XML</button><button type="button" onclick="abrirDanfse('${n.id}','${escAttr(n.n)}')">Abrir DANFSe</button>${n.st==='ok'?`<button type="button" onclick="supPrepararCancelamento('${n.id}')">Preparar cancelamento</button>`:''}</div>`:'<br>Esta emissão ainda não possui chave autorizada.'}`,'bot');
 }
 function supPrepararCancelamento(id){
   const n=notas.find(item=>item.id===id);

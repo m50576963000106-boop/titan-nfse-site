@@ -338,8 +338,8 @@ test("preflight fiscal do Martyn confere a nota interativamente antes de emitir"
   assert.match(html,/id="preflight-panel"/);
   // emitir() e o preflight compartilham o MESMO payload — conferir uma nota e
   // emitir outra seria pior que não conferir
-  assert.match(html,/function montarPayloadEmissao\(\)/);
-  assert.match(html,/const montagem=montarPayloadEmissao\(\);/);
+  assert.match(html,/async function montarPayloadEmissao\(\)/);
+  assert.match(html,/const montagem=await montarPayloadEmissao\(\);/);
   assert.match(html,/\/api\/invoices\/preflight/);
   assert.match(html,/martynFacts:preflightFatos/);
   // só mapeia de volta os fatos que uma pergunta representa sem ambiguidade
@@ -1129,6 +1129,32 @@ test("recebimentos e recorrências recusam valor zero ou negativo, não só valo
 test("município digitado em checarHabilitacao passa por esc() antes de virar innerHTML",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/Município selecionado: \$\{esc\(mun\)\}\./);
+  // Achado da auditoria de 11/08/2026: o ramo "fora do Simples" da mesma
+  // função esquecia o esc() que os outros dois ramos já tinham (XSS).
+  assert.match(html,/modo adotado por \$\{esc\(mun\)\}\./);
+  assert.doesNotMatch(html,/modo adotado por \$\{mun\}\./);
+});
+
+test("emissão trava se o município exibido não bater com o retorno confirmado do catálogo (achado 11/08/2026: nota podia sair com município errado, silenciosamente)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/async function montarPayloadEmissao\(\)/);
+  assert.match(html,/const munConfirmado=municipiosCatalogo\.find\(row=>row\.code===payload\.service\.municipalityCode\);/);
+  assert.match(html,/if\(!munConfirmado\|\|qs\('#s-mun-search'\)\.value\.trim\(\)!==munTextoEsperado\) return \{ok:false/);
+  // o padrão da empresa precisa sincronizar o texto exibido, não só o campo oculto,
+  // senão a trava acima bloquearia até o caso normal (usuário que nunca mexeu no campo)
+  assert.match(html,/if\(empresaAtual\.mun\)exibirMunicipioPorCodigo\('s',empresaAtual\.mun\);/);
+});
+
+test("postMessage do popup do DANFSe confere event.origin antes de agir (achado 11/08/2026)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/window\.addEventListener\('message',\(e\)=>\{\s*\/\/[\s\S]{0,400}if\(e\.origin!==location\.origin\)return;/);
+});
+
+test("número da NFS-e (dado externo da Sefin) interpolado em onclick passa por escAttr(), não só esc() (achado 11/08/2026)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/const escAttr=value=>esc\(String\(value\?\?''\)\.replaceAll\(/);
+  assert.match(html,/onclick="baixarXml\('\$\{x\.id\}','\$\{escAttr\(x\.n\)\}'\)"/);
+  assert.match(html,/onclick="abrirCancelamento\('\$\{x\.id\}','\$\{escAttr\(x\.n\)\}'\)"/);
 });
 
 test("indicador de ambiente (topo) é exclusivo do Master — antes ficava invertido (escondido do admin, visível pro cliente)",async()=>{
