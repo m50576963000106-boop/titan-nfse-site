@@ -932,7 +932,25 @@ test("parceiro.html carrega a carteira do parceiro (GET /api/partner/companies) 
   assert.match(html,/company\.trade_name\|\|company\.legal_name/);
   assert.match(html,/formatarCnpj\(company\.federal_tax_id\)/);
   assert.match(html,/company\.emission_enabled\?'Emissão liberada':'Emissão suspensa'/);
-  assert.match(html,/function sair\(\)\{sessionStorage\.removeItem\(STORAGE_TOKEN\);sessionStorage\.removeItem\(STORAGE_SESSION\);location\.href='\/'\}/);
+  // Achado da auditoria de 11/08/2026: location.href navegava só o iframe
+  // desta tela, deixando a URL do navegador inconsistente com o conteúdo —
+  // window.top é o mesmo padrão de nfs.html/titan.html.
+  assert.match(html,/function sair\(\)\{sessionStorage\.removeItem\(STORAGE_TOKEN\);sessionStorage\.removeItem\(STORAGE_SESSION\);window\.top\.location\.href='\/'\}/);
+});
+
+test("buscarApiParceiro trata falha de rede em PT-BR e sessão expirada no servidor (401) aciona o link 'Entrar de novo' (achados 11/08/2026)",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/\}catch\{\s*\/\/[\s\S]{0,260}throw new Error\('Não foi possível conectar\. Verifique sua internet e tente novamente\.'\);\s*\}/);
+  assert.match(html,/if\(response\.status===401\)throw new Error\('SEM_SESSAO'\);/);
+});
+
+test("as 4 tabelas do portal do parceiro ficam dentro de .table-wrap, com scroll horizontal em telas estreitas (achado 11/08/2026)",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/\.table-wrap\{overflow:auto\}/);
+  for(const id of ['partner-table','creditos-table','comissoes-table','financeiro-table']){
+    const re=new RegExp(`<div class="table-wrap"><table id="${id}"`);
+    assert.match(html,re);
+  }
 });
 
 // ── Fase G: menus de créditos/comissões/financeiro do parceiro, com dados

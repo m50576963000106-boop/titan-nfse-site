@@ -28,6 +28,10 @@
     .partner-head p{margin-top:6px;color:var(--muted);font-size:14px}
     .partner-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
     .partner-summary{padding:14px 18px;font-size:13.5px;color:var(--ink,#1c2430);border-bottom:1px solid var(--line);background:#fbfaf7}
+    /* Achado da auditoria de 11/08/2026: tabelas sem scroll horizontal em
+       telas estreitas — nfs.css (carregado aqui) não define table-wrap como
+       titan.css já faz; reproduz a mesma regra localmente. */
+    .table-wrap{overflow:auto}
     table{width:100%;border-collapse:collapse}
     th,td{text-align:left;padding:13px 18px;font-size:13.5px;border-bottom:1px solid var(--line)}
     th{background:#fbfaf7;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
@@ -62,20 +66,20 @@
     <section class="partner-view" id="partner-view-carteira">
       <div class="partner-card">
         <div id="partner-status" class="partner-empty">Carregando carteira...</div>
-        <table id="partner-table" style="display:none">
+        <div class="table-wrap"><table id="partner-table" style="display:none">
           <thead><tr><th>Empresa</th><th>CNPJ</th><th>Status de emissão</th></tr></thead>
           <tbody id="partner-rows"></tbody>
-        </table>
+        </table></div>
       </div>
     </section>
 
     <section class="partner-view" id="partner-view-creditos" style="display:none">
       <div class="partner-card">
         <div id="creditos-status" class="partner-empty">Carregando créditos...</div>
-        <table id="creditos-table" style="display:none">
+        <div class="table-wrap"><table id="creditos-table" style="display:none">
           <thead><tr><th>Empresa</th><th>Plano</th><th>Cota de notas (mês corrente)</th><th>Funções contratadas</th></tr></thead>
           <tbody id="creditos-rows"></tbody>
-        </table>
+        </table></div>
       </div>
     </section>
 
@@ -83,20 +87,20 @@
       <div class="partner-card">
         <div id="comissoes-status" class="partner-empty">Carregando comissões...</div>
         <div id="comissoes-summary" class="partner-summary" style="display:none"></div>
-        <table id="comissoes-table" style="display:none">
+        <div class="table-wrap"><table id="comissoes-table" style="display:none">
           <thead><tr><th>Empresa</th><th>Mensalidade</th><th>Comissão estimada</th></tr></thead>
           <tbody id="comissoes-rows"></tbody>
-        </table>
+        </table></div>
       </div>
     </section>
 
     <section class="partner-view" id="partner-view-financeiro" style="display:none">
       <div class="partner-card">
         <div id="financeiro-status" class="partner-empty">Carregando financeiro...</div>
-        <table id="financeiro-table" style="display:none">
+        <div class="table-wrap"><table id="financeiro-table" style="display:none">
           <thead><tr><th>Empresa</th><th>Plano</th><th>Mensalidade</th><th>Implantação</th></tr></thead>
           <tbody id="financeiro-rows"></tbody>
-        </table>
+        </table></div>
       </div>
     </section>
   </main>
@@ -109,7 +113,12 @@
       const digits=String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
       return digits.length===14?digits.replace(/^(.{2})(.{3})(.{3})(.{4})(\d{2})$/,'$1.$2.$3/$4-$5'):(value||'');
     }
-    function sair(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_SESSION);location.href='/'}
+    // Achado da auditoria de 11/08/2026: location.href navegava só o
+    // documento do IFRAME desta tela (cada tela do site roda dentro de um
+    // iframe que ocupa a viewport inteira — ver app/globals.css), deixando a
+    // URL do navegador (/parceiro) inconsistente com o conteúdo mostrado
+    // (a home institucional). window.top é o mesmo padrão de nfs.html/titan.html.
+    function sair(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_SESSION);window.top.location.href='/'}
     document.querySelector('#partner-logout').addEventListener('click',sair);
 
     // Sessão vem sempre do login por e-mail em nfs.html (mesmo formulário do
@@ -123,7 +132,21 @@
     async function buscarApiParceiro(caminho){
       const token=tokenDeSessaoParceiro();
       if(!token)throw new Error('SEM_SESSAO');
-      const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+caminho,{headers:{Authorization:'Bearer '+token}});
+      let response;
+      try{
+        response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+caminho,{headers:{Authorization:'Bearer '+token}});
+      }catch{
+        // Achado da auditoria de 11/08/2026: falha de rede (offline, DNS,
+        // CORS) subia crua até a tela como TypeError em inglês, quebrando o
+        // padrão PT-BR do resto da tela.
+        throw new Error('Não foi possível conectar. Verifique sua internet e tente novamente.');
+      }
+      // Achado da auditoria de 11/08/2026: sessão expirada no SERVIDOR (401)
+      // caía no branch genérico do catch de cada carregarX, sem o link
+      // "Entrar de novo" — só a ausência LOCAL de token acionava
+      // mostrarErroSessao. Reaproveita o mesmo sentinel 'SEM_SESSAO' pros
+      // dois casos, então nenhum caller precisa saber a diferença.
+      if(response.status===401)throw new Error('SEM_SESSAO');
       const data=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(data.error||'Não foi possível carregar os dados.');
       return data;
