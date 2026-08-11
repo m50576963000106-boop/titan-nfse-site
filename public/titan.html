@@ -359,7 +359,8 @@
               </div>
               <div class="field">
                 <label for="s-desc">Descrição</label>
-                <textarea id="s-desc" class="inp" placeholder="Descreva o serviço prestado"></textarea>
+                <textarea id="s-desc" class="inp" placeholder="Descreva o serviço prestado" maxlength="1000" oninput="qs('#s-desc-count').textContent=this.value.length"></textarea>
+                <div class="hint"><span id="s-desc-count">0</span>/1000 caracteres</div>
               </div>
               <div class="row r2">
                 <div class="field mb0">
@@ -2266,15 +2267,32 @@ async function enviarCertificado(){
   finally{button.disabled=false;button.textContent='Enviar ao cofre seguro'}
 }
 
+// Achado da auditoria de 11/08/2026: o tamanho só era checado dentro de
+// enviarCertificado(), no clique de "Enviar" — um arquivo grande demais
+// subia inteiro (consumindo dados móveis, plano comum no celular) só pra
+// ser rejeitado depois. O tipo nunca era checado em lugar nenhum: accept=
+// no <input> é só filtro do seletor do SO, o arrastar-e-soltar ignora isso
+// por completo. Valida os dois já na escolha/soltura do arquivo.
+function validarArquivoCertificado(file){
+  if(!file)return true;
+  if(!/\.(pfx|p12)$/i.test(file.name)){alert('Selecione um arquivo .pfx ou .p12.');qs('#c-file').value='';qs('#cert-file-name').textContent='ou clique para escolher — máx. 8 MB';return false}
+  if(file.size>8*1024*1024){alert('O certificado ultrapassa o limite de 8 MB.');qs('#c-file').value='';qs('#cert-file-name').textContent='ou clique para escolher — máx. 8 MB';return false}
+  return true;
+}
 qs('#c-file').addEventListener('change',e=>{
-  qs('#cert-file-name').textContent=e.target.files[0]?.name||'ou clique para escolher — máx. 8 MB';
+  const file=e.target.files[0];
+  if(file&&!validarArquivoCertificado(file))return;
+  qs('#cert-file-name').textContent=file?.name||'ou clique para escolher — máx. 8 MB';
 });
 const certDrop=qs('#cert-drop');
 certDrop.addEventListener('dragover',e=>{e.preventDefault();certDrop.style.borderColor='var(--gold)'});
 certDrop.addEventListener('dragleave',()=>certDrop.style.borderColor='');
 certDrop.addEventListener('drop',e=>{
   e.preventDefault();certDrop.style.borderColor='';
-  if(e.dataTransfer.files[0]){qs('#c-file').files=e.dataTransfer.files;qs('#cert-file-name').textContent=e.dataTransfer.files[0].name}
+  const file=e.dataTransfer.files[0];
+  if(!file)return;
+  if(!validarArquivoCertificado(file))return;
+  qs('#c-file').files=e.dataTransfer.files;qs('#cert-file-name').textContent=file.name;
 });
 
 /* ---------- ambiente ---------- */
@@ -2710,18 +2728,24 @@ function tratarFalhaPayload(m){
   if(el){m.scroll?el.scrollIntoView({behavior:'smooth',block:'center'}):el.focus();}
 }
 async function emitir(){
-  const montagem=await montarPayloadEmissao();
-  if(!montagem.ok){tratarFalhaPayload(montagem);return;}
-  const payload=montagem.payload,valor=payload.service.amount;
-  if(ambienteAtual==='production'){
-    const aviso=`ATENÇÃO: esta emissão terá validade fiscal.\n\nEmpresa: ${empresaAtual.rs}\nDPS: série ${empresaAtual.series}, número ${empresaAtual.next}\nTomador: ${payload.borrower.name}\nValor: R$ ${brl(valor)}\n\nConfirma a emissão na Produção oficial?`;
-    if(!await titanConfirm(aviso,'Transmitir NFS-e',ambienteAtual==='production'?'err':'warn'))return;
-  }
+  // Achado da auditoria de 11/08/2026: a trava (rodando=true) só era setada
+  // DEPOIS do await titanConfirm(...) — dois cliques rápidos em "Emitir
+  // direto" abriam dois diálogos de confirmação, o segundo cancelando o
+  // primeiro sem explicação nenhuma pro usuário. Trava logo no início,
+  // antes de qualquer await, cobrindo a função inteira (o finally já
+  // existente lá embaixo libera nos dois casos: sucesso e erro).
   if(rodando)return;
   rodando=true;
   qs('#btn-emit').disabled=true;
-  pipeReset();
   try{
+    const montagem=await montarPayloadEmissao();
+    if(!montagem.ok){tratarFalhaPayload(montagem);return;}
+    const payload=montagem.payload,valor=payload.service.amount;
+    if(ambienteAtual==='production'){
+      const aviso=`ATENÇÃO: esta emissão terá validade fiscal.\n\nEmpresa: ${empresaAtual.rs}\nDPS: série ${empresaAtual.series}, número ${empresaAtual.next}\nTomador: ${payload.borrower.name}\nValor: R$ ${brl(valor)}\n\nConfirma a emissão na Produção oficial?`;
+      if(!await titanConfirm(aviso,'Transmitir NFS-e',ambienteAtual==='production'?'err':'warn'))return;
+    }
+    pipeReset();
     for(let i=0;i<etapas.length-1;i++){
     const st=qs('#st'+i);
     st.className='stage run';
