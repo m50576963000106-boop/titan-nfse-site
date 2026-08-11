@@ -301,7 +301,7 @@ test("aciona Martyn IA no widget dedicado de erro de emissão", async()=>{
   assert.match(html,/const MARTYN_TARGETS=/);
   assert.match(html,/function aplicarAcaoMartyn\(action\)/);
   assert.match(html,/emitir:\['s-desc','s-nbs-search','s-cod-search','s-mun-search','t-doc','t-nome','t-mail','t-cep','s-comp','s-ret-pc'\]/);
-  assert.match(html,/servicos:\['cad-mun-code'\]/);
+  assert.match(html,/servicos:\['cad-mun-code','cad-ibscbs-cst'\]/);
   assert.match(html,/cert:\['c-file'\]/);
   assert.match(html,/field\.scrollIntoView\(\{behavior:'smooth',block:'center'\}\)/);
   assert.match(html,/field\.classList\.add\('martyn-target'\)/);
