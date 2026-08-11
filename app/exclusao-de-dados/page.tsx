@@ -72,7 +72,8 @@ export default function ExclusaoDeDados() {
 
         <p className="legal-foot">
           Consulte também nossa <Link href="/politica-de-privacidade">Política de Privacidade</Link>
-          {" "}e os <Link href="/termos-de-uso">Termos de Uso</Link>.
+          {", "}os <Link href="/termos-de-uso">Termos de Uso</Link>
+          {" e o "}<Link href="/contrato-de-uso">Contrato de Sessão de Uso</Link>.
         </p>
       </article>
     </main>

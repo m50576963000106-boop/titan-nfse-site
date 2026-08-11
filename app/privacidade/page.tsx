@@ -268,7 +268,8 @@ export default function Privacidade() {
           <br />
           R. Frederico Müller, 510, Campo Comprido, Curitiba/PR, CEP 81.220-170
           <br />
-          Veja também os <Link href="/termos-de-uso">Termos de Uso</Link>.
+          Veja também os <Link href="/termos-de-uso">Termos de Uso</Link> e o{" "}
+          <Link href="/contrato-de-uso">Contrato de Sessão de Uso</Link>.
         </p>
       </article>
     </main>

@@ -301,7 +301,7 @@ test("aciona Martyn IA no widget dedicado de erro de emissão", async()=>{
   assert.match(html,/const MARTYN_TARGETS=/);
   assert.match(html,/function aplicarAcaoMartyn\(action\)/);
   assert.match(html,/emitir:\['s-desc','s-nbs-search','s-cod-search','s-mun-search','t-doc','t-nome','t-mail','t-cep','s-comp','s-ret-pc'\]/);
-  assert.match(html,/servicos:\['cad-mun-code'\]/);
+  assert.match(html,/servicos:\['cad-mun-code','cad-ibscbs-cst'\]/);
   assert.match(html,/cert:\['c-file'\]/);
   assert.match(html,/field\.scrollIntoView\(\{behavior:'smooth',block:'center'\}\)/);
   assert.match(html,/field\.classList\.add\('martyn-target'\)/);
@@ -338,8 +338,8 @@ test("preflight fiscal do Martyn confere a nota interativamente antes de emitir"
   assert.match(html,/id="preflight-panel"/);
   // emitir() e o preflight compartilham o MESMO payload — conferir uma nota e
   // emitir outra seria pior que não conferir
-  assert.match(html,/function montarPayloadEmissao\(\)/);
-  assert.match(html,/const montagem=montarPayloadEmissao\(\);/);
+  assert.match(html,/async function montarPayloadEmissao\(\)/);
+  assert.match(html,/const montagem=await montarPayloadEmissao\(\);/);
   assert.match(html,/\/api\/invoices\/preflight/);
   assert.match(html,/martynFacts:preflightFatos/);
   // só mapeia de volta os fatos que uma pergunta representa sem ambiguidade
@@ -476,7 +476,7 @@ test("convite operacional cria apenas senha e confirmação",async()=>{
 test("exibe planos SaaS com limites e valores publicados",async()=>{
   const html=await readFile(resolve(root,"public/nfs.html"),"utf8");
   assert.match(html,/id="planos"/);
-  assert.match(html,/Plano MEI/);
+  assert.match(html,/Plano Light/);
   assert.match(html,/R\$ 29,90/);
   assert.match(html,/Plano SN 20/);
   assert.match(html,/R\$ 49,90/);
@@ -720,6 +720,7 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   const politicaAlias=await readFile(resolve(root,"app/politica-de-privacidade/page.tsx"),"utf8");
   const termosAlias=await readFile(resolve(root,"app/termos-de-uso/page.tsx"),"utf8");
   const exclusao=await readFile(resolve(root,"app/exclusao-de-dados/page.tsx"),"utf8");
+  const contrato=await readFile(resolve(root,"app/contrato-de-uso/page.tsx"),"utf8");
   const legalHeader=await readFile(resolve(root,"app/legal-page-header.tsx"),"utf8");
   const css=await readFile(resolve(root,"app/globals.css"),"utf8");
   const legalCss=await readFile(resolve(root,"public/legal.css"),"utf8");
@@ -727,6 +728,7 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
     "termos-de-uso.html",
     "politica-de-privacidade.html",
     "exclusao-de-dados.html",
+    "contrato-de-uso.html",
   ].map(nome=>readFile(resolve(root,"public",nome),"utf8")));
 
   // a rota catch-all faz notFound() fora da lista dela, entao estas paginas
@@ -753,6 +755,18 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   assert.match(exclusao,/nfse@titanbackoffice\.com\.br/);
   assert.match(exclusao,/Meta ou pelo WhatsApp/);
   assert.match(exclusao,/canonical: "\/exclusao-de-dados"/);
+  // pedido do usuário (10/08/2026): contrato de sessão de uso, com o plano
+  // contratado como objeto e o pagamento confirmado como aceite registrado.
+  assert.match(contrato,/export const metadata/);
+  assert.match(contrato,/canonical: "\/contrato-de-uso"/);
+  assert.match(contrato,/TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA/);
+  assert.match(contrato,/67\.261\.200\/0001-79/);
+  assert.match(contrato,/className="legal"/);
+  assert.match(contrato,/objeto especificamente o\s+plano então selecionado/);
+  assert.match(contrato,/aceite formal das condições comerciais do plano correspondente/);
+  assert.match(contrato,/permanece pendente, sem prazo de expiração automático/);
+  assert.match(contrato,/<Link href="\/termos-de-uso">Termos de Uso<\/Link>/);
+  assert.match(contrato,/<Link href="\/politica-de-privacidade">Política de Privacidade<\/Link>/);
   // as rotas estáticas são as publicadas no domínio e precisam conservar a
   // mesma identidade visual navy/dourado da página inicial
   assert.match(legalHeader,/\/titan-nfse-logo-transparent\.png/);
@@ -769,6 +783,7 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
     politicaAlias,
     termosAlias,
     exclusao,
+    contrato,
     legalHeader,
     ...paginasEstaticas,
   ];
@@ -779,7 +794,7 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
   // Confere as duas fontes reais com telefone (privacidade/termos/exclusao;
   // os aliases só reexportam, e legalHeader não tem telefone) contra o
   // mesmo número, e que o antigo não sobrevive em lugar nenhum.
-  for (const [nome,pagina] of [["privacidade",privacidade],["termos",termos],["exclusao",exclusao]]){
+  for (const [nome,pagina] of [["privacidade",privacidade],["termos",termos],["exclusao",exclusao],["contrato",contrato]]){
     assert.match(pagina,/\(41\) 3790-0311/,`${nome}: telefone de contato divergente do resto do site`);
   }
   for (const pagina of paginasEstaticas){
@@ -917,7 +932,25 @@ test("parceiro.html carrega a carteira do parceiro (GET /api/partner/companies) 
   assert.match(html,/company\.trade_name\|\|company\.legal_name/);
   assert.match(html,/formatarCnpj\(company\.federal_tax_id\)/);
   assert.match(html,/company\.emission_enabled\?'Emissão liberada':'Emissão suspensa'/);
-  assert.match(html,/function sair\(\)\{sessionStorage\.removeItem\(STORAGE_TOKEN\);sessionStorage\.removeItem\(STORAGE_SESSION\);location\.href='\/'\}/);
+  // Achado da auditoria de 11/08/2026: location.href navegava só o iframe
+  // desta tela, deixando a URL do navegador inconsistente com o conteúdo —
+  // window.top é o mesmo padrão de nfs.html/titan.html.
+  assert.match(html,/function sair\(\)\{sessionStorage\.removeItem\(STORAGE_TOKEN\);sessionStorage\.removeItem\(STORAGE_SESSION\);window\.top\.location\.href='\/'\}/);
+});
+
+test("buscarApiParceiro trata falha de rede em PT-BR e sessão expirada no servidor (401) aciona o link 'Entrar de novo' (achados 11/08/2026)",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/\}catch\{\s*\/\/[\s\S]{0,260}throw new Error\('Não foi possível conectar\. Verifique sua internet e tente novamente\.'\);\s*\}/);
+  assert.match(html,/if\(response\.status===401\)throw new Error\('SEM_SESSAO'\);/);
+});
+
+test("as 4 tabelas do portal do parceiro ficam dentro de .table-wrap, com scroll horizontal em telas estreitas (achado 11/08/2026)",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/\.table-wrap\{overflow:auto\}/);
+  for(const id of ['partner-table','creditos-table','comissoes-table','financeiro-table']){
+    const re=new RegExp(`<div class="table-wrap"><table id="${id}"`);
+    assert.match(html,re);
+  }
 });
 
 // ── Fase G: menus de créditos/comissões/financeiro do parceiro, com dados
@@ -1075,6 +1108,15 @@ test("painel de Atendimentos mostra o saldo do provedor de IA (GET /api/master/s
   assert.match(bloco,/else\{[\s\S]{0,20}pill\.style\.display='none';/);
 });
 
+// Achado de campo (11/08/2026): "a lista de conversas fica parada, só
+// atualiza com F5" — navegador throttla/pausa setInterval em aba de
+// segundo plano, então o polling de 8s podia ficar minutos sem rodar de
+// verdade enquanto o atendente estava com a tela aberta noutra aba.
+test("Atendimentos força atualização imediata ao voltar o foco da aba (visibilitychange), não só pelo polling de 8s",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/document\.addEventListener\('visibilitychange',\(\)=>\{\s*if\(document\.visibilityState==='visible'&&qs\('#master-panel-atendimentos'\)\?\.classList\.contains\('active'\)\)tickAtendimentos\(\);\s*\}\);/);
+});
+
 test("seletor de município não quebra em cidade com apóstrofo no nome (ex.: Sant'Ana do Livramento)",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   // Antes, o onclick embutia JSON.stringify(row) inteiro dentro de aspas simples — um
@@ -1114,4 +1156,152 @@ test("recebimentos e recorrências recusam valor zero ou negativo, não só valo
 test("município digitado em checarHabilitacao passa por esc() antes de virar innerHTML",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/Município selecionado: \$\{esc\(mun\)\}\./);
+  // Achado da auditoria de 11/08/2026: o ramo "fora do Simples" da mesma
+  // função esquecia o esc() que os outros dois ramos já tinham (XSS).
+  assert.match(html,/modo adotado por \$\{esc\(mun\)\}\./);
+  assert.doesNotMatch(html,/modo adotado por \$\{mun\}\./);
+});
+
+test("emissão trava se o município exibido não bater com o retorno confirmado do catálogo (achado 11/08/2026: nota podia sair com município errado, silenciosamente)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/async function montarPayloadEmissao\(\)/);
+  assert.match(html,/const munConfirmado=municipiosCatalogo\.find\(row=>row\.code===payload\.service\.municipalityCode\);/);
+  assert.match(html,/if\(!munConfirmado\|\|qs\('#s-mun-search'\)\.value\.trim\(\)!==munTextoEsperado\) return \{ok:false/);
+  // o padrão da empresa precisa sincronizar o texto exibido, não só o campo oculto,
+  // senão a trava acima bloquearia até o caso normal (usuário que nunca mexeu no campo)
+  assert.match(html,/if\(empresaAtual\.mun\)exibirMunicipioPorCodigo\('s',empresaAtual\.mun\);/);
+});
+
+test("postMessage do popup do DANFSe confere event.origin antes de agir (achado 11/08/2026)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/window\.addEventListener\('message',\(e\)=>\{\s*\/\/[\s\S]{0,400}if\(e\.origin!==location\.origin\)return;/);
+});
+
+test("número da NFS-e (dado externo da Sefin) interpolado em onclick passa por escAttr(), não só esc() (achado 11/08/2026)",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/const escAttr=value=>esc\(String\(value\?\?''\)\.replaceAll\(/);
+  assert.match(html,/onclick="baixarXml\('\$\{x\.id\}','\$\{escAttr\(x\.n\)\}'\)"/);
+  assert.match(html,/onclick="abrirCancelamento\('\$\{x\.id\}','\$\{escAttr\(x\.n\)\}'\)"/);
+});
+
+test("indicador de ambiente (topo) é exclusivo do Master — antes ficava invertido (escondido do admin, visível pro cliente)",async()=>{
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  assert.match(css,/body:not\(\.portal-admin\) \.env\{display:none\}/);
+  assert.doesNotMatch(css,/\.portal-admin \.tenant,\.portal-admin \.env\{display:none\}/);
+});
+
+test("novidades: sino do topo abre painel real (não mais alert de pendências) e Master consegue publicar",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="announcements-modal"/);
+  assert.match(html,/id="announcement-title"/);
+  assert.match(html,/id="announcement-body"/);
+  assert.match(html,/async function abrirNovidades\(\)/);
+  assert.match(html,/api\('\/api\/announcements'\)/);
+  assert.match(html,/api\('\/api\/announcements\/seen',\{method:'POST'\}\)/);
+  assert.match(html,/api\('\/api\/master\/announcements',\{method:'POST'/);
+  assert.doesNotMatch(html,/alert\(message\|\| \(pending\?/);
+});
+
+test("notas recorrentes: nav habilitado, view e chamadas às rotas de agendamento automático existem",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/onclick="go\('recorrentes',this\)"/);
+  assert.doesNotMatch(html,/disabled aria-disabled="true" title="Em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"\/><\/svg>Notas recorrentes/);
+  assert.match(html,/id="v-recorrentes"/);
+  assert.match(html,/id="rc-customer"/);
+  assert.match(html,/id="rc-service"/);
+  assert.match(html,/id="rc-day"/);
+  assert.match(html,/async function carregarRecorrencias\(\)/);
+  assert.match(html,/api\('\/api\/invoice-recurrences'\)/);
+  assert.match(html,/async function salvarRecorrencia\(\)/);
+  assert.match(html,/async function emitirRecorrenciaAgora\(id\)/);
+  // valor e dia do mês são conferidos antes de enviar — não confia só na validação do servidor
+  assert.match(html,/if\(!amount\|\|amount<=0\)\{alert\('Informe um valor maior que zero\.'\);return\}/);
+  assert.match(html,/if\(!dayOfMonth\|\|dayOfMonth<1\|\|dayOfMonth>28\)/);
+});
+
+test("vistoria de 09/08/2026: nav das ferramentas fora do Light some quando o plano não vende, sem depender só do backend",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // As 4 ferramentas gateadas por requireFeature no backend precisam do
+  // mesmo gate na tela — senão o botão fica visível e só falha ao clicar.
+  assert.match(html,/data-permission="emit" data-feature="invoice_recurrences" onclick="go\('recorrentes',this\)"/);
+  assert.match(html,/data-permission="import" data-feature="portal_import" onclick="go\('importar',this\)"/);
+  assert.match(html,/data-permission="financial" data-feature="receivables" onclick="go\('recebimentos',this\)"/);
+  assert.match(html,/data-feature="dasn_simei" onclick="go\('dasn',this\)"/);
+  // Cobranças TITAN (o que a própria TITAN cobra do cliente) não é uma
+  // ferramenta vendida por plano — não pode ganhar gate nenhum.
+  assert.doesNotMatch(html,/data-feature="[^"]*" onclick="go\('financeiro',this\)"/);
+  // aplicarAcesso() precisa ler company.features do login e aplicar as duas
+  // checagens (permissão do perfil E feature do plano) no mesmo elemento,
+  // numa única passagem — duas passagens separadas se pisariam quando os
+  // dois atributos estão juntos no mesmo botão.
+  assert.match(html,/features=company\?\.features\|\|\['portal_emission'\]/);
+  assert.match(html,/qsa\('\[data-permission\],\[data-feature\]'\)\.forEach/);
+  assert.match(html,/const okPermissao=!el\.dataset\.permission\|\|user\.isMaster\|\|permissions\.includes\(el\.dataset\.permission\)/);
+  assert.match(html,/const okFeature=!el\.dataset\.feature\|\|user\.isMaster\|\|features\.includes\(el\.dataset\.feature\)/);
+});
+
+test("pedido de upgrade automático (vistoria de 09/08/2026): empresa pede pelo portal, Master aprova/recusa no painel",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // Lado da empresa: card "Meu plano" dentro de Emitente/Configurações, carregado
+  // ao navegar para lá — não é uma tela nova que ninguém vai encontrar.
+  assert.match(html,/if\(v==='emitente'\)\{carregarMeuPlano\(\);carregarMeuContrato\(\)\}/);
+  assert.match(html,/id="plan-upgrade-box"/);
+  assert.match(html,/async function carregarMeuPlano\(\)/);
+  assert.match(html,/api\('\/api\/plans'\)/);
+  assert.match(html,/api\('\/api\/plans\/upgrade-requests'\)/);
+  assert.match(html,/async function solicitarUpgradePlano\(\)/);
+  assert.match(html,/api\('\/api\/plans\/upgrade-requests',\{method:'POST',body:JSON\.stringify\(\{requestedPlanCode,note:note\|\|undefined\}\)\}\)/);
+  assert.match(html,/async function cancelarPedidoUpgrade\(id\)/);
+  // Lado do Master: fila de pedidos dentro do painel de Planos, com contador
+  // no sino do painel (pill) para não depender de abrir a tela pra saber que
+  // tem pedido parado.
+  assert.match(html,/id="master-plan-upgrade-requests"/);
+  assert.match(html,/id="plan-upgrade-pending-pill"/);
+  assert.match(html,/async function carregarPlanUpgradeRequests\(\)/);
+  assert.match(html,/api\('\/api\/master\/plan-upgrade-requests'\)/);
+  assert.match(html,/async function aprovarUpgradePlano\(id\)/);
+  assert.match(html,/api\('\/api\/master\/plan-upgrade-requests\/'\+id\+'\/approve',\{method:'POST'\}\)/);
+  assert.match(html,/async function recusarUpgradePlano\(id\)/);
+  assert.match(html,/api\('\/api\/master\/plan-upgrade-requests\/'\+id\+'\/reject'/);
+});
+
+test("pedido do usuário (10/08/2026): contrato editável e versionado, com Meu contrato no portal do cliente",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // Master: editor de texto + histórico + publicação com bump de versão.
+  assert.match(html,/id="contract-body"/);
+  assert.match(html,/id="contract-versions-history"/);
+  assert.match(html,/async function carregarContratoMaster\(\)/);
+  assert.match(html,/api\('\/api\/master\/contract-versions'\)/);
+  assert.match(html,/async function publicarVersaoContrato\(bump\)/);
+  assert.match(html,/api\('\/api\/master\/contract-versions',\{method:'POST',body:JSON\.stringify\(\{body,bump\}\)\}\)/);
+  // Cliente: consulta, aceita e baixa dentro de Emitente\/Configurações.
+  assert.match(html,/if\(v==='emitente'\)\{carregarMeuPlano\(\);carregarMeuContrato\(\)\}/);
+  assert.match(html,/id="contract-box"/);
+  assert.match(html,/async function carregarMeuContrato\(\)/);
+  assert.match(html,/api\('\/api\/contract'\)/);
+  assert.match(html,/async function aceitarContrato\(\)/);
+  assert.match(html,/api\('\/api\/contract\/accept',\{method:'POST'\}\)/);
+  assert.match(html,/async function baixarContrato\(\)/);
+  assert.match(html,/apiBlob\('\/api\/contract\/pdf'\)/);
+});
+
+test("pedido do usuário (10/08/2026): modo restrito por falta de pagamento esconde tudo, exceto Notas emitidas e Sair",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  // api() precisa expor error.code pro front distinguir ACCOUNT_RESTRICTED
+  // de qualquer outro erro genérico.
+  assert.match(html,/error\.code=data\.code;throw error;/);
+  assert.match(html,/function aplicarModoRestrito\(restrita\)/);
+  assert.match(html,/document\.body\.classList\.toggle\('conta-restrita',restrita\)/);
+  // carregarEmpresaServidor captura especificamente o 402 restrito, sem
+  // deixar o erro genérico estourar (empresaAtual continua null nesse caso).
+  assert.match(html,/if\(error\.code==='ACCOUNT_RESTRICTED'\)\{aplicarModoRestrito\(true\);empresaAtual=null;return\}/);
+  // Notas emitidas e Sair são as únicas exceções — todo o resto do menu
+  // (inclusive submenus e ações rápidas do painel) some via CSS.
+  assert.match(html,/data-permission="invoices" data-restrito-ok onclick="go\('notas',this\)"/);
+  assert.match(html,/data-restrito-ok onclick="sairPortal\(\)"/);
+  assert.match(css,/body\.conta-restrita \.sb-link:not\(\[data-restrito-ok\]\),body\.conta-restrita \.sb-sec,body\.conta-restrita \.quick-grid,body\.conta-restrita \.sb-submenu\{display:none!important\}/);
+  // login sem empresa restringido cai em Notas emitidas, não em Configurações
+  // (que ficaria escondida e sem sentido pra abrir primeiro).
+  assert.match(html,/\}else if\(contaRestrita\)\{\s*go\('notas',qs\('\.sb-link\[onclick\*="notas"\]'\)\);/);
 });

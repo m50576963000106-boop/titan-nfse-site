@@ -22,9 +22,13 @@ export default async function TenantPortal({ params, searchParams }: Props) {
   const isFirstAccess = tenant.length === 1 && ["primeiro-acesso", "primeiroacesso"].includes(target.toLowerCase());
   const isPasswordReset = tenant.length === 1 && ["redefinir-senha", "redefinirsenha"].includes(target.toLowerCase());
   const isDashboard = tenant.length === 1 && target.toLowerCase() === "dashboard";
-  // Portal do Parceiro (Fase F): tela própria e mínima, fora do shell grande
-  // de titan.html — só lista GET /api/partner/companies, sem menu nenhum de
-  // créditos/comissões/financeiro (não existe no backend ainda).
+  // Portal do Parceiro (Fase G): tela própria e mínima, fora do shell grande
+  // de titan.html — 4 abas (Carteira, Créditos, Comissões, Financeiro),
+  // GET /api/partner/{companies,creditos,comissoes,financeiro} no backend
+  // (titan-nfse-api/src/routes/partner.ts). Achado da auditoria de
+  // 11/08/2026: este comentário ainda dizia Fase F (só carteira, resto
+  // "não existe no backend ainda") — desatualizado, as outras 3 abas já
+  // existiam nos dois lados havia tempo.
   const isPartner = tenant.length === 1 && target.toLowerCase() === "parceiro";
   if (!isAdmin && !isClientLogin && !isHelp && !isFirstAccess && !isPasswordReset && !isDashboard && !isPartner) notFound();
 
