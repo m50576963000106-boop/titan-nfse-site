@@ -1108,6 +1108,15 @@ test("painel de Atendimentos mostra o saldo do provedor de IA (GET /api/master/s
   assert.match(bloco,/else\{[\s\S]{0,20}pill\.style\.display='none';/);
 });
 
+// Achado de campo (11/08/2026): "a lista de conversas fica parada, só
+// atualiza com F5" — navegador throttla/pausa setInterval em aba de
+// segundo plano, então o polling de 8s podia ficar minutos sem rodar de
+// verdade enquanto o atendente estava com a tela aberta noutra aba.
+test("Atendimentos força atualização imediata ao voltar o foco da aba (visibilitychange), não só pelo polling de 8s",async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/document\.addEventListener\('visibilitychange',\(\)=>\{\s*if\(document\.visibilityState==='visible'&&qs\('#master-panel-atendimentos'\)\?\.classList\.contains\('active'\)\)tickAtendimentos\(\);\s*\}\);/);
+});
+
 test("seletor de município não quebra em cidade com apóstrofo no nome (ex.: Sant'Ana do Livramento)",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   // Antes, o onclick embutia JSON.stringify(row) inteiro dentro de aspas simples — um

@@ -3493,6 +3493,16 @@ async function carregarSaldoProvedorIA(){
   }catch(e){pill.style.display='none'}
 }
 function pararPollingAtendimentos(){if(atendState.pollTimer){clearInterval(atendState.pollTimer);atendState.pollTimer=null;}}
+// Achado de campo (11/08/2026): "a lista de conversas fica parada, só
+// atualiza com F5". Navegadores throttlam/pausam setInterval em aba de
+// segundo plano — com a tela de Atendimentos aberta numa aba que o
+// atendente não está olhando no momento, o polling de 8s podia ficar
+// minutos sem rodar de verdade, mesmo com o timer "ativo". Ao voltar o
+// foco pra aba, força uma atualização imediata em vez de esperar o
+// próximo tick do setInterval (que pode demorar por causa do throttling).
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&qs('#master-panel-atendimentos')?.classList.contains('active'))tickAtendimentos();
+});
 async function tickAtendimentos(){await carregarAtendimentos({silencioso:true});if(atendState.atual)await abrirConversa(atendState.atual,{silencioso:true});}
 function filtrarAtendimentos(){clearTimeout(atendState.buscaTimer);atendState.buscaTimer=setTimeout(()=>carregarAtendimentos(),300);}
 async function carregarAtendimentos(opts={}){
