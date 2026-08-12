@@ -1,13 +1,12 @@
-# Link de download de nota (XML/ZIP) mandado pelo Martyn pelo WhatsApp.
-# Regra que existia em worker/index.ts (escrita pra Cloudflare Workers) nunca
-# rodou de verdade: o serviço no Render é Static Site, não executa código,
-# só reconhece _redirects/_headers. Achado em 11/08/2026: /n/:code devolvia
-# 404 genérico do Render em vez do 410/200 real do backend.
-# Tentativa 1 (200, proxy real sem trocar de domínio) não funcionou: Render
-# Static Site, diferente do Netlify, não faz proxy (200) pra host externo,
-# só redirect. 302 é o que sobra pra site estático — mostra onrender.com no
-# navegador por um instante, mas entrega o arquivo de verdade.
-/n/*  https://titan-nfse-api.onrender.com/n/:splat  302
-/api/whatsapp/download/*  https://titan-nfse-api.onrender.com/api/whatsapp/download/:splat  302
-
+# Achado em 11/08/2026: este arquivo (convenção Netlify) NÃO é lido pelo
+# Render Static Site — testado ao vivo, a regra abaixo nunca disparou mesmo
+# depois de "Deploy live" confirmado. O mecanismo real neste serviço é o
+# painel nativo "Redirects and Rewrites" do Render (Settings > Redirects/Rewrites,
+# ou /static/<id>/redirects no dashboard) — não fica versionado no repo,
+# só no painel. Ver carmen-runbook.md pra lista das regras reais em uso,
+# incluindo o proxy de /n/* e /api/whatsapp/download/* pro backend (link de
+# XML mandado pelo Martyn via WhatsApp).
+#
+# Mantido só por causa da regra abaixo, cuja origem/efeito real não foi
+# confirmado nesta investigação — não adicionar novas regras aqui.
 /index.html / 301
