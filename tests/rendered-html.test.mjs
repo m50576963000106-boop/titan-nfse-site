@@ -168,7 +168,7 @@ test("oferece municípios pesquisáveis, rascunhos, clientes e documentos comerc
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/Pesquise o município pelo nome/);
   assert.match(html,/\/api\/locations\/municipalities/);
-  assert.match(html,/Rascunhos de NFS-e/);
+  assert.match(html,/id="v-rascunhos"/);
   assert.match(html,/v-clientes/);
   assert.match(html,/v-comercial/);
   assert.match(html,/Converter em NFS-e/);
@@ -442,7 +442,9 @@ test("protege e otimiza login e redefinicao de senha no front",async()=>{
   assert.match(html,/id="system-dialog"/);
   assert.match(html,/id="system-dialog-message"/);
   assert.match(html,/system-dialog-dot/);
-  assert.match(html,/const content=String\(message\?\?''\)\.trim\(\);const detailed=mode!=='alert'\|\|content\.length>180\|\|content\.includes\('\\n'\)/);
+  assert.match(html,/const isAlert=mode==='alert';const detailed=!isAlert&&\(mode!=='alert'\|\|content\.length>180\|\|content\.includes\('\\n'\)\)/);
+  assert.match(html,/id="system-dialog-x"/);
+  assert.match(html,/actions\.style\.display=isAlert\?'none':'flex';xClose\.style\.display=isAlert\?'grid':'none'/);
   assert.match(html,/text\.style\.display=detailed\?'block':'none'/);
   assert.match(html,/copy\.style\.display=detailed\?'inline-flex':'none'/);
   assert.match(html,/window\.alert=\(message\)=>\{titanAlert\(message\)\}/);
@@ -1079,8 +1081,8 @@ test("botões de orientação (i) explicam o onboard e o certificado A1 num popu
   // Emitente: botão "i" no cabeçalho da página explica os dois passos do onboard.
   assert.match(html,/<h1>Emitente<\/h1><button class="info-btn" type="button" title="[^"]*" onclick="orientacaoOnboardingEmitente\(\)">/);
   assert.match(html,/function orientacaoOnboardingEmitente\(\)\{/);
-  // Certificado A1: botão "i" no cabeçalho explica o que é, onde conseguir e como enviar.
-  assert.match(html,/<h1>Certificado A1<\/h1><button class="info-btn" type="button" title="[^"]*" onclick="orientacaoCertificadoA1\(\)">/);
+  // Certificado A1: incorporado em Configurações — botão "i" no cabeçalho do card explica o que é, onde conseguir e como enviar.
+  assert.match(html,/<h2>Certificado A1<button class="info-btn" type="button" title="[^"]*" onclick="orientacaoCertificadoA1\(\)">/);
   assert.match(html,/function orientacaoCertificadoA1\(\)\{/);
   // Reaproveita o popup padrão do sistema (titanAlert -> system-dialog), em vez de um componente novo.
   const inicioOrientacao=html.indexOf("function orientacaoCertificadoA1()");
@@ -1244,7 +1246,7 @@ test("pedido de upgrade automático (vistoria de 09/08/2026): empresa pede pelo 
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   // Lado da empresa: card "Meu plano" dentro de Emitente/Configurações, carregado
   // ao navegar para lá — não é uma tela nova que ninguém vai encontrar.
-  assert.match(html,/if\(v==='emitente'\)\{carregarMeuPlano\(\);carregarMeuContrato\(\)\}/);
+  assert.match(html,/if\(v==='emitente'\)\{[^}]*carregarMeuPlano\(\);carregarMeuContrato\(\)\}/);
   assert.match(html,/id="plan-upgrade-box"/);
   assert.match(html,/async function carregarMeuPlano\(\)/);
   assert.match(html,/api\('\/api\/plans'\)/);
@@ -1275,7 +1277,7 @@ test("pedido do usuário (10/08/2026): contrato editável e versionado, com Meu 
   assert.match(html,/async function publicarVersaoContrato\(bump\)/);
   assert.match(html,/api\('\/api\/master\/contract-versions',\{method:'POST',body:JSON\.stringify\(\{body,bump\}\)\}\)/);
   // Cliente: consulta, aceita e baixa dentro de Emitente\/Configurações.
-  assert.match(html,/if\(v==='emitente'\)\{carregarMeuPlano\(\);carregarMeuContrato\(\)\}/);
+  assert.match(html,/if\(v==='emitente'\)\{[^}]*carregarMeuPlano\(\);carregarMeuContrato\(\)\}/);
   assert.match(html,/id="contract-box"/);
   assert.match(html,/async function carregarMeuContrato\(\)/);
   assert.match(html,/api\('\/api\/contract'\)/);
