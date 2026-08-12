@@ -4338,8 +4338,12 @@ function lerPlanFeatures(){return [...document.querySelectorAll('#plan-features 
 function renderMasterPlans(){const box=qs('#master-plans');if(!box||!masterData)return;box.innerHTML=masterData.plans.map(p=>{
   const vendidas=featuresDoPlano(p).filter(c=>!catalogoDeFerramentas().find(f=>f.code===c)?.sempreIncluida);
   const etiquetas=vendidas.length?vendidas.map(c=>`<span class="pill p-ok">${esc(nomeDaFerramenta(c))}</span>`).join(' '):'<span class="pill p-off">Só o padrão</span>';
-  return `<tr><td><b>${esc(p.name)}</b><br><span class="mono">${esc(p.code)}</span></td><td>R$ ${brl(Number(p.price_cents)/100)}</td><td>${p.monthly_limit}</td><td>${etiquetas}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Inativo'}</span></td><td><button class="btn btn-s" onclick="editarPlanoMaster('${p.code}')">Editar</button></td></tr>`;
+  return `<tr><td><b>${esc(p.name)}</b><br><span class="mono">${esc(p.code)}</span></td><td>R$ ${brl(Number(p.price_cents)/100)}</td><td>${p.monthly_limit}</td><td>${etiquetas}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Inativo'}</span></td><td><div class="acts"><button class="btn btn-s" onclick="editarPlanoMaster('${p.code}')">Editar</button><button class="ico-btn danger" title="Excluir plano" onclick="excluirPlanoMaster('${esc(p.code)}','${esc(p.name)}')">×</button></div></td></tr>`;
 }).join('')||'<tr><td colspan="6">Nenhum plano cadastrado.</td></tr>'}
+async function excluirPlanoMaster(code,name){
+  if(!await titanConfirm(`Excluir o plano "${name}"? Só funciona se nenhuma empresa estiver usando esse plano no momento — troque o plano das empresas antes, em Gestão por CNPJ.`,'Excluir plano','err'))return;
+  try{await api('/api/master/plans/'+encodeURIComponent(code),{method:'DELETE'});await carregarMaster()}catch(error){alert(error.message)}
+}
 async function carregarPlanUpgradeRequests(){
   const box=qs('#master-plan-upgrade-requests');if(!box)return;
   try{
