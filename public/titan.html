@@ -3534,7 +3534,15 @@ async function abrirConversa(phoneKey,opts={}){
   if(vazio)vazio.style.display='none';if(aberto)aberto.style.display='';
   qsa('.atend-conv').forEach(b=>b.classList.toggle('on',(b.getAttribute('onclick')||'').includes("'"+phoneKey+"'")));
   try{const d=await api('/api/master/whatsapp/conversations/'+encodeURIComponent(phoneKey));renderConversa(d,opts);}
-  catch(error){if(!opts.silencioso){const s=qs('#atend-th-status');if(s)s.textContent=error.message;}}
+  catch(error){
+    // Achado de campo (11/08/2026): atualização em segundo plano (tick de 8s)
+    // podia falhar em silêncio total — a conversa aberta ficava travada na
+    // última versão que carregou com sucesso, sem NENHUM sinal visível de
+    // que parou de atualizar. Loga sempre; some visualmente na tela.
+    console.error('[atendimentos] falha ao atualizar conversa '+phoneKey+':',error);
+    const s=qs('#atend-th-status');
+    if(s)s.textContent=opts.silencioso?'Atualização automática falhando — '+error.message:error.message;
+  }
 }
 function renderConversa(d,opts={}){
   qs('#atend-th-name').textContent=d.displayName||d.companyName||formatarTelefone(d.phone)||'Contato';
