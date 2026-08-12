@@ -622,6 +622,12 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .sidebar-health-bar i{display:block;width:16%;height:100%;background:var(--ink-3);transition:width .25s,background .25s}
 .topbar{left:258px;height:72px;padding:0 24px;gap:10px;background:rgba(245,244,239,.95)}
 main{margin-left:258px;padding-top:72px}
+/* Achado 12/08/2026 (relato do usuário: "info aparece só descendo a página,
+   não no topo"): impersonação empurra .topbar/.sidebar pra baixo da faixa
+   vermelha (via --imp-h, ver linha ~118), mas o padding-top do main ficava
+   fixo em 72px — o conteúdo continuava começando embaixo do topbar antigo,
+   agora escondido atrás do topbar deslocado. */
+html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
 .view{padding:28px 28px 64px;max-width:1380px;margin:0 auto}
 .card,.kpi{border-radius:10px;box-shadow:0 1px 2px rgba(11,22,41,.025)}
 .global-search{position:relative;width:min(360px,30vw);flex:none}
