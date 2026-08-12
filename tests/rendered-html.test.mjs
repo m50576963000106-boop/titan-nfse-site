@@ -301,7 +301,7 @@ test("aciona Martyn IA no widget dedicado de erro de emissão", async()=>{
   assert.match(html,/const MARTYN_TARGETS=/);
   assert.match(html,/function aplicarAcaoMartyn\(action\)/);
   assert.match(html,/emitir:\['s-desc','s-nbs-search','s-cod-search','s-mun-search','t-doc','t-nome','t-mail','t-cep','s-comp','s-ret-pc'\]/);
-  assert.match(html,/servicos:\['cad-mun-code','cad-ibscbs-cst'\]/);
+  assert.match(html,/servicos:\['cad-mun-code','cad-ibscbs-search'\]/);
   assert.match(html,/cert:\['c-file'\]/);
   assert.match(html,/field\.scrollIntoView\(\{behavior:'smooth',block:'center'\}\)/);
   assert.match(html,/field\.classList\.add\('martyn-target'\)/);
@@ -1304,4 +1304,53 @@ test("pedido do usuário (10/08/2026): modo restrito por falta de pagamento esco
   // login sem empresa restringido cai em Notas emitidas, não em Configurações
   // (que ficaria escondida e sem sentido pra abrir primeiro).
   assert.match(html,/\}else if\(contaRestrita\)\{\s*go\('notas',qs\('\.sb-link\[onclick\*="notas"\]'\)\);/);
+});
+
+test("pedido do usuário (12/08/2026): IBS/CBS na emissão — toggle, destinatário, compra governamental e cIndOp pesquisável", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="s-ibscbs-card" style="display:none"/);
+  assert.match(html,/id="s-ibscbs-preencher"[^>]*onchange="atualizarBlocoIbscbsEmissao\(\)"/);
+  assert.match(html,/id="s-ibscbs-inddest"/);
+  assert.match(html,/id="s-ibscbs-govcompra"/);
+  assert.match(html,/id="s-ibscbs-indop-search"[^>]*oninput="pesquisarIndOp\(\)"/);
+  assert.match(html,/function carregarIndOpCatalogo\(\)/);
+  assert.match(html,/api\('\/api\/services\/ibscbs-indop'\)/);
+  assert.match(html,/function atualizarCardIbscbsEmissao\(item\)/);
+  // card só aparece quando o serviço selecionado tem CST+cClassTrib
+  assert.match(html,/const aplica=Boolean\(item&&item\.ibscbs_cst&&item\.ibscbs_class_trib\);/);
+  // não deixa emitir com o cIndOp digitado mas não confirmado na lista —
+  // mesma trava já usada pro município (auditoria de 11/08/2026).
+  assert.match(html,/if\(!indOpConfirmado\|\|qs\('#s-ibscbs-indop-search'\)\.value\.trim\(\)!==indOpTextoEsperado\)/);
+  assert.match(html,/function montarCamposIbscbsEmissao\(\)/);
+  assert.match(html,/ibscbsIndDest:Number\(qs\('#s-ibscbs-inddest'\)\.value\)/);
+});
+
+test("pedido do usuário (12/08/2026): CST/cClassTrib do IBS/CBS vira dropdown pesquisável em Meus Serviços", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="cad-ibscbs-cst" type="hidden"/);
+  assert.match(html,/id="cad-ibscbs-classtrib" type="hidden"/);
+  assert.match(html,/id="cad-ibscbs-search"[^>]*oninput="pesquisarIbscbsClassificacao\(\)"/);
+  assert.match(html,/function carregarIbscbsClassificacoesCatalogo\(\)/);
+  assert.match(html,/api\('\/api\/services\/ibscbs-classificacoes'\)/);
+  assert.match(html,/function selecionarIbscbsClassificacao\(cst,classTrib\)/);
+  // editar um serviço existente repovoa o texto de busca, não só os hidden
+  assert.match(html,/exibirIbscbsClassificacaoPorCodigo\(item\.ibscbs_cst\|\|'',item\.ibscbs_class_trib\|\|''\)/);
+});
+
+test("pedido do usuário (12/08/2026): Rascunhos ganha busca/filtro e rastreia se virou nota", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="draft-search"[^>]*oninput="filtrarRascunhos\(\)"/);
+  assert.match(html,/id="draft-status"[^>]*onchange="filtrarRascunhos\(\)"/);
+  assert.match(html,/<option value="converted">Convertido em nota<\/option>/);
+  assert.match(html,/<option value="discarded">Descartado<\/option>/);
+  assert.match(html,/async function carregarRascunhos\(\)\{/);
+  assert.match(html,/api\('\/api\/workspace\/drafts'\+\(params\.toString\(\)\?'\?'\+params\.toString\(\)\:''\)\)/);
+  // rastreia qual rascunho está aberto e marca a conversão só depois da nota
+  // sair com sucesso — sem tornar a emissão dependente disso.
+  assert.match(html,/let rascunhoAbertoId=null;/);
+  assert.match(html,/function abrirRascunho\(index\)\{rascunhoAbertoId=rascunhos\[index\]\.id;/);
+  assert.match(html,/async function marcarRascunhoConvertidoSeAplicavel\(invoiceId\)\{/);
+  assert.match(html,/await marcarRascunhoConvertidoSeAplicavel\(result\.id\);/);
+  assert.match(html,/async function descartarRascunho\(id\)\{/);
+  assert.match(html,/api\('\/api\/workspace\/drafts\/'\+id\+'\/discard',\{method:'PATCH'\}\)/);
 });
