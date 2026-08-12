@@ -1404,3 +1404,20 @@ test("pedido do usuário (12/08/2026, NT07): retenção de IRRF ganha alíquota/
   // serviço na emissão) — mesmo tratamento dos campos que já existiam.
   assert.match(html,/CAMPOS_RETENCOES_TRAVAVEIS=\[[^\]]*'s-csll-rate'[^\]]*'s-ret-irrf-tipo'[^\]]*'s-irrf-base'[^\]]*'s-irrf-rate'[^\]]*\]/);
 });
+
+test("pedido do usuário (12/08/2026): Clientes ganha busca, botão + Cliente e atualização em lote (CNPJ)", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="cl-search"[^>]*oninput="filtrarClientesCadastro\(\)"/);
+  assert.match(html,/function filtrarClientesCadastro\(\)\{/);
+  assert.match(html,/api\('\/api\/customers\?search='\+encodeURIComponent\(busca\)\)/);
+  assert.match(html,/onclick="novoClienteCadastro\(\)">\+ Cliente</);
+  assert.match(html,/function novoClienteCadastro\(\)\{/);
+  // fila em segundo plano (backend já publicado) — dispara e faz poll do
+  // progresso sem travar a tela, nunca dois disparos simultâneos.
+  assert.match(html,/async function dispararAtualizacaoEmLoteClientes\(\)\{/);
+  assert.match(html,/if\(clienteBulkJobId\)return;/);
+  assert.match(html,/api\('\/api\/customers\/bulk-refresh',\{method:'POST'\}\)/);
+  assert.match(html,/async function consultarProgressoAtualizacaoLote\(\)\{/);
+  assert.match(html,/api\('\/api\/customers\/bulk-refresh\/'\+clienteBulkJobId\)/);
+  assert.match(html,/job\.status==='completed'\|\|job\.status==='failed'/);
+});

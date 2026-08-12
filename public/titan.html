@@ -536,7 +536,13 @@
         <div class="field"><label>Razão social / nome</label><input id="cl-nome" class="inp" placeholder="Nome do cliente"></div><div class="row r2"><div class="field"><label>E-mail</label><input id="cl-mail" class="inp" type="email"></div><div class="field"><label>E-mail alternativo (recebe cópia)</label><input id="cl-mail-alt" class="inp" type="email"></div></div><div class="field"><label>Telefone</label><input id="cl-fone" class="inp"></div>
         <div class="field"><label>Endereço</label><input id="cl-end" class="inp" placeholder="Logradouro, número, bairro, CEP"></div><div class="row r2"><div class="field"><label>Município</label><input id="cl-cidade" class="inp" placeholder="Cidade"></div><div class="field"><label>UF</label><input id="cl-uf" class="inp mono" maxlength="2" placeholder="UF"></div></div><div class="row r2"><div class="field mb0"><label>Código IBGE</label><input id="cl-mun" class="inp mono" inputmode="numeric" maxlength="7"></div><div class="field mb0"><label>CEP</label><input id="cl-cep" class="inp mono" inputmode="numeric"></div></div>
         <div class="setup-actions"><span class="foot-note" style="margin:0">A busca preenche os dados públicos; confirme antes de salvar.</span><button class="btn btn-a right" type="button" onclick="salvarCliente()">Salvar cliente</button></div>
-      </div></div><div class="card"><div class="card-h"><h2>Clientes cadastrados</h2><button class="btn btn-s right" onclick="carregarClientesCadastro()">Atualizar</button></div><div class="card-b"><div id="client-list" class="draft-list"></div></div></div></div>
+      </div></div><div class="card"><div class="card-h"><h2>Clientes cadastrados</h2><div class="flex" style="gap:6px"><button class="btn btn-p" type="button" onclick="novoClienteCadastro()">+ Cliente</button><button class="btn btn-s" onclick="carregarClientesCadastro()">Atualizar</button></div></div><div class="card-b">
+        <div class="flex wrap" style="gap:6px;margin-bottom:10px">
+          <input id="cl-search" class="inp" placeholder="Buscar por nome ou CPF/CNPJ" style="flex:1;min-width:160px" oninput="filtrarClientesCadastro()">
+          <button class="btn btn-s" type="button" onclick="dispararAtualizacaoEmLoteClientes()" id="cl-bulk-btn" title="Reconsulta a Receita Federal pra cada cliente com CNPJ, atualizando nome/endereço/e-mail">Atualizar todos (CNPJ)</button>
+        </div>
+        <div id="cl-bulk-status" class="hint" style="display:none"></div>
+        <div id="client-list" class="draft-list"></div></div></div></div>
     </section>
 
     <section class="view" id="v-recorrentes">
@@ -3151,7 +3157,46 @@ let clientesCadastro=[];
 function preencherClienteCadastro(cliente){qs('#cl-doc').value=cliente.tax_id||'';qs('#cl-nome').value=cliente.legal_name||'';qs('#cl-mail').value=cliente.email||'';qs('#cl-mail-alt').value=cliente.email_alt||'';qs('#cl-fone').value=cliente.phone||'';qs('#cl-end').value=cliente.address||'';qs('#cl-cidade').value=cliente.city||cliente.municipality||'';qs('#cl-uf').value=cliente.state||'';qs('#cl-mun').value=cliente.municipality_code||'';qs('#cl-cep').value=cliente.postal_code||'';}
 async function consultarClienteCadastro(){const cnpj=normalizarDocumento(qs('#cl-doc').value);if(!cnpjComFormatoValido(cnpj)){alert('A consulta pública exige um CNPJ com 14 caracteres válidos.');return}try{preencherClienteCadastro(await api('/api/customers/cnpj/'+cnpj))}catch(error){alert(error.message)}}
 async function salvarCliente(){const taxId=normalizarDocumento(qs('#cl-doc').value),legalName=qs('#cl-nome').value.trim();if(!taxId||!legalName){alert('Informe nome e CPF/CNPJ do cliente.');return}try{await api('/api/customers',{method:'POST',body:JSON.stringify({taxId,legalName,email:qs('#cl-mail').value.trim()||undefined,emailAlt:qs('#cl-mail-alt').value.trim()||undefined,phone:qs('#cl-fone').value.trim()||undefined,address:qs('#cl-end').value.trim()||undefined,city:qs('#cl-cidade').value.trim()||undefined,state:qs('#cl-uf').value.trim().toUpperCase()||undefined,postalCode:qs('#cl-cep').value.replace(/\D/g,'')||undefined,municipalityCode:qs('#cl-mun').value.replace(/\D/g,'')||undefined})});await carregarClientesCadastro();alert('Cliente salvo.') }catch(error){alert(error.message)}}
-async function carregarClientesCadastro(){try{clientesCadastro=await api('/api/customers?search=');qs('#client-list').innerHTML=clientesCadastro.length?clientesCadastro.map((item,index)=>`<div class="draft-item"><b>${esc(item.legal_name)}</b><span>${esc(item.tax_id)} · ${esc(item.address||'sem endereço')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="editarClienteCadastro(${index})">Editar</button><button class="btn btn-s" onclick="usarClienteNaEmissao(${index})">Usar na emissão</button></div></div>`).join(''):'<div class="empty-state">Nenhum cliente cadastrado.</div>'}catch(error){qs('#client-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}}
+let clienteBuscaTimer;
+function filtrarClientesCadastro(){clearTimeout(clienteBuscaTimer);clienteBuscaTimer=setTimeout(carregarClientesCadastro,250);}
+async function carregarClientesCadastro(){
+  const busca=qs('#cl-search')?.value.trim()||'';
+  try{clientesCadastro=await api('/api/customers?search='+encodeURIComponent(busca));qs('#client-list').innerHTML=clientesCadastro.length?clientesCadastro.map((item,index)=>`<div class="draft-item"><b>${esc(item.legal_name)}</b><span>${esc(item.tax_id)} · ${esc(item.address||'sem endereço')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="editarClienteCadastro(${index})">Editar</button><button class="btn btn-s" onclick="usarClienteNaEmissao(${index})">Usar na emissão</button></div></div>`).join(''):'<div class="empty-state">Nenhum cliente encontrado.</div>'}catch(error){qs('#client-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+}
+function novoClienteCadastro(){
+  ['cl-doc','cl-nome','cl-mail','cl-mail-alt','cl-fone','cl-end','cl-cidade','cl-uf','cl-mun','cl-cep'].forEach(id=>{const el=qs('#'+id);if(el)el.value=''});
+  qs('#cl-doc').scrollIntoView({behavior:'smooth',block:'center'});qs('#cl-doc').focus();
+}
+// Achado 12/08/2026 (pedido do usuário): reconsulta a CNPJ pra todo cliente
+// cadastrado com CNPJ, em fila no backend (respeita o limite compartilhado
+// de 10 consultas/min de registry/cnpj.ts) — poll no progresso a cada 3s até
+// terminar, sem travar a tela.
+let clienteBulkJobId=null,clienteBulkPollTimer=null;
+async function dispararAtualizacaoEmLoteClientes(){
+  if(clienteBulkJobId)return;
+  const status=qs('#cl-bulk-status'),btn=qs('#cl-bulk-btn');
+  try{
+    const job=await api('/api/customers/bulk-refresh',{method:'POST'});
+    if(!job.totalCustomers){status.style.display='';status.textContent='Nenhum cliente com CNPJ pra atualizar.';return}
+    clienteBulkJobId=job.id;btn.disabled=true;
+    status.style.display='';status.textContent=`Atualizando 0 de ${job.totalCustomers} clientes...`;
+    clienteBulkPollTimer=setInterval(consultarProgressoAtualizacaoLote,3000);
+  }catch(error){alert(error.message)}
+}
+async function consultarProgressoAtualizacaoLote(){
+  if(!clienteBulkJobId)return;
+  try{
+    const job=await api('/api/customers/bulk-refresh/'+clienteBulkJobId);
+    const status=qs('#cl-bulk-status');
+    status.textContent=`Atualizando ${job.processed_count} de ${job.total_customers} clientes... (${job.succeeded_count} ok, ${job.failed_count} falharam)`;
+    if(job.status==='completed'||job.status==='failed'){
+      clearInterval(clienteBulkPollTimer);clienteBulkPollTimer=null;clienteBulkJobId=null;
+      qs('#cl-bulk-btn').disabled=false;
+      status.textContent=`Atualização concluída: ${job.succeeded_count} de ${job.total_customers} clientes atualizados${job.failed_count?`, ${job.failed_count} falharam`:''}.`;
+      carregarClientesCadastro();
+    }
+  }catch(error){clearInterval(clienteBulkPollTimer);clienteBulkPollTimer=null;clienteBulkJobId=null;qs('#cl-bulk-btn').disabled=false;qs('#cl-bulk-status').textContent=error.message;}
+}
 // salvarCliente já é upsert por CNPJ/CPF (ON CONFLICT no banco): preencher o
 // formulário com um cliente existente e salvar de novo atualiza em vez de
 // duplicar — não precisa de rota nem de estado de edição separados.
