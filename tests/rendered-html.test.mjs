@@ -125,11 +125,11 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(html,/Usuário do CNPJ/);
   assert.match(html,/CNPJ é a referência da gestão/);
   assert.match(html,/Um CNPJ por usuário responsável/);
-  assert.match(html,/id="master-user-modal"/);
-  assert.match(html,/Editar usuário/);
+  assert.match(html,/class="modal-backdrop modal-wide" id="master-company-modal"/);
+  assert.match(html,/Editar cliente/);
   assert.match(html,/Convidar usuário/);
-  assert.match(html,/function abrirEditarUsuario/);
-  assert.match(html,/async function salvarEditarUsuario/);
+  assert.match(html,/async function abrirDetalhesCliente/);
+  assert.match(html,/async function salvarDetalhesCliente/);
   assert.match(html,/\/api\/master\/users\/'\+userId/);
   assert.match(html,/function prepararUsuarioPendente/);
   assert.match(html,/function entrarComSessaoSalva/);
@@ -870,7 +870,7 @@ test("tela de detalhes do cliente edita o parceiro comercial da empresa (diferen
   const abrir=html.slice(html.indexOf("async function abrirDetalhesCliente"),html.indexOf("function fecharDetalhesCliente"));
   assert.match(abrir,/partnerSelect\.innerHTML='<option value="">Cliente direto<\/option>'\+\(masterData\?\.partners\|\|\[\]\)\.map\(p=>`<option value="\$\{p\.id\}">\$\{esc\(p\.nickname\)\}<\/option>`\)\.join\(''\);/);
   assert.match(abrir,/partnerSelect\.value=data\.partner_id\|\|'';/);
-  const salvar=html.slice(html.indexOf("async function salvarDetalhesCliente"),html.indexOf("async function salvarDetalhesCliente")+900);
+  const salvar=html.slice(html.indexOf("async function salvarDetalhesCliente"),html.indexOf("async function salvarDetalhesCliente")+1600);
   assert.match(salvar,/partnerId:qs\('#master-detail-partner'\)\.value\|\|null/);
 });
 
