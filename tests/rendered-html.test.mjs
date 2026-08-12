@@ -1028,7 +1028,7 @@ test("CST PIS/COFINS inclui a opção 00 (empresa fora do Simples, ex.: Lucro Pr
   // do Simples, com CST=00 na tag piscofins), que o backend já aceita
   // (src/nfse/types.ts: pisCofinsCst é regex /^\d{2}$/, sem lista fixa).
   assert.match(html,/<label for="s-cst">CST PIS\/COFINS<\/label><select id="s-cst" class="inp"><option value="">Não informar<\/option><option>00<\/option>/);
-  assert.match(html,/<label for="cad-cst">CST PIS\/COFINS<\/label><select id="cad-cst" class="inp"><option value="">Não informar<\/option><option>00<\/option>/);
+  assert.match(html,/<label for="cad-cst">CST PIS\/COFINS <span class="info-tip"[^>]*>\?<\/span><\/label><select id="cad-cst" class="inp"><option value="">Não informar<\/option><option>00<\/option>/);
 });
 
 test("Dados da Empresa tem os três percentuais de tributos (Federal/Estadual/Municipal) pra empresa fora do Simples, ida e volta com o servidor",async()=>{
@@ -1420,4 +1420,41 @@ test("pedido do usuário (12/08/2026): Clientes ganha busca, botão + Cliente e 
   assert.match(html,/async function consultarProgressoAtualizacaoLote\(\)\{/);
   assert.match(html,/api\('\/api\/customers\/bulk-refresh\/'\+clienteBulkJobId\)/);
   assert.match(html,/job\.status==='completed'\|\|job\.status==='failed'/);
+});
+
+test("pedido do usuário (12/08/2026): notas recorrentes ganham frequência configurável, data-fim e importação por planilha", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="rc-frequency"[^>]*>[\s\S]*?<option value="1">Mensal<\/option>[\s\S]*?<option value="3">Trimestral<\/option>[\s\S]*?<option value="6">Semestral<\/option>[\s\S]*?<option value="12">Anual<\/option>/);
+  assert.match(html,/id="rc-end-date"[^>]*type="date"/);
+  assert.match(html,/frequencyMonths:Number\(qs\('#rc-frequency'\)\.value\)\|\|1,endDate:qs\('#rc-end-date'\)\.value\|\|undefined/);
+  assert.match(html,/qs\('#rc-frequency'\)\.value=String\(item\.frequency_months\|\|1\);/);
+  assert.match(html,/qs\('#rc-end-date'\)\.value=item\.end_date\|\|'';/);
+  // importação por planilha: sem endpoint novo, reaproveita o POST que já
+  // existia, uma linha colada = uma chamada.
+  assert.match(html,/id="rc-import-text"/);
+  assert.match(html,/async function importarRecorrenciasPlanilha\(\)\{/);
+  assert.match(html,/const linhas=texto\.split\('\\n'\)/);
+  assert.match(html,/api\('\/api\/invoice-recurrences',\{method:'POST',body:JSON\.stringify\(\{customerId:cliente\.id,serviceProfileId:servico\.id,amount,dayOfMonth,frequencyMonths,endDate:fimTexto\|\|undefined\}\)\}\)/);
+});
+
+test("pedido do usuário (12/08/2026): ícones de informação (i) nos campos de Meus Serviços com comportamento/limitação não óbvios", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  assert.match(css,/\.info-tip\{/);
+  assert.match(html,/for="cad-search">Buscar no Anexo B nacional <span class="info-tip" title="[^"]*Buscar[^"]*"/);
+  assert.match(html,/for="cad-mun-code">Código municipal <span class="info-tip"/);
+  assert.match(html,/for="cad-nbs-search">Código NBS <span class="required-mark">\*<\/span> <span class="info-tip"/);
+  assert.match(html,/for="cad-cst">CST PIS\/COFINS <span class="info-tip"/);
+  assert.match(html,/for="cad-ibscbs-search">Classificação tributária IBS\/CBS \(CST \/ cClassTrib\) <span class="info-tip"/);
+});
+
+test("pedido do usuário (12/08/2026): destaque do imposto mesmo sem retenção (CSRF e IRRF), só informativo", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="s-pis-cofins-destaque" style="display:none"/);
+  assert.match(html,/id="s-irrf-destaque" style="display:none"/);
+  assert.match(html,/const CSRF_ALIQUOTA_PADRAO=4\.65,IRRF_ALIQUOTA_PADRAO=1\.50;/);
+  assert.match(html,/apenas informativo, não é retido\./);
+  // não entra no cálculo que vai pro payload — só texto, nunca escreve nos
+  // campos de retenção de verdade (s-ret-csll/s-ret-irrf).
+  assert.doesNotMatch(html,/destaque\.value=/);
 });

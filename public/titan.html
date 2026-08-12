@@ -408,8 +408,10 @@
                 <div class="field"><label for="s-cst">CST PIS/COFINS</label><select id="s-cst" class="inp"><option value="">Não informar</option><option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>60</option><option>61</option><option>62</option><option>63</option><option>64</option><option>65</option><option>66</option><option>67</option><option>70</option><option>71</option><option>72</option><option>73</option><option>74</option><option>75</option><option>98</option><option>99</option></select></div>
                 <div class="field"><label for="s-ret-pc">Retenção CSRF — PIS/COFINS/CSLL (NT07)</label><select id="s-ret-pc" class="inp" onchange="atualizarRetencaoPisCofins('s')"><option value="">Não informar</option><option value="0">0 — PIS/COFINS/CSLL não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — PIS/COFINS/CSLL retidos</option><option value="4">4 — PIS/COFINS retidos e CSLL não</option><option value="5">5 — Somente PIS retido</option><option value="6">6 — Somente COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — Somente CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div>
               </div>
+              <div class="hint" id="s-pis-cofins-destaque" style="display:none"></div>
               <div class="tax-conditional" id="s-pis-cofins-fields"><div class="row r3"><div class="field"><label for="s-pc-base">Base CSRF — PIS/COFINS/CSLL (R$)</label><input id="s-pc-base" class="inp num" value="0,00" oninput="calcularPisCofins('s')"></div><div class="field"><label for="s-pis-rate">Alíquota PIS (%)</label><input id="s-pis-rate" class="inp num" value="0,65" oninput="calcularPisCofins('s')"></div><div class="field"><label for="s-cofins-rate">Alíquota COFINS (%)</label><input id="s-cofins-rate" class="inp num" value="3,00" oninput="calcularPisCofins('s')"></div></div><div class="row r3"><div class="field mb0"><label for="s-pis-amount">vPis (R$)</label><input id="s-pis-amount" class="inp num" value="0,00"></div><div class="field mb0"><label for="s-cofins-amount">vCofins (R$)</label><input id="s-cofins-amount" class="inp num" value="0,00"></div><div class="field mb0"><label for="s-csll-rate">Alíquota CSLL (%)</label><input id="s-csll-rate" class="inp num" value="1,00" oninput="calcularPisCofins('s')"></div></div><div class="row r2"><div class="field mb0"><label for="s-ret-csll">vRetCSLL (R$)</label><input id="s-ret-csll" class="inp num" value="0,00"><div class="hint">Total retido conforme o tipo selecionado.</div></div></div></div>
               <div class="row r2"><div class="field mb0"><label for="s-ret-cp">CP retida (R$)</label><input id="s-ret-cp" class="inp num" value="0,00"></div><div class="field mb0"><label for="s-ret-irrf-tipo">Retenção de IRRF (NT07)?</label><select id="s-ret-irrf-tipo" class="inp" onchange="atualizarRetencaoIrrf('s')"><option value="0">Não</option><option value="1">Sim</option></select></div></div>
+              <div class="hint" id="s-irrf-destaque" style="display:none"></div>
               <div class="tax-conditional" id="s-irrf-fields"><div class="row r3"><div class="field mb0"><label for="s-irrf-base">Base IRRF (R$)</label><input id="s-irrf-base" class="inp num" value="0,00" oninput="calcularIrrf('s')"></div><div class="field mb0"><label for="s-irrf-rate">Alíquota IRRF (%)</label><input id="s-irrf-rate" class="inp num" value="1,50" oninput="calcularIrrf('s')"></div><div class="field mb0"><label for="s-ret-irrf">IRRF retido (R$)</label><input id="s-ret-irrf" class="inp num" value="0,00"></div></div></div>
               </div>
             </div>
@@ -552,11 +554,17 @@
           <div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="rc-customer" class="inp" list="rc-customer-list" placeholder="Pesquise pela razão social" autocomplete="off"><button type="button" class="btn btn-s" onclick="abrirClientes()">Clientes</button></div><datalist id="rc-customer-list"></datalist></div>
           <div class="field"><label>Meu serviço</label><div class="input-action"><select id="rc-service" class="inp"><option value="">Selecione um serviço cadastrado</option></select><button type="button" class="btn btn-s" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint">Só serviço cujo ISS incide no seu próprio estabelecimento pode virar recorrência automática — sem obra (CNO) nem evento, que exigem dado que ninguém confirma todo mês sozinho.</div></div>
           <div class="row r2"><div class="field"><label>Valor (R$)</label><input id="rc-amount" class="inp num" inputmode="decimal" value="0,00"></div><div class="field"><label>Dia do mês</label><input id="rc-day" class="inp num" inputmode="numeric" maxlength="2" placeholder="1 a 28"></div></div>
+          <div class="row r2"><div class="field"><label>Frequência</label><select id="rc-frequency" class="inp"><option value="1">Mensal</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></div><div class="field"><label>Encerrar em (opcional)</label><input id="rc-end-date" class="inp" type="date"></div></div>
           <div class="field"><label>Observação (opcional)</label><input id="rc-description" class="inp" placeholder="Ex.: mensalidade contábil"></div>
           <div class="setup-actions"><span class="foot-note" style="margin:0">A emissão sai sozinha no dia escolhido, sem aprovação manual.</span><button class="btn btn-s" type="button" id="rc-cancel-btn" style="display:none" onclick="cancelarEdicaoRecorrencia()">Cancelar edição</button><button class="btn btn-a right" type="button" onclick="salvarRecorrencia()">Salvar recorrência</button></div>
         </div></div>
         <div class="card"><div class="card-h"><h2>Recorrências cadastradas</h2><button class="btn btn-s right" onclick="carregarRecorrencias()">Atualizar</button></div><div class="card-b"><div id="recurrence-list" class="draft-list"></div></div></div>
       </div>
+      <div class="card" style="margin-top:14px"><div class="card-h"><h2>Importar recorrências por planilha</h2></div><div class="card-b">
+        <div class="hint">Cole abaixo linhas no formato <span class="mono">CPF/CNPJ do cliente; nome do serviço cadastrado; valor; dia do mês; frequência (1/3/6/12); data-fim AAAA-MM-DD (opcional)</span> — uma recorrência por linha, campos separados por ponto e vírgula. Cliente e serviço precisam já estar cadastrados.</div>
+        <textarea id="rc-import-text" class="inp" rows="5" placeholder="12345678000195; Honorários contábeis; 500,00; 5; 1&#10;98765432000100; Consultoria mensal; 1200,00; 10; 3; 2027-01-31"></textarea>
+        <div class="setup-actions"><span class="foot-note" id="rc-import-status" style="margin:0"></span><button class="btn btn-a right" type="button" onclick="importarRecorrenciasPlanilha()">Importar linhas</button></div>
+      </div></div>
     </section>
 
     <section class="view" id="v-comercial">
@@ -910,17 +918,17 @@
             <input id="cad-id" type="hidden">
             <div class="field"><label for="cad-name">Nome do cadastro</label><input id="cad-name" class="inp" placeholder="Ex.: Consultoria mensal"></div>
             <div class="field"><label for="cad-type">Tipo de serviço</label><input id="cad-type" class="inp" placeholder="Ex.: Consultoria, mensalidade, atendimento"></div>
-            <div class="field"><label for="cad-search">Buscar no Anexo B nacional</label><div class="input-action"><input id="cad-search" class="inp" placeholder="Código ou descrição"><button class="btn btn-s" onclick="buscarCatalogoServico()">Buscar</button></div></div>
+            <div class="field"><label for="cad-search">Buscar no Anexo B nacional <span class="info-tip" title="Digite parte do código ou da descrição do serviço e clique em Buscar (ou Enter) — a lista só aparece depois de buscar, não é uma lista pronta pra rolar.">?</span></label><div class="input-action"><input id="cad-search" class="inp" placeholder="Código ou descrição"><button class="btn btn-s" onclick="buscarCatalogoServico()">Buscar</button></div></div>
             <div class="field"><label for="cad-code">Código de tributação nacional</label><select id="cad-code" class="inp" onchange="selecionarCodigoCadastro()"><option value="">Pesquise o catálogo oficial</option></select></div>
             <div class="field"><label for="cad-desc">Descrição padrão do serviço</label><textarea id="cad-desc" class="inp" placeholder="Descrição que será levada à DPS"></textarea></div>
-            <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal</label><input id="cad-mun-code" class="inp" maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="Até 3 dígitos (opcional)"><div class="hint">Não repita aqui o código nacional 15.06.01.</div></div><div class="field"><label for="cad-nbs-search">Código NBS <span class="required-mark">*</span></label><div class="input-action"><input id="cad-nbs-search" class="inp" placeholder="Código ou descrição NBS"><button class="btn btn-s" type="button" onclick="buscarNbsCadastro()">Buscar</button></div><select id="cad-nbs" class="inp mono" required onchange="sugerirIbscbsPorNbs()"><option value="">Pesquise o catálogo NBS</option></select><div class="hint">Selecione um NBS oficial pelo código ou pela descrição.</div></div></div>
+            <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal <span class="info-tip" title="Só preencha se a sua prefeitura usa um código de serviço PRÓPRIO, diferente do nacional (até 3 dígitos). Deixe em branco se não souber — não é obrigatório.">?</span></label><input id="cad-mun-code" class="inp" maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="Até 3 dígitos (opcional)"><div class="hint">Não repita aqui o código nacional 15.06.01.</div></div><div class="field"><label for="cad-nbs-search">Código NBS <span class="required-mark">*</span> <span class="info-tip" title="Obrigatório. Digite código ou descrição e clique em Buscar — depois escolha uma opção da lista que aparecer no campo abaixo, não dá pra digitar o código NBS direto nele.">?</span></label><div class="input-action"><input id="cad-nbs-search" class="inp" placeholder="Código ou descrição NBS"><button class="btn btn-s" type="button" onclick="buscarNbsCadastro()">Buscar</button></div><select id="cad-nbs" class="inp mono" required onchange="sugerirIbscbsPorNbs()"><option value="">Pesquise o catálogo NBS</option></select><div class="hint">Selecione um NBS oficial pelo código ou pela descrição.</div></div></div>
              <div class="row r2"><div class="field"><label for="cad-default-amount">Valor padrão do serviço (R$)</label><input id="cad-default-amount" class="inp num" inputmode="decimal" placeholder="0,00"><div class="hint">Este valor será sugerido automaticamente na emissão.</div></div><div class="field"><label for="cad-rate">Alíquota ISS (%)</label><input id="cad-rate" class="inp num" placeholder="Lida do município"></div></div>
             <div class="row r2"><div class="field"><label for="cad-trib-iss">Tributação ISSQN</label><select id="cad-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação</option><option value="4">4 — Não incidência</option></select></div><div class="field"><label for="cad-ret-iss">Retenção ISSQN</label><select id="cad-ret-iss" class="inp"><option value="1">1 — Não retido</option><option value="2">2 — Tomador</option><option value="3">3 — Intermediário</option></select></div></div>
-            <div class="row r2"><div class="field"><label for="cad-cst">CST PIS/COFINS</label><select id="cad-cst" class="inp"><option value="">Não informar</option><option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>60</option><option>61</option><option>62</option><option>63</option><option>64</option><option>65</option><option>66</option><option>67</option><option>70</option><option>71</option><option>72</option><option>73</option><option>74</option><option>75</option><option>98</option><option>99</option></select></div><div class="field"><label for="cad-ret-pc">Retenção CSRF — tpRetPisCofins (PIS/COFINS/CSLL, NT07)</label><select id="cad-ret-pc" class="inp" onchange="atualizarRetencaoPisCofins('cad')"><option value="">Não informar</option><option value="0">0 — PIS/COFINS/CSLL não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — PIS/COFINS/CSLL retidos</option><option value="4">4 — PIS/COFINS retidos e CSLL não</option><option value="5">5 — Somente PIS retido</option><option value="6">6 — Somente COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — Somente CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div></div>
+            <div class="row r2"><div class="field"><label for="cad-cst">CST PIS/COFINS <span class="info-tip" title="Código de Situação Tributária do PIS/COFINS (tabela oficial da Receita Federal). Deixe 'Não informar' se não souber — não é exigido pra emitir.">?</span></label><select id="cad-cst" class="inp"><option value="">Não informar</option><option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>60</option><option>61</option><option>62</option><option>63</option><option>64</option><option>65</option><option>66</option><option>67</option><option>70</option><option>71</option><option>72</option><option>73</option><option>74</option><option>75</option><option>98</option><option>99</option></select></div><div class="field"><label for="cad-ret-pc">Retenção CSRF — tpRetPisCofins (PIS/COFINS/CSLL, NT07)</label><select id="cad-ret-pc" class="inp" onchange="atualizarRetencaoPisCofins('cad')"><option value="">Não informar</option><option value="0">0 — PIS/COFINS/CSLL não retidos</option><option value="1">1 — PIS/COFINS retidos</option><option value="2">2 — PIS/COFINS não retidos</option><option value="3">3 — PIS/COFINS/CSLL retidos</option><option value="4">4 — PIS/COFINS retidos e CSLL não</option><option value="5">5 — Somente PIS retido</option><option value="6">6 — Somente COFINS retido</option><option value="7">7 — COFINS/CSLL retidos</option><option value="8">8 — Somente CSLL retida</option><option value="9">9 — PIS/CSLL retidos</option></select></div></div>
             <div class="tax-conditional" id="cad-pis-cofins-fields"><div class="row r3"><div class="field"><label for="cad-pc-base">Base CSRF — PIS/COFINS/CSLL (R$)</label><input id="cad-pc-base" class="inp num" value="0,00" oninput="calcularPisCofins('cad')"></div><div class="field"><label for="cad-pis-rate">Alíquota PIS (%)</label><input id="cad-pis-rate" class="inp num" value="0,65" oninput="calcularPisCofins('cad')"></div><div class="field"><label for="cad-cofins-rate">Alíquota COFINS (%)</label><input id="cad-cofins-rate" class="inp num" value="3,00" oninput="calcularPisCofins('cad')"></div></div><div class="row r3"><div class="field"><label for="cad-pis-amount">vPis (R$)</label><input id="cad-pis-amount" class="inp num" value="0,00"></div><div class="field"><label for="cad-cofins-amount">vCofins (R$)</label><input id="cad-cofins-amount" class="inp num" value="0,00"></div><div class="field"><label for="cad-csll-rate">Alíquota CSLL (%)</label><input id="cad-csll-rate" class="inp num" value="1,00" oninput="calcularPisCofins('cad')"></div></div><div class="row r2"><div class="field mb0"><label for="cad-csll">vRetCSLL (R$)</label><input id="cad-csll" class="inp num" value="0,00"></div></div></div>
             <div class="row r2"><div class="field"><label for="cad-cp">vRetCP (R$)</label><input id="cad-cp" class="inp num" value="0,00"></div><div class="field"><label for="cad-ret-irrf-tipo">Retenção de IRRF (NT07)?</label><select id="cad-ret-irrf-tipo" class="inp" onchange="atualizarRetencaoIrrf('cad')"><option value="0">Não</option><option value="1">Sim</option></select></div></div>
             <div class="tax-conditional" id="cad-irrf-fields"><div class="row r2"><div class="field"><label for="cad-irrf-base">Base IRRF (R$)</label><input id="cad-irrf-base" class="inp num" value="0,00" oninput="calcularIrrf('cad')"></div><div class="field"><label for="cad-irrf-rate">Alíquota IRRF (%)</label><input id="cad-irrf-rate" class="inp num" value="1,50" oninput="calcularIrrf('cad')"></div></div><div class="field"><label for="cad-irrf">vRetIRRF (R$)</label><input id="cad-irrf" class="inp num" value="0,00"></div></div>
-            <div class="field"><label for="cad-ibscbs-search">Classificação tributária IBS/CBS (CST / cClassTrib)</label><input id="cad-ibscbs-cst" type="hidden"><input id="cad-ibscbs-classtrib" type="hidden"><div style="position:relative"><input id="cad-ibscbs-search" class="inp" autocomplete="off" placeholder="Pesquise por CST, cClassTrib ou nome da classificação" oninput="pesquisarIbscbsClassificacao()"><div id="cad-ibscbs-results" class="municipality-results"></div></div></div>
+            <div class="field"><label for="cad-ibscbs-search">Classificação tributária IBS/CBS (CST / cClassTrib) <span class="info-tip" title="Opcional até a Reforma Tributária exigir. Digite pra buscar (código ou nome) — a lista só aparece depois que você digitar ao menos 2 caracteres.">?</span></label><input id="cad-ibscbs-cst" type="hidden"><input id="cad-ibscbs-classtrib" type="hidden"><div style="position:relative"><input id="cad-ibscbs-search" class="inp" autocomplete="off" placeholder="Pesquise por CST, cClassTrib ou nome da classificação" oninput="pesquisarIbscbsClassificacao()"><div id="cad-ibscbs-results" class="municipality-results"></div></div></div>
             <div class="hint" id="cad-ibscbs-suggestion"></div>
             <div class="hint">Reforma Tributária (NT 009/2026) — sugerido automaticamente pelo Anexo VIII ao escolher o NBS; confira se a situação-padrão se aplica ao seu caso antes de salvar. Obrigatório na NFS-e nacional desde 03/08/2026 para empresas no regime Lucro Presumido/Real; Simples Nacional e MEI só entram nessa exigência a partir de 2027.</div>
             <button class="btn btn-p" style="width:100%" onclick="salvarPerfilServico()">Salvar cadastro</button>
@@ -2059,12 +2067,27 @@ function formatarDinheiro(input){
 }
 qsa('input.num').forEach(input=>{input.addEventListener('blur',()=>formatarDinheiro(input));input.addEventListener('focus',()=>input.select())});
 
+// Alíquota combinada padrão do CSRF (PIS 0,65% + COFINS 3,00% + CSLL 1,00%
+// = 4,65%, IN RFB 1234/2012) — só pro "destaque do imposto" informativo
+// quando não há retenção, nunca pro cálculo que vai no XML.
+const CSRF_ALIQUOTA_PADRAO=4.65,IRRF_ALIQUOTA_PADRAO=1.50;
 function atualizarRetencaoPisCofins(prefix){
   const tipo=qs(`#${prefix}-ret-pc`)?.value||'';
   const bloco=qs(`#${prefix}-pis-cofins-fields`);
-  if(bloco)bloco.classList.toggle('on',tipo!==''&&tipo!=='0');
-  if(tipo===''||tipo==='0'){
+  const reteve=tipo!==''&&tipo!=='0';
+  if(bloco)bloco.classList.toggle('on',reteve);
+  if(!reteve){
     [`${prefix}-pc-base`,`${prefix}-pis-rate`,`${prefix}-cofins-rate`,`${prefix}-pis-amount`,`${prefix}-cofins-amount`,prefix==='s'?'s-ret-csll':'cad-csll'].forEach(id=>{const input=qs('#'+id);if(input)input.value='0,00'});
+  }
+  // Pedido do usuário (12/08/2026): sem retenção, ainda mostrar o imposto
+  // "destacado" — só informativo, não entra no payload de emissão.
+  const destaque=qs(`#${prefix}-pis-cofins-destaque`);
+  if(destaque){
+    const valorServico=prefix==='s'?dinheiro(qs('#s-val')?.value):dinheiro(qs('#cad-default-amount')?.value);
+    if(!reteve&&valorServico>0){
+      destaque.style.display='';
+      destaque.textContent=`Imposto correspondente (CSRF não retido, à alíquota padrão de ${CSRF_ALIQUOTA_PADRAO.toFixed(2).replace('.',',')}%): R$ ${(valorServico*CSRF_ALIQUOTA_PADRAO/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} — apenas informativo, não é retido.`;
+    }else destaque.style.display='none';
   }
 }
 
@@ -2090,6 +2113,14 @@ function atualizarRetencaoIrrf(prefix){
   const campoFinal=prefix==='s'?'s-ret-irrf':'cad-irrf';
   if(!reteve){
     [`${prefix}-irrf-base`,`${prefix}-irrf-rate`,campoFinal].forEach(id=>{const input=qs('#'+id);if(input)input.value='0,00'});
+  }
+  const destaque=qs(`#${prefix}-irrf-destaque`);
+  if(destaque){
+    const valorServico=prefix==='s'?dinheiro(qs('#s-val')?.value):dinheiro(qs('#cad-default-amount')?.value);
+    if(!reteve&&valorServico>0){
+      destaque.style.display='';
+      destaque.textContent=`Imposto correspondente (IRRF não retido, à alíquota padrão de ${IRRF_ALIQUOTA_PADRAO.toFixed(2).replace('.',',')}%): R$ ${(valorServico*IRRF_ALIQUOTA_PADRAO/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} — apenas informativo, não é retido.`;
+    }else destaque.style.display='none';
   }
 }
 function calcularIrrf(prefix){
@@ -3226,12 +3257,15 @@ async function carregarRecorrencias(){
     renderRecorrencias();
   }catch(error){const box=qs('#recurrence-list');if(box)box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
 }
+const RECORRENCIA_FREQUENCIA_LABEL={1:'mensal',3:'trimestral',6:'semestral',12:'anual'};
 function renderRecorrencias(){
   const box=qs('#recurrence-list');if(!box)return;
   box.innerHTML=recorrencias.length?recorrencias.map(item=>{
     const proxima=new Date(item.next_run_date+'T00:00:00').toLocaleDateString('pt-BR');
     const status=!item.active?'<span class="pill p-off">Pausada</span>':item.last_error?'<span class="pill p-err">Falhou — revise abaixo</span>':'<span class="pill p-ok">Ativa</span>';
-    return `<div class="draft-item"><b>${esc(item.customer_name)}</b> — ${esc(item.service_name)}<br><span>R$ ${brl(Number(item.amount))} · todo dia ${item.day_of_month} · próxima emissão ${proxima}</span><br>${status}${item.last_error?`<br><span class="foot-note">${esc(item.last_error)}</span>`:''}<div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="editarRecorrencia('${item.id}')">Editar</button><button class="btn btn-s" onclick="alternarRecorrencia('${item.id}',${!item.active})">${item.active?'Pausar':'Reativar'}</button><button class="btn btn-s" onclick="emitirRecorrenciaAgora('${item.id}')">Emitir agora</button><button class="ico-btn danger" title="Excluir" onclick="excluirRecorrencia('${item.id}')">×</button></div></div>`;
+    const freq=RECORRENCIA_FREQUENCIA_LABEL[item.frequency_months||1]||'mensal';
+    const fim=item.end_date?` · encerra em ${new Date(item.end_date+'T00:00:00').toLocaleDateString('pt-BR')}`:'';
+    return `<div class="draft-item"><b>${esc(item.customer_name)}</b> — ${esc(item.service_name)}<br><span>R$ ${brl(Number(item.amount))} · todo dia ${item.day_of_month}, ${freq} · próxima emissão ${proxima}${fim}</span><br>${status}${item.last_error?`<br><span class="foot-note">${esc(item.last_error)}</span>`:''}<div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="editarRecorrencia('${item.id}')">Editar</button><button class="btn btn-s" onclick="alternarRecorrencia('${item.id}',${!item.active})">${item.active?'Pausar':'Reativar'}</button><button class="btn btn-s" onclick="emitirRecorrenciaAgora('${item.id}')">Emitir agora</button><button class="ico-btn danger" title="Excluir" onclick="excluirRecorrencia('${item.id}')">×</button></div></div>`;
   }).join(''):'<div class="empty-state">Nenhuma recorrência cadastrada — configure uma nota que se repete todo mês e o TITAN emite sozinho.</div>';
 }
 async function salvarRecorrencia(){
@@ -3240,7 +3274,7 @@ async function salvarRecorrencia(){
   if(!serviceProfileId){alert('Selecione um serviço cadastrado.');return}
   if(!amount||amount<=0){alert('Informe um valor maior que zero.');return}
   if(!dayOfMonth||dayOfMonth<1||dayOfMonth>28){alert('Informe um dia do mês entre 1 e 28.');return}
-  const payload={customerId:cliente.id,serviceProfileId,amount,dayOfMonth,description:qs('#rc-description').value.trim()||undefined};
+  const payload={customerId:cliente.id,serviceProfileId,amount,dayOfMonth,frequencyMonths:Number(qs('#rc-frequency').value)||1,endDate:qs('#rc-end-date').value||undefined,description:qs('#rc-description').value.trim()||undefined};
   try{
     if(recorrenciaEditando)await api('/api/invoice-recurrences/'+recorrenciaEditando,{method:'PUT',body:JSON.stringify(payload)});
     else await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify(payload)});
@@ -3255,10 +3289,46 @@ function editarRecorrencia(id){
   qs('#rc-service').value=item.service_profile_id;
   qs('#rc-amount').value=Number(item.amount).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   qs('#rc-day').value=item.day_of_month;
+  qs('#rc-frequency').value=String(item.frequency_months||1);
+  qs('#rc-end-date').value=item.end_date||'';
   qs('#rc-description').value=item.description||'';
   qs('#rc-form-title').textContent='Editar recorrência';
   qs('#rc-cancel-btn').style.display='';
   qs('#rc-customer').scrollIntoView({behavior:'smooth',block:'center'});
+}
+// Achado 12/08/2026 (pedido do usuário: "podendo configurar por planilha
+// também"): sem endpoint novo nem lib de upload — cola linhas separadas por
+// ";" e reaproveita o mesmo POST /api/invoice-recurrences de sempre, uma
+// chamada por linha. Cliente é resolvido por CPF/CNPJ e serviço pelo NOME
+// exato já cadastrado (ambos precisam existir antes de importar).
+async function importarRecorrenciasPlanilha(){
+  const texto=qs('#rc-import-text').value.trim(),status=qs('#rc-import-status');
+  if(!texto){status.textContent='Cole ao menos uma linha antes de importar.';return}
+  if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');
+  await carregarPerfisServico();
+  const linhas=texto.split('\n').map(l=>l.trim()).filter(Boolean);
+  let ok=0,falhas=[];
+  for(let i=0;i<linhas.length;i++){
+    const partes=linhas[i].split(';').map(p=>p.trim());
+    const [doc,servicoNome,valorTexto,diaTexto,freqTexto,fimTexto]=partes;
+    const docNormalizado=(doc||'').replace(/\D/g,'');
+    const cliente=clientesCadastro.find(c=>(c.tax_id||'').replace(/\D/g,'')===docNormalizado);
+    const servico=perfisServico.find(p=>supNorm(p.name)===supNorm(servicoNome||''));
+    const amount=dinheiro(valorTexto);
+    const dayOfMonth=Number(diaTexto);
+    const frequencyMonths=Number(freqTexto)||1;
+    if(!cliente){falhas.push(`Linha ${i+1}: cliente com CPF/CNPJ "${doc||''}" não encontrado.`);continue}
+    if(!servico){falhas.push(`Linha ${i+1}: serviço "${servicoNome||''}" não encontrado (nome precisa bater exatamente com Meus Serviços).`);continue}
+    if(!amount||amount<=0){falhas.push(`Linha ${i+1}: valor inválido.`);continue}
+    if(!dayOfMonth||dayOfMonth<1||dayOfMonth>28){falhas.push(`Linha ${i+1}: dia do mês inválido (1 a 28).`);continue}
+    if(![1,3,6,12].includes(frequencyMonths)){falhas.push(`Linha ${i+1}: frequência precisa ser 1, 3, 6 ou 12.`);continue}
+    try{
+      await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify({customerId:cliente.id,serviceProfileId:servico.id,amount,dayOfMonth,frequencyMonths,endDate:fimTexto||undefined})});
+      ok++;
+    }catch(error){falhas.push(`Linha ${i+1}: ${error.message}`)}
+  }
+  status.innerHTML=`${ok} de ${linhas.length} recorrência(s) importada(s).`+(falhas.length?`<br>${falhas.map(esc).join('<br>')}`:'');
+  if(ok>0){qs('#rc-import-text').value='';await carregarRecorrencias();}
 }
 function cancelarEdicaoRecorrencia(){
   recorrenciaEditando=null;

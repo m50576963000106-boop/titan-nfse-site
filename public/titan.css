@@ -302,6 +302,15 @@ main{margin-left:230px;padding:58px 0 0}
   text-transform:uppercase;color:var(--ink-2);margin-bottom:5px;
 }
 .field .hint{font-size:11.5px;color:var(--ink-3);margin-top:5px;line-height:1.5}
+/* Pedido do usuário (12/08/2026): ícone "i" ao lado de campos com limitação
+   ou comportamento não óbvio (ex.: precisa digitar pra buscar), explicando
+   no title (tooltip nativo do navegador) — sem JS novo, sem popup próprio. */
+.info-tip{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:14px;height:14px;border-radius:50%;margin-left:4px;
+  background:var(--line);color:var(--ink-2);font-size:10px;font-weight:800;
+  cursor:help;vertical-align:middle;
+}
 .inp{
   width:100%;padding:9px 11px;background:var(--paper);
   border:1px solid var(--line);border-radius:var(--r);
