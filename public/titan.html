@@ -423,18 +423,49 @@
               </div>
               <div id="s-ibscbs-fields">
                 <div class="field">
+                  <label for="s-ibscbs-indfinal">A operação se trata de uso ou consumo pessoal?</label>
+                  <select id="s-ibscbs-indfinal" class="inp"><option value="">Não informar</option><option value="false">Não</option><option value="true">Sim</option></select>
+                </div>
+                <div class="field">
                   <label for="s-ibscbs-inddest">Para fins de apuração do IBS/CBS, o destinatário é o próprio adquirente?</label>
-                  <select id="s-ibscbs-inddest" class="inp"><option value="0">Sim</option><option value="1">Não</option></select>
+                  <select id="s-ibscbs-inddest" class="inp" onchange="atualizarBlocoIbscbsDestinatario()"><option value="0">Sim</option><option value="1">Não</option></select>
+                </div>
+                <div id="s-ibscbs-dest-fields" style="display:none">
+                  <div class="hint">Dados do destinatário (quem recebe o serviço de fato, quando diferente do adquirente/tomador).</div>
+                  <div class="row r2">
+                    <div class="field"><label for="s-ibscbs-dest-doc">CPF/CNPJ do destinatário</label><input id="s-ibscbs-dest-doc" class="inp mono" inputmode="numeric" placeholder="Somente números"></div>
+                    <div class="field"><label for="s-ibscbs-dest-nome">Nome do destinatário</label><input id="s-ibscbs-dest-nome" class="inp"></div>
+                  </div>
+                  <div class="row r2">
+                    <div class="field"><label for="s-ibscbs-dest-mun-search">Município</label><input id="s-ibscbs-dest-mun" type="hidden" value=""><div style="position:relative"><input id="s-ibscbs-dest-mun-search" class="inp" autocomplete="off" placeholder="Pesquise o município" oninput="pesquisarMunicipio('s-ibscbs-dest')"><div id="s-ibscbs-dest-mun-results" class="municipality-results"></div></div></div>
+                    <div class="field"><label for="s-ibscbs-dest-cep">CEP</label><input id="s-ibscbs-dest-cep" class="inp mono" inputmode="numeric" maxlength="9"></div>
+                  </div>
+                  <div class="row r2">
+                    <div class="field"><label for="s-ibscbs-dest-lgr">Logradouro</label><input id="s-ibscbs-dest-lgr" class="inp"></div>
+                    <div class="field"><label for="s-ibscbs-dest-num">Número</label><input id="s-ibscbs-dest-num" class="inp"></div>
+                  </div>
+                  <div class="row r2">
+                    <div class="field"><label for="s-ibscbs-dest-bairro">Bairro</label><input id="s-ibscbs-dest-bairro" class="inp"></div>
+                    <div class="field"><label for="s-ibscbs-dest-fone">Telefone (opcional)</label><input id="s-ibscbs-dest-fone" class="inp"></div>
+                  </div>
+                  <div class="field"><label for="s-ibscbs-dest-mail">E-mail (opcional)</label><input id="s-ibscbs-dest-mail" class="inp" type="email"></div>
                 </div>
                 <div class="field">
                   <label for="s-ibscbs-govcompra">A operação se trata de uma compra governamental?</label>
-                  <select id="s-ibscbs-govcompra" class="inp"><option value="false">Não</option><option value="true">Sim</option></select>
+                  <select id="s-ibscbs-govcompra" class="inp" onchange="atualizarBlocoIbscbsGovCompra()"><option value="false">Não</option><option value="true">Sim</option></select>
+                </div>
+                <div id="s-ibscbs-gov-fields" style="display:none">
+                  <div class="row r2">
+                    <div class="field"><label for="s-ibscbs-tpentegov">Tipo de ente governamental</label><select id="s-ibscbs-tpentegov" class="inp"><option value="">Selecione...</option><option value="1">União</option><option value="2">Estado</option><option value="3">Distrito Federal</option><option value="4">Município</option></select></div>
+                    <div class="field"><label for="s-ibscbs-tpoper">Tipo de operação</label><select id="s-ibscbs-tpoper" class="inp" onchange="atualizarBlocoIbscbsRefNFSe()"><option value="">Selecione...</option><option value="1">1 — Fornecimento com pagamento posterior</option><option value="2">2 — Recebimento do pagamento com fornecimento já realizado</option><option value="3">3 — Fornecimento com pagamento já realizado</option><option value="4">4 — Recebimento do pagamento com fornecimento posterior</option><option value="5">5 — Fornecimento e recebimento do pagamento concomitantes</option></select></div>
+                  </div>
+                  <div class="field" id="s-ibscbs-refnfse-field" style="display:none"><label for="s-ibscbs-refnfse">Chave(s) da NFS-e referenciada(s)</label><input id="s-ibscbs-refnfse" class="inp" placeholder="Uma ou mais chaves separadas por vírgula"><div class="hint">Obrigatório quando o tipo de operação é 2 ou 3.</div></div>
                 </div>
                 <div class="field">
                   <label for="s-ibscbs-indop-search">Código indicador da operação</label>
                   <input id="s-ibscbs-indop" type="hidden" value="">
                   <div style="position:relative"><input id="s-ibscbs-indop-search" class="inp" autocomplete="off" placeholder="Pesquise por código ou tipo de operação" oninput="pesquisarIndOp()"><div id="s-ibscbs-indop-results" class="municipality-results"></div></div>
-                  <div class="hint">Consulte o Anexo VII IndOp IBSCBS v1.00.00 pra mais informações sobre o código indicador da operação.</div>
+                  <div class="hint">Consulte o Anexo VII IndOp IBSCBS v1.02.00 pra mais informações sobre o código indicador da operação.</div>
                 </div>
               </div>
             </div>
@@ -1863,6 +1894,22 @@ function atualizarBlocoIbscbsEmissao(){
   const preencher=qs('#s-ibscbs-preencher').value==='true';
   const bloco=qs('#s-ibscbs-fields');if(bloco)bloco.style.display=preencher?'':'none';
 }
+// indDest=1 exige o grupo dest completo (Anexo VI) — sub-formulário só
+// aparece quando o destinatário NÃO é o próprio adquirente.
+function atualizarBlocoIbscbsDestinatario(){
+  const naoAdquirente=qs('#s-ibscbs-inddest').value==='1';
+  const bloco=qs('#s-ibscbs-dest-fields');if(bloco)bloco.style.display=naoAdquirente?'':'none';
+}
+function atualizarBlocoIbscbsGovCompra(){
+  const gov=qs('#s-ibscbs-govcompra').value==='true';
+  const bloco=qs('#s-ibscbs-gov-fields');if(bloco)bloco.style.display=gov?'':'none';
+  if(!gov)atualizarBlocoIbscbsRefNFSe();
+}
+// gRefNFSe só é exigido (Anexo VI) quando tpOper=2 ou 3.
+function atualizarBlocoIbscbsRefNFSe(){
+  const tpOper=qs('#s-ibscbs-tpoper').value;
+  const bloco=qs('#s-ibscbs-refnfse-field');if(bloco)bloco.style.display=(tpOper==='2'||tpOper==='3')?'':'none';
+}
 
 /* ---------- CST/cClassTrib IBS/CBS (Meus Serviços) — mesmo padrão de pesquisarMunicipio ---------- */
 let ibscbsClassifTimer;
@@ -2807,7 +2854,12 @@ async function montarPayloadEmissao(){
   const payload={
     competenceDate:qs('#s-comp').value,
     borrower:{name:qs('#t-nome').value.trim(),taxId:documento,email:qs('#t-mail').value.trim()||undefined,municipalityCode:qs('#t-municipio').value.replace(/\D/g,'')||undefined,postalCode:qs('#t-cep').value.replace(/\D/g,'')||undefined,street:qs('#t-end').value.trim()||undefined,number:qs('#t-num').value.trim()||undefined,district:qs('#t-bairro').value.trim()||undefined,city:qs('#t-cidade').value.trim()||undefined,state:qs('#t-uf').value.trim().toUpperCase()||undefined},
-    service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,municipalTaxCode:perfil?.municipal_code||undefined,nbsCode:nbs||undefined,description:qs('#s-desc').value.trim(),amount:valor,additionalItems,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value.replace(/\D/g,'')||undefined,eventCode:qs('#s-event-code')?.value.trim()||undefined,eventLocation:qs('#s-event-location')?.value.trim()||undefined,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,issRate:perfil?.iss_rate==null?undefined:Number(perfil.iss_rate),pisCofinsCst:cst||undefined,pisCofinsWithholding:tipoPisCofins||undefined,pisCofinsBase:retevePisCofins?dinheiro(qs('#s-pc-base').value):undefined,pisRate:retevePisCofins?dinheiro(qs('#s-pis-rate').value):undefined,cofinsRate:retevePisCofins?dinheiro(qs('#s-cofins-rate').value):undefined,pisAmount:retevePisCofins?dinheiro(qs('#s-pis-amount').value):undefined,cofinsAmount:retevePisCofins?dinheiro(qs('#s-cofins-amount').value):undefined,retCp:dinheiro(qs('#s-ret-cp').value),retIrrf:dinheiro(qs('#s-ret-irrf').value),retCsll:retevePisCofins?dinheiro(qs('#s-ret-csll').value):0,ibscbsCst:perfil?.ibscbs_cst||undefined,ibscbsClassTrib:perfil?.ibscbs_class_trib||undefined,...montarCamposIbscbsEmissao()}
+    service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,municipalTaxCode:perfil?.municipal_code||undefined,nbsCode:nbs||undefined,description:qs('#s-desc').value.trim(),amount:valor,additionalItems,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value.replace(/\D/g,'')||undefined,eventCode:qs('#s-event-code')?.value.trim()||undefined,eventLocation:qs('#s-event-location')?.value.trim()||undefined,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,issRate:perfil?.iss_rate==null?undefined:Number(perfil.iss_rate),pisCofinsCst:cst||undefined,pisCofinsWithholding:tipoPisCofins||undefined,pisCofinsBase:retevePisCofins?dinheiro(qs('#s-pc-base').value):undefined,pisRate:retevePisCofins?dinheiro(qs('#s-pis-rate').value):undefined,cofinsRate:retevePisCofins?dinheiro(qs('#s-cofins-rate').value):undefined,pisAmount:retevePisCofins?dinheiro(qs('#s-pis-amount').value):undefined,cofinsAmount:retevePisCofins?dinheiro(qs('#s-cofins-amount').value):undefined,retCp:dinheiro(qs('#s-ret-cp').value),retIrrf:dinheiro(qs('#s-ret-irrf').value),retCsll:retevePisCofins?dinheiro(qs('#s-ret-csll').value):0,ibscbsCst:perfil?.ibscbs_cst||undefined,ibscbsClassTrib:perfil?.ibscbs_class_trib||undefined},
+    // Achado 12/08/2026: ibscbs é irmão de service no schema do backend
+    // (EmissionInput.ibscbs, types.ts), não um campo dentro de service —
+    // corrigido aqui (a primeira versão desta tela espalhava os campos
+    // dentro de service, o que o backend simplesmente ignoraria).
+    ibscbs:montarCamposIbscbsEmissao()
   };
   // Achado da auditoria de 11/08/2026: #s-mun-search (texto exibido) só
   // sincronizava com #s-mun (código IBGE realmente enviado à Sefin) quando o
@@ -2831,6 +2883,18 @@ async function montarPayloadEmissao(){
     const indOpConfirmado=indOpCatalogo.find(row=>row.cIndOp===qs('#s-ibscbs-indop').value);
     const indOpTextoEsperado=indOpConfirmado?`${indOpConfirmado.tipoOperacao||indOpConfirmado.cIndOp} — ${indOpConfirmado.cIndOp}`:null;
     if(!indOpConfirmado||qs('#s-ibscbs-indop-search').value.trim()!==indOpTextoEsperado) return {ok:false,msg:'O código indicador da operação (IBS/CBS) não foi confirmado — clique numa opção da lista antes de emitir.',foco:'#s-ibscbs-indop-search'};
+    // dest é obrigatório junto de indDest=1 (Anexo VI) — mesma trava de
+    // confirmação usada pro município de incidência, aplicada ao município
+    // do destinatário.
+    if(payload.ibscbs.indDest===1){
+      const dest=payload.ibscbs.dest;
+      if(!dest.name||!dest.municipalityCode||!dest.postalCode||!dest.street||!dest.number||!dest.district) return {ok:false,msg:'Preencha os dados do destinatário (nome, município, CEP, logradouro, número e bairro) antes de emitir.',foco:'#s-ibscbs-dest-nome'};
+      const destMunConfirmado=municipiosCatalogo.find(row=>row.code===dest.municipalityCode);
+      const destMunTextoEsperado=destMunConfirmado?`${destMunConfirmado.name}/${destMunConfirmado.state} — ${destMunConfirmado.code}`:null;
+      if(!destMunConfirmado||qs('#s-ibscbs-dest-mun-search').value.trim()!==destMunTextoEsperado) return {ok:false,msg:'O município do destinatário não foi confirmado — clique numa opção da lista antes de emitir.',foco:'#s-ibscbs-dest-mun-search'};
+    }
+    if(payload.ibscbs.compraGovernamental&&!payload.ibscbs.tpEnteGov) return {ok:false,msg:'Selecione o tipo de ente governamental.',foco:'#s-ibscbs-tpentegov'};
+    if((payload.ibscbs.tpOper==='2'||payload.ibscbs.tpOper==='3')&&!payload.ibscbs.gRefNFSe?.length) return {ok:false,msg:'Informe a(s) chave(s) da NFS-e referenciada(s) — obrigatório para este tipo de operação.',foco:'#s-ibscbs-refnfse'};
   }
   return {ok:true,payload};
 }
@@ -2838,12 +2902,39 @@ function ibscbsPreenchimentoAtivo(){
   const card=qs('#s-ibscbs-card');
   return Boolean(card&&card.style.display!=='none'&&qs('#s-ibscbs-preencher')?.value==='true');
 }
+// Monta o objeto "ibscbs" tal como o backend espera (EmissionInput.ibscbs,
+// types.ts) — campo irmão de "service" no payload de emissão, não dentro
+// dele. undefined nos campos não usados some no JSON.stringify, então o
+// backend recebe só o que se aplica (default seguro cuida do resto).
 function montarCamposIbscbsEmissao(){
-  if(!ibscbsPreenchimentoAtivo())return{};
+  if(!ibscbsPreenchimentoAtivo())return undefined;
+  const indFinalTexto=qs('#s-ibscbs-indfinal').value;
+  const indDest=Number(qs('#s-ibscbs-inddest').value);
+  const compraGovernamental=qs('#s-ibscbs-govcompra').value==='true';
+  const tpOper=compraGovernamental?(qs('#s-ibscbs-tpoper').value||undefined):undefined;
+  const gRefNFSeTexto=(tpOper==='2'||tpOper==='3')?qs('#s-ibscbs-refnfse').value.trim():'';
   return{
-    ibscbsIndDest:Number(qs('#s-ibscbs-inddest').value),
-    ibscbsCindOp:qs('#s-ibscbs-indop').value||undefined,
-    ibscbsCompraGovernamental:qs('#s-ibscbs-govcompra').value==='true'
+    indFinal:indFinalTexto===''?undefined:indFinalTexto==='true',
+    indDest,
+    cIndOp:qs('#s-ibscbs-indop').value||undefined,
+    compraGovernamental,
+    tpEnteGov:compraGovernamental?(qs('#s-ibscbs-tpentegov').value||undefined):undefined,
+    tpOper,
+    gRefNFSe:gRefNFSeTexto?gRefNFSeTexto.split(',').map(v=>v.trim()).filter(Boolean):undefined,
+    dest:indDest===1?montarDestinatarioIbscbs():undefined
+  };
+}
+function montarDestinatarioIbscbs(){
+  return{
+    taxId:qs('#s-ibscbs-dest-doc').value.replace(/\D/g,'')||undefined,
+    name:qs('#s-ibscbs-dest-nome').value.trim(),
+    municipalityCode:qs('#s-ibscbs-dest-mun').value,
+    postalCode:qs('#s-ibscbs-dest-cep').value.replace(/\D/g,''),
+    street:qs('#s-ibscbs-dest-lgr').value.trim(),
+    number:qs('#s-ibscbs-dest-num').value.trim(),
+    district:qs('#s-ibscbs-dest-bairro').value.trim(),
+    phone:qs('#s-ibscbs-dest-fone').value.trim()||undefined,
+    email:qs('#s-ibscbs-dest-mail').value.trim()||undefined
   };
 }
 function tratarFalhaPayload(m){

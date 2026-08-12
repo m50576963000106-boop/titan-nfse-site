@@ -1322,7 +1322,32 @@ test("pedido do usuário (12/08/2026): IBS/CBS na emissão — toggle, destinat�
   // mesma trava já usada pro município (auditoria de 11/08/2026).
   assert.match(html,/if\(!indOpConfirmado\|\|qs\('#s-ibscbs-indop-search'\)\.value\.trim\(\)!==indOpTextoEsperado\)/);
   assert.match(html,/function montarCamposIbscbsEmissao\(\)/);
-  assert.match(html,/ibscbsIndDest:Number\(qs\('#s-ibscbs-inddest'\)\.value\)/);
+  // ibscbs é irmão de service no payload (schema real do backend, ver
+  // types.ts), achado 12/08/2026 corrigindo a primeira versão desta tela.
+  assert.match(html,/ibscbs:montarCamposIbscbsEmissao\(\)/);
+  assert.match(html,/indDest,\s*cIndOp:qs\('#s-ibscbs-indop'\)\.value\|\|undefined,\s*compraGovernamental,/);
+});
+
+test("pedido do usuário (12/08/2026): grupo dest (destinatário) e compra governamental completos conforme leiaute oficial", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // sub-formulário do destinatário só aparece quando indDest=1 (destinatário
+  // diferente do adquirente) — Anexo VI exige o grupo dest nesse caso.
+  assert.match(html,/id="s-ibscbs-dest-fields" style="display:none"/);
+  assert.match(html,/id="s-ibscbs-inddest"[^>]*onchange="atualizarBlocoIbscbsDestinatario\(\)"/);
+  assert.match(html,/function atualizarBlocoIbscbsDestinatario\(\)\{/);
+  assert.match(html,/id="s-ibscbs-dest-mun-search"[^>]*oninput="pesquisarMunicipio\('s-ibscbs-dest'\)"/);
+  assert.match(html,/function montarDestinatarioIbscbs\(\)\{/);
+  // trava de confirmação do município do destinatário, mesmo padrão do
+  // município de incidência (auditoria de 11/08/2026).
+  assert.match(html,/O município do destinatário não foi confirmado/);
+  // tipo de ente governamental (1-4) e tipo de operação (1-5) só aparecem
+  // junto de compra governamental; gRefNFSe só quando tpOper=2 ou 3.
+  assert.match(html,/id="s-ibscbs-govcompra"[^>]*onchange="atualizarBlocoIbscbsGovCompra\(\)"/);
+  assert.match(html,/id="s-ibscbs-tpentegov"/);
+  assert.match(html,/id="s-ibscbs-tpoper"[^>]*onchange="atualizarBlocoIbscbsRefNFSe\(\)"/);
+  assert.match(html,/function atualizarBlocoIbscbsRefNFSe\(\)\{/);
+  assert.match(html,/id="s-ibscbs-refnfse-field" style="display:none"/);
+  assert.match(html,/id="s-ibscbs-indfinal"/);
 });
 
 test("pedido do usuário (12/08/2026): CST/cClassTrib do IBS/CBS vira dropdown pesquisável em Meus Serviços", async()=>{
