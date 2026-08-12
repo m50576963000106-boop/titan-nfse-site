@@ -144,7 +144,10 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.doesNotMatch(html,/data-master-tab="usuarios"/);
   assert.match(css,/background:transparent;border:0/);
   assert.match(css,/object-fit:contain/);
-  assert.match(html,/data-master-tab="perfis"/);
+  // Perfis de acesso granulares foram descontinuados (12/08/2026, pedido do
+  // usuário: "O PERFIL é Admin, parceiro e cliente, só!") — a aba "Perfis de
+  // Acesso" não fica mais alcançável pelo menu.
+  assert.doesNotMatch(html,/data-master-tab="perfis"/);
 });
 
 test("consulta CNPJ preenche emitente e endereço do tomador", async()=>{
@@ -654,7 +657,7 @@ test("suspender/liberar acesso de usuário e reativar empresa atualizam a tabela
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   const salvarAcesso=html.slice(html.indexOf("async function salvarAcesso(userId,companyId,active){"),html.indexOf("async function gerarRedefinicaoSenha"));
   assert.match(salvarAcesso,/const alvo=masterData\?\.users\.find\(item=>item\.id===userId&&item\.company_id===companyId\)/);
-  assert.match(salvarAcesso,/if\(alvo\)\{alvo\.profile_id=data\.profileId;alvo\.profile_name=next\?\.name\|\|alvo\.profile_name;alvo\.access_active=data\.active\}/);
+  assert.match(salvarAcesso,/if\(alvo\)alvo\.access_active=data\.active;/);
   assert.match(salvarAcesso,/renderMasterClients\(\)/);
   assert.doesNotMatch(salvarAcesso,/carregarMaster\(\)/);
 
@@ -1062,7 +1065,7 @@ test("painel Master ganha aba Inscrições, listando as pré-inscrições da hom
   // (menu dentro da sidebar do cliente, e a sidebar exclusiva do admin)
   const ocorrencias=html.split('data-master-tab="inscricoes"').length-1;
   assert.ok(ocorrencias>=2,"aba Inscrições deve aparecer nas duas navegações do Master");
-  assert.match(html,/\['clientes','inscricoes','atendimentos','parceiros','perfis','planos','config','logs'\]/);
+  assert.match(html,/\['clientes','inscricoes','atendimentos','parceiros','planos','config','logs'\]/);
   assert.match(html,/id="master-panel-inscricoes"/);
   assert.match(html,/if\(tab==='inscricoes'\)carregarMasterInscricoes\(\)/);
   const painel=html.slice(html.indexOf('id="master-panel-inscricoes"'),html.indexOf('id="master-panel-inscricoes"')+1600);
