@@ -1379,3 +1379,28 @@ test("pedido do usuário (12/08/2026): Rascunhos ganha busca/filtro e rastreia s
   assert.match(html,/async function descartarRascunho\(id\)\{/);
   assert.match(html,/api\('\/api\/workspace\/drafts\/'\+id\+'\/discard',\{method:'PATCH'\}\)/);
 });
+
+test("pedido do usuário (12/08/2026, NT07): retenção de IRRF ganha alíquota/base calculados; CSRF (PIS/COFINS/CSLL) ganha alíquota de CSLL", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  // IRRF: toggle Sim/Não + base/alíquota calculando o valor final (mesmo
+  // campo de sempre, s-ret-irrf/cad-irrf, pra não quebrar o payload já
+  // existente) — antes era só um input manual sem cálculo nenhum.
+  assert.match(html,/id="s-ret-irrf-tipo"[^>]*onchange="atualizarRetencaoIrrf\('s'\)"/);
+  assert.match(html,/id="s-irrf-base"[^>]*oninput="calcularIrrf\('s'\)"/);
+  assert.match(html,/id="s-irrf-rate"[^>]*oninput="calcularIrrf\('s'\)"/);
+  assert.match(html,/id="cad-ret-irrf-tipo"[^>]*onchange="atualizarRetencaoIrrf\('cad'\)"/);
+  assert.match(html,/function atualizarRetencaoIrrf\(prefix\)\{/);
+  assert.match(html,/function calcularIrrf\(prefix\)\{/);
+  assert.match(html,/qs\('#'\+\(prefix==='s'\?'s-ret-irrf':'cad-irrf'\)\)\.value=format\(base\*rate\/100\);/);
+  // CSRF (NT07): CSLL passa a ter alíquota própria, igual PIS/COFINS já
+  // tinham, em vez de só um valor manual.
+  assert.match(html,/id="s-csll-rate"[^>]*oninput="calcularPisCofins\('s'\)"/);
+  assert.match(html,/id="cad-csll-rate"[^>]*oninput="calcularPisCofins\('cad'\)"/);
+  assert.match(html,/qs\('#'\+\(prefix==='s'\?'s-ret-csll':'cad-csll'\)\)\.value=format\(base\*csll\/100\);/);
+  // rótulos citam CSRF/NT07, pra bater com o termo que o usuário usou.
+  assert.match(html,/Retenção CSRF — PIS\/COFINS\/CSLL \(NT07\)/);
+  assert.match(html,/Retenção de IRRF \(NT07\)\?/);
+  // campos novos entram na trava de retenções (herdadas do cadastro do
+  // serviço na emissão) — mesmo tratamento dos campos que já existiam.
+  assert.match(html,/CAMPOS_RETENCOES_TRAVAVEIS=\[[^\]]*'s-csll-rate'[^\]]*'s-ret-irrf-tipo'[^\]]*'s-irrf-base'[^\]]*'s-irrf-rate'[^\]]*\]/);
+});
