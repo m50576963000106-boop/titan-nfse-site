@@ -2421,6 +2421,7 @@ function aplicarPerfilServico(){
   const item=perfisServico.find(profile=>profile.id===qs('#s-profile').value);
   if(!item){travarRetencoes(true);atualizarResumoCtnNbs(null);atualizarCardIbscbsEmissao(null);return}
   const descricaoCompleta=(item.description||'').slice(0,1000),descricao160=descricaoCompleta.slice(0,160);
+  if(descricaoCompleta.length>160)alert(`O serviço "${item.name}" tem uma descrição salva com ${descricaoCompleta.length} caracteres, acima do limite de 160 aceito pela DPS. Ela foi cortada automaticamente ao preencher esta nota — revise o campo Descrição antes de emitir, e edite o cadastro do serviço em Meus serviços pra não repetir o corte nas próximas notas.`);
   qs('#s-cod').value=item.national_code;definirNbsSelecionado('s-nbs',item.nbs_code,item.name);qs('#s-desc').value=descricao160;if(qs('#s-desc-count'))qs('#s-desc-count').textContent=descricao160.length;qs('#s-trib-iss').value=item.iss_taxation;qs('#s-ret-iss').value=item.iss_withholding;qs('#s-cst').value=item.pis_cofins_cst||'';qs('#s-ret-pc').value=item.pis_cofins_withholding||'';
   const valorPadrao=Number(item.default_amount||0);
   composicaoItens=valorPadrao>0?[{description:descricaoCompleta,quantity:1,unitAmount:valorPadrao,profileId:item.id,ctn:item.national_code,nbs:item.nbs_code}]:[];
