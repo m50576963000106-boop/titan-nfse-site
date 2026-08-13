@@ -2479,7 +2479,7 @@ function travarRetencoes(locked){
 function orientacaoOnboardingEmitente(){
   titanAlert(`Para esta empresa emitir NFS-e pelo padrão nacional, dois passos são necessários:
 
-1. Cadastro da empresa (esta tela): razão social, CNPJ, inscrição municipal, regime tributário e endereço.
+1. Cadastro da empresa (esta tela): razão social, CNPJ, regime tributário e endereço (inscrição municipal é opcional).
 
 2. Certificado digital A1: um arquivo .pfx ou .p12 com senha, emitido por uma Autoridade Certificadora credenciada pela ICP-Brasil. Ele assina a nota e abre o canal seguro com a Sefin Nacional. Envie em "Certificado A1", no menu lateral — lá tem orientação completa de onde conseguir e como enviar.
 
@@ -3746,8 +3746,8 @@ async function salvarCadastro(){
     postalCode:empresaAtual?.postalCode||'',street:empresaAtual?.street||'',number:empresaAtual?.number||'',complement:empresaAtual?.complement||'',district:empresaAtual?.district||'',city:empresaAtual?.city||'',state:empresaAtual?.state||'',email:qs('#e-email').value.trim(),phone:qs('#e-phone').value.trim(),whatsapp:qs('#e-zap').value.trim(),
     series:Number(qs('#e-series').value),next:qs('#e-next').value.replace(/\D/g,''),simpleAp:Number(qs('#e-simple-ap').value),simpleTotal:qs('#e-simple-total').value.trim()===''?'':dinheiro(qs('#e-simple-total').value),taxFed:qs('#e-tax-fed').value.trim()===''?'':dinheiro(qs('#e-tax-fed').value),taxEst:qs('#e-tax-est').value.trim()===''?'':dinheiro(qs('#e-tax-est').value),taxMun:qs('#e-tax-mun').value.trim()===''?'':dinheiro(qs('#e-tax-mun').value),special:Number(qs('#e-special').value)
   };
-  if(!empresa.rs||!empresa.cnpj||!empresa.im||!empresa.endereco){
-    alert('Preencha razão social, CNPJ, inscrição municipal e endereço para salvar.');
+  if(!empresa.rs||!empresa.cnpj||!empresa.endereco){
+    alert('Preencha razão social, CNPJ e endereço para salvar.');
     return;
   }
   if(!Number.isInteger(empresa.series)||empresa.series<1||empresa.series>99999||!empresa.next){alert('Informe uma série entre 1 e 99999 e o próximo número da DPS.');return}
