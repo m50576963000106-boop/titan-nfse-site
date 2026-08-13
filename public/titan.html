@@ -278,6 +278,8 @@
 
       <div class="alert a-warn" id="emit-ibscbs-aviso" style="display:none;margin:0 0 12px"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div>Desde 03/08/2026 a NFS-e nacional exige a classificação IBS/CBS (Reforma Tributária) para empresas no regime Lucro Presumido/Real. Configure o CST e o cClassTrib de cada serviço em Meus Serviços para evitar rejeição na Sefin. <button class="btn btn-s" type="button" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Abrir Meus serviços</button></div></div>
 
+      <div class="alert a-warn" id="emit-limite-aviso" style="display:none;margin:0 0 12px"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div id="emit-limite-texto"></div></div>
+
       <div class="card journey-card">
         <div class="card-h"><h2>Trajeto da nota</h2><span class="pill p-off right mono" id="pipe-env">produção restrita</span></div>
         <div class="card-b"><div class="pipe" id="pipe"></div><div id="pipe-detail" class="pipe-detail">Passe o mouse ou use Tab sobre uma etapa para ver o detalhe.</div><div id="result"></div></div>
@@ -1712,7 +1714,7 @@ function go(v,el){
   if(v==='servicos'){carregarPerfisServico();buscarCatalogoServico()}
   if(v==='ajuda'){helpRenderTopics();helpRenderFaq()}
   if(v==='master')carregarMaster();
-  if(v==='emitir'){exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true);atualizarResumoCtnNbs(perfisServico.find(profile=>profile.id===qs('#s-profile')?.value)||null)}
+  if(v==='emitir'){exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true);atualizarResumoCtnNbs(perfisServico.find(profile=>profile.id===qs('#s-profile')?.value)||null);avisarLimiteDoPlano()}
   if(v==='rascunhos')carregarRascunhos();
   if(v==='clientes')carregarClientesCadastro();
   if(v==='recorrentes')carregarRecorrencias();
@@ -1783,9 +1785,22 @@ async function salvarRecorrenciaRecebimento(){
   try{await api('/api/workspace/recurrences',{method:'POST',body:JSON.stringify(body)});['#rr-title','#rr-client','#rr-value','#rr-start','#rr-category','#rr-cost-center'].forEach(id=>qs(id).value='');await carregarRecebimentos();alert('Recorrência criada.')}catch(error){alert(error.message)}
 }
 
+// Pedido do usuário (13/08/2026): antes o cliente só descobria que estava
+// perto do limite quando a emissão já estourava — avisa assim que a tela
+// de emissão abre, com link direto pra Financeiro (onde dá pra ver addon
+// avulso e considerar upgrade).
+async function avisarLimiteDoPlano(){
+  const box=qs('#emit-limite-aviso'),texto=qs('#emit-limite-texto');if(!box||!texto)return;
+  try{
+    const data=await api('/api/invoices/consumption');
+    if(!data.plan||!data.warning){box.style.display='none';return}
+    texto.innerHTML=`Você já usou <b>${data.used} de ${data.plan.limit}</b> notas do ${esc(data.plan.name)} este mês (${Math.round(data.used/data.plan.limit*100)}%). <button class="btn btn-s" type="button" onclick="go('financeiro',qs('.sb-link[onclick*=&quot;financeiro&quot;]'))">Ver plano e ferramentas avulsas</button>`;
+    box.style.display='';
+  }catch{box.style.display='none'}
+}
 async function carregarBilling(){
   const box=qs('#billing-status'),list=qs('#billing-charges');if(!box||!list)return;
-  try{const data=await api('/api/billing/status');const plan=data.plan?`${esc(data.plan.name)} · ${data.plan.monthlyLimit} notas/mês · R$ ${(data.plan.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'Plano ainda não configurado';box.innerHTML=`<b>${plan}</b><p class="hint">Status: ${esc(data.company?.billing_status||'trial')}${data.access?.blocked?' · emissão bloqueada por atraso':''}</p>${data.configured?'':'<div class="alert a-info">A integração Nubank está aguardando credenciais PJ no ambiente seguro.</div>'}`;list.innerHTML=data.charges?.length?data.charges.map(item=>`<div class="draft-item"><b>${esc(item.method)} · ${esc(item.status)}</b><span>R$ ${(Number(item.amount_cents||0)/100).toLocaleString('pt-BR',{minimumFractionDigits:2})} · vence ${new Date(item.due_at).toLocaleDateString('pt-BR')}</span>${item.pix_copy_paste?`<div class="hint mono">${esc(item.pix_copy_paste)}</div>`:''}</div>`).join(''):'<div class="empty-state">Nenhuma cobrança emitida.</div>'}catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`;list.innerHTML=''}
+  try{const data=await api('/api/billing/status');const plan=data.plan?`${esc(data.plan.name)} · ${data.plan.monthlyLimit} notas/mês · R$ ${(data.plan.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'Plano ainda não configurado';const addons=data.addons?.length?`<ul class="hint" style="margin:4px 0 0;padding-left:18px">${data.addons.map(a=>`<li>${esc(a.name)} avulso · R$ ${(a.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}/mês</li>`).join('')}</ul>`:'';const total=data.plan?`<p class="hint" style="margin-top:6px"><b>Total mensal: R$ ${((data.totalCents||0)/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}</b></p>`:'';box.innerHTML=`<b>${plan}</b>${addons}${total}<p class="hint">Status: ${esc(data.company?.billing_status||'trial')}${data.access?.blocked?' · emissão bloqueada por atraso':''}</p>${data.configured?'':'<div class="alert a-info">A integração Nubank está aguardando credenciais PJ no ambiente seguro.</div>'}`;list.innerHTML=data.charges?.length?data.charges.map(item=>`<div class="draft-item"><b>${esc(item.method)} · ${esc(item.status)}</b><span>R$ ${(Number(item.amount_cents||0)/100).toLocaleString('pt-BR',{minimumFractionDigits:2})} · vence ${new Date(item.due_at).toLocaleDateString('pt-BR')}</span>${item.pix_copy_paste?`<div class="hint mono">${esc(item.pix_copy_paste)}</div>`:''}</div>`).join(''):'<div class="empty-state">Nenhuma cobrança emitida.</div>'}catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`;list.innerHTML=''}
 }
 async function gerarCobranca(){
   const method=qs('#billing-method').value,due=qs('#billing-due').value||undefined;try{const data=await api('/api/billing/charges',{method:'POST',body:JSON.stringify({method,dueDate:due})});alert('Cobrança oficial criada.');await carregarBilling()}catch(error){alert(error.message)}
