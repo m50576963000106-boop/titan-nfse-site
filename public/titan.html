@@ -2420,10 +2420,10 @@ function detectarServicoPorCodigo(){
 function aplicarPerfilServico(){
   const item=perfisServico.find(profile=>profile.id===qs('#s-profile').value);
   if(!item){travarRetencoes(true);atualizarResumoCtnNbs(null);atualizarCardIbscbsEmissao(null);return}
-  const descricao=(item.description||'').slice(0,160);
-  qs('#s-cod').value=item.national_code;definirNbsSelecionado('s-nbs',item.nbs_code,item.name);qs('#s-desc').value=descricao;if(qs('#s-desc-count'))qs('#s-desc-count').textContent=descricao.length;qs('#s-trib-iss').value=item.iss_taxation;qs('#s-ret-iss').value=item.iss_withholding;qs('#s-cst').value=item.pis_cofins_cst||'';qs('#s-ret-pc').value=item.pis_cofins_withholding||'';
+  const descricaoCompleta=(item.description||'').slice(0,1000),descricao160=descricaoCompleta.slice(0,160);
+  qs('#s-cod').value=item.national_code;definirNbsSelecionado('s-nbs',item.nbs_code,item.name);qs('#s-desc').value=descricao160;if(qs('#s-desc-count'))qs('#s-desc-count').textContent=descricao160.length;qs('#s-trib-iss').value=item.iss_taxation;qs('#s-ret-iss').value=item.iss_withholding;qs('#s-cst').value=item.pis_cofins_cst||'';qs('#s-ret-pc').value=item.pis_cofins_withholding||'';
   const valorPadrao=Number(item.default_amount||0);
-  composicaoItens=valorPadrao>0?[{description:descricao,quantity:1,unitAmount:valorPadrao,profileId:item.id,ctn:item.national_code,nbs:item.nbs_code}]:[];
+  composicaoItens=valorPadrao>0?[{description:descricaoCompleta,quantity:1,unitAmount:valorPadrao,profileId:item.id,ctn:item.national_code,nbs:item.nbs_code}]:[];
   qs('#s-pc-base').value=String(item.pis_cofins_base||0).replace('.',',');qs('#s-pis-rate').value=String(item.pis_rate||0).replace('.',',');qs('#s-cofins-rate').value=String(item.cofins_rate||0).replace('.',',');qs('#s-pis-amount').value=String(item.pis_amount||0).replace('.',',');qs('#s-cofins-amount').value=String(item.cofins_amount||0).replace('.',',');
   qs('#s-ret-cp').value=String(item.ret_cp||0).replace('.',',');qs('#s-ret-irrf-tipo').value=Number(item.ret_irrf||0)>0?'1':'0';qs('#s-irrf-base').value='0,00';qs('#s-irrf-rate').value='1,50';qs('#s-ret-irrf').value=String(item.ret_irrf||0).replace('.',',');qs('#s-ret-csll').value=String(item.ret_csll||0).replace('.',',');lerParametros();
   atualizarRetencaoPisCofins('s');atualizarRetencaoIrrf('s');atualizarComposicao();atualizarCamposEspeciais();travarRetencoes(true);atualizarResumoCtnNbs(item);atualizarCardIbscbsEmissao(item);
@@ -2957,7 +2957,7 @@ async function montarPayloadEmissao(){
   const nbs=qs('#s-nbs').value.replace(/\D/g,'');
   const tipoPisCofins=qs('#s-ret-pc').value;
   const retevePisCofins=tipoPisCofins!==''&&tipoPisCofins!=='0';
-  const additionalItems=composicaoItens.map(item=>({description:(item.description||'').slice(0,160),quantity:Number(item.quantity||0),unitAmount:Number(item.unitAmount||0),amount:Number(((Number(item.quantity)||0)*(Number(item.unitAmount)||0)).toFixed(2))}));
+  const additionalItems=composicaoItens.map(item=>({description:(item.description||'').slice(0,1000),quantity:Number(item.quantity||0),unitAmount:Number(item.unitAmount||0),amount:Number(((Number(item.quantity)||0)*(Number(item.unitAmount)||0)).toFixed(2))}));
   if(additionalItems.some(item=>item.quantity<=0||item.unitAmount<=0)) return {ok:false,msg:'Cada linha de Serviços nessa nota precisa de quantidade e valor unitário maiores que zero — ou remova a linha.',foco:'#s-composition-lines',scroll:true};
   if(!additionalItems.length) return {ok:false,msg:'Informe o valor deste serviço antes de emitir.',foco:'#s-val'};
   const payload={
