@@ -2016,7 +2016,9 @@ async function consultarCnpjEmitente(){
     qs('#e-mun').value=empresa.municipalityCode||'';
     exibirMunicipioPorCodigo('e',empresa.municipalityCode);
     qs('#e-end').value=empresa.address||'';
-    empresaAtual={...(empresaAtual||{}),rs:empresa.legalName||'',cnpj:empresa.federalTaxId||cnpj,mun:empresa.municipalityCode||'',municipio:[empresa.municipality,empresa.state].filter(Boolean).join('/'),endereco:empresa.address||'',postalCode:empresa.postalCode||'',street:empresa.street||'',number:empresa.number||'',complement:empresa.complement||'',district:empresa.district||'',city:empresa.municipality||'',state:empresa.state||''};
+    if(empresa.email)qs('#e-email').value=empresa.email;
+    if(empresa.phone)qs('#e-phone').value=empresa.phone;
+    empresaAtual={...(empresaAtual||{}),rs:empresa.legalName||'',cnpj:empresa.federalTaxId||cnpj,mun:empresa.municipalityCode||'',municipio:[empresa.municipality,empresa.state].filter(Boolean).join('/'),endereco:empresa.address||'',postalCode:empresa.postalCode||'',street:empresa.street||'',number:empresa.number||'',complement:empresa.complement||'',district:empresa.district||'',city:empresa.municipality||'',state:empresa.state||'',email:empresa.email||empresaAtual?.email||'',phone:empresa.phone||empresaAtual?.phone||''};
     hint.textContent=`Dados preenchidos: ${[empresa.municipality,empresa.state].filter(Boolean).join('/')||'município não informado'}. Revise a inscrição municipal e o regime tributário.`;
   }catch(error){hint.textContent=error.message;alert(error.message)}
   finally{button.disabled=false;button.textContent='Buscar CNPJ'}
