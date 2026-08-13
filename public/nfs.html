@@ -146,12 +146,7 @@
         <p>Os limites consideram NFS-e autorizadas no mês. A contratação e a liberação do acesso são confirmadas pela equipe TITAN.</p>
       </div>
       <div class="pricing">
-        <div class="pricing-grid">
-          <article class="price-card"><h3>Plano Light</h3><div class="price-value">R$ 29,90 <small>/ mês</small></div><p>Para começar: até 10 notas autorizadas por mês, com cadastros e emissão nacional inclusos.</p><a class="btn btn-gold" href="#contratar">Quero este plano</a></article>
-          <article class="price-card featured"><h3>Plano SN 20</h3><div class="price-value">R$ 49,90 <small>/ mês</small></div><p>O favorito das empresas do Simples Nacional: até 20 notas autorizadas por mês.</p><a class="btn btn-gold" href="#contratar">Quero este plano</a></article>
-          <article class="price-card"><h3>Plano SN 50</h3><div class="price-value">R$ 79,90 <small>/ mês</small></div><p>Para quem fatura mais: até 50 notas por mês, sem abrir mão da mesma simplicidade.</p><a class="btn btn-gold" href="#contratar">Quero este plano</a></article>
-          <article class="price-card custom"><h3>Personalizado</h3><div class="price-value">Sob consulta</div><p>Mais de 50 notas por mês? Montamos um limite sob medida para o seu volume.</p><a class="btn" href="#contratar">Fale com a gente</a></article>
-        </div>
+        <div class="pricing-grid" id="pricing-grid"><p class="pricing-note">Carregando planos...</p></div>
         <p class="pricing-note">A cobrança automática via instituição financeira e os relatórios contábeis serão habilitados somente após a configuração segura das credenciais e do consentimento da empresa.</p>
       </div>
     </section>
@@ -220,6 +215,22 @@
     function normalizeTaxId(value){return String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
     async function carregarBrandingPortal(){try{const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/system/branding');const data=await response.json();if(response.ok&&data.portalLogoDataUrl)document.querySelectorAll('img[src="/titan-nfse-logo-transparent.png"]').forEach(img=>{img.src=data.portalLogoDataUrl})}catch{}}
     carregarBrandingPortal();
+    function escHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+    // Achado 13/08/2026 (pedido do usuário): preço e benefício digitados à
+    // mão aqui ficavam desatualizados toda vez que o Master mudava um plano
+    // — busca direto de master_plans (GET /api/onboarding/plans) pra nunca
+    // mais divergir.
+    async function carregarPlanosPublicos(){
+      const box=document.querySelector('#pricing-grid');if(!box)return;
+      try{
+        const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/onboarding/plans');
+        const {plans}=await response.json();
+        if(!response.ok||!plans?.length)throw new Error('sem planos');
+        box.innerHTML=plans.map((p,i)=>`<article class="price-card${i===Math.floor((plans.length-1)/2)?' featured':''}"><h3>${escHtml(p.name)}</h3><div class="price-value">R$ ${(p.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})} <small>/ mês</small></div><p>${escHtml(p.description||`Até ${p.monthlyLimit} notas autorizadas por mês.`)}</p>${p.benefits?.length?`<p class="pricing-note" style="margin:10px 0 0">${p.benefits.map(escHtml).join(' · ')}</p>`:''}<a class="btn btn-gold" href="#contratar">Quero este plano</a></article>`).join('')
+          +'<article class="price-card custom"><h3>Personalizado</h3><div class="price-value">Sob consulta</div><p>Precisa de um limite maior? Montamos sob medida para o seu volume.</p><a class="btn" href="#contratar">Fale com a gente</a></article>';
+      }catch{box.innerHTML='<p class="pricing-note">Não foi possível carregar os planos agora. Fale com a gente pelo formulário abaixo.</p>'}
+    }
+    carregarPlanosPublicos();
     function maskCnpjInput(event){const d=normalizeTaxId(event.target.value).slice(0,14);event.target.value=d.replace(/^(.{2})(.{3})?(.{3})?(.{4})?(\d{2})?.*/,(m,a,b,c,dd,e)=>[a,b&&'.'+b,c&&'.'+c,dd&&'/'+dd,e&&'-'+e].filter(Boolean).join(''))}
     function openLoginDrawer(focusTarget='client'){loginBackdrop.classList.add('open');loginButton.setAttribute('aria-expanded','true');setTimeout(()=>document.querySelector(focusTarget==='admin'?'#admin-email':'#client-cnpj')?.focus(),80)}
     function closeLoginDrawer(){loginBackdrop.classList.remove('open');loginButton.setAttribute('aria-expanded','false')}
