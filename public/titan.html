@@ -1493,16 +1493,16 @@ function selecionarDestinoPortal(access){
   const user=access.user||{},companies=access.companies||[];
   if(PORTAL_ADMIN){
     if(!user.isMaster)throw new Error('Este endereço é exclusivo do administrador master.');
-    if(companies[0]?.id)sessionStorage.setItem(STORAGE_COMPANY_ID,companies[0].id);
+    if(companies[0]?.id)salvarSessaoLocal([[STORAGE_COMPANY_ID,companies[0].id]]);
     return;
   }
   if(PORTAL_CNPJ){
     const company=companies.find(item=>normalizarDocumento(item.federal_tax_id)===PORTAL_CNPJ);
     if(!company)throw new Error('Seu usuário não possui acesso liberado para o CNPJ deste endereço.');
-    sessionStorage.setItem(STORAGE_COMPANY_ID,company.id);
+    salvarSessaoLocal([[STORAGE_COMPANY_ID,company.id]]);
     return;
   }
-  if(companies[0]?.id)sessionStorage.setItem(STORAGE_COMPANY_ID,companies[0].id);
+  if(companies[0]?.id)salvarSessaoLocal([[STORAGE_COMPANY_ID,companies[0].id]]);
 }
 
 function mascararCnpjLogin(el){
@@ -4714,11 +4714,10 @@ function lerHandoffGestor(){
 async function entrarViaGestor(data){
   try{
     if(!data?.token||!data?.companyId||!data?.companies?.length)throw new Error('Acesso temporário inválido.');
-    sessionStorage.setItem(STORAGE_TOKEN,data.token);sessionStorage.setItem(STORAGE_COMPANY_ID,data.companyId);sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:data.user||{},companies:data.companies||[]}));
     // Sessão de 20 minutos aberta pelo Master (impersonatedBy no token) —
     // guarda o nome da empresa só para a faixa de aviso; nada de decisão de
     // acesso depende disso, é puramente visual.
-    sessionStorage.setItem(STORAGE_IMPERSONATING,data.companies[0].trade_name||data.companies[0].legal_name||'empresa selecionada');
+    salvarSessaoLocal([[STORAGE_TOKEN,data.token],[STORAGE_COMPANY_ID,data.companyId],[STORAGE_SESSION,JSON.stringify({user:data.user||{},companies:data.companies||[]})],[STORAGE_IMPERSONATING,data.companies[0].trade_name||data.companies[0].legal_name||'empresa selecionada']]);
     localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:data.user?.name||'Gestor TITAN',email:data.user?.email||'',cnpj:data.companies[0].federal_tax_id||''}));history.replaceState({},'',location.pathname+location.search);
     await carregarAmbiente();await carregarEmpresaServidor();await carregarNotasServidor();carregarServicos().catch(()=>{});
     qs('#login').classList.add('hide');qs('#app').classList.add('on');aplicarAcesso({user:data.user,companies:data.companies});carregarEstado();render();faixaImpersonacao();PORTAL_HELP?(go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]')),setTimeout(()=>supOpen(),80)):go('painel',qs('.user-sidebar .sb-link[onclick*="painel"]'));
