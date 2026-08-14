@@ -3619,7 +3619,13 @@ async function carregarMeuPlano(){
         <button class="btn btn-s" type="button" onclick="cancelarPedidoUpgrade('${pendente.id}')">Cancelar pedido</button>`;
       return;
     }
-    const outros=vitrine.plans.filter(p=>p.code!==company.plan_code);
+    // Achado 14/08/2026 (validação ao vivo): sem comparar preço, uma empresa
+    // no plano mais caro (ex.: Ultra) via até o plano "teste" (interno, R$0,00,
+    // usado antes de atribuir um plano pago de verdade) listado como "upgrade".
+    // A API já devolve vitrine.plans ordenado por price_cents, então só falta
+    // exigir preço maior que o atual — sem isso (atual não encontrado na
+    // vitrine, caso raro de plano desativado), mantém o comportamento antigo.
+    const outros=vitrine.plans.filter(p=>atual?p.price_cents>atual.price_cents:p.code!==company.plan_code);
     if(!outros.length){box.innerHTML='<div class="empty-state">Você já está no plano mais completo disponível.</div>';return}
     const nomeFeature=code=>vitrine.featureCatalog.find(f=>f.code===code)?.name||code;
     box.innerHTML=`
