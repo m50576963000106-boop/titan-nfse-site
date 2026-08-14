@@ -360,7 +360,7 @@
                   </select>
                   <div class="hint" id="s-cod-hint">Catálogo oficial PRODREST v1.01 de 22/01/2026.</div>
                 </div>
-                <div class="field"><label for="s-nbs-search">Código NBS <span class="required-mark">*</span></label><div class="input-action"><input id="s-nbs-search" class="inp" inputmode="numeric" placeholder="Código ou descrição NBS"><button class="btn btn-s" type="button" onclick="buscarNbsEmissao()">Buscar</button></div><select id="s-nbs" class="inp mono" required onchange="validarNbsDigitacao()"><option value="">Pesquise o catálogo NBS</option></select><div class="hint" id="s-nbs-hint">Selecione um NBS oficial pelo código ou pela descrição.</div></div>
+                <div class="field"><label for="s-nbs-search">Código NBS <span class="required-mark">*</span></label><div class="input-action"><input id="s-nbs-search" class="inp" inputmode="numeric" placeholder="Código ou descrição NBS" onfocus="garantirNbsCarregado('s-nbs')"><button class="btn btn-s" type="button" onclick="buscarNbsEmissao()">Buscar</button></div><select id="s-nbs" class="inp mono" required onchange="validarNbsDigitacao()" onfocus="garantirNbsCarregado('s-nbs')"><option value="">Pesquise o catálogo NBS</option></select><div class="hint" id="s-nbs-hint">Selecione um NBS oficial pelo código ou pela descrição.</div></div>
               </div>
               <div class="field">
                 <label for="s-desc">Descrição</label>
@@ -2237,7 +2237,11 @@ function calcularIrrf(prefix){
 }
 
 async function carregarServicos(){
-  const [catalogo]=await Promise.all([api('/api/services/catalog?limit=400'),carregarPerfisServico(),carregarNbsCatalogo().catch(()=>{})]);
+  // NBS não entra aqui de propósito: o campo diz "Pesquise o catálogo NBS",
+  // mas antes os 920 itens (até 400 de uma vez) já vinham carregados sem
+  // nenhuma ação do usuário (achado do relatório de auditoria 13/08) — agora
+  // só carrega na primeira interação real, ver garantirNbsCarregado().
+  const [catalogo]=await Promise.all([api('/api/services/catalog?limit=400'),carregarPerfisServico()]);
   catalogoServicos=catalogo.services;
   qs('#s-cod').innerHTML=catalogoServicos.map(item=>`<option value="${item.code}">${item.code.slice(0,2)}.${item.code.slice(2,4)}.${item.code.slice(4)} — ${esc(item.description)}</option>`).join('');
   if(catalogoServicos.some(item=>item.code==='170101'))qs('#s-cod').value='170101';
@@ -2375,6 +2379,12 @@ async function carregarNbsCatalogo(search='',target='s-nbs'){
   nbsCatalogo=result.items||[];
   const lista=target==='s-nbs'?filtrarNbsPorCtn(nbsCatalogo):nbsCatalogo;
   preencherSelectNbs(target,lista,target==='s-nbs'?qs('#s-nbs')?.value:qs('#cad-nbs')?.value||'');
+}
+// Só busca o catálogo NBS (sem termo, primeira página) na primeira vez que o
+// usuário de fato mexe no campo — nunca sozinho ao abrir a tela.
+function garantirNbsCarregado(target){
+  if(nbsCatalogo.length)return;
+  carregarNbsCatalogo('',target).catch(()=>{});
 }
 async function buscarNbsEmissao(){
   const button=qs('#s-nbs-search')?.parentElement?.querySelector('button'),query=qs('#s-nbs-search').value.trim();
