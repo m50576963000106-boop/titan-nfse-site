@@ -114,6 +114,7 @@
       <div class="sb-sec">Cadastros</div>
       <button class="sb-link" data-permission="customers" onclick="go('clientes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.5-6 8-6s7.2 2 8 6"/></svg>Clientes</button>
       <button class="sb-link" data-permission="services" onclick="go('servicos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>Meus serviços</button>
+      <button class="sb-link" data-permission="financial" onclick="go('outros',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Outros</button>
 
       <div class="sb-sec">Integrações</div>
       <button class="sb-link" type="button" onclick="alternarGrupoMenu('integracoes-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Integrações<span class="sb-chevron">›</span></button>
@@ -881,8 +882,8 @@
         <div class="card"><div class="card-h"><h2>Agendar recebimento</h2></div><div class="card-b">
           <div class="row r2"><div class="field"><label for="rec-title">Descrição</label><input id="rec-title" class="inp" placeholder="Honorários mensais"></div><div class="field"><label for="rec-client">Cliente</label><input id="rec-client" class="inp" list="rec-client-list" placeholder="Razão social ou nome"><datalist id="rec-client-list"></datalist></div></div>
           <div class="row r2"><div class="field"><label for="rec-value">Valor (R$)</label><input id="rec-value" class="inp num" inputmode="decimal" placeholder="0,00"></div><div class="field"><label for="rec-due">Vencimento</label><input id="rec-due" class="inp" type="date"></div></div>
-          <div class="row r2"><div class="field"><label for="rec-competence">Competência</label><input id="rec-competence" class="inp" placeholder="2026-07"></div><div class="field"><label for="rec-category">Categoria</label><input id="rec-category" class="inp" placeholder="Honorários"></div></div>
-          <div class="row r2"><div class="field"><label for="rec-cost-center">Centro de custo</label><input id="rec-cost-center" class="inp" placeholder="Operacional"></div><div class="field"><label for="rec-channel">Cobrança</label><select id="rec-channel" class="inp"><option value="none">Sem cobrança agora</option><option value="whatsapp">WhatsApp/API zap — revisar antes</option><option value="manual">Manual</option></select></div></div>
+          <div class="row r2"><div class="field"><label for="rec-competence">Competência</label><input id="rec-competence" class="inp" placeholder="2026-07"></div><div class="field"><label for="rec-category">Categoria</label><select id="rec-category" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'categoria')"><option value="">Selecione...</option></select></div></div>
+          <div class="row r2"><div class="field"><label for="rec-cost-center">Centro de custo</label><select id="rec-cost-center" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'centro')"><option value="">Selecione...</option></select></div><div class="field"><label for="rec-channel">Cobrança</label><select id="rec-channel" class="inp"><option value="none">Sem cobrança agora</option><option value="whatsapp">WhatsApp/API zap — revisar antes</option><option value="manual">Manual</option></select></div></div>
           <div class="field"><label for="rec-issue">NFS-e</label><select id="rec-issue" class="inp"><option value="false">Somente controle financeiro</option><option value="true">Gerar pré-NFS-e pendente de revisão</option></select></div>
           <div class="field"><label for="rec-notes">Observações</label><textarea id="rec-notes" class="inp" rows="3" placeholder="Parâmetros, contrato, competência ou instruções de cobrança"></textarea></div>
           <div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarRecebimento()">Agendar recebimento</button><button class="btn btn-s" type="button" onclick="carregarRecebimentos()">Atualizar</button></div>
@@ -891,7 +892,7 @@
           <div class="row r2"><div class="field"><label for="rr-title">Descrição</label><input id="rr-title" class="inp" placeholder="Honorários contábeis"></div><div class="field"><label for="rr-client">Cliente</label><input id="rr-client" class="inp" list="rec-client-list" placeholder="Cliente cadastrado"></div></div>
           <div class="row r2"><div class="field"><label for="rr-value">Valor (R$)</label><input id="rr-value" class="inp num" inputmode="decimal" placeholder="0,00"></div><div class="field"><label for="rr-day">Dia do mês</label><input id="rr-day" class="inp" inputmode="numeric" value="5"></div></div>
           <div class="row r2"><div class="field"><label for="rr-start">Início</label><input id="rr-start" class="inp" type="date"></div><div class="field"><label for="rr-issue">NFS-e</label><select id="rr-issue" class="inp"><option value="true">Pré-NFS-e pendente a cada parcela</option><option value="false">Somente controle financeiro</option></select></div></div>
-          <div class="row r2"><div class="field"><label for="rr-category">Categoria</label><input id="rr-category" class="inp" placeholder="Honorários"></div><div class="field"><label for="rr-cost-center">Centro de custo</label><input id="rr-cost-center" class="inp" placeholder="Operacional"></div></div>
+          <div class="row r2"><div class="field"><label for="rr-category">Categoria</label><select id="rr-category" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'categoria')"><option value="">Selecione...</option></select></div><div class="field"><label for="rr-cost-center">Centro de custo</label><select id="rr-cost-center" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'centro')"><option value="">Selecione...</option></select></div></div>
           <button class="btn btn-p" type="button" onclick="salvarRecorrenciaRecebimento()">Criar recorrência</button><div class="hint">A recorrência gera parcelas programadas; a emissão fiscal continua revisável antes de transmitir.</div>
         </div></div>
       </div>
@@ -951,6 +952,20 @@
             <div class="foot-note">Fonte normativa: ANEXO B e leiaute DPS/NFS-e PRODREST v1.01.</div>
           </div>
           <div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharModalServico()">Cancelar</button><button class="btn btn-p" type="button" onclick="salvarPerfilServico()">Salvar cadastro</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="v-outros">
+      <div class="page-h"><h1>Outros cadastros</h1><p>Categorias e centros de custo usados em Recebimentos, pra padronizar em vez de digitar toda vez.</p></div>
+      <div class="grid g2" style="align-items:start">
+        <div class="card">
+          <div class="card-h"><h2>Categorias</h2><button class="btn btn-s" type="button" onclick="novoRegistroAuxiliar('categoria')">+ Nova</button></div>
+          <div class="card-b" id="outros-categorias-list"><div class="empty-state">Nenhuma categoria cadastrada.</div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h2>Centros de custo</h2><button class="btn btn-s" type="button" onclick="novoRegistroAuxiliar('centro')">+ Novo</button></div>
+          <div class="card-b" id="outros-centros-list"><div class="empty-state">Nenhum centro de custo cadastrado.</div></div>
         </div>
       </div>
     </section>
@@ -1738,6 +1753,7 @@ function go(v,el,limpar){
     exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true);atualizarResumoCtnNbs(perfisServico.find(profile=>profile.id===qs('#s-profile')?.value)||null);avisarLimiteDoPlano();atualizarEstadoBotaoEmitir();renumerarPassosEmissao();
   }
   if(v==='rascunhos')carregarRascunhos();
+  if(v==='outros')carregarOutros();
   if(v==='clientes')carregarClientesCadastro();
   if(v==='recorrentes')carregarRecorrencias();
   if(v==='comercial'){renderEmpresaComercial();carregarComerciais();popularClientesComercial();carregarPerfisServico().then(popularServicosComercial);}
@@ -1750,8 +1766,60 @@ function go(v,el,limpar){
 let recebimentos=[],recorrenciasRecebimento=[];
 function clientePorNomeRecebimento(name){const value=(name||'').trim().toLocaleLowerCase('pt-BR');return clientesCadastro.find(c=>(c.legal_name||'').trim().toLocaleLowerCase('pt-BR')===value||(c.trade_name||'').trim().toLocaleLowerCase('pt-BR')===value)}
 async function popularClientesRecebimento(){try{if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');const dl=qs('#rec-client-list');if(dl)dl.innerHTML=clientesCadastro.map(c=>`<option value="${esc(c.legal_name)}">${esc(c.tax_id||'')}</option>`).join('')}catch{}}
+
+/* ---------- outros cadastros: categorias e centros de custo ---------- */
+// Pedido direto do usuário (14/08): antes eram campos de texto livre em
+// Recebimentos — cada pessoa escrevia diferente ("Operacional" vs
+// "operacional"). Backend continua guardando texto simples (sem FK); isto só
+// padroniza o que a pessoa ESCOLHE, com opção de cadastrar um novo direto ali.
+let categoriasCadastro=[],centrosCustoCadastro=[];
+async function carregarRegistrosAuxiliares(){
+  try{[categoriasCadastro,centrosCustoCadastro]=await Promise.all([api('/api/categories'),api('/api/cost-centers')]);}
+  catch{categoriasCadastro=[];centrosCustoCadastro=[];}
+}
+function opcoesRegistroAuxiliar(lista,valorAtual,rotuloNovo){
+  return '<option value="">Selecione...</option>'
+    +lista.map(item=>`<option value="${esc(item.name)}" ${item.name===valorAtual?'selected':''}>${esc(item.name)}</option>`).join('')
+    +`<option value="__novo__">${esc(rotuloNovo)}</option>`;
+}
+function popularSelectsRegistros(){
+  ['rec-category','rr-category'].forEach(id=>{const el=qs('#'+id);if(el)el.innerHTML=opcoesRegistroAuxiliar(categoriasCadastro,el.value,'+ Nova categoria...')});
+  ['rec-cost-center','rr-cost-center'].forEach(id=>{const el=qs('#'+id);if(el)el.innerHTML=opcoesRegistroAuxiliar(centrosCustoCadastro,el.value,'+ Novo centro de custo...')});
+}
+async function aoTrocarRegistroAuxiliar(select,tipo){
+  if(select.value!=='__novo__')return;
+  select.value='';
+  const nome=await titanPrompt(tipo==='categoria'?'Nome da categoria':'Nome do centro de custo','',tipo==='categoria'?'Nova categoria':'Novo centro de custo');
+  if(!nome)return;
+  try{
+    const criado=await api(tipo==='categoria'?'/api/categories':'/api/cost-centers',{method:'POST',body:JSON.stringify({name:nome})});
+    await carregarRegistrosAuxiliares();
+    popularSelectsRegistros();
+    select.value=criado.name;
+  }catch(error){alert(error.message)}
+}
+function renderListaRegistroAuxiliar(listId,lista,tipo){
+  const el=qs('#'+listId);if(!el)return;
+  el.innerHTML=lista.length?lista.map(item=>`<div class="dest" style="margin-bottom:6px"><div style="flex:1;min-width:0">${esc(item.name)}</div><button class="ico-btn danger" title="Excluir" onclick="excluirRegistroAuxiliar('${tipo}','${item.id}')">×</button></div>`).join(''):'<div class="empty-state">Nenhum cadastro ainda.</div>';
+}
+async function carregarOutros(){
+  await carregarRegistrosAuxiliares();
+  renderListaRegistroAuxiliar('outros-categorias-list',categoriasCadastro,'categoria');
+  renderListaRegistroAuxiliar('outros-centros-list',centrosCustoCadastro,'centro');
+}
+async function novoRegistroAuxiliar(tipo){
+  const nome=await titanPrompt(tipo==='categoria'?'Nome da categoria':'Nome do centro de custo','',tipo==='categoria'?'Nova categoria':'Novo centro de custo');
+  if(!nome)return;
+  try{await api(tipo==='categoria'?'/api/categories':'/api/cost-centers',{method:'POST',body:JSON.stringify({name:nome})});await carregarOutros();}catch(error){alert(error.message)}
+}
+async function excluirRegistroAuxiliar(tipo,id){
+  if(!await titanConfirm('Excluir este cadastro?','Excluir','err'))return;
+  try{await api((tipo==='categoria'?'/api/categories/':'/api/cost-centers/')+id,{method:'DELETE'});await carregarOutros();}catch(error){alert(error.message)}
+}
 async function carregarRecebimentos(){
   await popularClientesRecebimento();
+  await carregarRegistrosAuxiliares();
+  popularSelectsRegistros();
   const filter=qs('#rec-filter')?.value||'all';
   try{
     const [summary,items,recs]=await Promise.all([api('/api/workspace/receivables/summary'),api('/api/workspace/receivables?status='+encodeURIComponent(filter)),api('/api/workspace/recurrences')]);
