@@ -1834,6 +1834,7 @@ async function carregarNotasServidor(){
   notas.splice(0,notas.length,...rows.map(row=>({
     id:row.id,key:row.access_key,n:row.nfse_number||row.dps_number,date:row.created_at,d:new Date(row.created_at).toLocaleDateString('pt-BR'),t:row.borrower_name,
     s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='canceled'?'canc':row.status==='rejected'||row.status==='error'?'err':'proc',emailTo:row.email_to||'',emailSentAt:row.email_sent_at||'',emailProviderId:row.email_provider_id||'',emailLastError:row.email_last_error||'',
+    syncedAt:row.fiscal_synced_at||'',syncDivergent:!!row.fiscal_sync_divergent,
     comp:(row.competence_date||'').slice(0,7)
   })));
   tabelas();chart();renderDashboard();
@@ -2739,11 +2740,12 @@ function renderTabelaNotas(lista){
       <td data-th="Tomador">${esc(x.t)}</td>
       <td data-th="Serviço" style="color:var(--ink-2)">${esc(x.s)}</td>
       <td class="r" data-th="Valor">${brl(x.v)}</td>
-      <td data-th="Situação"><div>${pill(x.st)}${x.emailSentAt?`<div class="foot-note">E-mail: ${esc(x.emailTo||'enviado')} · ${esc(new Date(x.emailSentAt).toLocaleString('pt-BR'))}${x.emailProviderId?` · ID ${esc(x.emailProviderId)}`:''}</div>`:x.emailLastError?`<div class="foot-note" style="color:#b91c1c">E-mail: ${esc(x.emailLastError)}</div>`:''}</div></td>
+      <td data-th="Situação"><div>${pill(x.st)}${x.syncDivergent?`<div class="foot-note" style="color:#b91c1c">Divergente — verificar diretamente no Portal Nacional</div>`:''}${x.emailSentAt?`<div class="foot-note">E-mail: ${esc(x.emailTo||'enviado')} · ${esc(new Date(x.emailSentAt).toLocaleString('pt-BR'))}${x.emailProviderId?` · ID ${esc(x.emailProviderId)}`:''}</div>`:x.emailLastError?`<div class="foot-note" style="color:#b91c1c">E-mail: ${esc(x.emailLastError)}</div>`:''}${x.syncedAt?`<div class="foot-note">Consultado na Sefin em ${esc(new Date(x.syncedAt).toLocaleString('pt-BR'))}</div>`:''}</div></td>
       <td data-th="Ações">
         <div class="acts">
           <button class="ico-btn" title="Baixar XML" onclick="baixarXml('${x.id}','${escAttr(x.n)}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
           <button class="ico-btn" title="Abrir DANFSe em PDF" onclick="abrirDanfse('${x.id}','${escAttr(x.n)}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="ico-btn" title="Sincronizar situação com a Sefin" onclick="sincronizarNota('${x.id}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg></button>
           <button class="btn btn-s" type="button" onclick="reenviarEmailNota('${x.id}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}>Reenviar por e-mail</button>
           <button class="ico-btn danger" title="Cancelar nota" onclick="abrirCancelamento('${x.id}','${escAttr(x.n)}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></button>
         </div>
@@ -2884,6 +2886,17 @@ async function reenviarEmailNota(id){
     const result=await api('/api/invoices/'+encodeURIComponent(id)+'/email',{method:'POST',body:JSON.stringify({})});
     await carregarNotasServidor();
     await titanAlert(`E-mail enviado para ${result.to}${result.providerId?' · ID '+result.providerId:''}.`,'E-mail da NFS-e','ok');
+  }catch(error){alert(error.message)}
+}
+
+async function sincronizarNota(id){
+  try{
+    const result=await api('/api/invoices/'+encodeURIComponent(id)+'/sync',{method:'POST',body:JSON.stringify({})});
+    await carregarNotasServidor();
+    const mensagem=result.divergiu
+      ?`A situação na Sefin era diferente da mostrada aqui — atualizamos para "${sit[STATUS_BACKEND_PARA_CURTO[result.status]||'proc'][1]}".`
+      :'Consultamos a Sefin agora: a situação mostrada já está correta.';
+    await titanAlert(mensagem,'Sincronização com a Sefin',result.divergiu?'warn':'ok');
   }catch(error){alert(error.message)}
 }
 
