@@ -1727,7 +1727,7 @@ function go(v,el){
   if(v==='servicos'){carregarPerfisServico();buscarCatalogoServico()}
   if(v==='ajuda'){helpRenderTopics();helpRenderFaq()}
   if(v==='master')carregarMaster();
-  if(v==='emitir'){exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true);atualizarResumoCtnNbs(perfisServico.find(profile=>profile.id===qs('#s-profile')?.value)||null);avisarLimiteDoPlano()}
+  if(v==='emitir'){exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true);atualizarResumoCtnNbs(perfisServico.find(profile=>profile.id===qs('#s-profile')?.value)||null);avisarLimiteDoPlano();atualizarEstadoBotaoEmitir()}
   if(v==='rascunhos')carregarRascunhos();
   if(v==='clientes')carregarClientesCadastro();
   if(v==='recorrentes')carregarRecorrencias();
@@ -2131,7 +2131,7 @@ async function completarCadastroRascunho(){
   }catch(e){}
 }
 
-qs('#t-nome').addEventListener('input',()=>{clearTimeout(buscaClienteTimer);buscaClienteTimer=setTimeout(()=>buscarClientes(false),250)});
+qs('#t-nome').addEventListener('input',()=>{atualizarEstadoBotaoEmitir();clearTimeout(buscaClienteTimer);buscaClienteTimer=setTimeout(()=>buscarClientes(false),250)});
 qs('#t-nome').addEventListener('focus',()=>{if(qs('#t-nome').value.trim().length>=2)buscarClientes(false)});
 qs('#t-nome').addEventListener('blur',()=>setTimeout(()=>qs('#customer-results').classList.remove('on'),180));
 qs('#t-doc').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();consultarCnpj()}});
@@ -2247,6 +2247,18 @@ function atualizarTotaisComposicao(){
   if(qs('#s-composition-total'))qs('#s-composition-total').textContent=`R$ ${brl(total)}`;
   if(qs('#emit-side-total'))qs('#emit-side-total').textContent=`R$ ${brl(total)}`;
   lerParametros();
+  atualizarEstadoBotaoEmitir();
+}
+// "Emitir direto" só habilita com tomador preenchido e total > 0 — antes só
+// travava contra duplo clique, deixava clicável mesmo com R$0,00 e campos
+// vazios (achado do relatório de auditoria 13/08).
+function atualizarEstadoBotaoEmitir(){
+  const btn=qs('#btn-emit');if(!btn)return;
+  const semTomador=!qs('#t-nome')?.value.trim();
+  const total=composicaoItens.reduce((soma,item)=>soma+lineTotalComposicao(item),0);
+  const bloqueado=semTomador||total<=0;
+  btn.disabled=bloqueado;
+  btn.title=bloqueado?'Preencha o tomador e um valor maior que zero antes de emitir.':'';
 }
 function atualizarModoValorServico(){
   const campo=qs('#s-val'),label=qs('#s-val-label'),hint=qs('#s-val-hint');
@@ -3237,7 +3249,7 @@ async function emitir(){
     dispararMartynPorErro(error.message);
   }finally{
     rodando=false;
-    qs('#btn-emit').disabled=false;
+    atualizarEstadoBotaoEmitir();
   }
 }
 
