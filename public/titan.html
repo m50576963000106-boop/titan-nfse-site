@@ -249,6 +249,11 @@
       </div>
 
       <div class="card" style="margin-top:16px">
+        <div class="dash-card-h"><div><h2>Causas de rejeição</h2><p>Últimos 30 dias, agrupadas por motivo</p></div></div>
+        <div class="dash-pending" id="dash-rejeicoes-list"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
         <div class="dash-card-h"><div><h2>Últimas emissões</h2><p>Notas mais recentes desta empresa</p></div><button class="btn btn-s right" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))">Abrir histórico</button></div>
         <div class="tbl-scroll">
           <table>
@@ -2738,6 +2743,13 @@ function filtrarNotas(){
     if(algumFiltro)resumo.textContent=`${lista.length} nota${lista.length===1?'':'s'} encontrada${lista.length===1?'':'s'} com os filtros aplicados.`;
   }
 }
+function corrigirCausaRejeicao(numero){
+  go('notas',qs('.sb-link[onclick*="notas"]'));
+  const status=qs('#nt-status'),busca=qs('#nt-search');
+  if(status)status.value='rejected';
+  if(busca)busca.value=numero||'';
+  filtrarNotas();
+}
 function renderTabelaNotas(lista){
   const tbody=qs('#tb-notas');if(!tbody)return;
   if(!notas.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state">O histórico está vazio. As emissões de teste aparecerão aqui.</div></td></tr>';return}
@@ -2806,6 +2818,11 @@ function renderDashboard(){
     if(processingCount)rows.push(`<button class="pending-row" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="pending-copy"><b>Emissões em processamento</b><span>Acompanhe o retorno oficial</span></span><strong class="pending-count">${processingCount}</strong></button>`);
     if(!rejectedCount&&!processingCount&&!(!empresaAtual))rows.push(`<div class="dash-empty">Nenhuma pendência fiscal encontrada no mês.<br>O próximo passo é emitir uma nova NFS-e.</div>`);
     pending.innerHTML=rows.join('');
+  }
+  const rejeicoes=qs('#dash-rejeicoes-list');
+  if(rejeicoes){
+    const causas=dashboardStats?.rejectionBreakdown||[];
+    rejeicoes.innerHTML=causas.length?causas.map(c=>`<button class="pending-row" type="button" onclick="corrigirCausaRejeicao('${escAttr(c.lastInvoiceNumber||'')}')"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>${c.code?esc(c.code)+' — ':''}${esc(c.message)}</b><span>Última vez em ${esc(new Date(c.lastAt).toLocaleDateString('pt-BR'))} · Corrigir agora</span></span><strong class="pending-count">${c.count}</strong></button>`).join(''):'<div class="dash-empty">Nenhuma rejeição nos últimos 30 dias.</div>';
   }
   const activity=qs('#dash-activity');
   if(activity){
