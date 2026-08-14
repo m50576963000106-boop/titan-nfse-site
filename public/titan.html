@@ -1727,7 +1727,7 @@ function go(v,el){
   if(v==='servicos'){carregarPerfisServico();buscarCatalogoServico()}
   if(v==='ajuda'){helpRenderTopics();helpRenderFaq()}
   if(v==='master')carregarMaster();
-  if(v==='emitir'){exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true);atualizarResumoCtnNbs(perfisServico.find(profile=>profile.id===qs('#s-profile')?.value)||null);avisarLimiteDoPlano();atualizarEstadoBotaoEmitir()}
+  if(v==='emitir'){exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true);atualizarResumoCtnNbs(perfisServico.find(profile=>profile.id===qs('#s-profile')?.value)||null);avisarLimiteDoPlano();atualizarEstadoBotaoEmitir();renumerarPassosEmissao()}
   if(v==='rascunhos')carregarRascunhos();
   if(v==='clientes')carregarClientesCadastro();
   if(v==='recorrentes')carregarRecorrencias();
@@ -2132,6 +2132,24 @@ async function completarCadastroRascunho(){
 }
 
 qs('#t-nome').addEventListener('input',()=>{atualizarEstadoBotaoEmitir();clearTimeout(buscaClienteTimer);buscaClienteTimer=setTimeout(()=>buscarClientes(false),250)});
+// Os passos 4 (Dados específicos), 5 (Retenções) e 6 (IBS/CBS) ficam
+// escondidos por padrão e só aparecem conforme o serviço — antes os números
+// dos badges eram fixos no HTML, então uma tela nova mostrava "1, 2, 3, 7"
+// (achado do relatório de auditoria 13/08). Observa os 3 cards condicionais
+// e renumera pelos que estão de fato visíveis a cada mudança de display.
+function renumerarPassosEmissao(){
+  let numero=0;
+  document.querySelectorAll('.emit-step').forEach(badge=>{
+    if(badge.offsetParent===null)return;
+    numero++;
+    badge.textContent=String(numero);
+  });
+}
+['s-specific-card','s-ret-card','s-ibscbs-card'].forEach(id=>{
+  const card=document.getElementById(id);
+  if(card)new MutationObserver(renumerarPassosEmissao).observe(card,{attributes:true,attributeFilter:['style']});
+});
+renumerarPassosEmissao();
 qs('#t-nome').addEventListener('focus',()=>{if(qs('#t-nome').value.trim().length>=2)buscarClientes(false)});
 qs('#t-nome').addEventListener('blur',()=>setTimeout(()=>qs('#customer-results').classList.remove('on'),180));
 qs('#t-doc').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();consultarCnpj()}});
