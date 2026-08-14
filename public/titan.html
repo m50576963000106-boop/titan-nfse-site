@@ -741,6 +741,7 @@
 
           <div class="card">
             <div class="card-h"><h2>Meu plano</h2><span class="pill p-gold right" id="plan-current-pill">—</span></div>
+            <div class="card-b" id="plan-consumo-box" style="padding-bottom:0"></div>
             <div class="card-b" id="plan-upgrade-box"><div class="empty-state">Carregando planos disponíveis...</div></div>
           </div>
 
@@ -3589,8 +3590,23 @@ async function emitirRecorrenciaAgora(id){
   try{await api('/api/invoice-recurrences/'+id+'/run-now',{method:'POST'});alert('Nota enviada para processamento fiscal.');await carregarRecorrencias()}catch(error){alert(error.message)}
 }
 
+// Achado do relatório de auditoria 13/08: o consumo do plano só aparecia no
+// banner de "Emitir NFS-e", e só a partir de 80% de uso — o card "Meu plano"
+// em Configurações nunca mostrava quanto já foi usado, em nenhum nível.
+// Mesmo endpoint que o banner (avisarLimiteDoPlano) já usa, mas exibido
+// sempre, não só perto do limite.
+async function carregarConsumoPlano(){
+  const box=qs('#plan-consumo-box');if(!box)return;
+  try{
+    const data=await api('/api/invoices/consumption');
+    if(!data.plan){box.innerHTML='';return}
+    const pct=Math.round(data.used/data.plan.limit*100);
+    box.innerHTML=`<div class="hint">Consumo do mês: <b>${data.used} de ${data.plan.limit}</b> notas (${pct}%)</div>`;
+  }catch{box.innerHTML=''}
+}
 async function carregarMeuPlano(){
   const box=qs('#plan-upgrade-box');if(!box)return;
+  carregarConsumoPlano();
   const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}'),companyId=sessionStorage.getItem(STORAGE_COMPANY_ID),company=(access.companies||[]).find(c=>c.id===companyId)||(access.companies||[])[0];
   if(!company){box.innerHTML='<div class="empty-state">Abra uma empresa para ver o plano contratado.</div>';return}
   try{
