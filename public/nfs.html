@@ -225,8 +225,9 @@
     // ordem cronológica, simulando "digitando..." antes de cada resposta do
     // Martyn, igual ao WhatsApp de verdade. "at" é o instante (ms desde o
     // início do ciclo) em que a mensagem aparece — dá pra calcular a duração
-    // total sem depender de soma acumulada. Ciclo de 30s, repete sozinho.
-    const MARTYN_CICLO_MS=31500;
+    // total sem depender de soma acumulada. Última mensagem some aos 29,5s;
+    // fica mais 15s parada na tela (conversa completa) antes de reiniciar.
+    const MARTYN_CICLO_MS=44500;
     const MARTYN_DEMO=[
       {dir:'out',text:'Oi',time:'08:29',at:400},
       {dir:'in',text:'Oi! Tudo bem? Aqui é o Martyn, assistente do TITAN NFS-e. Precisa emitir uma nota, consultar alguma já emitida ou tirar uma dúvida? É só falar!',time:'08:29',at:2800},
