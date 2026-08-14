@@ -67,7 +67,7 @@
       <div class="partner-card">
         <div id="partner-status" class="partner-empty">Carregando carteira...</div>
         <div class="table-wrap"><table id="partner-table" style="display:none">
-          <thead><tr><th>Empresa</th><th>CNPJ</th><th>Status de emissão</th></tr></thead>
+          <thead><tr><th>Empresa</th><th>CNPJ</th><th>Status de emissão</th><th>WhatsApp (vínculo)</th></tr></thead>
           <tbody id="partner-rows"></tbody>
         </table></div>
       </div>
@@ -163,7 +163,7 @@
         const data=await buscarApiParceiro('/api/partner/companies');
         const empresas=data.companies||[];
         if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
-        corpo.innerHTML=empresas.map(company=>`<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td class="mono">${esc(formatarCnpj(company.federal_tax_id))}</td><td><span class="pill ${company.emission_enabled?'on':'off'}">${company.emission_enabled?'Emissão liberada':'Emissão suspensa'}</span></td></tr>`).join('');
+        corpo.innerHTML=empresas.map(company=>`<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td class="mono">${esc(formatarCnpj(company.federal_tax_id))}</td><td><span class="pill ${company.emission_enabled?'on':'off'}">${company.emission_enabled?'Emissão liberada':'Emissão suspensa'}</span></td><td><div style="display:flex;gap:6px;align-items:center"><input class="inp" style="max-width:150px" id="zap-${company.id}" value="${esc(company.whatsapp_phone||'')}" placeholder="(00) 00000-0000" inputmode="tel"><button class="btn" type="button" style="padding:6px 10px;font-size:12px" onclick="salvarWhatsappParceiro('${company.id}')">Salvar</button></div></td></tr>`).join('');
         status.style.display='none';tabela.style.display='table';
       }catch(error){
         if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
@@ -230,6 +230,19 @@
       }
     }
 
+    async function salvarWhatsappParceiro(companyId){
+      const token=tokenDeSessaoParceiro();
+      if(!token){alert('Sessão de parceiro não encontrada ou expirada.');return}
+      const valor=document.querySelector('#zap-'+companyId).value.trim();
+      try{
+        const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/partner/companies/'+companyId+'/whatsapp',{
+          method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({whatsappPhone:valor||null})
+        });
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok)throw new Error(data.error||'Não foi possível salvar.');
+        alert('WhatsApp salvo. Isso também decide quais empresas aparecem juntas no seletor "empresa ativa" da empresa.');
+      }catch(error){alert(error.message)}
+    }
     const PARTNER_LOADERS={carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro};
     function partnerTab(nome,botao){
       document.querySelectorAll('.partner-view').forEach(secao=>{secao.style.display=secao.id==='partner-view-'+nome?'block':'none'});
