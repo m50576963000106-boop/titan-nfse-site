@@ -348,7 +348,7 @@
               <div class="field">
                 <label for="s-profile">Meus Serviços</label>
                 <select id="s-profile" class="inp" onchange="aplicarPerfilServico()"><option value="">Preenchimento avulso</option></select>
-                <div class="hint">Cadastros configurados em Meus serviços.</div>
+                <div class="hint">Preenche automaticamente o serviço principal desta nota a partir de um cadastro em Meus Serviços. Para lançar mais de um serviço na mesma nota, use as opções da etapa 3, "Serviços nessa nota".</div>
               </div>
               <div class="hint" id="s-ctn-nbs-summary" style="display:none"></div>
               <div id="s-ctn-nbs-block">
@@ -376,7 +376,7 @@
                 <div class="field mb0">
                   <label for="s-val" id="s-val-label">Valor deste serviço (R$)</label>
                   <input id="s-val" class="inp num" value="0,00" inputmode="decimal" oninput="atualizarValorServicoAtual()">
-                  <div class="hint" id="s-val-hint">Valor referente ao serviço descrito acima. Para lançar outro serviço, use "+ Novo serviço desta mesma natureza".</div>
+                  <div class="hint" id="s-val-hint">Valor referente ao serviço descrito acima. Para repetir este mesmo código nacional/NBS com outro valor, use "+ Novo serviço desta mesma natureza". Para somar um serviço diferente já cadastrado, use "Adicionar outro serviço cadastrado" na etapa 3.</div>
                   <button class="btn btn-s" type="button" id="s-add-same-nature" onclick="adicionarNovoServicoMesmaNatureza()">+ Novo serviço desta mesma natureza</button>
                 </div>
                 <div class="field mb0">
@@ -390,7 +390,7 @@
           <div class="card">
             <div class="card-h emit-card-h"><div class="emit-card-title"><span class="emit-step">3</span><div><h2>Serviços nessa nota</h2><p>Adicione os valores que entram no total da NFS-e.</p></div></div><span class="pill p-gold right">Conferência</span></div>
             <div class="card-b">
-              <div class="field"><label for="s-additional-service">Adicionar outro serviço cadastrado</label><div class="input-action"><select id="s-additional-service" class="inp"><option value="">Selecione um serviço adicional</option></select><button class="btn btn-s" type="button" onclick="adicionarLinhaComposicao()">Adicionar</button></div></div>
+              <div class="field"><label for="s-additional-service">Adicionar outro serviço cadastrado</label><div class="input-action"><select id="s-additional-service" class="inp"><option value="">Selecione um serviço adicional</option></select><button class="btn btn-s" type="button" onclick="adicionarLinhaComposicao()">Adicionar</button></div><div class="hint">Soma um serviço diferente, já cadastrado em Meus Serviços, como outra linha nesta nota. Para repetir o mesmo serviço da etapa 2 com outro valor, use "+ Novo serviço desta mesma natureza" lá em cima.</div></div>
               <div id="s-composition-detail" style="display:none">
                 <div id="s-composition-lines" class="draft-list"></div>
                 <div class="commercial-summary"><b>Total calculado</b><b id="s-composition-total">R$ 0,00</b></div>
