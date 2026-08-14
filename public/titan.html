@@ -829,9 +829,10 @@
                 </div>
               </div>
               <label class="flex" style="font-size:12.5px;color:var(--ink-2);cursor:pointer;margin-bottom:14px">
-                <input type="checkbox" id="i-tom" checked> Cadastrar tomadores automaticamente a partir dos XMLs
+                <input type="checkbox" id="i-tom"> Cadastrar tomadores automaticamente a partir dos XMLs
               </label>
-              <button class="btn btn-a" id="btn-imp" onclick="importar()" style="width:100%">Iniciar importação</button>
+              <button class="btn btn-a" id="btn-imp" onclick="importar(true)" style="width:100%">Ver prévia da importação</button>
+              <button class="btn btn-a" id="btn-imp-confirmar" onclick="importar(false)" style="width:100%;margin-top:8px;display:none">Confirmar e importar</button>
             </div>
           </div>
 
@@ -3777,7 +3778,7 @@ async function carregarImportStatus(){
     }
   }catch(error){qs('#imp-vazio').textContent=error.message}
 }
-async function importar(){
+async function importar(preview){
   if(!empresaAtual){
     alert('Cadastre e salve a empresa antes de configurar a importação.');
     go('emitente',qs('#sb-configuracoes'));
@@ -3786,39 +3787,59 @@ async function importar(){
   if(impRodando)return;
   impRodando=true;
   qs('#btn-imp').disabled=true;
+  qs('#btn-imp-confirmar').disabled=true;
   qs('#imp-vazio').style.display='none';
   qs('#imp-run').style.display='block';
   qs('#imp-fim').innerHTML='';
   qs('#imp-lotes').innerHTML='';
 
   const nsu=Math.max(0,Number(qs('#i-nsu').value)||0);
+  const cadastrarTomadores=!!qs('#i-tom')?.checked;
   qs('#imp-nsu').textContent='NSU '+nsu;
-  qs('#imp-tot').textContent='consultando ADN';
+  qs('#imp-tot').textContent=preview?'consultando ADN (prévia)':'consultando ADN';
   qs('#imp-bar').style.width='35%';
   try{
-    const result=await api('/api/import/sync',{method:'POST',body:JSON.stringify({nsu,maxPages:5})});
+    const result=await api('/api/import/sync',{method:'POST',body:JSON.stringify({nsu,maxPages:5,cadastrarTomadores,preview:!!preview})});
     qs('#imp-nsu').textContent='NSU '+result.lastNsu;
-    qs('#imp-tot').textContent=result.imported+' documentos novos';
     qs('#imp-bar').style.width='100%';
-    qs('#i-nsu').value=result.lastNsu;
     qs('#imp-lotes').innerHTML=result.batches.map(batch=>`<div class="lote"><span class="mono">GET /DFe/${esc(batch.fromNsu)} → ${esc(batch.toNsu)}</span><b>${batch.documents} documento(s)</b></div>`).reverse().join('');
-    const found=result.imported>0;
-    qs('#imp-fim').innerHTML=`
-      <div class="result ${found?'ok':''}" style="margin-top:12px">
-        <div class="flex" style="margin-bottom:9px"><span class="pill ${found?'p-ok':'p-off'}">${found?'Importação concluída':'ADN consultado — nenhum documento novo'}</span></div>
-        <div class="kv"><span>Notas como prestador</span><b>${result.provider}</b></div>
-        <div class="kv"><span>Notas como tomador</span><b>${result.borrower}</b></div>
-        <div class="kv"><span>Clientes processados</span><b>${result.customers}</b></div>
-        <div class="kv"><span>Status oficial</span><b>${esc(result.status)}</b></div>
-        <div class="kv"><span>Último NSU</span><b class="mono" style="font-size:11.5px">${esc(result.lastNsu)}</b></div>
-        <div class="foot-note">Resposta real da API de Contribuintes do ADN em ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}.</div>
-      </div>`;
+    if(result.preview){
+      qs('#imp-tot').textContent=result.documentos.novos+' documento(s) novo(s) na prévia';
+      const semNovidade=!result.documentos.novos;
+      qs('#imp-fim').innerHTML=`
+        <div class="result" style="margin-top:12px">
+          <div class="flex" style="margin-bottom:9px"><span class="pill ${semNovidade?'p-off':'p-warn'}">${semNovidade?'Prévia — nenhum documento novo':'Prévia — nada foi gravado ainda'}</span></div>
+          <div class="kv"><span>Documentos novos</span><b>${result.documentos.novos}</b></div>
+          <div class="kv"><span>Documentos duplicados (já importados)</span><b>${result.documentos.duplicados}</b></div>
+          <div class="kv"><span>Tomadores novos${cadastrarTomadores?'':' (cadastro desligado)'}</span><b>${result.tomadores.novos}</b></div>
+          <div class="kv"><span>Tomadores que seriam alterados${cadastrarTomadores?'':' (cadastro desligado)'}</span><b>${result.tomadores.alterados}</b></div>
+          <div class="kv"><span>Documentos sem tomador identificável</span><b>${result.tomadores.ignorados}</b></div>
+          <div class="foot-note">${cadastrarTomadores?'Cadastro automático de tomadores ligado — confirme só depois de revisar os números acima.':'Cadastro automático de tomadores desligado — só os documentos serão importados.'}</div>
+        </div>`;
+      qs('#btn-imp-confirmar').style.display=result.documentos.novos?'block':'none';
+    }else{
+      qs('#imp-tot').textContent=result.imported+' documentos novos';
+      qs('#i-nsu').value=result.lastNsu;
+      qs('#btn-imp-confirmar').style.display='none';
+      const found=result.imported>0;
+      qs('#imp-fim').innerHTML=`
+        <div class="result ${found?'ok':''}" style="margin-top:12px">
+          <div class="flex" style="margin-bottom:9px"><span class="pill ${found?'p-ok':'p-off'}">${found?'Importação concluída':'ADN consultado — nenhum documento novo'}</span></div>
+          <div class="kv"><span>Notas como prestador</span><b>${result.provider}</b></div>
+          <div class="kv"><span>Notas como tomador</span><b>${result.borrower}</b></div>
+          <div class="kv"><span>Clientes processados</span><b>${result.customers}</b></div>
+          <div class="kv"><span>Status oficial</span><b>${esc(result.status)}</b></div>
+          <div class="kv"><span>Último NSU</span><b class="mono" style="font-size:11.5px">${esc(result.lastNsu)}</b></div>
+          <div class="foot-note">Resposta real da API de Contribuintes do ADN em ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}.</div>
+        </div>`;
+    }
   }catch(error){
     qs('#imp-bar').style.width='100%';
     qs('#imp-fim').innerHTML=`<div class="result no" style="margin-top:12px"><span class="pill p-err">Importação recusada</span><div class="chave" style="color:#7d1c1f">${esc(error.message)}</div></div>`;
   }finally{
     impRodando=false;
     qs('#btn-imp').disabled=false;
+    qs('#btn-imp-confirmar').disabled=false;
   }
 }
 
