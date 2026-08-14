@@ -605,6 +605,12 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .kv span{color:var(--ink-2)}
 .kv b{font-weight:650;font-variant-numeric:tabular-nums;text-align:right}
 .foot-note{font-size:11px;color:var(--ink-3);line-height:1.6;margin-top:12px}
+.foot-details{margin-top:4px}
+.foot-details summary{font-size:10.5px;color:var(--ink-3);cursor:pointer;list-style:none}
+.foot-details summary::-webkit-details-marker{display:none}
+.foot-details summary::before{content:'▸ ';font-size:9px}
+.foot-details[open] summary::before{content:'▾ '}
+.foot-details .foot-note{margin-top:4px}
 .empty-state{padding:30px 18px;text-align:center;color:var(--ink-3);font-size:12.5px;line-height:1.6}
 .onboard-step{display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border-radius:100px;background:#f7f0dc;color:var(--gold-dim);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
 .setup-actions{display:flex;gap:9px;align-items:center;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}

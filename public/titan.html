@@ -2667,6 +2667,7 @@ const sit={
   err:['p-err','Rejeitada'],canc:['p-off','Cancelada']
 };
 function pill(s){return `<span class="pill ${sit[s][0]}">${sit[s][1]}</span>`}
+let notasFiltradasCount=0;
 
 function tabelas(){
   if(!notas.length){
@@ -2674,7 +2675,7 @@ function tabelas(){
   }else{
     qs('#ult').innerHTML=notas.slice(0,5).map(x=>`
       <tr><td class="num">${x.d}</td><td>${esc(x.t)}</td><td style="color:var(--ink-2)">${esc(x.s)}</td>
-      <td class="r">${brl(x.v)}</td><td>${pill(x.st)}</td></tr>`).join('');
+      <td class="r">R$ ${brl(x.v)}</td><td>${pill(x.st)}</td></tr>`).join('');
   }
   popularFiltrosNotas();
   filtrarNotas();
@@ -2735,6 +2736,7 @@ function filtrarNotas(){
     if(dataAte&&(!x.date||new Date(x.date)>new Date(dataAte+'T23:59:59')))return false;
     return true;
   });
+  notasFiltradasCount=lista.length;
   renderTabelaNotas(lista);
 
   const resumo=qs('#nt-filtro-resumo');
@@ -2743,6 +2745,26 @@ function filtrarNotas(){
     resumo.style.display=algumFiltro?'':'none';
     if(algumFiltro)resumo.textContent=`${lista.length} nota${lista.length===1?'':'s'} encontrada${lista.length===1?'':'s'} com os filtros aplicados.`;
   }
+}
+function resumoSituacaoNotas(){
+  const status=qs('#nt-status')?.value||'';
+  return {authorized:'apenas Autorizadas',sending:'apenas Processando',rejected:'apenas Rejeitadas',canceled:'apenas Canceladas'}[status]||'todas as situações';
+}
+// Estimativa de quantas notas entram no zip de XML: o backend só filtra por
+// busca/situação/competência (não pelos filtros avançados de nº/serviço/data
+// que a tela também tem), e só inclui notas com XML autorizado — por isso é
+// "estimativa", não a contagem exata mostrada na tabela.
+function notasParaExportacaoXml(){
+  const search=(qs('#nt-search')?.value||'').trim().toLocaleLowerCase('pt-BR');
+  const status=qs('#nt-status')?.value||'';
+  const statusCurto=STATUS_BACKEND_PARA_CURTO[status]||'';
+  const month=qs('#nt-competencia')?.value||'';
+  return notas.filter(x=>{
+    if(search){const alvo=[x.n,x.t,x.key].map(v=>String(v||'').toLocaleLowerCase('pt-BR'));if(!alvo.some(v=>v.includes(search)))return false;}
+    if(statusCurto&&x.st!==statusCurto)return false;
+    if(month&&x.comp!==month)return false;
+    return true;
+  });
 }
 function corrigirCausaRejeicao(numero){
   go('notas',qs('.sb-link[onclick*="notas"]'));
@@ -2761,8 +2783,8 @@ function renderTabelaNotas(lista){
       <td class="num" data-th="Emissão">${x.d}</td>
       <td data-th="Tomador">${esc(x.t)}</td>
       <td data-th="Serviço" style="color:var(--ink-2)">${esc(x.s)}</td>
-      <td class="r" data-th="Valor">${brl(x.v)}</td>
-      <td data-th="Situação"><div>${pill(x.st)}${x.syncDivergent?`<div class="foot-note" style="color:#b91c1c">Divergente — verificar diretamente no Portal Nacional</div>`:''}${x.emailSentAt?`<div class="foot-note">E-mail: ${esc(x.emailTo||'enviado')} · ${esc(new Date(x.emailSentAt).toLocaleString('pt-BR'))}${x.emailProviderId?` · ID ${esc(x.emailProviderId)}`:''}</div>`:x.emailLastError?`<div class="foot-note" style="color:#b91c1c">E-mail: ${esc(x.emailLastError)}</div>`:''}${x.syncedAt?`<div class="foot-note">Consultado na Sefin em ${esc(new Date(x.syncedAt).toLocaleString('pt-BR'))}</div>`:''}</div></td>
+      <td class="r" data-th="Valor">R$ ${brl(x.v)}</td>
+      <td data-th="Situação"><div>${pill(x.st)}${x.syncDivergent?`<div class="foot-note" style="color:#b91c1c">Divergente — verificar diretamente no Portal Nacional</div>`:''}${(x.emailSentAt||x.emailLastError||x.syncedAt)?`<details class="foot-details"><summary>detalhes</summary>${x.emailSentAt?`<div class="foot-note">E-mail: ${esc(x.emailTo||'enviado')} · ${esc(new Date(x.emailSentAt).toLocaleString('pt-BR'))}${x.emailProviderId?` · ID ${esc(x.emailProviderId)}`:''}</div>`:x.emailLastError?`<div class="foot-note" style="color:#b91c1c">E-mail: ${esc(x.emailLastError)}</div>`:''}${x.syncedAt?`<div class="foot-note">Consultado na Sefin em ${esc(new Date(x.syncedAt).toLocaleString('pt-BR'))}</div>`:''}</details>`:''}</div></td>
       <td data-th="Ações">
         <div class="acts">
           <button class="ico-btn" title="Baixar XML" onclick="baixarXml('${x.id}','${escAttr(x.n)}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
@@ -2774,7 +2796,15 @@ function renderTabelaNotas(lista){
       </td>
     </tr>`).join('');
 }
-function imprimirNotas(){document.body.classList.add('printing-notas');window.print();window.setTimeout(()=>document.body.classList.remove('printing-notas'),1000)}
+async function imprimirNotas(){
+  const month=qs('#nt-competencia')?.value||'';
+  const confirmado=await titanConfirm(
+    `${notasFiltradasCount} nota(s) visível(is) na tela — ${resumoSituacaoNotas()}${month?`, competência ${month}`:''}.\n\nO PDF inclui exatamente as linhas visíveis com os filtros atuais.`,
+    'Exportar PDF'
+  );
+  if(!confirmado)return;
+  document.body.classList.add('printing-notas');window.print();window.setTimeout(()=>document.body.classList.remove('printing-notas'),1000);
+}
 
 function dashUserName(){
   const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}'),user=access.user||{};
@@ -2840,6 +2870,12 @@ async function exportarXmls(btn){
   if(search)params.set('search',search);
   if(status)params.set('status',status);
   if(month)params.set('month',month);
+  const estimativa=notasParaExportacaoXml().length;
+  const confirmado=await titanConfirm(
+    `Até ${estimativa} nota(s) — ${resumoSituacaoNotas()}${month?`, competência ${month}`:''}${search?`, busca "${search}"`:''}.\n\nSó entram no zip as notas com XML autorizado disponível.`,
+    'Exportar XMLs'
+  );
+  if(!confirmado)return;
   const original=btn?btn.textContent:'';if(btn){btn.disabled=true;btn.textContent='Gerando zip...';}
   try{
     const blob=await apiBlob('/api/invoices/export/xml'+(params.toString()?'?'+params.toString():''));
