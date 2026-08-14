@@ -223,44 +223,55 @@
     function escHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
     // Demo do Martyn (pedido do usuário): dados fictícios (Empresa Exemplo),
     // ordem cronológica, simulando "digitando..." antes de cada resposta do
-    // Martyn, igual ao WhatsApp de verdade — só roda quando a seção entra na
-    // tela (chamado pelo observer de .reveal abaixo).
+    // Martyn, igual ao WhatsApp de verdade. "at" é o instante (ms desde o
+    // início do ciclo) em que a mensagem aparece — dá pra calcular a duração
+    // total sem depender de soma acumulada. Ciclo de 30s, repete sozinho.
+    const MARTYN_CICLO_MS=31500;
     const MARTYN_DEMO=[
-      {dir:'out',text:'Oi',time:'08:29'},
-      {dir:'in',text:'Oi! Tudo bem? Aqui é o Martyn, assistente do TITAN NFS-e. Precisa emitir uma nota, consultar alguma já emitida ou tirar uma dúvida? É só falar!',time:'08:29'},
-      {dir:'out',text:'Quero emitir uma nota',time:'08:30'},
-      {dir:'in',text:'Perfeito! Me manda o nome do tomador, o valor e o tipo de serviço. Pode ser tudo numa mensagem só.',time:'08:30'},
-      {dir:'out',text:'Empresa Exemplo Ltda\n850\nConsultoria',time:'08:30'},
-      {dir:'in',html:'Deixa eu confirmar:<br><br><b>Tomador:</b> Empresa Exemplo Ltda<br><b>Serviço:</b> Consultoria<br><b>Valor:</b> R$ 850,00<br><br>Confirma pra eu emitir?<br><br>1 - Sim<br>2 - Não, quero corrigir',time:'08:31'},
-      {dir:'out',text:'1',time:'08:31'},
-      {dir:'in',text:'Prontinho! Nota enviada pra Sefin. Assim que autorizar, o PDF chega aqui mesmo no WhatsApp.',time:'08:31'}
+      {dir:'out',text:'Oi',time:'08:29',at:400},
+      {dir:'in',text:'Oi! Tudo bem? Aqui é o Martyn, assistente do TITAN NFS-e. Precisa emitir uma nota, consultar alguma já emitida ou tirar uma dúvida? É só falar!',time:'08:29',at:2800},
+      {dir:'out',text:'Quero emitir uma nota',time:'08:30',at:5600},
+      {dir:'in',text:'Perfeito! Me manda o nome do tomador, o valor e o tipo de serviço. Pode ser tudo numa mensagem só.',time:'08:30',at:8600},
+      {dir:'out',text:'Empresa Exemplo Ltda\n850\nConsultoria',time:'08:30',at:11800},
+      {dir:'in',html:'Deixa eu confirmar:<br><br><b>Tomador:</b> Empresa Exemplo Ltda<br><b>Serviço:</b> Consultoria<br><b>Valor:</b> R$ 850,00<br><br>Confirma pra eu emitir?<br><br>1 - Sim<br>2 - Não, quero corrigir',time:'08:31',at:15800},
+      {dir:'out',text:'1',time:'08:31',at:19300},
+      {dir:'in',text:'Nota enviada pra Sefin! Assim que autorizar, o PDF e o XML chegam aqui mesmo.',time:'08:32',at:21800},
+      {dir:'in',file:{nome:'NF 12 - Empresa Exemplo Ltda.pdf',tamanho:'164 KB'},time:'08:34',at:24500},
+      {dir:'in',html:'NFS-e nº 12 autorizada, segue o DANFSe (PDF).<br><br>Link do XML: <span class="wa-link">nfse.titanbackoffice.com.br/n/exemplo01</span><br>O link é seguro e expira em 24 horas.',time:'08:34',at:27000},
+      {dir:'in',text:'Precisando de mais alguma coisa, é só chamar!',time:'08:35',at:29500}
     ];
+    function conteudoMensagem(item){
+      if(item.file)return `<div class="wa-file"><div class="wa-file-icon">PDF</div><div><b>${escHtml(item.file.nome)}</b><small>${escHtml(item.file.tamanho)} · pdf</small></div></div>`;
+      return item.html||escHtml(item.text).replace(/\n/g,'<br>');
+    }
     function iniciarDemoMartyn(){
       const caixa=document.querySelector('#martyn-chat-body');
-      if(!caixa||caixa.dataset.rodou)return;caixa.dataset.rodou='1';
-      let atraso=300;
-      MARTYN_DEMO.forEach(item=>{
-        if(item.dir==='in'){
-          const tempoDigitando=650+Math.random()*400;
-          setTimeout(()=>{
-            const digitando=document.createElement('div');digitando.className='wa-typing';digitando.innerHTML='<i></i><i></i><i></i>';caixa.appendChild(digitando);caixa.scrollTop=caixa.scrollHeight;
+      if(!caixa||caixa.dataset.emAndamento)return;caixa.dataset.emAndamento='1';
+      const TEMPO_DIGITANDO=1100;
+      function rodarCiclo(){
+        caixa.innerHTML='';
+        MARTYN_DEMO.forEach(item=>{
+          if(item.dir==='in'){
             setTimeout(()=>{
-              digitando.remove();
+              const digitando=document.createElement('div');digitando.className='wa-typing';digitando.innerHTML='<i></i><i></i><i></i>';caixa.appendChild(digitando);caixa.scrollTop=caixa.scrollHeight;
+            },Math.max(item.at-TEMPO_DIGITANDO,0));
+            setTimeout(()=>{
+              caixa.querySelector('.wa-typing')?.remove();
               const bolha=document.createElement('div');bolha.className='wa-msg in';
-              bolha.innerHTML=(item.html||escHtml(item.text).replace(/\n/g,'<br>'))+'<span class="wa-time">'+item.time+'</span>';
+              bolha.innerHTML=conteudoMensagem(item)+'<span class="wa-time">'+item.time+'</span>';
               caixa.appendChild(bolha);caixa.scrollTop=caixa.scrollHeight;
-            },tempoDigitando);
-          },atraso);
-          atraso+=tempoDigitando+750;
-        }else{
-          setTimeout(()=>{
-            const bolha=document.createElement('div');bolha.className='wa-msg out';
-            bolha.innerHTML=escHtml(item.text).replace(/\n/g,'<br>')+'<span class="wa-time">'+item.time+' ✓✓</span>';
-            caixa.appendChild(bolha);caixa.scrollTop=caixa.scrollHeight;
-          },atraso);
-          atraso+=700;
-        }
-      });
+            },item.at);
+          }else{
+            setTimeout(()=>{
+              const bolha=document.createElement('div');bolha.className='wa-msg out';
+              bolha.innerHTML=escHtml(item.text).replace(/\n/g,'<br>')+'<span class="wa-time">'+item.time+' ✓✓</span>';
+              caixa.appendChild(bolha);caixa.scrollTop=caixa.scrollHeight;
+            },item.at);
+          }
+        });
+        setTimeout(rodarCiclo,MARTYN_CICLO_MS);
+      }
+      rodarCiclo();
     }
     // Achado 13/08/2026 (pedido do usuário): preço e benefício digitados à
     // mão aqui ficavam desatualizados toda vez que o Master mudava um plano
