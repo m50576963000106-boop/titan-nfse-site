@@ -160,6 +160,8 @@
         </div>
 
         <div class="wa-phone">
+          <div class="wa-notch"></div>
+          <div class="wa-statusbar"><span>9:41</span><span class="wa-statusbar-icons"><span class="wa-signal"><i></i><i></i><i></i><i></i></span><span class="wa-battery"><i></i></span></span></div>
           <div class="wa-header"><img class="wa-avatar" src="/titan-nfse-logo-transparent.png" alt=""><div><b>Titan Backoffice</b><span class="wa-status">online</span></div></div>
           <div class="wa-body" id="martyn-chat-body"></div>
         </div>
@@ -242,8 +244,8 @@
       {dir:'in',text:'Precisando de mais alguma coisa, é só chamar!',time:'08:35',at:29500}
     ];
     function conteudoMensagem(item){
-      if(item.file)return `<div class="wa-file"><div class="wa-file-icon">PDF</div><div><b>${escHtml(item.file.nome)}</b><small>${escHtml(item.file.tamanho)} · pdf</small></div></div>`;
-      return item.html||escHtml(item.text).replace(/\n/g,'<br>');
+      if(item.file)return `<b>Martyn:</b><br><div class="wa-file"><div class="wa-file-icon">PDF</div><div><b>${escHtml(item.file.nome)}</b><small>${escHtml(item.file.tamanho)} · pdf</small></div></div>`;
+      return `<b>Martyn:</b><br>${item.html||escHtml(item.text).replace(/\n/g,'<br>')}`;
     }
     function iniciarDemoMartyn(){
       const caixa=document.querySelector('#martyn-chat-body');
@@ -282,7 +284,11 @@
       const box=document.querySelector('#pricing-grid');if(!box)return;
       try{
         const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/onboarding/plans');
-        const {plans}=await response.json();
+        const {plans:todosPlanos}=await response.json();
+        // Página inicial mostra só a linha principal (Light/Essence/Advanced);
+        // planos internos (teste) e o topo (Ultra) ficam fora da vitrine
+        // pública, que já tem o card "Personalizado" pra quem precisa de mais.
+        const plans=(todosPlanos||[]).filter(p=>['light10','essence20','advanced50'].includes(p.code));
         if(!response.ok||!plans?.length)throw new Error('sem planos');
         box.innerHTML=plans.map((p,i)=>`<article class="price-card${i===Math.floor((plans.length-1)/2)?' featured':''}"><h3>${escHtml(p.name)}</h3><div class="price-value">R$ ${(p.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})} <small>/ mês</small></div><p>${escHtml(p.description||`Até ${p.monthlyLimit} notas autorizadas por mês.`)}</p>${p.benefits?.length?`<p class="pricing-note" style="margin:10px 0 0">${p.benefits.map(escHtml).join(' · ')}</p>`:''}<a class="btn btn-gold" href="#contratar">Quero este plano</a></article>`).join('')
           +'<article class="price-card custom"><h3>Personalizado</h3><div class="price-value">Sob consulta</div><p>Precisa de um limite maior? Montamos sob medida para o seu volume.</p><a class="btn" href="#contratar">Fale com a gente</a></article>';

@@ -43,11 +43,21 @@
     /* Réplica do WhatsApp modo claro (pedido do usuário): papel de parede
        bege claro, balão recebido branco à esquerda, balão enviado verde
        claro à direita — cores oficiais aproximadas do app. */
-    .wa-phone{border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 18px 45px rgba(19,30,46,.12);max-width:380px;margin:0 auto}
+    .wa-phone{border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 18px 45px rgba(19,30,46,.12);max-width:380px;margin:0 auto;position:relative}
+    .wa-statusbar{background:#000;color:#fff;font-size:11px;font-weight:600;padding:7px 16px 6px;display:flex;justify-content:space-between;align-items:center}
+    .wa-notch{width:9px;height:9px;border-radius:50%;background:#000;box-shadow:0 0 0 1.5px #262626 inset;position:absolute;top:6px;left:50%;transform:translateX(-50%);z-index:2}
+    .wa-statusbar-icons{display:flex;align-items:center;gap:5px}
+    .wa-signal{display:flex;align-items:flex-end;gap:1.5px;height:9px}
+    .wa-signal i{width:2.5px;background:#fff;display:block;border-radius:.5px}
+    .wa-signal i:nth-child(1){height:40%}.wa-signal i:nth-child(2){height:60%}.wa-signal i:nth-child(3){height:80%}.wa-signal i:nth-child(4){height:100%}
+    .wa-battery{width:18px;height:9px;border:1px solid #fff;border-radius:2px;position:relative;padding:1px}
+    .wa-battery::after{content:'';position:absolute;right:-3px;top:2.5px;width:2px;height:4px;background:#fff;border-radius:0 1px 1px 0}
+    .wa-battery i{display:block;height:100%;width:80%;background:#fff;border-radius:1px}
     .wa-header{background:#008069;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:11px}
     .wa-avatar{width:38px;height:38px;border-radius:50%;background:#fff;object-fit:contain;padding:4px}
     .wa-header b{display:block;font-size:14.5px;line-height:1.3}.wa-status{display:block;font-size:11.5px;color:rgba(255,255,255,.75)}
-    .wa-body{min-height:340px;padding:14px 12px;background:#e5ddd5;background-image:radial-gradient(rgba(0,0,0,.035) 1px,transparent 1px);background-size:16px 16px;display:flex;flex-direction:column;gap:3px}
+    .wa-body{height:420px;overflow-y:auto;scrollbar-width:none;padding:14px 12px;background:#e5ddd5;background-image:radial-gradient(rgba(0,0,0,.035) 1px,transparent 1px);background-size:16px 16px;display:flex;flex-direction:column;gap:3px}
+    .wa-body::-webkit-scrollbar{display:none}
     .wa-msg{max-width:78%;border-radius:8px;padding:7px 9px 9px;font-size:13px;line-height:1.4;box-shadow:0 1px 1px rgba(0,0,0,.1);opacity:0;transform:translateY(6px);animation:wa-in .28s ease forwards}
     .wa-msg.in{align-self:flex-start;background:#fff;color:#111b21;border-top-left-radius:0}
     .wa-msg.out{align-self:flex-end;background:#d9fdd3;color:#111b21;border-top-right-radius:0}
