@@ -1486,6 +1486,12 @@ const STORAGE_EMPRESA='titan_nfse_empresa_teste_v1';
 const STORAGE_USUARIO='titan_nfse_usuario_teste_v1';
 let empresaAtual=null;
 let contaRestrita=false;
+// Estatísticas do Painel, sempre lidas de GET /api/dashboard (calculado no
+// servidor, por período correto) em vez de recalculadas aqui a partir do
+// array inteiro de notas — achado do relatório de auditoria 13/08: o card
+// "Requer atenção" somava rejeitadas+processando de TODO o histórico, sem
+// corte de mês, ao lado de cards que são mensais.
+let dashboardStats=null;
 function aplicarModoRestrito(restrita){
   contaRestrita=restrita;
   document.body.classList.toggle('conta-restrita',restrita);
@@ -1830,7 +1836,10 @@ async function carregarEmpresaServidor(){
 }
 
 async function carregarNotasServidor(){
-  const rows=await api('/api/invoices');
+  const [rows]=await Promise.all([
+    api('/api/invoices'),
+    api('/api/dashboard').then(dados=>{dashboardStats=dados}).catch(()=>{dashboardStats=null})
+  ]);
   notas.splice(0,notas.length,...rows.map(row=>({
     id:row.id,key:row.access_key,n:row.nfse_number||row.dps_number,date:row.created_at,d:new Date(row.created_at).toLocaleDateString('pt-BR'),t:row.borrower_name,
     s:row.service_description,v:Number(row.amount),st:row.status==='authorized'?'ok':row.status==='canceled'?'canc':row.status==='rejected'||row.status==='error'?'err':'proc',emailTo:row.email_to||'',emailSentAt:row.email_sent_at||'',emailProviderId:row.email_provider_id||'',emailLastError:row.email_last_error||'',
@@ -2766,24 +2775,36 @@ function dashDateLabel(date){
 function renderDashboard(){
   const name=dashUserName().trim().split(/\s+/)[0]||'usuário';
   const greeting=qs('#dash-greeting');if(greeting)greeting.textContent=`Olá, ${name} 👋`;
-  const now=new Date(),monthNotes=notas.filter(n=>{const d=new Date(n.date||'');return !Number.isNaN(d.valueOf())&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()});
-  const valid=notas.filter(n=>n.st!=='canc'&&n.st!=='err'),authorized=notas.filter(n=>n.st==='ok'),rejected=notas.filter(n=>n.st==='err'),processing=notas.filter(n=>n.st==='proc');
+  const stats=dashboardStats?.stats||null;
+  const valid=notas.filter(n=>n.st!=='canc'&&n.st!=='err'),authorized=notas.filter(n=>n.st==='ok');
   const total=valid.reduce((sum,n)=>sum+Number(n.v||0),0);
-  const monthTotal=monthNotes.filter(n=>n.st!=='canc'&&n.st!=='err').reduce((sum,n)=>sum+Number(n.v||0),0);
+  // rejected/processing no mês: preferimos a contagem do servidor (correta
+  // por período); sem ela ainda carregada, caímos pro array local (que aqui
+  // NÃO tem corte de mês — só usado como fallback breve, antes do primeiro
+  // GET /api/dashboard responder).
+  const monthCount=stats?stats.month_count:notas.filter(n=>{const d=new Date(n.date||'');const now=new Date();return !Number.isNaN(d.valueOf())&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()}).length;
+  const monthAuthorized=stats?stats.authorized_count:authorized.length;
+  const monthAmount=stats?Number(stats.month_amount):valid.reduce((sum,n)=>sum+Number(n.v||0),0);
+  const rejectedCount=stats?stats.rejected_count:notas.filter(n=>n.st==='err').length;
+  const processingCount=stats?stats.processing_count:notas.filter(n=>n.st==='proc').length;
   const set=(id,value)=>{const el=qs(id);if(el)el.textContent=value};
-  set('#dash-notas',String(monthNotes.length));set('#dash-notas-sub',monthNotes.length?`${authorized.length} autorizada(s) no histórico`:'Nenhuma emissão registrada');
-  set('#dash-faturamento',`R$ ${brl(monthTotal)}`);set('#dash-faturamento-sub',monthTotal?`Total do mês · ${valid.length} nota(s) válidas`:'Sem movimento');
+  set('#dash-notas',String(monthCount));set('#dash-notas-sub',monthCount?`${monthAuthorized} autorizada(s) no mês`:'Nenhuma emissão registrada');
+  set('#dash-faturamento',`R$ ${brl(monthAmount)}`);set('#dash-faturamento-sub',monthAmount?`Total do mês · ${monthAuthorized} autorizada(s)`:'Sem movimento');
   set('#dash-autorizadas',String(authorized.length));set('#dash-autorizadas-sub',authorized.length?`R$ ${brl(total)} no histórico`:'Aguardando a primeira nota');
-  const pendingCount=rejected.length+processing.length+(!empresaAtual?1:0);set('#dash-pendencias',String(pendingCount));set('#dash-pendencias-sub',pendingCount?`${rejected.length+processing.length} nota(s) para revisar`:'Tudo em dia');
+  const pendingCount=rejectedCount+processingCount+(!empresaAtual?1:0);set('#dash-pendencias',String(pendingCount));set('#dash-pendencias-sub',pendingCount?`${rejectedCount+processingCount} nota(s) para revisar no mês`:'Tudo em dia no mês');
+  const certificado=dashboardStats?.certificate||null;
   const pending=qs('#dash-pending-list');
   if(pending){
     const rows=[];
     if(!empresaAtual)rows.push(`<button class="pending-row" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>Cadastro do emitente</b><span>Informe os dados fiscais da empresa</span></span><strong class="pending-count">Pendente</strong></button>`);
     else rows.push(`<button class="pending-row ok" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><span class="pending-copy"><b>Cadastro do emitente</b><span>${esc(empresaAtual.rs||'Empresa ativa')}</span></span><strong class="pending-count">Concluído</strong></button>`);
-    rows.push(`<button class="pending-row" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Verifique validade e vínculo do CNPJ</span></span><strong class="pending-count">Verificar</strong></button>`);
-    if(rejected.length)rows.push(`<button class="pending-row" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>Notas rejeitadas</b><span>Confira o retorno da Sefin Nacional</span></span><strong class="pending-count">${rejected.length}</strong></button>`);
-    if(processing.length)rows.push(`<button class="pending-row" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="pending-copy"><b>Emissões em processamento</b><span>Acompanhe o retorno oficial</span></span><strong class="pending-count">${processing.length}</strong></button>`);
-    if(!rejected.length&&!processing.length&&!(!empresaAtual))rows.push(`<div class="dash-empty">Nenhuma pendência fiscal encontrada.<br>O próximo passo é emitir uma nova NFS-e.</div>`);
+    if(!certificado)rows.push(`<button class="pending-row" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Verifique validade e vínculo do CNPJ</span></span><strong class="pending-count">Verificar</strong></button>`);
+    else if(!certificado.configured)rows.push(`<button class="pending-row" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Nenhum certificado cadastrado</span></span><strong class="pending-count">Pendente</strong></button>`);
+    else if(certificado.expired)rows.push(`<button class="pending-row" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Vencido em ${esc(new Date(certificado.validTo).toLocaleDateString('pt-BR'))}</span></span><strong class="pending-count">Vencido</strong></button>`);
+    else rows.push(`<button class="pending-row ok" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Válido até ${esc(new Date(certificado.validTo).toLocaleDateString('pt-BR'))}</span></span><strong class="pending-count">Concluído</strong></button>`);
+    if(rejectedCount)rows.push(`<button class="pending-row" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>Notas rejeitadas no mês</b><span>Confira o retorno da Sefin Nacional</span></span><strong class="pending-count">${rejectedCount}</strong></button>`);
+    if(processingCount)rows.push(`<button class="pending-row" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="pending-copy"><b>Emissões em processamento</b><span>Acompanhe o retorno oficial</span></span><strong class="pending-count">${processingCount}</strong></button>`);
+    if(!rejectedCount&&!processingCount&&!(!empresaAtual))rows.push(`<div class="dash-empty">Nenhuma pendência fiscal encontrada no mês.<br>O próximo passo é emitir uma nova NFS-e.</div>`);
     pending.innerHTML=rows.join('');
   }
   const activity=qs('#dash-activity');
