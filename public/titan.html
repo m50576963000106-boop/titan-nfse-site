@@ -97,7 +97,7 @@
       <button class="sb-link" type="button" disabled aria-disabled="true" title="Em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Agenda e vencimentos</button>
 
       <div class="sb-sec">Notas fiscais</div>
-      <button class="sb-link" id="sb-emitir" data-permission="emit" onclick="go('emitir',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Emitir NFS-e</button>
+      <button class="sb-link" id="sb-emitir" data-permission="emit" onclick="go('emitir',this,true)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Emitir NFS-e</button>
       <button class="sb-link" data-permission="invoices" data-restrito-ok onclick="go('notas',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>Notas emitidas</button>
       <button class="sb-link" data-permission="emit" onclick="go('rascunhos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg>Rascunhos</button>
       <button class="sb-link" data-permission="emit" data-feature="invoice_recurrences" onclick="go('recorrentes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg>Notas recorrentes</button>
@@ -187,7 +187,7 @@
           <h1 id="dash-greeting">Olá, usuário 👋</h1>
           <p id="painel-sub">Cadastre a primeira empresa para iniciar os testes.</p>
         </div>
-        <button class="dash-primary" type="button" onclick="go('emitir',qs('.sb-link[onclick*=&quot;emitir&quot;]'))">
+        <button class="dash-primary" type="button" onclick="go('emitir',qs('.sb-link[onclick*=&quot;emitir&quot;]'),true)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
           Nova NFS-e
         </button>
@@ -235,7 +235,7 @@
         <div class="card">
           <div class="dash-card-h"><div><h2>Ações rápidas</h2><p>Acesse as funções mais usadas</p></div></div>
           <div class="quick-grid">
-            <button class="quick-action" type="button" onclick="go('emitir',qs('.sb-link[onclick*=&quot;emitir&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><b>Emitir NFS-e</b><span>Nova nota fiscal de serviço</span></button>
+            <button class="quick-action" type="button" onclick="go('emitir',qs('.sb-link[onclick*=&quot;emitir&quot;]'),true)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><b>Emitir NFS-e</b><span>Nova nota fiscal de serviço</span></button>
             <button class="quick-action" type="button" onclick="go('clientes',qs('.sb-link[onclick*=&quot;clientes&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21c.7-4 3-6 7-6s6.3 2 7 6M19 8v6M16 11h6"/></svg><b>Novo cliente</b><span>Cadastre ou consulte por CNPJ</span></button>
             <button class="quick-action" type="button" onclick="go('comercial',qs('.sb-link[onclick*=&quot;comercial&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5M8 17h7"/></svg><b>Orçamento / O.S.</b><span>Prepare um documento comercial</span></button>
             <button class="quick-action" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"/></svg><b>Ver notas</b><span>Histórico e ações fiscais</span></button>
@@ -532,7 +532,7 @@
     <section class="view" id="v-rascunhos">
       <div class="page-h master-head">
         <div><h1>Rascunhos</h1><p>Notas salvas como rascunho, ainda não enviadas à Sefin Nacional.</p></div>
-        <div class="flex wrap" style="gap:8px"><button class="btn btn-p" type="button" onclick="go('emitir',qs('#sb-emitir'))">+ Emitir NFSe</button></div>
+        <div class="flex wrap" style="gap:8px"><button class="btn btn-p" type="button" onclick="go('emitir',qs('#sb-emitir'),true)">+ Emitir NFSe</button></div>
       </div>
       <div class="card">
         <div class="card-b">
@@ -1706,7 +1706,7 @@ function faixaImpersonacao(){
     else window.addEventListener('resize',medir);
   }
 }
-function go(v,el){
+function go(v,el,limpar){
   if(!sessionStorage.getItem(STORAGE_TOKEN)){qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide');return}
   if(PORTAL_ADMIN&&v!=='master'){alert('O portal do gestor é exclusivo para usuários, perfis e liberações. Abra a empresa em uma nova aba para operar.');return}
   if(v==='recebimentos'){
@@ -1727,7 +1727,17 @@ function go(v,el){
   if(v==='servicos'){carregarPerfisServico();buscarCatalogoServico()}
   if(v==='ajuda'){helpRenderTopics();helpRenderFaq()}
   if(v==='master')carregarMaster();
-  if(v==='emitir'){exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true);atualizarResumoCtnNbs(perfisServico.find(profile=>profile.id===qs('#s-profile')?.value)||null);avisarLimiteDoPlano();atualizarEstadoBotaoEmitir();renumerarPassosEmissao()}
+  if(v==='emitir'){
+    // limpar=true: ponto único de "começar do zero" (menu, atalhos do
+    // Painel, "+ Emitir NFSe" em Notas) — zera rascunho aberto e formulário
+    // inteiro antes de abrir, reaproveitando aplicarRascunho({}) (já sabe o
+    // valor em branco de cada campo, inclusive info complementar e IBS/CBS).
+    // abrirRascunho() e os fluxos que trazem dados de outro lugar (recebimento,
+    // cliente, orçamento/O.S.) continuam chamando go('emitir',...) sem este
+    // parâmetro, então não perdem o que acabaram de preencher.
+    if(limpar){rascunhoAbertoId=null;aplicarRascunho({});}
+    exibirMunicipioPorCodigo('s',qs('#s-mun').value);travarRetencoes(true);atualizarResumoCtnNbs(perfisServico.find(profile=>profile.id===qs('#s-profile')?.value)||null);avisarLimiteDoPlano();atualizarEstadoBotaoEmitir();renumerarPassosEmissao();
+  }
   if(v==='rascunhos')carregarRascunhos();
   if(v==='clientes')carregarClientesCadastro();
   if(v==='recorrentes')carregarRecorrencias();
@@ -1788,7 +1798,7 @@ function prepararNotaRecebimento(id){
   const amount=Number(item.amount||0);
   qs('#t-nome').value=borrower.name||item.customer_name||'';qs('#t-doc').value=borrower.taxId||item.customer_tax_id||'';qs('#s-desc').value=item.title||'Honorários profissionais';
   composicaoItens=[{description:item.title||'Honorários profissionais',quantity:1,unitAmount:Number(amount.toFixed(2))}];atualizarComposicao();
-  go('emitir',qs('.sb-link[onclick*="emitir"]'));alert('Dados do recebimento levados para a emissão. Revise os parâmetros fiscais antes de transmitir.');
+  rascunhoAbertoId=null;go('emitir',qs('.sb-link[onclick*="emitir"]'));alert('Dados do recebimento levados para a emissão. Revise os parâmetros fiscais antes de transmitir.');
 }
 async function salvarRecorrenciaRecebimento(){
   const customerName=qs('#rr-client').value.trim(),c=clientePorNomeRecebimento(customerName),amount=Number(qs('#rr-value').value.replace(/\./g,'').replace(',','.'));
@@ -3354,8 +3364,25 @@ function renderPreflight(pf){
 }
 
 /* ---------- rascunhos de emissão ---------- */
-function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{name:qs('#t-nome').value,taxId:qs('#t-doc').value,email:qs('#t-mail').value,phone:qs('#t-zap').value,municipalityCode:qs('#t-municipio').value,postalCode:qs('#t-cep').value,street:qs('#t-end').value,number:qs('#t-num').value,district:qs('#t-bairro').value,complement:qs('#t-comp').value,city:qs('#t-cidade').value,state:qs('#t-uf').value},service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,nbsCode:qs('#s-nbs').value,description:qs('#s-desc').value,amount:qs('#s-val').value,additionalItems:composicaoItens,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value,eventCode:qs('#s-event-code')?.value,eventLocation:qs('#s-event-location')?.value,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,pisCofinsCst:qs('#s-cst').value,pisCofinsWithholding:qs('#s-ret-pc').value,pisCofinsBase:qs('#s-pc-base').value,pisRate:qs('#s-pis-rate').value,cofinsRate:qs('#s-cofins-rate').value,pisAmount:qs('#s-pis-amount').value,cofinsAmount:qs('#s-cofins-amount').value,retCp:qs('#s-ret-cp').value,retIrrf:qs('#s-ret-irrf').value,retCsll:qs('#s-ret-csll').value}}}
-function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-cidade').value=b.city||'';qs('#t-uf').value=b.state||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';composicaoItens=Array.isArray(s.additionalItems)?s.additionalItems.map(item=>({description:item.description,quantity:Number(item.quantity??1),unitAmount:Number(item.unitAmount??item.amount??0),profileId:item.profileId,ctn:item.ctn,nbs:item.nbs})):[];qs('#s-category').value=s.serviceCategory||'other';qs('#s-cno').value=s.cno||'';qs('#s-event-code').value=s.eventCode||'';qs('#s-event-location').value=s.eventLocation||'';atualizarCamposEspeciais();atualizarComposicao();qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');travarRetencoes(true);lerParametros();completarCadastroRascunho();}
+// s-info-compl e os s-ibscbs-* ficavam fora do rascunho — trocar de rascunho
+// (ou começar um novo) podia deixar uma informação complementar ou dado de
+// IBS/CBS de uma tentativa anterior "grudado" na tela (achado do relatório
+// de auditoria 13/08).
+function dadosRascunhoIbscbs(){
+  return {preencher:qs('#s-ibscbs-preencher')?.value,indFinal:qs('#s-ibscbs-indfinal')?.value,indDest:qs('#s-ibscbs-inddest')?.value,destDoc:qs('#s-ibscbs-dest-doc')?.value,destNome:qs('#s-ibscbs-dest-nome')?.value,destMun:qs('#s-ibscbs-dest-mun')?.value,destMunTexto:qs('#s-ibscbs-dest-mun-search')?.value,destCep:qs('#s-ibscbs-dest-cep')?.value,destLgr:qs('#s-ibscbs-dest-lgr')?.value,destNum:qs('#s-ibscbs-dest-num')?.value,destBairro:qs('#s-ibscbs-dest-bairro')?.value,destFone:qs('#s-ibscbs-dest-fone')?.value,destMail:qs('#s-ibscbs-dest-mail')?.value,govCompra:qs('#s-ibscbs-govcompra')?.value,tpEnteGov:qs('#s-ibscbs-tpentegov')?.value,tpOper:qs('#s-ibscbs-tpoper')?.value,refNfse:qs('#s-ibscbs-refnfse')?.value,indOp:qs('#s-ibscbs-indop')?.value,indOpTexto:qs('#s-ibscbs-indop-search')?.value};
+}
+function aplicarRascunhoIbscbs(ib){
+  ib=ib||{};
+  const set=(id,value)=>{const el=qs('#'+id);if(el)el.value=value||''};
+  set('s-ibscbs-preencher',ib.preencher||'false');set('s-ibscbs-indfinal',ib.indFinal||'');set('s-ibscbs-inddest',ib.indDest||'0');
+  set('s-ibscbs-dest-doc',ib.destDoc);set('s-ibscbs-dest-nome',ib.destNome);set('s-ibscbs-dest-mun',ib.destMun);set('s-ibscbs-dest-mun-search',ib.destMunTexto);
+  set('s-ibscbs-dest-cep',ib.destCep);set('s-ibscbs-dest-lgr',ib.destLgr);set('s-ibscbs-dest-num',ib.destNum);set('s-ibscbs-dest-bairro',ib.destBairro);set('s-ibscbs-dest-fone',ib.destFone);set('s-ibscbs-dest-mail',ib.destMail);
+  set('s-ibscbs-govcompra',ib.govCompra||'false');set('s-ibscbs-tpentegov',ib.tpEnteGov);set('s-ibscbs-tpoper',ib.tpOper);set('s-ibscbs-refnfse',ib.refNfse);
+  set('s-ibscbs-indop',ib.indOp);set('s-ibscbs-indop-search',ib.indOpTexto);
+  atualizarBlocoIbscbsEmissao();atualizarBlocoIbscbsDestinatario();atualizarBlocoIbscbsGovCompra();atualizarBlocoIbscbsRefNFSe();
+}
+function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{name:qs('#t-nome').value,taxId:qs('#t-doc').value,email:qs('#t-mail').value,phone:qs('#t-zap').value,municipalityCode:qs('#t-municipio').value,postalCode:qs('#t-cep').value,street:qs('#t-end').value,number:qs('#t-num').value,district:qs('#t-bairro').value,complement:qs('#t-comp').value,city:qs('#t-cidade').value,state:qs('#t-uf').value},service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,nbsCode:qs('#s-nbs').value,description:qs('#s-desc').value,amount:qs('#s-val').value,additionalItems:composicaoItens,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value,eventCode:qs('#s-event-code')?.value,eventLocation:qs('#s-event-location')?.value,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,pisCofinsCst:qs('#s-cst').value,pisCofinsWithholding:qs('#s-ret-pc').value,pisCofinsBase:qs('#s-pc-base').value,pisRate:qs('#s-pis-rate').value,cofinsRate:qs('#s-cofins-rate').value,pisAmount:qs('#s-pis-amount').value,cofinsAmount:qs('#s-cofins-amount').value,retCp:qs('#s-ret-cp').value,retIrrf:qs('#s-ret-irrf').value,retCsll:qs('#s-ret-csll').value,infoComplementares:qs('#s-info-compl')?.value},ibscbs:dadosRascunhoIbscbs()}}
+function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-cidade').value=b.city||'';qs('#t-uf').value=b.state||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';composicaoItens=Array.isArray(s.additionalItems)?s.additionalItems.map(item=>({description:item.description,quantity:Number(item.quantity??1),unitAmount:Number(item.unitAmount??item.amount??0),profileId:item.profileId,ctn:item.ctn,nbs:item.nbs})):[];qs('#s-category').value=s.serviceCategory||'other';qs('#s-cno').value=s.cno||'';qs('#s-event-code').value=s.eventCode||'';qs('#s-event-location').value=s.eventLocation||'';atualizarCamposEspeciais();atualizarComposicao();qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');travarRetencoes(true);lerParametros();if(qs('#s-info-compl')){qs('#s-info-compl').value=s.infoComplementares||'';qs('#s-info-compl-count').textContent=(s.infoComplementares||'').length}aplicarRascunhoIbscbs(payload.ibscbs);completarCadastroRascunho();}
 let rascunhos=[];
 let rascunhoTimer;
 function filtrarRascunhos(){clearTimeout(rascunhoTimer);rascunhoTimer=setTimeout(carregarRascunhos,250);}
@@ -3445,7 +3472,7 @@ async function consultarProgressoAtualizacaoLote(){
 // formulário com um cliente existente e salvar de novo atualiza em vez de
 // duplicar — não precisa de rota nem de estado de edição separados.
 function editarClienteCadastro(index){const cliente=clientesCadastro[index];if(!cliente)return;preencherClienteCadastro(cliente);qs('#cliente-modal-title').textContent='Editar cliente';abrirModalCliente();}
-function usarClienteNaEmissao(index){preencherCliente(clientesCadastro[index]);go('emitir',qs('.sb-link[onclick*="emitir"]'));}
+function usarClienteNaEmissao(index){preencherCliente(clientesCadastro[index]);rascunhoAbertoId=null;go('emitir',qs('.sb-link[onclick*="emitir"]'));}
 function abrirClientes(){go('clientes',qs('.sb-link[onclick*="clientes"]'));}
 
 /* ---------- notas recorrentes (agendamento automático de emissão) ---------- */
@@ -3837,7 +3864,7 @@ async function converterComercial(index){
       atualizarComposicao();atualizarCamposEspeciais();
     }
     lerParametros();
-    go('emitir',qs('.sb-link[onclick*="emitir"]'));
+    rascunhoAbertoId=null;go('emitir',qs('.sb-link[onclick*="emitir"]'));
     alert(`${grupos.length} nota(s) preparada(s), agrupada(s) por CTN+NBS. Os itens viraram linhas com quantidade — confira e ajuste antes de autorizar.`);
   }catch(error){alert(error.message)}
 }
