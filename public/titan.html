@@ -570,10 +570,10 @@
         <div class="modal-card"><div class="modal-head"><div><h2 id="rc-form-title">Nova recorrência</h2></div></div>
           <div class="modal-body">
             <div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="rc-customer" class="inp" list="rc-customer-list" placeholder="Pesquise pela razão social" autocomplete="off"><button type="button" class="btn btn-s" onclick="abrirClientes()">Clientes</button></div><datalist id="rc-customer-list"></datalist></div>
-            <div class="field"><label>Meu serviço</label><div class="input-action"><select id="rc-service" class="inp"><option value="">Selecione um serviço cadastrado</option></select><button type="button" class="btn btn-s" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint">Só serviço cujo ISS incide no seu próprio estabelecimento pode virar recorrência automática — sem obra (CNO) nem evento, que exigem dado que ninguém confirma todo mês sozinho.</div></div>
+            <div class="field"><label>Meu serviço</label><div class="input-action"><select id="rc-service" class="inp" onchange="verificarVencimentoRecorrencia()"><option value="">Selecione um serviço cadastrado</option></select><button type="button" class="btn btn-s" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint">Só serviço cujo ISS incide no seu próprio estabelecimento pode virar recorrência automática — sem obra (CNO) nem evento, que exigem dado que ninguém confirma todo mês sozinho.</div></div>
             <div class="row r2"><div class="field"><label>Valor (R$)</label><input id="rc-amount" class="inp num" inputmode="decimal" value="0,00"></div><div class="field"><label>Dia do mês</label><input id="rc-day" class="inp num" inputmode="numeric" maxlength="2" placeholder="1 a 28"></div></div>
             <div class="row r2"><div class="field"><label>Horário</label><input id="rc-time" class="inp" type="time" value="09:00"></div><div class="field"><label>Frequência</label><select id="rc-frequency" class="inp"><option value="1">Mensal</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></div></div>
-            <div class="field"><label>Encerrar em (opcional)</label><input id="rc-end-date" class="inp" type="date"></div>
+            <div class="row r2"><div class="field"><label>Dia de vencimento (opcional)</label><input id="rc-due-day" class="inp num" inputmode="numeric" maxlength="2" placeholder="1 a 28" oninput="verificarVencimentoRecorrencia()"><div class="hint" id="rc-due-day-hint" style="display:none"></div></div><div class="field"><label>Encerrar em (opcional)</label><input id="rc-end-date" class="inp" type="date"></div></div>
             <div class="field"><label>Observação (opcional)</label><input id="rc-description" class="inp" placeholder="Ex.: mensalidade contábil"></div>
             <div class="foot-note">A emissão sai sozinha no dia e horário escolhidos, sem aprovação manual.</div>
           </div>
@@ -949,7 +949,7 @@
             <div class="field"><label for="cad-type">Tipo de serviço</label><input id="cad-type" class="inp" placeholder="Ex.: Consultoria, mensalidade, atendimento"></div>
             <div class="field"><label for="cad-search">Buscar no Anexo B nacional <span class="info-tip" title="Digite parte do código ou da descrição do serviço e clique em Buscar (ou Enter) — a lista só aparece depois de buscar, não é uma lista pronta pra rolar.">?</span></label><div class="input-action"><input id="cad-search" class="inp" placeholder="Código ou descrição"><button class="btn btn-s" onclick="buscarCatalogoServico()">Buscar</button></div></div>
             <div class="field"><label for="cad-code">Código de tributação nacional</label><select id="cad-code" class="inp" onchange="selecionarCodigoCadastro()"><option value="">Pesquise o catálogo oficial</option></select></div>
-            <div class="field"><label for="cad-desc">Descrição padrão do serviço</label><textarea id="cad-desc" class="inp" placeholder="Descrição que será levada à DPS" maxlength="1000" oninput="qs('#cad-desc-count').textContent=this.value.length"></textarea><div class="hint"><span id="cad-desc-count">0</span>/1000 caracteres — limite da DPS nacional (xDescServ)</div></div>
+            <div class="field"><label for="cad-desc">Descrição padrão do serviço <span class="info-tip" title="Variáveis aceitas (viram texto real ao processar uma recorrência — Notas recorrentes): #vencimento (ex.: Vencimento em 10/09/2026, precisa do dia de vencimento configurado na recorrência), #competencia (ex.: Competência: Agosto/2026), #valor_extenso (ex.: Valor: mil e duzentos reais).">?</span></label><textarea id="cad-desc" class="inp" placeholder="Descrição que será levada à DPS" maxlength="1000" oninput="qs('#cad-desc-count').textContent=this.value.length"></textarea><div class="hint"><span id="cad-desc-count">0</span>/1000 caracteres — limite da DPS nacional (xDescServ)</div></div>
             <div class="row r2"><div class="field"><label for="cad-mun-code">Código municipal <span class="info-tip" title="Só preencha se a sua prefeitura usa um código de serviço PRÓPRIO, diferente do nacional (até 3 dígitos). Deixe em branco se não souber — não é obrigatório.">?</span></label><input id="cad-mun-code" class="inp" maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}" placeholder="Até 3 dígitos (opcional)"><div class="hint">Não repita aqui o código nacional 15.06.01.</div></div><div class="field"><label for="cad-nbs-search">Código NBS <span class="required-mark">*</span> <span class="info-tip" title="Obrigatório. Digite código ou descrição e clique em Buscar — depois escolha uma opção da lista que aparecer no campo abaixo, não dá pra digitar o código NBS direto nele.">?</span></label><div class="input-action"><input id="cad-nbs-search" class="inp" placeholder="Código ou descrição NBS"><button class="btn btn-s" type="button" onclick="buscarNbsCadastro()">Buscar</button></div><select id="cad-nbs" class="inp mono" required onchange="sugerirIbscbsPorNbs()"><option value="">Pesquise o catálogo NBS</option></select><div class="hint">Selecione um NBS oficial pelo código ou pela descrição.</div></div></div>
              <div class="row r2"><div class="field"><label for="cad-default-amount">Valor padrão do serviço (R$)</label><input id="cad-default-amount" class="inp num" inputmode="decimal" placeholder="0,00"><div class="hint">Este valor será sugerido automaticamente na emissão.</div></div><div class="field"><label for="cad-rate">Alíquota ISS (%)</label><input id="cad-rate" class="inp num" placeholder="Lida do município"></div></div>
             <div class="row r2"><div class="field"><label for="cad-trib-iss">Tributação ISSQN</label><select id="cad-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação</option><option value="4">4 — Não incidência</option></select></div><div class="field"><label for="cad-ret-iss">Retenção ISSQN</label><select id="cad-ret-iss" class="inp"><option value="1">1 — Não retido</option><option value="2">2 — Tomador</option><option value="3">3 — Intermediário</option></select></div></div>
@@ -3641,11 +3641,13 @@ function renderRecorrencias(){
 }
 async function salvarRecorrencia(){
   const cliente=clienteSelecionadoRecorrencia(),serviceProfileId=qs('#rc-service')?.value,amount=dinheiro(qs('#rc-amount').value),dayOfMonth=Number(qs('#rc-day').value);
+  const dueDayTexto=qs('#rc-due-day').value.trim();
   if(!cliente){alert('Selecione um cliente cadastrado.');return}
   if(!serviceProfileId){alert('Selecione um serviço cadastrado.');return}
   if(!amount||amount<=0){alert('Informe um valor maior que zero.');return}
   if(!dayOfMonth||dayOfMonth<1||dayOfMonth>28){alert('Informe um dia do mês entre 1 e 28.');return}
-  const payload={customerId:cliente.id,serviceProfileId,amount,dayOfMonth,runTime:qs('#rc-time').value||'09:00',frequencyMonths:Number(qs('#rc-frequency').value)||1,endDate:qs('#rc-end-date').value||undefined,description:qs('#rc-description').value.trim()||undefined};
+  if(dueDayTexto&&(Number(dueDayTexto)<1||Number(dueDayTexto)>28)){alert('O dia de vencimento precisa estar entre 1 e 28.');return}
+  const payload={customerId:cliente.id,serviceProfileId,amount,dayOfMonth,runTime:qs('#rc-time').value||'09:00',dueDayOfMonth:dueDayTexto?Number(dueDayTexto):undefined,frequencyMonths:Number(qs('#rc-frequency').value)||1,endDate:qs('#rc-end-date').value||undefined,description:qs('#rc-description').value.trim()||undefined};
   try{
     if(recorrenciaEditando)await api('/api/invoice-recurrences/'+recorrenciaEditando,{method:'PUT',body:JSON.stringify(payload)});
     else await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify(payload)});
@@ -3661,15 +3663,31 @@ function editarRecorrencia(id){
   qs('#rc-amount').value=Number(item.amount).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   qs('#rc-day').value=item.day_of_month;
   qs('#rc-time').value=(item.run_time||'09:00:00').slice(0,5);
+  qs('#rc-due-day').value=item.due_day_of_month||'';
   qs('#rc-frequency').value=String(item.frequency_months||1);
   qs('#rc-end-date').value=item.end_date||'';
   qs('#rc-description').value=item.description||'';
   qs('#rc-form-title').textContent='Editar recorrência';
   abrirModalRecorrencia();
+  verificarVencimentoRecorrencia();
 }
 function novaRecorrencia(){cancelarEdicaoRecorrencia();abrirModalRecorrencia();}
 function abrirModalRecorrencia(){qs('#recorrencia-modal').classList.add('on')}
 function fecharModalRecorrencia(){qs('#recorrencia-modal').classList.remove('on')}
+// Achado 15/08/2026 (pedido do usuário: variáveis #vencimento/#competencia/
+// #valor_extenso na descrição do serviço, ver nfse/descricao-variaveis.ts):
+// #vencimento só é substituído quando a recorrência tem dia de vencimento
+// configurado — aviso não-bloqueante evita a variável vazar como texto
+// literal pra uma nota real.
+function verificarVencimentoRecorrencia(){
+  const hint=qs('#rc-due-day-hint');if(!hint)return;
+  const servico=perfisServico.find(p=>p.id===qs('#rc-service')?.value);
+  const usaVencimento=servico&&/#vencimento/i.test(servico.description||'');
+  if(usaVencimento&&!qs('#rc-due-day').value.trim()){
+    hint.textContent='Este serviço usa #vencimento na descrição — preencha o dia de vencimento pra ele aparecer certo na nota.';
+    hint.style.display='block';
+  }else hint.style.display='none';
+}
 // Achado 14/08/2026 (pedido do usuário: "importar por planilha não txt ou
 // ;"): planilha CSV de verdade (baixar modelo, preencher no Excel/Sheets,
 // enviar de volta) em vez de colar texto com ";" à mão. Sem endpoint novo
@@ -3796,8 +3814,9 @@ async function confirmarImportacaoRecorrenciaCsv(){
 }
 function cancelarEdicaoRecorrencia(){
   recorrenciaEditando=null;
-  qs('#rc-customer').value='';qs('#rc-service').value='';qs('#rc-amount').value='0,00';qs('#rc-day').value='';qs('#rc-time').value='09:00';qs('#rc-frequency').value='1';qs('#rc-end-date').value='';qs('#rc-description').value='';
+  qs('#rc-customer').value='';qs('#rc-service').value='';qs('#rc-amount').value='0,00';qs('#rc-day').value='';qs('#rc-time').value='09:00';qs('#rc-due-day').value='';qs('#rc-frequency').value='1';qs('#rc-end-date').value='';qs('#rc-description').value='';
   qs('#rc-form-title').textContent='Nova recorrência';
+  qs('#rc-due-day-hint').style.display='none';
   fecharModalRecorrencia();
 }
 async function alternarRecorrencia(id,ativar){
