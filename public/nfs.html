@@ -184,7 +184,7 @@
 
     <section class="contact" id="contratar">
       <div class="contact-shell reveal"><div class="contact-copy"><span class="tag">Fale com a TITAN</span><h2>Chega de perder tempo com nota fiscal</h2><p>Conte um pouco sobre a sua empresa. Nossa equipe cuida do cadastro e da implantação com você: rápido, sem burocracia, sem enrolação.</p></div>
-      <form class="contact-form" id="contact-form"><input class="full" name="name" required placeholder="Seu nome"><input class="full" name="federalTaxId" id="contact-cnpj" required placeholder="CNPJ" maxlength="18" inputmode="text" autocomplete="off"><input class="full" name="company" id="contact-company" required placeholder="Empresa (preenchida automaticamente pelo CNPJ)"><input name="email" type="email" required placeholder="E-mail" id="contact-email"><input name="phone" required placeholder="Telefone / WhatsApp" id="contact-phone"><div class="form-hint full" id="contact-contact-hint">Confira o e-mail e o telefone: são eles que garantem seu acesso ao portal depois.</div><textarea class="full" name="message" placeholder="Conte brevemente o que precisa"></textarea><button class="btn btn-gold full" type="submit">Enviar solicitação</button><div class="form-status full" id="contact-status" role="status"></div></form></div>
+      <form class="contact-form" id="contact-form"><input class="full" name="name" id="contact-name" required placeholder="Seu nome"><input class="full" name="federalTaxId" id="contact-cnpj" required placeholder="CNPJ" maxlength="18" inputmode="text" autocomplete="off"><input class="full" name="company" id="contact-company" required placeholder="Empresa (preenchida automaticamente pelo CNPJ)"><input name="email" type="email" required placeholder="E-mail" id="contact-email"><input name="phone" required placeholder="Telefone / WhatsApp" id="contact-phone"><div class="form-hint full" id="contact-contact-hint">Confira o e-mail e o telefone: são eles que garantem seu acesso ao portal depois.</div><textarea class="full" name="message" placeholder="Conte brevemente o que precisa"></textarea><button class="btn btn-gold full" type="submit">Enviar solicitação</button><div class="form-status full" id="contact-status" role="status"></div></form></div>
     </section>
   </main>
   <footer>
@@ -320,16 +320,21 @@
     // ver registry/cnpj.ts) e sugere razão social/e-mail/telefone — nunca
     // sobrescreve o que o cliente já digitou, e nunca trava os campos: é só
     // uma sugestão pra agilizar, o cliente confere e corrige se precisar.
+    // partnerName (mesma data, teste do usuário): muitos CNPJs não têm e-mail
+    // cadastrado na Receita — o nome do sócio/responsável do QSA quase sempre
+    // vem, então serve pra sugerir o campo "Seu nome" quando ele ainda estiver
+    // vazio (ex.: cliente pulou direto pro CNPJ).
     const CONTACT_HINT_PADRAO=document.querySelector('#contact-contact-hint')?.textContent||'';
     document.querySelector('#contact-cnpj').addEventListener('blur',async event=>{
       const cnpj=normalizeTaxId(event.target.value),hint=document.querySelector('#contact-contact-hint');
       if(cnpj.length!==14)return;
-      const companyInput=document.querySelector('#contact-company'),emailInput=document.querySelector('#contact-email'),phoneInput=document.querySelector('#contact-phone');
+      const nameInput=document.querySelector('#contact-name'),companyInput=document.querySelector('#contact-company'),emailInput=document.querySelector('#contact-email'),phoneInput=document.querySelector('#contact-phone');
       if(hint)hint.textContent='Consultando CNPJ para agilizar o preenchimento...';
       try{
         const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/contact/lookup-cnpj/'+cnpj);
         const data=await response.json().catch(()=>({}));
         if(response.ok){
+          if(data.partnerName&&!nameInput.value.trim())nameInput.value=data.partnerName;
           if(data.legalName&&!companyInput.value.trim())companyInput.value=data.legalName;
           if(data.email&&!emailInput.value.trim())emailInput.value=data.email;
           if(data.phone&&!phoneInput.value.trim())phoneInput.value=data.phone;
