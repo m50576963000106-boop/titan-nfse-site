@@ -1080,6 +1080,19 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
       <div class="master-panel" id="master-panel-planos"><div class="card"><div class="card-h"><div><h3>Planos</h3><p>Defina nome, preço e limite de NFS-e autorizadas por mês.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="plan-code">Código</label><input id="plan-code" class="inp" placeholder="ex.: pro100"></div><div class="field"><label for="plan-name">Nome do plano</label><input id="plan-name" class="inp" placeholder="Plano Profissional"></div><div class="field"><label for="plan-price">Preço mensal (R$)</label><input id="plan-price" class="inp" inputmode="decimal" placeholder="99,90"></div><div class="field"><label for="plan-limit">Limite de notas / mês</label><input id="plan-limit" class="inp" type="number" min="1" placeholder="100"></div></div><div class="row r2"><div class="field"><label for="plan-description">Descrição</label><input id="plan-description" class="inp" placeholder="Resumo do que está incluído"></div><div class="field"><label for="plan-active">Status</label><select id="plan-active" class="inp"><option value="true">Ativo</option><option value="false">Inativo</option></select></div></div><div class="field"><label>Ferramentas incluídas no plano</label><div id="plan-features" class="alert a-info" style="margin:0;padding:10px;display:grid;gap:7px"></div><div class="hint">O que estiver marcado é o que o cliente contrata. O que é padrão do produto aparece travado. A recusa também acontece na API: desmarcar aqui bloqueia de verdade, não só esconde o botão.</div></div><div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarPlanoMaster()">Salvar plano</button><button class="btn" id="plan-cancel" style="display:none" type="button" onclick="cancelarEdicaoPlanoMaster()">Cancelar edição</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Plano</th><th>Preço</th><th>Limite</th><th>Ferramentas</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-plans"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Ferramentas avulsas</h3><p>Preço de cada ferramenta fora do plano — liga uma empresa específica em Gestão por CNPJ &gt; Editar cliente. Some ao valor do plano; bloqueado quando o plano já inclui.</p></div></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Ferramenta</th><th>Preço avulso (R$)</th><th>Vendida avulsa?</th><th>Ação</th></tr></thead><tbody id="master-addons"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Pedidos de upgrade</h3><p>O cliente pede pelo portal; aprovar troca o plano na hora e avisa a empresa no sino.</p></div><span class="pill p-warn right" id="plan-upgrade-pending-pill" style="display:none">0 pendentes</span></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>De</th><th>Para</th><th>Nota</th><th>Pedido em</th><th>Ação</th></tr></thead><tbody id="master-plan-upgrade-requests"><tr><td colspan="6" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Contrato de Sessão de Uso</h3><p>Editar e publicar cria uma versão nova — a que o cliente já assinou nunca é sobrescrita.</p></div><span class="pill p-gold right" id="contract-current-pill">—</span></div><div class="card-b"><div class="field"><label for="contract-body">Texto do contrato (versão vigente)</label><textarea id="contract-body" class="inp" rows="16" style="font-family:inherit;line-height:1.5" oninput="this.dataset.dirty='1'"></textarea><div class="hint">Publicar avisa todas as empresas no sino: elas precisam ler e aceitar a versão nova para a Sessão de Uso continuar valendo.</div></div><div class="flex wrap"><button class="btn btn-s" type="button" onclick="publicarVersaoContrato('minor')">Publicar correção (versão menor)</button><button class="btn btn-p" type="button" onclick="publicarVersaoContrato('major')">Publicar revisão (versão maior)</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Versão</th><th>Publicada em</th><th>Por</th><th>Aceites</th></tr></thead><tbody id="contract-versions-history"><tr><td colspan="4" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div></div></div>
 
       <div class="master-panel" id="master-panel-config">
+        <div class="card"><div class="card-h"><div><h3>Fila de emissão fiscal</h3><p>Concorrência se ajusta sozinha pra manter a espera dentro do alvo (pedido do usuário 14/08) — sobe quando a fila pressiona, desce quando está tranquila, nunca passa do teto.</p></div><button class="btn btn-s" type="button" onclick="carregarFilaFiscalMaster()">Atualizar</button></div><div class="card-b">
+          <div class="row r3">
+            <div class="field"><label>Concorrência agora</label><span class="pill p-gold" id="fq-atual" style="font-size:16px">—</span></div>
+            <div class="field"><label>Piso / Teto</label><span class="pill p-off" id="fq-limites">—</span></div>
+            <div class="field"><label>Alvo de espera</label><span class="pill p-off" id="fq-alvo">—</span></div>
+          </div>
+          <div class="row r2">
+            <div class="field"><label>Notas aguardando agora</label><span class="pill" id="fq-aguardando">—</span></div>
+            <div class="field"><label>Espera da mais antiga</label><span class="pill" id="fq-espera">—</span></div>
+          </div>
+          <div class="section-title" style="margin-top:10px">Últimos ajustes</div>
+          <div id="fq-historico" class="table-wrap" style="max-height:200px;overflow:auto"><div class="empty-state">Carregando...</div></div>
+        </div></div>
         <div class="card"><div class="card-h"><div><h3>Notas técnicas do Martyn</h3><p>Busca automática todo dia direto do Portal oficial da NFS-e Nacional (gov.br) — o Martyn cita essas notas quando o cliente pergunta sobre mudança recente. Revise abaixo o que foi capturado.</p></div><button class="btn btn-s" type="button" onclick="atualizarNotasTecnicasMaster()">Buscar agora</button></div><div class="card-b"><div id="master-notas-tecnicas" class="table-wrap" style="max-height:320px;overflow:auto"><div class="empty-state">Carregando...</div></div><span id="master-notas-tecnicas-status" class="foot-note"></span></div></div>
         <div class="card"><div class="card-h"><div><h3>Contas Master</h3><p>Quem tem acesso administrativo total ao TITAN. As demais telas se recusam a alterar uma conta Master — esta é a única que administra. Toda mudança fica registrada nos Logs de auditoria.</p></div><button class="btn btn-s" type="button" onclick="carregarContasMaster()">Atualizar</button></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>E-mail</th><th>Nome</th><th>Situação</th><th>Ação</th></tr></thead><tbody id="master-accounts"><tr><td colspan="4">Carregando contas Master...</td></tr></tbody></table></div><span id="master-accounts-status" class="foot-note"></span></div></div>
         <div class="card"><div class="card-h"><div><h3>Cobrança e inadimplência</h3><p>POST /api/billing/enforce varre todas as empresas e bloqueia quem passou do prazo de cobrança — sem cron hoje, então rode sob demanda.</p></div><button class="btn btn-p" type="button" onclick="aplicarBloqueioInadimplenciaMaster()">Verificar inadimplência agora</button></div><div class="card-b"><span id="master-enforce-status" class="foot-note">Ainda não verificado nesta sessão.</span></div></div>
@@ -4435,9 +4448,17 @@ async function alternarContaMaster(id,ativar){
   }catch(error){if(status)status.textContent=error.message||'Não foi possível concluir.'}
 }
 
+let filaFiscalPollTimer;
 async function carregarConfiguracoesMaster(){
   carregarContasMaster();
   carregarNotasTecnicasMaster();
+  carregarFilaFiscalMaster();
+  // Mesmo padrão de polling de iniciarAtendimentos(): atualiza sozinho
+  // enquanto esta aba estiver aberta, para sozinho quando sai dela.
+  clearInterval(filaFiscalPollTimer);
+  filaFiscalPollTimer=setInterval(()=>{
+    if(qs('#master-panel-config')?.classList.contains('active'))carregarFilaFiscalMaster();else clearInterval(filaFiscalPollTimer);
+  },15000);
   const status=qs('#master-settings-status'),commStatus=qs('#master-comm-status');if(status)status.textContent='Carregando...';if(commStatus)commStatus.textContent='Carregando...';
   try{
     const data=await api('/api/master/settings');
@@ -4536,6 +4557,26 @@ async function atualizarCatalogoMunicipiosMaster(){
   const status=qs('#master-settings-status');if(status)status.textContent='Consultando a fonte oficial...';
   try{const data=await api('/api/master/municipalities/refresh',{method:'POST'});if(status)status.textContent=data.updated?`Catálogo atualizado (${data.total||0} municípios).`:'Catálogo já estava atualizado.';}
   catch(error){if(status)status.textContent=error.message}
+}
+function segundosLegivel(ms){
+  const s=Math.round((ms||0)/1000);
+  return s<60?`${s}s`:`${Math.floor(s/60)}min ${s%60}s`;
+}
+async function carregarFilaFiscalMaster(){
+  try{
+    const data=await api('/api/master/fiscal-queue');
+    qs('#fq-atual').textContent=data.concorrenciaAtual;
+    qs('#fq-limites').textContent=`${data.piso} / ${data.teto}`;
+    qs('#fq-alvo').textContent=segundosLegivel(data.alvoEsperaMs);
+    qs('#fq-aguardando').textContent=data.aguardando;
+    qs('#fq-aguardando').className='pill '+(data.aguardando>0?'p-warn':'p-ok');
+    qs('#fq-espera').textContent=data.aguardando>0?segundosLegivel(data.esperaMaisAntigaMs):'—';
+    qs('#fq-espera').className='pill '+(data.esperaMaisAntigaMs>data.alvoEsperaMs?'p-err':'p-off');
+    const hist=qs('#fq-historico');
+    hist.innerHTML=data.historico.length?data.historico.map(e=>`<div class="draft-item"><b>${e.de} → ${e.para}</b><span>${esc(e.motivo)}</span><small>${new Date(e.quando).toLocaleString('pt-BR')}</small></div>`).join(''):'<div class="empty-state">Nenhum ajuste ainda — concorrência estável no piso.</div>';
+  }catch(error){
+    const hist=qs('#fq-historico');if(hist)hist.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`;
+  }
 }
 async function carregarNotasTecnicasMaster(){
   const box=qs('#master-notas-tecnicas');if(!box)return;
