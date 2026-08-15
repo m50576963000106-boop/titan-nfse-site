@@ -559,7 +559,12 @@
 
     <section class="view" id="v-recorrentes">
       <div class="page-h"><h1>Notas recorrentes</h1><p>Configure uma vez e o TITAN emite sozinho todo mês, no dia escolhido — sem precisar abrir o portal.</p></div>
-      <div class="card"><div class="card-h"><h2>Recorrências cadastradas</h2><div class="flex" style="gap:6px"><button class="btn btn-p" type="button" onclick="novaRecorrencia()">+ Nova recorrência</button><button class="btn btn-s" onclick="carregarRecorrencias()">Atualizar</button></div></div><div class="card-b"><div id="recurrence-list" class="draft-list"></div></div></div>
+      <div class="card"><div class="card-h"><h2>Recorrências cadastradas</h2><div class="flex" style="gap:6px"><button class="btn btn-p" type="button" onclick="novaRecorrencia()">+ Nova recorrência</button><button class="btn btn-s" onclick="carregarRecorrencias()">Atualizar</button></div></div><div class="card-b">
+        <div class="tbl-scroll"><table class="tbl-cards-mobile">
+          <thead><tr><th>Cliente / serviço</th><th style="text-align:right">Valor</th><th>Agenda</th><th>Próxima emissão</th><th>Situação</th><th style="text-align:right">Ações</th></tr></thead>
+          <tbody id="recurrence-list"></tbody>
+        </table></div>
+      </div></div>
 
       <div class="modal-backdrop" id="recorrencia-modal" role="dialog" aria-modal="true" aria-labelledby="rc-form-title">
         <div class="modal-card"><div class="modal-head"><div><h2 id="rc-form-title">Nova recorrência</h2></div></div>
@@ -567,16 +572,22 @@
             <div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="rc-customer" class="inp" list="rc-customer-list" placeholder="Pesquise pela razão social" autocomplete="off"><button type="button" class="btn btn-s" onclick="abrirClientes()">Clientes</button></div><datalist id="rc-customer-list"></datalist></div>
             <div class="field"><label>Meu serviço</label><div class="input-action"><select id="rc-service" class="inp"><option value="">Selecione um serviço cadastrado</option></select><button type="button" class="btn btn-s" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint">Só serviço cujo ISS incide no seu próprio estabelecimento pode virar recorrência automática — sem obra (CNO) nem evento, que exigem dado que ninguém confirma todo mês sozinho.</div></div>
             <div class="row r2"><div class="field"><label>Valor (R$)</label><input id="rc-amount" class="inp num" inputmode="decimal" value="0,00"></div><div class="field"><label>Dia do mês</label><input id="rc-day" class="inp num" inputmode="numeric" maxlength="2" placeholder="1 a 28"></div></div>
-            <div class="row r2"><div class="field"><label>Frequência</label><select id="rc-frequency" class="inp"><option value="1">Mensal</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></div><div class="field"><label>Encerrar em (opcional)</label><input id="rc-end-date" class="inp" type="date"></div></div>
+            <div class="row r2"><div class="field"><label>Horário</label><input id="rc-time" class="inp" type="time" value="09:00"></div><div class="field"><label>Frequência</label><select id="rc-frequency" class="inp"><option value="1">Mensal</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></div></div>
+            <div class="field"><label>Encerrar em (opcional)</label><input id="rc-end-date" class="inp" type="date"></div>
             <div class="field"><label>Observação (opcional)</label><input id="rc-description" class="inp" placeholder="Ex.: mensalidade contábil"></div>
-            <div class="foot-note">A emissão sai sozinha no dia escolhido, sem aprovação manual.</div>
+            <div class="foot-note">A emissão sai sozinha no dia e horário escolhidos, sem aprovação manual.</div>
           </div>
           <div class="modal-actions"><button class="btn btn-s" type="button" id="rc-cancel-btn" onclick="cancelarEdicaoRecorrencia()">Cancelar</button><button class="btn btn-p" type="button" onclick="salvarRecorrencia()">Salvar recorrência</button></div>
         </div>
       </div>
-      <div class="card" style="margin-top:14px"><div class="card-h"><h2>Importar recorrências por planilha <span class="info-tip" title="Cole linhas no formato CPF/CNPJ do cliente; nome ou número do serviço cadastrado; valor; dia do mês; frequência (1/3/6/12); data-fim AAAA-MM-DD (opcional) — uma recorrência por linha, campos separados por ponto e vírgula. Cliente e serviço precisam já estar cadastrados.">?</span></h2></div><div class="card-b">
-        <textarea id="rc-import-text" class="inp" rows="5" placeholder="12345678000195; Honorários contábeis; 500,00; 5; 1&#10;98765432000100; Consultoria mensal; 1200,00; 10; 3; 2027-01-31"></textarea>
-        <div class="setup-actions"><span class="foot-note" id="rc-import-status" style="margin:0"></span><button class="btn btn-a right" type="button" onclick="importarRecorrenciasPlanilha()">Importar linhas</button></div>
+      <div class="card" style="margin-top:14px"><div class="card-h"><h2>Importar recorrências por planilha (CSV)</h2></div><div class="card-b">
+        <div class="hint">Baixe o modelo, preencha no Excel ou Google Sheets e envie de volta — uma recorrência por linha. Cliente (CPF/CNPJ) e serviço (número ou nome de Meus Serviços) precisam já estar cadastrados.</div>
+        <div class="setup-actions" style="margin:10px 0 0">
+          <button class="btn btn-s" type="button" onclick="baixarModeloRecorrenciaCsv()">Baixar modelo (.csv)</button>
+          <button class="btn btn-s" type="button" onclick="qs('#rc-import-file').click()">Selecionar arquivo .csv</button>
+          <input id="rc-import-file" type="file" accept=".csv,text/csv" style="display:none" onchange="selecionarArquivoRecorrenciaCsv(this.files[0])">
+        </div>
+        <div id="rc-import-preview"></div>
       </div></div>
     </section>
 
@@ -3606,13 +3617,27 @@ async function carregarRecorrencias(){
 const RECORRENCIA_FREQUENCIA_LABEL={1:'mensal',3:'trimestral',6:'semestral',12:'anual'};
 function renderRecorrencias(){
   const box=qs('#recurrence-list');if(!box)return;
-  box.innerHTML=recorrencias.length?recorrencias.map(item=>{
-    const proxima=new Date(item.next_run_date+'T00:00:00').toLocaleDateString('pt-BR');
-    const status=!item.active?'<span class="pill p-off">Pausada</span>':item.last_error?'<span class="pill p-err">Falhou — revise abaixo</span>':'<span class="pill p-ok">Ativa</span>';
+  if(!recorrencias.length){box.innerHTML='<tr><td colspan="6"><div class="empty-state">Nenhuma recorrência cadastrada — configure uma nota que se repete todo mês e o TITAN emite sozinho.</div></td></tr>';return}
+  box.innerHTML=recorrencias.map(item=>{
+    const hora=(item.run_time||'09:00:00').slice(0,5);
+    const proxima=`${new Date(item.next_run_date+'T00:00:00').toLocaleDateString('pt-BR')} às ${hora}`;
+    const status=!item.active?'<span class="pill p-off">Pausada</span>':item.last_error?'<span class="pill p-err">Falhou</span>':'<span class="pill p-ok">Ativa</span>';
     const freq=RECORRENCIA_FREQUENCIA_LABEL[item.frequency_months||1]||'mensal';
     const fim=item.end_date?` · encerra em ${new Date(item.end_date+'T00:00:00').toLocaleDateString('pt-BR')}`:'';
-    return `<div class="draft-item"><b>${esc(item.customer_name)}</b> — ${esc(item.service_name)}<br><span>R$ ${brl(Number(item.amount))} · todo dia ${item.day_of_month}, ${freq} · próxima emissão ${proxima}${fim}</span><br>${status}${item.last_error?`<br><span class="foot-note">${esc(item.last_error)}</span>`:''}<div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="editarRecorrencia('${item.id}')">Editar</button><button class="btn btn-s" onclick="alternarRecorrencia('${item.id}',${!item.active})">${item.active?'Pausar':'Reativar'}</button><button class="btn btn-s" onclick="emitirRecorrenciaAgora('${item.id}')">Emitir agora</button><button class="ico-btn danger" title="Excluir" onclick="excluirRecorrencia('${item.id}')">×</button></div></div>`;
-  }).join(''):'<div class="empty-state">Nenhuma recorrência cadastrada — configure uma nota que se repete todo mês e o TITAN emite sozinho.</div>';
+    return `<tr>
+      <td data-th="Cliente / serviço"><b>${esc(item.customer_name)}</b><br><span style="color:var(--ink-3);font-size:11.5px">${esc(item.service_name)}</span></td>
+      <td class="r" data-th="Valor">R$ ${brl(Number(item.amount))}</td>
+      <td data-th="Agenda">Todo dia ${item.day_of_month}, ${freq}${fim}</td>
+      <td data-th="Próxima emissão">${proxima}</td>
+      <td data-th="Situação"><div>${status}${item.last_error?`<div class="foot-note" style="color:#b91c1c">${esc(item.last_error)}</div>`:''}</div></td>
+      <td data-th="Ações"><div class="acts">
+        <button class="ico-btn" title="Editar" onclick="editarRecorrencia('${item.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="ico-btn" title="${item.active?'Pausar':'Reativar'}" onclick="alternarRecorrencia('${item.id}',${!item.active})">${item.active?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>'}</button>
+        <button class="ico-btn" title="Emitir agora" onclick="emitirRecorrenciaAgora('${item.id}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2 15 22l-4-9-9-4 20-7z"/></svg></button>
+        <button class="ico-btn danger" title="Excluir" onclick="excluirRecorrencia('${item.id}')">×</button>
+      </div></td>
+    </tr>`;
+  }).join('');
 }
 async function salvarRecorrencia(){
   const cliente=clienteSelecionadoRecorrencia(),serviceProfileId=qs('#rc-service')?.value,amount=dinheiro(qs('#rc-amount').value),dayOfMonth=Number(qs('#rc-day').value);
@@ -3620,7 +3645,7 @@ async function salvarRecorrencia(){
   if(!serviceProfileId){alert('Selecione um serviço cadastrado.');return}
   if(!amount||amount<=0){alert('Informe um valor maior que zero.');return}
   if(!dayOfMonth||dayOfMonth<1||dayOfMonth>28){alert('Informe um dia do mês entre 1 e 28.');return}
-  const payload={customerId:cliente.id,serviceProfileId,amount,dayOfMonth,frequencyMonths:Number(qs('#rc-frequency').value)||1,endDate:qs('#rc-end-date').value||undefined,description:qs('#rc-description').value.trim()||undefined};
+  const payload={customerId:cliente.id,serviceProfileId,amount,dayOfMonth,runTime:qs('#rc-time').value||'09:00',frequencyMonths:Number(qs('#rc-frequency').value)||1,endDate:qs('#rc-end-date').value||undefined,description:qs('#rc-description').value.trim()||undefined};
   try{
     if(recorrenciaEditando)await api('/api/invoice-recurrences/'+recorrenciaEditando,{method:'PUT',body:JSON.stringify(payload)});
     else await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify(payload)});
@@ -3635,6 +3660,7 @@ function editarRecorrencia(id){
   qs('#rc-service').value=item.service_profile_id;
   qs('#rc-amount').value=Number(item.amount).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   qs('#rc-day').value=item.day_of_month;
+  qs('#rc-time').value=(item.run_time||'09:00:00').slice(0,5);
   qs('#rc-frequency').value=String(item.frequency_months||1);
   qs('#rc-end-date').value=item.end_date||'';
   qs('#rc-description').value=item.description||'';
@@ -3644,47 +3670,133 @@ function editarRecorrencia(id){
 function novaRecorrencia(){cancelarEdicaoRecorrencia();abrirModalRecorrencia();}
 function abrirModalRecorrencia(){qs('#recorrencia-modal').classList.add('on')}
 function fecharModalRecorrencia(){qs('#recorrencia-modal').classList.remove('on')}
-// Achado 12/08/2026 (pedido do usuário: "podendo configurar por planilha
-// também"): sem endpoint novo nem lib de upload — cola linhas separadas por
-// ";" e reaproveita o mesmo POST /api/invoice-recurrences de sempre, uma
-// chamada por linha. Cliente é resolvido por CPF/CNPJ; serviço aceita o
-// NÚMERO de Meus Serviços (mais confiável — ver display_number, achado
-// 14/08/2026) ou, se não for número, o NOME exato já cadastrado.
-async function importarRecorrenciasPlanilha(){
-  const texto=qs('#rc-import-text').value.trim(),status=qs('#rc-import-status');
-  if(!texto){status.textContent='Cole ao menos uma linha antes de importar.';return}
-  if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');
-  await carregarPerfisServico();
-  const linhas=texto.split('\n').map(l=>l.trim()).filter(Boolean);
-  let ok=0,falhas=[];
-  for(let i=0;i<linhas.length;i++){
-    const partes=linhas[i].split(';').map(p=>p.trim());
-    const [doc,servicoCampo,valorTexto,diaTexto,freqTexto,fimTexto]=partes;
-    const docNormalizado=(doc||'').replace(/\D/g,'');
-    const cliente=clientesCadastro.find(c=>(c.tax_id||'').replace(/\D/g,'')===docNormalizado);
-    const servicoCampoLimpo=(servicoCampo||'').trim();
-    const servico=/^\d+$/.test(servicoCampoLimpo)
-      ? perfisServico.find(p=>String(p.display_number)===servicoCampoLimpo)
-      : perfisServico.find(p=>supNorm(p.name)===supNorm(servicoCampoLimpo));
-    const amount=dinheiro(valorTexto);
-    const dayOfMonth=Number(diaTexto);
-    const frequencyMonths=Number(freqTexto)||1;
-    if(!cliente){falhas.push(`Linha ${i+1}: cliente com CPF/CNPJ "${doc||''}" não encontrado.`);continue}
-    if(!servico){falhas.push(`Linha ${i+1}: serviço "${servicoCampoLimpo}" não encontrado (use o número de Meus Serviços ou o nome exato).`);continue}
-    if(!amount||amount<=0){falhas.push(`Linha ${i+1}: valor inválido.`);continue}
-    if(!dayOfMonth||dayOfMonth<1||dayOfMonth>28){falhas.push(`Linha ${i+1}: dia do mês inválido (1 a 28).`);continue}
-    if(![1,3,6,12].includes(frequencyMonths)){falhas.push(`Linha ${i+1}: frequência precisa ser 1, 3, 6 ou 12.`);continue}
-    try{
-      await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify({customerId:cliente.id,serviceProfileId:servico.id,amount,dayOfMonth,frequencyMonths,endDate:fimTexto||undefined})});
-      ok++;
-    }catch(error){falhas.push(`Linha ${i+1}: ${error.message}`)}
+// Achado 14/08/2026 (pedido do usuário: "importar por planilha não txt ou
+// ;"): planilha CSV de verdade (baixar modelo, preencher no Excel/Sheets,
+// enviar de volta) em vez de colar texto com ";" à mão. Sem endpoint novo
+// nem multer — o parse é 100% client-side (FileReader), reaproveitando o
+// mesmo POST /api/invoice-recurrences de sempre, uma chamada por linha
+// válida. Cliente é resolvido por CPF/CNPJ; serviço aceita o NÚMERO de Meus
+// Serviços (mais confiável — ver display_number, achado 14/08/2026) ou, se
+// não for número, o NOME exato já cadastrado.
+//
+// Delimitador é detectado (";" ou ",") em vez de fixo: Excel em pt-BR
+// exporta CSV com ";" (","  é separador decimal no Brasil — mesma convenção
+// que dinheiro() já assume); um CSV internacional genuíno usaria "," como
+// delimitador e "." como decimal, então o parser de valor segue o mesmo
+// delimitador detectado em vez de sempre assumir vírgula decimal.
+function dividirLinhaCsv(linha,delimitador){
+  const campos=[];let atual='',aspas=false;
+  for(let i=0;i<linha.length;i++){
+    const c=linha[i];
+    if(aspas){
+      if(c==='"'){if(linha[i+1]==='"'){atual+='"';i++;}else aspas=false;}
+      else atual+=c;
+    }else if(c==='"')aspas=true;
+    else if(c===delimitador){campos.push(atual);atual='';}
+    else atual+=c;
   }
-  status.innerHTML=`${ok} de ${linhas.length} recorrência(s) importada(s).`+(falhas.length?`<br>${falhas.map(esc).join('<br>')}`:'');
-  if(ok>0){qs('#rc-import-text').value='';await carregarRecorrencias();}
+  campos.push(atual);
+  return campos.map(c=>c.trim());
+}
+function detectarDelimitadorCsv(texto){
+  const primeiraLinha=texto.split(/\r?\n/).find(l=>l.trim())||'';
+  const pontoEVirgula=(primeiraLinha.match(/;/g)||[]).length;
+  const virgula=(primeiraLinha.match(/,/g)||[]).length;
+  return pontoEVirgula>=virgula?';':',';
+}
+function numeroValorCsv(valorTexto,delimitador){
+  return delimitador===','?(Number(String(valorTexto||'0').replace(/[^0-9.-]/g,''))||0):dinheiro(valorTexto);
+}
+function validarLinhaRecorrencia(partes,delimitador){
+  const [doc,servicoCampo,valorTexto,diaTexto,horaTexto,freqTexto,fimTexto]=partes;
+  const docNormalizado=(doc||'').replace(/\D/g,'');
+  const cliente=clientesCadastro.find(c=>(c.tax_id||'').replace(/\D/g,'')===docNormalizado);
+  const servicoCampoLimpo=(servicoCampo||'').trim();
+  const servico=/^\d+$/.test(servicoCampoLimpo)
+    ? perfisServico.find(p=>String(p.display_number)===servicoCampoLimpo)
+    : perfisServico.find(p=>supNorm(p.name)===supNorm(servicoCampoLimpo));
+  const amount=numeroValorCsv(valorTexto,delimitador);
+  const dayOfMonth=Number(diaTexto);
+  const horaLimpa=(horaTexto||'').trim();
+  const runTime=/^([01]?\d|2[0-3]):[0-5]\d$/.test(horaLimpa)?horaLimpa.padStart(5,'0'):null;
+  const frequencyMonths=Number(freqTexto)||1;
+  const endDate=(fimTexto||'').trim()||undefined;
+  const erros=[];
+  if(!cliente)erros.push(`cliente "${doc||''}" não encontrado`);
+  if(!servico)erros.push(`serviço "${servicoCampoLimpo}" não encontrado`);
+  if(!amount||amount<=0)erros.push('valor inválido');
+  if(!dayOfMonth||dayOfMonth<1||dayOfMonth>28)erros.push('dia do mês inválido (1 a 28)');
+  if(!runTime)erros.push('horário inválido (use HH:MM)');
+  if(![1,3,6,12].includes(frequencyMonths))erros.push('frequência precisa ser 1, 3, 6 ou 12');
+  return {cliente,servico,amount,dayOfMonth,runTime:runTime||'09:00',frequencyMonths,endDate,erros,doc,servicoCampoLimpo};
+}
+function baixarModeloRecorrenciaCsv(){
+  const linhas=[
+    'CPF/CNPJ do cliente;Servico (numero ou nome);Valor;Dia do mes;Horario (HH:MM);Frequencia (1/3/6/12);Data fim (opcional, AAAA-MM-DD)',
+    '12345678000195;Honorarios contabeis;500,00;5;09:00;1;'
+  ];
+  const blob=new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='modelo-recorrencias.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(url);
+}
+let recorrenciasCsvParseadas=[];
+function selecionarArquivoRecorrenciaCsv(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');
+    await carregarPerfisServico();
+    const texto=String(reader.result||'');
+    const delimitador=detectarDelimitadorCsv(texto);
+    const linhas=texto.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    recorrenciasCsvParseadas=linhas
+      .map((linha,i)=>({numero:i+1,partes:dividirLinhaCsv(linha,delimitador)}))
+      .filter((item,i)=>i!==0||(Number(item.partes[3])>=1&&Number(item.partes[3])<=28)) // 1ª linha com "dia" não numérico = cabeçalho
+      .map(item=>({numero:item.numero,...validarLinhaRecorrencia(item.partes,delimitador)}));
+    renderPreviaImportacaoCsv();
+  };
+  reader.readAsText(file,'utf-8');
+  qs('#rc-import-file').value='';
+}
+function renderPreviaImportacaoCsv(){
+  const box=qs('#rc-import-preview');if(!box)return;
+  if(!recorrenciasCsvParseadas.length){box.innerHTML='<div class="empty-state">Nenhuma linha reconhecida no arquivo.</div>';return}
+  const validas=recorrenciasCsvParseadas.filter(r=>!r.erros.length).length;
+  box.innerHTML=`
+    <div class="tbl-scroll" style="margin-top:10px"><table class="tbl-cards-mobile">
+      <thead><tr><th>Linha</th><th>Cliente</th><th>Serviço</th><th style="text-align:right">Valor</th><th>Dia</th><th>Hora</th><th>Status</th></tr></thead>
+      <tbody>${recorrenciasCsvParseadas.map(r=>`<tr>
+        <td data-th="Linha">${r.numero}</td>
+        <td data-th="Cliente">${esc(r.cliente?r.cliente.legal_name:(r.doc||'—'))}</td>
+        <td data-th="Serviço">${esc(r.servico?r.servico.name:(r.servicoCampoLimpo||'—'))}</td>
+        <td class="r" data-th="Valor">${r.amount?('R$ '+brl(r.amount)):'—'}</td>
+        <td data-th="Dia">${r.dayOfMonth||'—'}</td>
+        <td data-th="Hora">${r.runTime}</td>
+        <td data-th="Status">${r.erros.length?`<span class="pill p-err">${esc(r.erros.join('; '))}</span>`:'<span class="pill p-ok">OK</span>'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <div class="setup-actions" style="margin-top:10px"><span class="foot-note" id="rc-import-status" style="margin:0">${validas} de ${recorrenciasCsvParseadas.length} linha(s) prontas para importar.</span><button class="btn btn-a right" type="button" ${validas?'':'disabled'} onclick="confirmarImportacaoRecorrenciaCsv()">Confirmar importação</button></div>`;
+}
+async function confirmarImportacaoRecorrenciaCsv(){
+  let ok=0,falhas=[];
+  for(const r of recorrenciasCsvParseadas){
+    if(r.erros.length)continue;
+    try{
+      await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify({customerId:r.cliente.id,serviceProfileId:r.servico.id,amount:r.amount,dayOfMonth:r.dayOfMonth,runTime:r.runTime,frequencyMonths:r.frequencyMonths,endDate:r.endDate})});
+      ok++;
+    }catch(error){falhas.push(`Linha ${r.numero}: ${error.message}`)}
+  }
+  recorrenciasCsvParseadas=[];
+  const box=qs('#rc-import-preview');
+  if(box)box.innerHTML=`<div class="foot-note">${ok} recorrência(s) importada(s).</div>`+(falhas.length?`<div class="foot-note" style="color:#b91c1c">${falhas.map(esc).join('<br>')}</div>`:'');
+  if(ok>0)await carregarRecorrencias();
 }
 function cancelarEdicaoRecorrencia(){
   recorrenciaEditando=null;
-  qs('#rc-customer').value='';qs('#rc-service').value='';qs('#rc-amount').value='0,00';qs('#rc-day').value='';qs('#rc-frequency').value='1';qs('#rc-end-date').value='';qs('#rc-description').value='';
+  qs('#rc-customer').value='';qs('#rc-service').value='';qs('#rc-amount').value='0,00';qs('#rc-day').value='';qs('#rc-time').value='09:00';qs('#rc-frequency').value='1';qs('#rc-end-date').value='';qs('#rc-description').value='';
   qs('#rc-form-title').textContent='Nova recorrência';
   fecharModalRecorrencia();
 }
