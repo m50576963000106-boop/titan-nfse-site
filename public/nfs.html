@@ -184,7 +184,7 @@
 
     <section class="contact" id="contratar">
       <div class="contact-shell reveal"><div class="contact-copy"><span class="tag">Fale com a TITAN</span><h2>Chega de perder tempo com nota fiscal</h2><p>Conte um pouco sobre a sua empresa. Nossa equipe cuida do cadastro e da implantação com você: rápido, sem burocracia, sem enrolação.</p></div>
-      <form class="contact-form" id="contact-form"><input class="full" name="name" id="contact-name" required placeholder="Seu nome"><input class="full" name="federalTaxId" id="contact-cnpj" required placeholder="CNPJ" maxlength="18" inputmode="text" autocomplete="off"><input class="full" name="company" id="contact-company" required placeholder="Empresa (preenchida automaticamente pelo CNPJ)"><input name="email" type="email" required placeholder="E-mail" id="contact-email"><input name="phone" required placeholder="Telefone / WhatsApp" id="contact-phone"><div class="form-hint full" id="contact-contact-hint">Confira o e-mail e o telefone: são eles que garantem seu acesso ao portal depois.</div><textarea class="full" name="message" placeholder="Conte brevemente o que precisa"></textarea><button class="btn btn-gold full" type="submit">Enviar solicitação</button><div class="form-status full" id="contact-status" role="status"></div></form></div>
+      <form class="contact-form" id="contact-form"><input class="full" name="name" id="contact-name" required placeholder="Seu nome"><input class="full" name="federalTaxId" id="contact-cnpj" required placeholder="CNPJ" maxlength="18" inputmode="text" autocomplete="off"><input class="full" name="company" id="contact-company" required placeholder="Empresa (preenchida automaticamente pelo CNPJ)"><input name="email" type="email" required placeholder="E-mail" id="contact-email"><input name="phone" required placeholder="Telefone / WhatsApp" id="contact-phone"><div class="form-hint full" id="contact-contact-hint">Confira o e-mail e o telefone: são eles que garantem seu acesso ao portal depois.</div><select class="full" name="planCode" id="contact-plan"><option value="">Ainda não decidi / quero conversar</option></select><textarea class="full" name="message" placeholder="Conte brevemente o que precisa"></textarea><button class="btn btn-gold full" type="submit">Enviar solicitação</button><div class="form-status full" id="contact-status" role="status"></div></form></div>
     </section>
   </main>
   <footer>
@@ -290,11 +290,20 @@
         // pública, que já tem o card "Personalizado" pra quem precisa de mais.
         const plans=(todosPlanos||[]).filter(p=>['light10','essence20','advanced50'].includes(p.code));
         if(!response.ok||!plans?.length)throw new Error('sem planos');
-        box.innerHTML=plans.map((p,i)=>`<article class="price-card${i===Math.floor((plans.length-1)/2)?' featured':''}"><h3>${escHtml(p.name)}</h3><div class="price-value">R$ ${(p.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})} <small>/ mês</small></div><p>${escHtml(p.description||`Até ${p.monthlyLimit} notas autorizadas por mês.`)}</p>${p.benefits?.length?`<p class="pricing-note" style="margin:10px 0 0">${p.benefits.map(escHtml).join(' · ')}</p>`:''}<a class="btn btn-gold" href="#contratar">Quero este plano</a></article>`).join('')
-          +'<article class="price-card custom"><h3>Personalizado</h3><div class="price-value">Sob consulta</div><p>Precisa de um limite maior? Montamos sob medida para o seu volume.</p><a class="btn" href="#contratar">Fale com a gente</a></article>';
+        box.innerHTML=plans.map((p,i)=>`<article class="price-card${i===Math.floor((plans.length-1)/2)?' featured':''}"><h3>${escHtml(p.name)}</h3><div class="price-value">R$ ${(p.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})} <small>/ mês</small></div><p>${escHtml(p.description||`Até ${p.monthlyLimit} notas autorizadas por mês.`)}</p>${p.benefits?.length?`<p class="pricing-note" style="margin:10px 0 0">${p.benefits.map(escHtml).join(' · ')}</p>`:''}<a class="btn btn-gold" href="#contratar" onclick="selecionarPlanoContato('${p.code}')">Quero este plano</a></article>`).join('')
+          +'<article class="price-card custom"><h3>Personalizado</h3><div class="price-value">Sob consulta</div><p>Precisa de um limite maior? Montamos sob medida para o seu volume.</p><a class="btn" href="#contratar" onclick="selecionarPlanoContato(\'personalizado\')">Fale com a gente</a></article>';
+        // Achado 15/08/2026 (pedido do usuário): o formulário não sabia qual
+        // card a pessoa clicou — "Quero este plano" só rolava a página, sem
+        // levar a escolha junto. Preenche o select de planos do formulário
+        // com os mesmos planos reais (nunca inventa opção que não existe).
+        const planSelect=document.querySelector('#contact-plan');
+        if(planSelect)planSelect.innerHTML='<option value="">Ainda não decidi / quero conversar</option>'+plans.map(p=>`<option value="${p.code}">${escHtml(p.name)}</option>`).join('')+'<option value="personalizado">Personalizado (sob consulta)</option>';
       }catch{box.innerHTML='<p class="pricing-note">Não foi possível carregar os planos agora. Fale com a gente pelo formulário abaixo.</p>'}
     }
     carregarPlanosPublicos();
+    // Só troca a seleção quando um card de plano é clicado (nunca sobrescreve
+    // sozinho); o cliente sempre pode mudar depois direto no formulário.
+    function selecionarPlanoContato(planCode){const select=document.querySelector('#contact-plan');if(select)select.value=planCode}
     // Achado 15/08/2026: a regex de grupos fixos só formatava com o grupo
     // inteiro completo — caractere digitado que não fechava o próximo bloco
     // era descartado, travando quem digita no teclado (só funcionava colando

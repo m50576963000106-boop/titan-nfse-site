@@ -5037,7 +5037,7 @@ async function carregarMasterInscricoes(){
     box.innerHTML=items.length?items.map(item=>{
       const [statusLabel,statusClass]=MASTER_INSCRICAO_STATUS[item.status]||[item.status,'pill p-off'];
       return `<tr>
-        <td><b>${esc(item.company)}</b><br><span class="mono">${esc(item.federal_tax_id||'\u2014')}</span></td>
+        <td><b>${esc(item.company)}</b><br><span class="mono">${esc(item.federal_tax_id||'\u2014')}</span>${item.plan_code?`<br><span class="pill p-off" style="margin-top:4px">Quer: ${esc(item.plan_code==='personalizado'?'Personalizado':item.plan_code)}</span>`:''}</td>
         <td>${esc(item.name)}<br>${esc(item.email)}<br>${esc(item.phone)}</td>
         <td>${esc(regimeLabelInscricao(item))}</td>
         <td><span class="${statusClass}">${esc(statusLabel)}</span></td>
