@@ -184,7 +184,7 @@
 
     <section class="contact" id="contratar">
       <div class="contact-shell reveal"><div class="contact-copy"><span class="tag">Fale com a TITAN</span><h2>Chega de perder tempo com nota fiscal</h2><p>Conte um pouco sobre a sua empresa. Nossa equipe cuida do cadastro e da implantação com você: rápido, sem burocracia, sem enrolação.</p></div>
-      <form class="contact-form" id="contact-form"><input name="name" required placeholder="Seu nome"><input name="company" required placeholder="Empresa"><input name="email" type="email" required placeholder="E-mail"><input name="phone" required placeholder="Telefone / WhatsApp"><input class="full" name="federalTaxId" id="contact-cnpj" required placeholder="CNPJ" maxlength="18" inputmode="text" autocomplete="off"><textarea name="message" placeholder="Conte brevemente o que precisa"></textarea><button class="btn btn-gold full" type="submit">Enviar solicitação</button><div class="form-status full" id="contact-status" role="status"></div></form></div>
+      <form class="contact-form" id="contact-form"><input class="full" name="name" required placeholder="Seu nome"><input class="full" name="federalTaxId" id="contact-cnpj" required placeholder="CNPJ" maxlength="18" inputmode="text" autocomplete="off"><input class="full" name="company" id="contact-company" required placeholder="Empresa (preenchida automaticamente pelo CNPJ)"><input name="email" type="email" required placeholder="E-mail" id="contact-email"><input name="phone" required placeholder="Telefone / WhatsApp" id="contact-phone"><div class="form-hint full" id="contact-contact-hint">Confira o e-mail e o telefone: são eles que garantem seu acesso ao portal depois.</div><textarea class="full" name="message" placeholder="Conte brevemente o que precisa"></textarea><button class="btn btn-gold full" type="submit">Enviar solicitação</button><div class="form-status full" id="contact-status" role="status"></div></form></div>
     </section>
   </main>
   <footer>
@@ -315,6 +315,28 @@
     function safeNext(defaultTarget){const next=PAGE_QUERY.get('next')||'';if(!next)return defaultTarget;try{const url=new URL(next,location.origin);return url.origin===location.origin?url.pathname+url.search+url.hash:defaultTarget}catch{return defaultTarget}}
     function navegarAposLogin(defaultTarget){window.top.location.href=safeNext(defaultTarget)}
     loginButton.addEventListener('click',()=>openLoginDrawer());loginClose.addEventListener('click',closeLoginDrawer);loginBackdrop.addEventListener('click',event=>{if(event.target===loginBackdrop)closeLoginDrawer()});loginDrawer.addEventListener('click',event=>event.stopPropagation());document.addEventListener('keydown',event=>{if(event.key==='Escape')closeLoginDrawer()});document.querySelector('#client-cnpj').addEventListener('input',maskCnpjInput);document.querySelector('#contact-cnpj').addEventListener('input',maskCnpjInput);
+    // Achado 15/08/2026 (pedido do usuário): ao completar o CNPJ, consulta a
+    // base pública (mesma origem "public", já com balde de limite próprio —
+    // ver registry/cnpj.ts) e sugere razão social/e-mail/telefone — nunca
+    // sobrescreve o que o cliente já digitou, e nunca trava os campos: é só
+    // uma sugestão pra agilizar, o cliente confere e corrige se precisar.
+    const CONTACT_HINT_PADRAO=document.querySelector('#contact-contact-hint')?.textContent||'';
+    document.querySelector('#contact-cnpj').addEventListener('blur',async event=>{
+      const cnpj=normalizeTaxId(event.target.value),hint=document.querySelector('#contact-contact-hint');
+      if(cnpj.length!==14)return;
+      const companyInput=document.querySelector('#contact-company'),emailInput=document.querySelector('#contact-email'),phoneInput=document.querySelector('#contact-phone');
+      if(hint)hint.textContent='Consultando CNPJ para agilizar o preenchimento...';
+      try{
+        const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/contact/lookup-cnpj/'+cnpj);
+        const data=await response.json().catch(()=>({}));
+        if(response.ok){
+          if(data.legalName&&!companyInput.value.trim())companyInput.value=data.legalName;
+          if(data.email&&!emailInput.value.trim())emailInput.value=data.email;
+          if(data.phone&&!phoneInput.value.trim())phoneInput.value=data.phone;
+        }
+      }catch{}
+      if(hint)hint.textContent=CONTACT_HINT_PADRAO;
+    });
     document.querySelector('#client-login-form').addEventListener('submit',async event=>{event.preventDefault();const status=document.querySelector('#client-login-status'),cnpj=normalizeTaxId(document.querySelector('#client-cnpj').value),password=document.querySelector('#client-password').value;status.textContent='';if(!/^[A-Z0-9]{12}[0-9]{2}$/.test(cnpj)||password.length<10){status.textContent='Informe um CNPJ válido e uma senha individual com pelo menos 10 caracteres.';return}try{status.textContent='Entrando...';const access=await authLogin({federalTaxId:cnpj,password});const company=(access.companies||[]).find(item=>normalizeTaxId(item.federal_tax_id)===cnpj);if(!company)throw new Error('Seu usuário não possui acesso liberado para este CNPJ.');saveSession(access,company);navegarAposLogin('/dashboard')}catch(error){status.textContent=error.message}});
     document.querySelector('#admin-login-form').addEventListener('submit',async event=>{event.preventDefault();const status=document.querySelector('#admin-login-status'),email=document.querySelector('#admin-email').value.trim(),password=document.querySelector('#admin-password').value;status.textContent='';if(!email||password.length<10){status.textContent='Informe e-mail e senha com pelo menos 10 caracteres.';return}try{status.textContent='Entrando...';const access=await authLogin({email,password});if(!access.user?.isMaster&&!access.user?.isPartner)throw new Error('Este acesso é exclusivo do administrador Master ou de um Parceiro cadastrado.');saveSession(access,null);navegarAposLogin(access.user.isMaster?'/admin':'/parceiro')}catch(error){status.textContent=error.message}});
     function aplicarIntencaoLogin(){const routeIntent=location.pathname==='/entrar'?'client':'';const intent=(PAGE_QUERY.get('login')||routeIntent).toLowerCase(),tenant=normalizeTaxId(PAGE_QUERY.get('tenant'));if(/^[A-Z0-9]{12}[0-9]{2}$/.test(tenant)){const input=document.querySelector('#client-cnpj');input.value=tenant;maskCnpjInput({target:input});}if(intent==='admin'||intent==='client'||tenant.length===14)openLoginDrawer(intent==='admin'?'admin':'client')}

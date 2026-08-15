@@ -897,7 +897,7 @@
           <div class="row r2"><div class="field"><label for="rec-cost-center">Centro de custo</label><select id="rec-cost-center" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'centro')"><option value="">Selecione...</option></select></div><div class="field"><label for="rec-channel">Cobrança</label><select id="rec-channel" class="inp"><option value="none">Sem cobrança agora</option><option value="whatsapp">WhatsApp/API zap — revisar antes</option><option value="manual">Manual</option></select></div></div>
           <div class="field"><label for="rec-issue">NFS-e</label><select id="rec-issue" class="inp"><option value="false">Somente controle financeiro</option><option value="true">Gerar pré-NFS-e pendente de revisão</option></select></div>
           <div class="field"><label for="rec-notes">Observações</label><textarea id="rec-notes" class="inp" rows="3" placeholder="Parâmetros, contrato, competência ou instruções de cobrança"></textarea></div>
-          <div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarRecebimento()">Agendar recebimento</button><button class="btn btn-s" type="button" onclick="carregarRecebimentos()">Atualizar</button></div>
+          <div class="flex wrap"><button class="btn btn-p" type="button" id="rec-save-btn" onclick="salvarRecebimento()">Agendar recebimento</button><button class="btn btn-s" type="button" onclick="carregarRecebimentos()">Atualizar</button></div>
         </div></div>
         <div class="card"><div class="card-h"><h2>Recorrência de honorários</h2></div><div class="card-b">
           <div class="row r2"><div class="field"><label for="rr-title">Descrição</label><input id="rr-title" class="inp" placeholder="Honorários contábeis"></div><div class="field"><label for="rr-client">Cliente</label><input id="rr-client" class="inp" list="rec-client-list" placeholder="Cliente cadastrado"></div></div>
@@ -1199,7 +1199,7 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
       <div class="row r2"><div class="field mb0"><label>Código IBGE</label><input id="cl-mun" class="inp mono" inputmode="numeric" maxlength="7"></div><div class="field mb0"><label>CEP</label><input id="cl-cep" class="inp mono" inputmode="numeric"></div></div>
       <div class="foot-note">A busca preenche os dados públicos; confirme antes de salvar.</div>
     </div>
-    <div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharModalCliente()">Cancelar</button><button class="btn btn-a" type="button" onclick="salvarCliente()">Salvar cliente</button></div>
+    <div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharModalCliente()">Cancelar</button><button class="btn btn-a" type="button" id="cli-save-btn" onclick="salvarCliente()">Salvar cliente</button></div>
   </div>
 </div>
 
@@ -1686,7 +1686,7 @@ function aplicarAcesso(login){
   if(PORTAL_ADMIN)configurarEmpresasAdmin(access.companies||[]);
 }
 function moduloIndisponivel(nome){alert(`⚠ ${nome}\n\nMódulo em preparação. Nenhuma operação foi realizada.`)}
-function limparSessaoLocal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide')}
+function limparSessaoLocal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);localStorage.removeItem(STORAGE_EMPRESA);localStorage.removeItem(STORAGE_USUARIO);qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide')}
 function garantirBarreiraInicial(){
   const token=sessionStorage.getItem(STORAGE_TOKEN);
   let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{}
@@ -1725,7 +1725,7 @@ function fecharMenuLateral(){alternarMenuLateral(false)}
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&qs('#sb')?.classList.contains('open'))fecharMenuLateral()});
 function abrirComercial(kind,button){go('comercial',button);novoComercial(kind);}
 function abrirGestao(tab){const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');if(!access.user?.isMaster){moduloIndisponivel('Usuários e permissões — acesso exclusivo do gestor');return}const suffix=tab?`?tab=${encodeURIComponent(tab)}`:'';window.open('/admin'+suffix,'_blank','noopener')}
-function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);sessionStorage.removeItem(STORAGE_IMPERSONATING);location.reload()}
+function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);sessionStorage.removeItem(STORAGE_IMPERSONATING);localStorage.removeItem(STORAGE_EMPRESA);localStorage.removeItem(STORAGE_USUARIO);location.reload()}
 // Faixa da sessão administrativa (POST /master/companies/:id/session): a
 // sessionStorage é por aba, então só a aba aberta por abrirEmpresaEmissao
 // carrega STORAGE_IMPERSONATING — o painel Master original, em outra aba,
@@ -1877,7 +1877,9 @@ async function salvarRecebimento(){
   const issueNfse=qs('#rec-issue').value==='true',chargeChannel=qs('#rec-channel').value;
   const body={title:qs('#rec-title').value.trim(),customerName,customerId:c?.id,customerTaxId:c?.tax_id,amount,dueDate:qs('#rec-due').value,competence:qs('#rec-competence').value.trim()||undefined,category:qs('#rec-category').value.trim()||undefined,costCenter:qs('#rec-cost-center').value.trim()||undefined,status:'scheduled',fiscalStatus:issueNfse?'pending_issue':'not_applicable',collectionStatus:chargeChannel==='none'?'not_sent':'review_pending',chargeChannel,issueNfse,notes:qs('#rec-notes').value.trim()||undefined,nfsePayload:c?{borrower:{name:c.legal_name,taxId:c.tax_id,email:c.email,phone:c.phone,address:c.address,municipalityCode:c.municipality_code}}:undefined};
   if(!body.title||!body.customerName||!body.dueDate||!(amount>0)){alert('Informe descrição, cliente, valor maior que zero e vencimento.');return}
-  try{await api('/api/workspace/receivables',{method:'POST',body:JSON.stringify(body)});['#rec-title','#rec-client','#rec-value','#rec-due','#rec-competence','#rec-category','#rec-cost-center','#rec-notes'].forEach(id=>qs(id).value='');await carregarRecebimentos();alert('Recebimento agendado.')}catch(error){alert(error.message)}
+  if(salvandoRecebimento)return;
+  salvandoRecebimento=true;qs('#rec-save-btn').disabled=true;
+  try{await api('/api/workspace/receivables',{method:'POST',body:JSON.stringify(body)});['#rec-title','#rec-client','#rec-value','#rec-due','#rec-competence','#rec-category','#rec-cost-center','#rec-notes'].forEach(id=>qs(id).value='');await carregarRecebimentos();alert('Recebimento agendado.')}catch(error){alert(error.message)}finally{salvandoRecebimento=false;qs('#rec-save-btn').disabled=false}
 }
 async function mudarStatusRecebimento(id,status,channel){
   try{await api('/api/workspace/receivables/'+id+'/status',{method:'PATCH',body:JSON.stringify({status,chargeChannel:channel})});await carregarRecebimentos()}catch(error){alert(error.message)}
@@ -2668,6 +2670,18 @@ function semRetencaoAplicavel(){
   const cp=dinheiro(qs('#s-ret-cp')?.value),irrf=dinheiro(qs('#s-ret-irrf')?.value),csll=dinheiro(qs('#s-ret-csll')?.value);
   return retIss==='1'&&(retPc===''||retPc==='0')&&cp===0&&irrf===0&&csll===0;
 }
+// Achado 15/08/2026 (pedido do usuário): os campos já vêm travados do
+// cadastro do serviço (correto, nunca editáveis na emissão), mas não dava
+// pra CONFERIR os valores sem sair da tela — só indo em "Editar cadastro".
+// Accordion recolhido por padrão: fields.style.display já começa 'none'
+// (linha abaixo, igual antes), só ganhou um botão pra abrir/fechar sem
+// mudar o estado disabled/readOnly, que continua sempre travado.
+function toggleRetencoesVisiveis(){
+  const fields=qs('#s-ret-fields'),btn=qs('#s-ret-toggle-btn');if(!fields)return;
+  const abrindo=fields.style.display==='none';
+  fields.style.display=abrindo?'':'none';
+  if(btn)btn.textContent=abrindo?'Ocultar valores ▴':'Ver valores ▾';
+}
 function travarRetencoes(locked){
   CAMPOS_RETENCOES_TRAVAVEIS.forEach(id=>{
     const el=qs('#'+id);if(!el)return;
@@ -2679,7 +2693,7 @@ function travarRetencoes(locked){
   if(card)card.style.display=semRetencao?'none':'';
   if(hint){
     hint.style.display=locked?'':'none';
-    if(locked)hint.innerHTML=`Impostos aplicados a esta nota: ISSQN ${esc(resumoOpcaoTexto('s-trib-iss'))}, ${esc(resumoOpcaoTexto('s-ret-iss'))}. <button class="btn btn-s" type="button" onclick="abrirGestaoServicoAtual()">Editar cadastro do serviço</button>`;
+    if(locked)hint.innerHTML=`Impostos aplicados a esta nota: ISSQN ${esc(resumoOpcaoTexto('s-trib-iss'))}, ${esc(resumoOpcaoTexto('s-ret-iss'))}. <button class="btn btn-s" type="button" id="s-ret-toggle-btn" onclick="toggleRetencoesVisiveis()">Ver valores ▾</button> <button class="btn btn-s" type="button" onclick="abrirGestaoServicoAtual()">Editar cadastro do serviço</button>`;
   }
 }
 
@@ -3220,6 +3234,11 @@ function pipeReset(){
 function mostrarDetalheEtapa(index){const e=etapas[index];const detail=qs('#pipe-detail');if(detail)detail.textContent=`${e.t} — ${e.d}`}
 
 let rodando=false;
+// Mesmo padrão de emitir() (achado 11/08/2026: travar ANTES de qualquer await,
+// nunca depois — dois cliques rápidos senão disparam duas requisições em
+// paralelo). Uma flag por formulário, não a mesma "rodando" da emissão —
+// são operações independentes, travar uma não pode travar a outra.
+let salvandoRecebimento=false,salvandoComercial=false,salvandoCliente=false;
 /**
  * Monta e valida o payload da emissão a partir do formulário. Extraído de
  * emitir() para o preflight do Martyn reaproveitar exatamente a mesma nota que
@@ -3526,7 +3545,7 @@ async function marcarRascunhoConvertidoSeAplicavel(invoiceId){
 let clientesCadastro=[];
 function preencherClienteCadastro(cliente){qs('#cl-doc').value=cliente.tax_id||'';qs('#cl-nome').value=cliente.legal_name||'';qs('#cl-mail').value=cliente.email||'';qs('#cl-mail-alt').value=cliente.email_alt||'';qs('#cl-fone').value=cliente.phone||'';qs('#cl-end').value=cliente.address||'';qs('#cl-cidade').value=cliente.city||cliente.municipality||'';qs('#cl-uf').value=cliente.state||'';qs('#cl-mun').value=cliente.municipality_code||'';qs('#cl-cep').value=cliente.postal_code||'';}
 async function consultarClienteCadastro(){const cnpj=normalizarDocumento(qs('#cl-doc').value);if(!cnpjComFormatoValido(cnpj)){alert('A consulta pública exige um CNPJ com 14 caracteres válidos.');return}try{preencherClienteCadastro(await api('/api/customers/cnpj/'+cnpj))}catch(error){alert(error.message)}}
-async function salvarCliente(){const taxId=normalizarDocumento(qs('#cl-doc').value),legalName=qs('#cl-nome').value.trim();if(!taxId||!legalName){alert('Informe nome e CPF/CNPJ do cliente.');return}try{await api('/api/customers',{method:'POST',body:JSON.stringify({taxId,legalName,email:qs('#cl-mail').value.trim()||undefined,emailAlt:qs('#cl-mail-alt').value.trim()||undefined,phone:qs('#cl-fone').value.trim()||undefined,address:qs('#cl-end').value.trim()||undefined,city:qs('#cl-cidade').value.trim()||undefined,state:qs('#cl-uf').value.trim().toUpperCase()||undefined,postalCode:qs('#cl-cep').value.replace(/\D/g,'')||undefined,municipalityCode:qs('#cl-mun').value.replace(/\D/g,'')||undefined})});fecharModalCliente();await carregarClientesCadastro();alert('Cliente salvo.') }catch(error){alert(error.message)}}
+async function salvarCliente(){const taxId=normalizarDocumento(qs('#cl-doc').value),legalName=qs('#cl-nome').value.trim();if(!taxId||!legalName){alert('Informe nome e CPF/CNPJ do cliente.');return}if(salvandoCliente)return;salvandoCliente=true;qs('#cli-save-btn').disabled=true;try{await api('/api/customers',{method:'POST',body:JSON.stringify({taxId,legalName,email:qs('#cl-mail').value.trim()||undefined,emailAlt:qs('#cl-mail-alt').value.trim()||undefined,phone:qs('#cl-fone').value.trim()||undefined,address:qs('#cl-end').value.trim()||undefined,city:qs('#cl-cidade').value.trim()||undefined,state:qs('#cl-uf').value.trim().toUpperCase()||undefined,postalCode:qs('#cl-cep').value.replace(/\D/g,'')||undefined,municipalityCode:qs('#cl-mun').value.replace(/\D/g,'')||undefined})});fecharModalCliente();await carregarClientesCadastro();alert('Cliente salvo.') }catch(error){alert(error.message)}finally{salvandoCliente=false;qs('#cli-save-btn').disabled=false}}
 let clienteBuscaTimer;
 function filtrarClientesCadastro(){clearTimeout(clienteBuscaTimer);clienteBuscaTimer=setTimeout(carregarClientesCadastro,250);}
 async function carregarClientesCadastro(){
@@ -4030,12 +4049,14 @@ async function salvarComercial(){
   const borrower=c?{name:c.legal_name,legal_name:c.legal_name,tax_id:c.tax_id,email:c.email,phone:c.phone,address:c.address,postal_code:c.postal_code,municipality_code:c.municipality_code,street:c.street,number:c.number,complement:c.complement,district:c.district}:{name:customerName,legal_name:customerName};
   const commercialPayload={borrower,services:comercialItens,service:comercialItens[0],observation:qs('#co-observation')?.value.trim()||'',payment:qs('#co-payment')?.value.trim()||'',conditions:qs('#co-conditions')?.value.trim()||''};
   const body=JSON.stringify({kind:qs('#co-kind').value,status:qs('#co-status').value,title,customerName,amount,payload:commercialPayload});
+  if(salvandoComercial)return;
+  salvandoComercial=true;qs('#co-save-btn').disabled=true;
   try{
     if(comercialEditId)await api('/api/workspace/commercial/'+comercialEditId,{method:'PUT',body});
     else await api('/api/workspace/commercial',{method:'POST',body});
     fecharFormComercial();
     await carregarComerciais();
-  }catch(error){alert(error.message)}
+  }catch(error){alert(error.message)}finally{salvandoComercial=false;qs('#co-save-btn').disabled=false}
 }
 function editarComercial(index){
   const item=comerciais[index];

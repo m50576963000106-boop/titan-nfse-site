@@ -713,6 +713,19 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
   .emit-hero-meta{justify-content:flex-start}
   .cgsn{flex-direction:column;align-items:flex-start;gap:12px}
 }
+/* Achado 15/08/2026 (print do usuário, ~899px de largura): só existia regra
+   de topbar pra desktop cheio (left:258px, acima) e pra mobile (760px,
+   abaixo, sidebar vira hambúrguer) — nada na faixa entre as duas. Nessa
+   faixa a sidebar ainda ocupa os 258px fixos, mas busca/seletor de
+   empresa/nome do usuário continuavam do tamanho de desktop cheio e não
+   cabiam mais, cortando texto de forma feia. Encolhe proporcionalmente em
+   vez de vazar. */
+@media(max-width:1150px){
+  .global-search{width:min(220px,24vw)}
+  .admin-company-switch{width:min(280px,38vw)}
+  .tenant select{max-width:150px}
+  .top-user-copy{max-width:82px}
+}
 @media(max-width:760px){
   .commercial-letterhead{grid-template-columns:1fr auto;gap:10px;padding:14px}.commercial-letterhead img{grid-row:span 2;max-width:110px}.commercial-letterhead h2{font-size:16px}.commercial-letterhead .commercial-doc-meta{font-size:10px}
   .comp-line-single{flex-wrap:wrap}.comp-line-single .comp-desc{flex-basis:100%;white-space:normal}
