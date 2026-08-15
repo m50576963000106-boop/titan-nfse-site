@@ -1073,21 +1073,6 @@ Nenhuma requisição foi enviada à Sefin Nacional.</pre>
       <div class="master-panel" id="master-panel-parceiros"><div class="card"><div class="card-h"><div><h3>Gestão de parceiros</h3><p>Um usuário pode ter no máximo um vínculo. Sem parceiro, o vínculo exibido é Administrador.</p></div></div><div class="card-b"><input id="partner-id" type="hidden"><div class="row r3"><div class="field"><label for="partner-name">Nome do parceiro</label><input id="partner-name" class="inp" placeholder="Razão social ou nome completo"></div><div class="field"><label for="partner-nickname">Apelido</label><input id="partner-nickname" class="inp" placeholder="Ex.: Contabilidade Alfa"></div><div class="field"><label for="partner-commission">Comissão (%)</label><input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex.: 10"><div class="hint">Usada na aba Comissões do Portal do Parceiro, sobre a mensalidade de cada empresa da carteira.</div></div></div><div class="row"><div class="field"><label>&nbsp;</label><div class="flex wrap"><button class="btn btn-p" id="partner-save" type="button" onclick="salvarParceiroMaster()">Cadastrar parceiro</button><button class="btn" id="partner-cancel" style="display:none" type="button" onclick="cancelarEdicaoParceiroMaster()">Cancelar edição</button></div></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Apelido</th><th>Comissão</th><th>Usuários vinculados</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-partners"></tbody></table></div></div></div></div>
 
 
-      <div class="master-panel" id="master-panel-perfis"><div class="card"><div class="card-h"><div><h3>Perfis existentes</h3></div><button class="btn btn-p" type="button" onclick="novoPerfilAcesso()">+ Novo perfil</button></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Plano mínimo</th><th>Em uso</th><th>Permissões</th><th>Ação</th></tr></thead><tbody id="master-profiles"></tbody></table></div></div>
-
-        <div class="modal-backdrop modal-wide" id="perfil-modal" role="dialog" aria-modal="true" aria-labelledby="profile-form-title">
-          <div class="modal-card"><div class="modal-head"><div><h2 id="profile-form-title">Criar novo perfil</h2><p style="font-size:12px;color:var(--ink-3);margin-top:4px">Escolha um modelo operacional e ajuste somente o necessário. Permissões sensíveis ficam destacadas.</p></div></div>
-            <div class="modal-body">
-              <input id="profile-id" type="hidden">
-              <div class="row r2"><div class="field"><label for="profile-preset">Modelo inicial</label><select id="profile-preset" class="inp" onchange="aplicarModeloPerfil(this.value)"><option value="operator">Operador básico</option><option value="issuer">Emissor fiscal</option><option value="financial">Financeiro</option><option value="company_admin">Administrador da empresa</option><option value="custom">Personalizado</option></select></div><div class="field"><label for="profile-name">Nome do perfil</label><input id="profile-name" class="inp" placeholder="Ex.: Financeiro"></div><div class="field"><label for="profile-plan">Plano mínimo</label><select id="profile-plan" class="inp"><option value="light">Plano Light</option><option value="sn20">Plano SN 20</option><option value="sn50">Plano SN 50</option><option value="completo">Completo</option></select></div></div>
-              <div id="profile-permissions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0"></div>
-              <div class="hint">Novo perfil não nasce mais com tudo marcado. Use rascunhos financeiros, integrações, certificado e configurações da empresa somente quando o usuário realmente precisar.</div>
-            </div>
-            <div class="modal-actions"><button class="btn" id="profile-cancel" onclick="cancelarEdicaoPerfil()">Cancelar</button><button class="btn btn-p" id="profile-save" onclick="salvarPerfilAcesso()">Criar perfil</button></div>
-          </div>
-        </div>
-      </div>
-
       <div class="master-panel" id="master-panel-planos"><div class="card"><div class="card-h"><div><h3>Planos</h3><p>Defina nome, preço e limite de NFS-e autorizadas por mês.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="plan-code">Código</label><input id="plan-code" class="inp" placeholder="ex.: pro100"></div><div class="field"><label for="plan-name">Nome do plano</label><input id="plan-name" class="inp" placeholder="Plano Profissional"></div><div class="field"><label for="plan-price">Preço mensal (R$)</label><input id="plan-price" class="inp" inputmode="decimal" placeholder="99,90"></div><div class="field"><label for="plan-limit">Limite de notas / mês</label><input id="plan-limit" class="inp" type="number" min="1" placeholder="100"></div></div><div class="row r2"><div class="field"><label for="plan-description">Descrição</label><input id="plan-description" class="inp" placeholder="Resumo do que está incluído"></div><div class="field"><label for="plan-active">Status</label><select id="plan-active" class="inp"><option value="true">Ativo</option><option value="false">Inativo</option></select></div></div><div class="field"><label>Ferramentas incluídas no plano</label><div id="plan-features" class="alert a-info" style="margin:0;padding:10px;display:grid;gap:7px"></div><div class="hint">O que estiver marcado é o que o cliente contrata. O que é padrão do produto aparece travado. A recusa também acontece na API: desmarcar aqui bloqueia de verdade, não só esconde o botão.</div></div><div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarPlanoMaster()">Salvar plano</button><button class="btn" id="plan-cancel" style="display:none" type="button" onclick="cancelarEdicaoPlanoMaster()">Cancelar edição</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Plano</th><th>Preço</th><th>Limite</th><th>Ferramentas</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-plans"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Ferramentas avulsas</h3><p>Preço de cada ferramenta fora do plano — liga uma empresa específica em Gestão por CNPJ &gt; Editar cliente. Some ao valor do plano; bloqueado quando o plano já inclui.</p></div></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Ferramenta</th><th>Preço avulso (R$)</th><th>Vendida avulsa?</th><th>Ação</th></tr></thead><tbody id="master-addons"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Pedidos de upgrade</h3><p>O cliente pede pelo portal; aprovar troca o plano na hora e avisa a empresa no sino.</p></div><span class="pill p-warn right" id="plan-upgrade-pending-pill" style="display:none">0 pendentes</span></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>De</th><th>Para</th><th>Nota</th><th>Pedido em</th><th>Ação</th></tr></thead><tbody id="master-plan-upgrade-requests"><tr><td colspan="6" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Contrato de Sessão de Uso</h3><p>Editar e publicar cria uma versão nova — a que o cliente já assinou nunca é sobrescrita.</p></div><span class="pill p-gold right" id="contract-current-pill">—</span></div><div class="card-b"><div class="field"><label for="contract-body">Texto do contrato (versão vigente)</label><textarea id="contract-body" class="inp" rows="16" style="font-family:inherit;line-height:1.5" oninput="this.dataset.dirty='1'"></textarea><div class="hint">Publicar avisa todas as empresas no sino: elas precisam ler e aceitar a versão nova para a Sessão de Uso continuar valendo.</div></div><div class="flex wrap"><button class="btn btn-s" type="button" onclick="publicarVersaoContrato('minor')">Publicar correção (versão menor)</button><button class="btn btn-p" type="button" onclick="publicarVersaoContrato('major')">Publicar revisão (versão maior)</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Versão</th><th>Publicada em</th><th>Por</th><th>Aceites</th></tr></thead><tbody id="contract-versions-history"><tr><td colspan="4" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div></div></div>
 
       <div class="master-panel" id="master-panel-config">
@@ -4285,54 +4270,6 @@ function aplicarEmpresa(){
 /* ---------- gestão master / convites ---------- */
 let masterData=null;
 let empresasAdmin=[];
-const permissionLabels={dashboard:'Painel',emit:'Emitir NFS-e',invoices:'Notas emitidas',import:'Importar Portal',customers:'Clientes',services:'Meus serviços',financial:'Financeiro de honorários',financial_drafts:'Rascunhos financeiros',integrations:'Integrações e API',certificate:'Certificado A1',company_settings:'Configuração da empresa'};
-const sensitivePermissions=['invoices','financial','financial_drafts','integrations','certificate','company_settings'];
-const permissionCatalog={
-  dashboard:{group:'Operação',desc:'Painel e ajuda operacional'},
-  customers:{group:'Operação',desc:'Cadastro e consulta de clientes'},
-  services:{group:'Operação',desc:'Serviços padrão e parâmetros de serviço'},
-  emit:{group:'Fiscal',desc:'Criar e transmitir NFS-e'},
-  invoices:{group:'Fiscal',desc:'Consultar, baixar e cancelar notas',sensitive:true},
-  import:{group:'Fiscal',desc:'Importar documentos do Portal Nacional'},
-  financial:{group:'Financeiro',desc:'Recebíveis, honorários e cobrança revisada',sensitive:true},
-  financial_drafts:{group:'Rascunhos',desc:'Boletos, conciliação e fluxo completo em rascunho',sensitive:true,draft:true},
-  integrations:{group:'Integrações',desc:'API, WhatsApp e webhooks em rascunho',sensitive:true,draft:true},
-  certificate:{group:'Administração',desc:'Certificado A1 da empresa',sensitive:true},
-  company_settings:{group:'Administração',desc:'Emitente e preferências fiscais',sensitive:true}
-};
-const profilePresets={
-  operator:{name:'Operador básico',plan:'light',permissions:['dashboard','customers']},
-  issuer:{name:'Emissor fiscal',plan:'light',permissions:['dashboard','emit','invoices','customers','services']},
-  financial:{name:'Financeiro',plan:'sn20',permissions:['dashboard','customers','financial']},
-  company_admin:{name:'Administrador da empresa',plan:'sn50',permissions:['dashboard','emit','invoices','import','customers','services','financial','certificate','company_settings']},
-  custom:{name:'Personalizado',plan:'light',permissions:[]}
-};
-function permissoesPerfil(profile){return Array.isArray(profile?.permissions)?profile.permissions:[]}
-function rotuloPermissoes(permissions){return (permissions||[]).map(permission=>permissionLabels[permission]||permission)}
-function renderPermissoesPerfil(selected=[]){
-  const box=qs('#profile-permissions');if(!box||!masterData)return;
-  const selectedSet=new Set(selected);
-  const groups={};
-  (masterData.permissions||[]).forEach(permission=>{const meta=permissionCatalog[permission]||{group:'Outras',desc:''};(groups[meta.group]??=[]).push({permission,meta})});
-  box.innerHTML=Object.entries(groups).map(([group,items])=>`<div class="alert a-info" style="margin:0;padding:10px"><b>${esc(group)}</b><div style="display:grid;gap:7px;margin-top:8px">${items.map(({permission,meta})=>`<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" value="${permission}" ${selectedSet.has(permission)?'checked':''} onchange="qs('#profile-preset').value='custom'"><span><b>${esc(permissionLabels[permission]||permission)}</b> ${meta.sensitive?'<span class="pill p-warn">sensível</span>':''}${meta.draft?'<span class="pill p-off">rascunho</span>':''}<br><small>${esc(meta.desc||'')}</small></span></label>`).join('')}</div></div>`).join('');
-}
-function aplicarModeloPerfil(key){
-  const preset=profilePresets[key]||profilePresets.custom;
-  if(!qs('#profile-id').value){
-    qs('#profile-name').value=preset.name;
-    qs('#profile-plan').value=preset.plan;
-  }
-  if(key==='custom'){
-    const marcadas=qsa('#profile-permissions input[type=checkbox]:checked').map(el=>el.value);
-    renderPermissoesPerfil(marcadas);
-    return;
-  }
-  renderPermissoesPerfil(preset.permissions);
-}
-function resumoPerfil(profile){
-  const permissions=permissoesPerfil(profile),sens=permissions.filter(permission=>sensitivePermissions.includes(permission));
-  return `${profile?.name||'Perfil'} · ${rotuloPermissoes(permissions).join(', ')||'sem permissões'}${sens.length?` · sensíveis: ${rotuloPermissoes(sens).join(', ')}`:''}`;
-}
 
 function configurarEmpresasAdmin(companies){
   empresasAdmin=(companies||[]).filter(c=>c.emission_enabled).map(c=>({id:String(c.id),legal_name:c.legal_name||c.trade_name||'Empresa sem nome',trade_name:c.trade_name||'',federal_tax_id:String(c.federal_tax_id||''),emission_enabled:Boolean(c.emission_enabled),plan_code:c.plan_code||'teste'}));
@@ -4770,9 +4707,6 @@ async function carregarMaster(){
     configurarEmpresasAdmin(masterData.companies);
     const planOptions=masterData.plans.map(p=>`<option value="${esc(p.code)}">${esc(p.name)} — ${brl(Number(p.price_cents)/100)} / ${p.monthly_limit} notas</option>`).join('');
     qs('#master-new-plan').innerHTML=planOptions;
-    qs('#profile-plan').innerHTML=planOptions;
-    renderPermissoesPerfil(profilePresets.operator.permissions);
-    qs('#master-profiles').innerHTML=masterData.profiles.map(p=>{const permissions=Array.isArray(p.permissions)?p.permissions:[];const emUso=Number(p.users_count||0);return `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.plan_code)}</td><td>${emUso?`<span class="pill p-ok">${emUso} usuário${emUso>1?'s':''}</span>`:'<span class="pill p-off">Sem uso</span>'}</td><td>${esc(permissions.map(permission=>permissionLabels[permission]||permission).join(', ')||'Sem permissões')}</td><td><button class="btn btn-s" onclick="editarPerfilAcesso('${p.id}')">Editar</button></td></tr>`}).join('')||'<tr><td colspan="5">Nenhum perfil.</td></tr>';
     renderMasterClients();renderMasterPartners();renderMasterPlans();renderMasterAddons();
     // Preserva o que já estiver marcado: um refresh em segundo plano não pode
     // apagar a seleção de quem está no meio da edição de um plano.
@@ -5097,19 +5031,14 @@ async function moverStatusInscricao(id,status){
   try{await api('/api/master/inscricoes/'+id+'/status',{method:'PUT',body:JSON.stringify({status})});carregarMasterInscricoes()}catch(error){alert(error.message)}
 }
 
-async function salvarPerfilAcesso(){
-  const name=qs('#profile-name').value.trim(),planCode=qs('#profile-plan').value,permissions=qsa('#profile-permissions input:checked').map(x=>x.value);
-  if(!name||!permissions.length){alert('Informe o nome e ao menos uma permissão.');return}
-  const sensitive=permissions.filter(permission=>sensitivePermissions.includes(permission));
-  if(sensitive.length&&!await titanConfirm(`Este perfil contém permissões sensíveis:\n\n${rotuloPermissoes(sensitive).join('\n')}\n\nConfirma salvar mesmo assim?`,'Salvar perfil sensível','warn'))return;
-  const id=qs('#profile-id').value;
-  try{await api('/api/master/profiles'+(id?'/'+id:''),{method:id?'PUT':'POST',body:JSON.stringify({name,planCode,permissions})});cancelarEdicaoPerfil();await carregarMaster()}catch(error){alert(error.message)}
-}
-function editarPerfilAcesso(id){const profile=masterData?.profiles.find(item=>item.id===id);if(!profile)return;masterTab('perfis');qs('#profile-id').value=id;qs('#profile-preset').value='custom';qs('#profile-name').value=profile.name;qs('#profile-plan').value=profile.plan_code;renderPermissoesPerfil(profile.permissions||[]);const emUso=Number(profile.users_count||0);qs('#profile-form-title').textContent=emUso?`Editar perfil — em uso por ${emUso} usuário${emUso>1?'s':''}`:'Editar perfil';qs('#profile-save').textContent='Salvar alterações';abrirModalPerfil()}
-function novoPerfilAcesso(){cancelarEdicaoPerfil();abrirModalPerfil()}
-function abrirModalPerfil(){qs('#perfil-modal').classList.add('on')}
-function fecharModalPerfil(){qs('#perfil-modal').classList.remove('on')}
-function cancelarEdicaoPerfil(){qs('#profile-id').value='';qs('#profile-preset').value='operator';qs('#profile-name').value=profilePresets.operator.name;qs('#profile-plan').value=profilePresets.operator.plan;renderPermissoesPerfil(profilePresets.operator.permissions);qs('#profile-form-title').textContent='Criar novo perfil';qs('#profile-save').textContent='Criar perfil';fecharModalPerfil()}
+// Achado 15/08/2026 (checagem de prontidão pra lançamento): a tela "Perfis"
+// (novoPerfilAcesso/salvarPerfilAcesso/editarPerfilAcesso/etc., removida
+// aqui) não tinha link em nenhum menu — órfã — e mesmo se alguém chegasse
+// nela, requireCompany() (access/middleware.ts) já ignora perfil desde a
+// descontinuação de 12/08/2026: todo vínculo ativo recebe acesso total ao
+// que o plano permitir. Risco real: admin achar que restringiu alguém e não
+// ter restringido nada. Removida a UI inteira, não só desconectada — ver
+// commit desta correção.
 
 async function salvarAcesso(userId,companyId,active){
   // Perfis de acesso granulares foram descontinuados (12/08/2026): Liberar/
