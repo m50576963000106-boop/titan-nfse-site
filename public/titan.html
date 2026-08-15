@@ -1547,11 +1547,32 @@ function selecionarDestinoPortal(access){
   if(companies[0]?.id)salvarSessaoLocal([[STORAGE_COMPANY_ID,companies[0].id]]);
 }
 
+// Achado 15/08/2026 (usuário digitando CNPJ letra por letra no login): a
+// regex antiga (grupos de tamanho fixo com "?") só formata quando um grupo
+// inteiro está completo — um caractere que não fecha os 3/4 do próximo
+// grupo cai no ".*" solto no fim e é DESCARTADO. Funcionava colando o
+// CNPJ inteiro de uma vez (todos os grupos já completos), mas travava
+// digitando no teclado de verdade (é sempre o caso real). Monta a máscara
+// por tamanho do que já foi digitado — nunca perde caractere, qualquer
+// quantidade digitada.
 function mascararCnpjLogin(el){
   const d=normalizarDocumento(el.value).slice(0,14);
-  el.value=d.replace(/^(.{2})(.{3})?(.{3})?(.{4})?(\d{2})?.*/,(m,a,b,c,dd,e)=>[a,b&&'.'+b,c&&'.'+c,dd&&'/'+dd,e&&'-'+e].filter(Boolean).join(''));
+  let out=d.slice(0,2);
+  if(d.length>2)out+='.'+d.slice(2,5);
+  if(d.length>5)out+='.'+d.slice(5,8);
+  if(d.length>8)out+='/'+d.slice(8,12);
+  if(d.length>12)out+='-'+d.slice(12,14);
+  el.value=out;
 }
-function mascararDocumento(el){const d=normalizarDocumento(el.value).slice(0,14);if(/[A-Z]/.test(d)||d.length>11){mascararCnpjLogin(el);return}el.value=d.replace(/^(\d{3})(\d{3})?(\d{3})?(\d{2})?.*/,(m,a,b,c,e)=>[a,b&&'.'+b,c&&'.'+c,e&&'-'+e].filter(Boolean).join(''))}
+function mascararDocumento(el){
+  const d=normalizarDocumento(el.value).slice(0,14);
+  if(/[A-Z]/.test(d)||d.length>11){mascararCnpjLogin(el);return}
+  let out=d.slice(0,3);
+  if(d.length>3)out+='.'+d.slice(3,6);
+  if(d.length>6)out+='.'+d.slice(6,9);
+  if(d.length>9)out+='-'+d.slice(9,11);
+  el.value=out;
+}
 function definirCarregandoLogin(loading,label='Entrando...'){const button=qs('#login-action');if(!button)return;button.disabled=loading;if(loading){button.dataset.originalText=button.textContent;button.textContent=label}else if(button.dataset.originalText){button.textContent=button.dataset.originalText;delete button.dataset.originalText}}
 function mostrarErroLogin(message){const box=qs('#login-error');if(!box)return;box.style.display='block';box.textContent=message}
 function removerParametroSensivel(name){const url=new URL(location.href);if(!url.searchParams.has(name))return;url.searchParams.delete(name);history.replaceState({},'',url.pathname+(url.search?url.search:'')+url.hash)}

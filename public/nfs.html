@@ -295,7 +295,19 @@
       }catch{box.innerHTML='<p class="pricing-note">Não foi possível carregar os planos agora. Fale com a gente pelo formulário abaixo.</p>'}
     }
     carregarPlanosPublicos();
-    function maskCnpjInput(event){const d=normalizeTaxId(event.target.value).slice(0,14);event.target.value=d.replace(/^(.{2})(.{3})?(.{3})?(.{4})?(\d{2})?.*/,(m,a,b,c,dd,e)=>[a,b&&'.'+b,c&&'.'+c,dd&&'/'+dd,e&&'-'+e].filter(Boolean).join(''))}
+    // Achado 15/08/2026: a regex de grupos fixos só formatava com o grupo
+    // inteiro completo — caractere digitado que não fechava o próximo bloco
+    // era descartado, travando quem digita no teclado (só funcionava colando
+    // o CNPJ pronto). Monta por tamanho já digitado, nunca perde caractere.
+    function maskCnpjInput(event){
+      const d=normalizeTaxId(event.target.value).slice(0,14);
+      let out=d.slice(0,2);
+      if(d.length>2)out+='.'+d.slice(2,5);
+      if(d.length>5)out+='.'+d.slice(5,8);
+      if(d.length>8)out+='/'+d.slice(8,12);
+      if(d.length>12)out+='-'+d.slice(12,14);
+      event.target.value=out;
+    }
     function openLoginDrawer(focusTarget='client'){loginBackdrop.classList.add('open');loginButton.setAttribute('aria-expanded','true');setTimeout(()=>document.querySelector(focusTarget==='admin'?'#admin-email':'#client-cnpj')?.focus(),80)}
     function closeLoginDrawer(){loginBackdrop.classList.remove('open');loginButton.setAttribute('aria-expanded','false')}
     async function authLogin(payload){const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Não foi possível entrar.');return data}
