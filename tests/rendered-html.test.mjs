@@ -1427,19 +1427,24 @@ test("pedido do usuário (12/08/2026): Clientes ganha busca, botão + Cliente e 
   assert.match(html,/job\.status==='completed'\|\|job\.status==='failed'/);
 });
 
-test("pedido do usuário (12/08/2026): notas recorrentes ganham frequência configurável, data-fim e importação por planilha", async()=>{
+test("pedido do usuário (12/08/2026, atualizado 14-15/08/2026): notas recorrentes ganham frequência configurável, data-fim, horário exato, dia de vencimento e importação por CSV", async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/id="rc-frequency"[^>]*>[\s\S]*?<option value="1">Mensal<\/option>[\s\S]*?<option value="3">Trimestral<\/option>[\s\S]*?<option value="6">Semestral<\/option>[\s\S]*?<option value="12">Anual<\/option>/);
   assert.match(html,/id="rc-end-date"[^>]*type="date"/);
   assert.match(html,/frequencyMonths:Number\(qs\('#rc-frequency'\)\.value\)\|\|1,endDate:qs\('#rc-end-date'\)\.value\|\|undefined/);
   assert.match(html,/qs\('#rc-frequency'\)\.value=String\(item\.frequency_months\|\|1\);/);
   assert.match(html,/qs\('#rc-end-date'\)\.value=item\.end_date\|\|'';/);
-  // importação por planilha: sem endpoint novo, reaproveita o POST que já
-  // existia, uma linha colada = uma chamada.
-  assert.match(html,/id="rc-import-text"/);
-  assert.match(html,/async function importarRecorrenciasPlanilha\(\)\{/);
-  assert.match(html,/const linhas=texto\.split\('\\n'\)/);
-  assert.match(html,/api\('\/api\/invoice-recurrences',\{method:'POST',body:JSON\.stringify\(\{customerId:cliente\.id,serviceProfileId:servico\.id,amount,dayOfMonth,frequencyMonths,endDate:fimTexto\|\|undefined\}\)\}\)/);
+  // "hora certa" (14/08/2026) e dia de vencimento pra #vencimento (15/08/2026).
+  assert.match(html,/id="rc-time" class="inp" type="time"/);
+  assert.match(html,/id="rc-due-day" class="inp num"/);
+  assert.match(html,/runTime:qs\('#rc-time'\)\.value\|\|'09:00',dueDayOfMonth:dueDayTexto\?Number\(dueDayTexto\):undefined/);
+  // importação por CSV (14/08/2026, "não txt ou ;"): upload de arquivo +
+  // prévia por linha, sem endpoint novo, reaproveita o mesmo POST de sempre.
+  assert.match(html,/id="rc-import-file" type="file" accept="\.csv,text\/csv"/);
+  assert.match(html,/function baixarModeloRecorrenciaCsv\(\)\{/);
+  assert.match(html,/function selecionarArquivoRecorrenciaCsv\(file\)\{/);
+  assert.match(html,/async function confirmarImportacaoRecorrenciaCsv\(\)\{/);
+  assert.match(html,/api\('\/api\/invoice-recurrences',\{method:'POST',body:JSON\.stringify\(\{customerId:r\.cliente\.id,serviceProfileId:r\.servico\.id,amount:r\.amount,dayOfMonth:r\.dayOfMonth,runTime:r\.runTime,frequencyMonths:r\.frequencyMonths,endDate:r\.endDate\}\)\}\)/);
 });
 
 test("pedido do usuário (12/08/2026): ícones de informação (i) nos campos de Meus Serviços com comportamento/limitação não óbvios", async()=>{
