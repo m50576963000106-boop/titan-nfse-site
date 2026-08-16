@@ -47,12 +47,18 @@
     .partner-form h3{color:var(--navy);font-size:15px}
     .partner-form p.hint{color:var(--muted);font-size:12.5px;line-height:1.5;margin-top:-6px}
     .partner-field label{display:block;margin-bottom:5px;color:var(--navy);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
-    .partner-field input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;outline:none;font:inherit}
-    .partner-field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(231,150,69,.18)}
+    .partner-field input,.partner-field textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;outline:none;font:inherit}
+    .partner-field textarea{resize:vertical;min-height:90px}
+    .partner-field input:focus,.partner-field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(231,150,69,.18)}
     .partner-form-status{min-height:20px;font-size:12.5px;font-weight:650;white-space:pre-wrap}
     .partner-form-status.err{color:#9b2226}
     .partner-form-status.ok{color:var(--ok)}
     .partner-divider{border:0;border-top:1px solid var(--line);margin:6px 0}
+    .partner-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;margin-left:6px;border-radius:999px;background:#9b2226;color:#fff;font-size:10px;font-weight:800}
+    .partner-novidade{padding:14px 0;border-bottom:1px solid var(--line)}
+    .partner-novidade:last-child{border-bottom:0}
+    .partner-novidade small{color:var(--muted)}
+    .partner-novidade p{margin-top:6px;white-space:pre-wrap;font-size:13.5px}
   </style>
 </head>
 <body>
@@ -64,6 +70,8 @@
       <button class="partner-nav-link" type="button" data-partner-tab="comissoes" onclick="partnerTab('comissoes',this)">Comissões</button>
       <button class="partner-nav-link" type="button" data-partner-tab="financeiro" onclick="partnerTab('financeiro',this)">Financeiro</button>
       <button class="partner-nav-link" type="button" data-partner-tab="indicar" onclick="partnerTab('indicar',this)">Indicar cliente</button>
+      <button class="partner-nav-link" type="button" data-partner-tab="suporte" onclick="partnerTab('suporte',this)">Suporte</button>
+      <button class="partner-nav-link" type="button" data-partner-tab="novidades" onclick="partnerTab('novidades',this)">Novidades<span class="partner-badge" id="novidades-badge" style="display:none">0</span></button>
       <button class="partner-nav-link" type="button" data-partner-tab="perfil" onclick="partnerTab('perfil',this)">Perfil</button>
     </nav>
     <button class="btn" type="button" id="partner-logout">Sair</button>
@@ -127,6 +135,26 @@
           <button class="btn btn-gold" type="submit">Enviar convite</button>
           <div class="partner-form-status" id="ind-status" role="status"></div>
         </form>
+      </div>
+    </section>
+
+    <section class="partner-view" id="partner-view-suporte" style="display:none">
+      <div class="partner-card">
+        <form class="partner-form" onsubmit="event.preventDefault();enviarSuporteParceiro()">
+          <h3>Fale com o suporte</h3>
+          <p class="hint">Sua mensagem chega direto para o time TITAN, com seu nome e e-mail de acesso já identificados.</p>
+          <div class="partner-field"><label for="sup-assunto">Assunto</label><input id="sup-assunto" maxlength="160" placeholder="Ex.: Dúvida sobre comissão"></div>
+          <div class="partner-field"><label for="sup-mensagem">Mensagem</label><textarea id="sup-mensagem" maxlength="4000" placeholder="Descreva o que você precisa"></textarea></div>
+          <button class="btn btn-gold" type="submit">Enviar mensagem</button>
+          <div class="partner-form-status" id="sup-status" role="status"></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="partner-view" id="partner-view-novidades" style="display:none">
+      <div class="partner-card">
+        <div id="novidades-status" class="partner-empty">Carregando...</div>
+        <div id="novidades-list" style="display:none;padding:6px 22px"></div>
       </div>
     </section>
 
@@ -353,7 +381,51 @@
         carregarCarteira();
       }catch(error){status.className='partner-form-status err';status.textContent=error.message}
     }
-    const PARTNER_LOADERS={carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro,perfil:carregarPerfilParceiro};
+    async function enviarSuporteParceiro(){
+      const status=document.querySelector('#sup-status');
+      const subject=document.querySelector('#sup-assunto').value.trim(),message=document.querySelector('#sup-mensagem').value.trim();
+      if(subject.length<3){status.className='partner-form-status err';status.textContent='Informe o assunto.';return}
+      if(message.length<10){status.className='partner-form-status err';status.textContent='Descreva sua mensagem com pelo menos 10 caracteres.';return}
+      status.className='partner-form-status';status.textContent='Enviando...';
+      try{
+        await chamarApiParceiro('/api/partner/support',{method:'POST',body:JSON.stringify({subject,message})});
+        status.className='partner-form-status ok';status.textContent='Mensagem enviada. O time TITAN responde pelo seu e-mail de acesso.';
+        document.querySelector('#sup-assunto').value='';document.querySelector('#sup-mensagem').value='';
+      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
+    }
+
+    // Sino de notificações (achado da auditoria: "cliente tem, parceiro não")
+    // — mesmo endpoint GET/POST /api/announcements do portal do cliente
+    // (requireAuth, não requireCompany: já funciona pra qualquer usuário
+    // autenticado, inclusive login de parceiro). Aqui é uma aba, não um
+    // modal — parceiro.html não tem o sistema de modal do titan.html.
+    function formatarDataNovidadeParceiro(iso){return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})}
+    async function atualizarBadgeNovidadesParceiro(){
+      try{
+        const data=await chamarApiParceiro('/api/announcements',{method:'GET'});
+        const badge=document.querySelector('#novidades-badge');
+        if(!badge)return;
+        const n=Number(data.unreadCount||0);
+        badge.textContent=String(n);badge.style.display=n>0?'inline-flex':'none';
+      }catch{}
+    }
+    async function carregarNovidadesParceiro(){
+      const status=document.querySelector('#novidades-status'),lista=document.querySelector('#novidades-list');
+      status.className='partner-empty';status.textContent='Carregando...';lista.style.display='none';
+      try{
+        const data=await chamarApiParceiro('/api/announcements',{method:'GET'});
+        const itens=data.announcements||[];
+        if(!itens.length){status.className='partner-empty';status.textContent='Nenhuma novidade publicada ainda.';return}
+        lista.innerHTML=itens.map(item=>`<div class="partner-novidade"><b>${esc(item.title)}</b><br><small>${formatarDataNovidadeParceiro(item.published_at)}</small><p>${esc(item.body)}</p></div>`).join('');
+        status.style.display='none';lista.style.display='block';
+        await chamarApiParceiro('/api/announcements/seen',{method:'POST'});
+        const badge=document.querySelector('#novidades-badge');if(badge)badge.style.display='none';
+      }catch(error){
+        if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
+        status.className='partner-error';status.textContent=error.message;
+      }
+    }
+    const PARTNER_LOADERS={carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro,perfil:carregarPerfilParceiro,novidades:carregarNovidadesParceiro};
     function partnerTab(nome,botao){
       document.querySelectorAll('.partner-view').forEach(secao=>{secao.style.display=secao.id==='partner-view-'+nome?'block':'none'});
       document.querySelectorAll('.partner-nav-link').forEach(link=>{link.classList.remove('on');link.removeAttribute('aria-current')});
@@ -362,6 +434,7 @@
     }
 
     carregarCarteira();
+    atualizarBadgeNovidadesParceiro();
   </script>
 </body>
 </html>
