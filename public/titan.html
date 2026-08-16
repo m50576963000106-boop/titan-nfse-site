@@ -1069,7 +1069,8 @@
         </div></div>
       </div>
 
-      <div class="master-panel" id="master-panel-parceiros"><div class="card"><div class="card-h"><div><h3>Gestão de parceiros</h3><p>Um usuário pode ter no máximo um vínculo. Sem parceiro, o vínculo exibido é Administrador.</p></div></div><div class="card-b"><input id="partner-id" type="hidden"><div class="row r3"><div class="field"><label for="partner-name">Nome do parceiro</label><input id="partner-name" class="inp" placeholder="Razão social ou nome completo"></div><div class="field"><label for="partner-nickname">Apelido</label><input id="partner-nickname" class="inp" placeholder="Ex.: Contabilidade Alfa"></div><div class="field"><label for="partner-commission">Comissão (%)</label><input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex.: 10"><div class="hint">Usada na aba Comissões do Portal do Parceiro, sobre a mensalidade de cada empresa da carteira.</div></div></div><div class="row"><div class="field"><label for="partner-email">E-mail do parceiro</label><input id="partner-email" class="inp" type="email" placeholder="parceiro@exemplo.com"><div class="hint">Acesso próprio ao Portal do Parceiro (login dedicado) — diferente de vincular um usuário de empresa cliente já existente. Necessário para enviar o convite.</div></div></div><div class="row"><div class="field"><label>&nbsp;</label><div class="flex wrap"><button class="btn btn-p" id="partner-save" type="button" onclick="salvarParceiroMaster()">Cadastrar parceiro</button><button class="btn" id="partner-cancel" style="display:none" type="button" onclick="cancelarEdicaoParceiroMaster()">Cancelar edição</button></div></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Apelido</th><th>E-mail / convite</th><th>Comissão</th><th>Usuários vinculados</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-partners"></tbody></table></div></div></div></div>
+      <div class="master-panel" id="master-panel-parceiros"><div class="card"><div class="card-h"><div><h3>Gestão de parceiros</h3><p>Um usuário pode ter no máximo um vínculo. Sem parceiro, o vínculo exibido é Administrador.</p></div></div><div class="card-b"><input id="partner-id" type="hidden"><div class="row r3"><div class="field"><label for="partner-name">Nome do parceiro</label><input id="partner-name" class="inp" placeholder="Razão social ou nome completo"></div><div class="field"><label for="partner-nickname">Apelido</label><input id="partner-nickname" class="inp" placeholder="Ex.: Contabilidade Alfa"></div><div class="field"><label for="partner-commission">Comissão (%)</label><input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex.: 10"><div class="hint">Usada na aba Comissões do Portal do Parceiro, sobre a mensalidade de cada empresa da carteira.</div></div></div><div class="row"><div class="field"><label for="partner-email">E-mail do parceiro</label><input id="partner-email" class="inp" type="email" placeholder="parceiro@exemplo.com"><div class="hint">Acesso próprio ao Portal do Parceiro (login dedicado) — diferente de vincular um usuário de empresa cliente já existente. Necessário para enviar o convite.</div></div></div><div class="row"><div class="field"><label>&nbsp;</label><div class="flex wrap"><button class="btn btn-p" id="partner-save" type="button" onclick="salvarParceiroMaster()">Cadastrar parceiro</button><button class="btn" id="partner-cancel" style="display:none" type="button" onclick="cancelarEdicaoParceiroMaster()">Cancelar edição</button></div></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Apelido</th><th>E-mail / convite</th><th>Comissão</th><th>Usuários vinculados</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-partners"></tbody></table></div></div></div>
+        <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Pedidos de licença</h3><p>Modelo de revenda: o parceiro compra o estoque de licenças e revende pro cliente pelo valor que quiser. Confirme aqui só depois de ver o pagamento chegar (PIX/transferência, fora do sistema).</p></div><button class="btn btn-s" type="button" onclick="carregarPedidosLicencaMaster()">Atualizar</button></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Parceiro</th><th>Plano</th><th>Qtd.</th><th>Valor total</th><th>Status</th><th>Pedido em</th><th>Ação</th></tr></thead><tbody id="master-license-orders"><tr><td colspan="7" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div></div>
 
 
       <div class="master-panel" id="master-panel-planos"><div class="card"><div class="card-h"><div><h3>Planos</h3><p>Defina nome, preço e limite de NFS-e autorizadas por mês.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="plan-code">Código</label><input id="plan-code" class="inp" placeholder="ex.: pro100"></div><div class="field"><label for="plan-name">Nome do plano</label><input id="plan-name" class="inp" placeholder="Plano Profissional"></div><div class="field"><label for="plan-price">Preço mensal (R$)</label><input id="plan-price" class="inp" inputmode="decimal" placeholder="99,90"></div><div class="field"><label for="plan-limit">Limite de notas / mês</label><input id="plan-limit" class="inp" type="number" min="1" placeholder="100"></div></div><div class="row r2"><div class="field"><label for="plan-description">Descrição</label><input id="plan-description" class="inp" placeholder="Resumo do que está incluído"></div><div class="field"><label for="plan-active">Status</label><select id="plan-active" class="inp"><option value="true">Ativo</option><option value="false">Inativo</option></select></div></div><div class="field"><label>Ferramentas incluídas no plano</label><div id="plan-features" class="alert a-info" style="margin:0;padding:10px;display:grid;gap:7px"></div><div class="hint">O que estiver marcado é o que o cliente contrata. O que é padrão do produto aparece travado. A recusa também acontece na API: desmarcar aqui bloqueia de verdade, não só esconde o botão.</div></div><div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarPlanoMaster()">Salvar plano</button><button class="btn" id="plan-cancel" style="display:none" type="button" onclick="cancelarEdicaoPlanoMaster()">Cancelar edição</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Plano</th><th>Preço</th><th>Limite</th><th>Ferramentas</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-plans"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Ferramentas avulsas</h3><p>Preço de cada ferramenta fora do plano — liga uma empresa específica em Gestão por CNPJ &gt; Editar cliente. Some ao valor do plano; bloqueado quando o plano já inclui.</p></div></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Ferramenta</th><th>Preço avulso (R$)</th><th>Vendida avulsa?</th><th>Ação</th></tr></thead><tbody id="master-addons"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Pedidos de upgrade</h3><p>O cliente pede pelo portal; aprovar troca o plano na hora e avisa a empresa no sino.</p></div><span class="pill p-warn right" id="plan-upgrade-pending-pill" style="display:none">0 pendentes</span></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>De</th><th>Para</th><th>Nota</th><th>Pedido em</th><th>Ação</th></tr></thead><tbody id="master-plan-upgrade-requests"><tr><td colspan="6" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Contrato de Sessão de Uso</h3><p>Editar e publicar cria uma versão nova — a que o cliente já assinou nunca é sobrescrita.</p></div><span class="pill p-gold right" id="contract-current-pill">—</span></div><div class="card-b"><div class="field"><label for="contract-body">Texto do contrato (versão vigente)</label><textarea id="contract-body" class="inp" rows="16" style="font-family:inherit;line-height:1.5" oninput="this.dataset.dirty='1'"></textarea><div class="hint">Publicar avisa todas as empresas no sino: elas precisam ler e aceitar a versão nova para a Sessão de Uso continuar valendo.</div></div><div class="flex wrap"><button class="btn btn-s" type="button" onclick="publicarVersaoContrato('minor')">Publicar correção (versão menor)</button><button class="btn btn-p" type="button" onclick="publicarVersaoContrato('major')">Publicar revisão (versão maior)</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Versão</th><th>Publicada em</th><th>Por</th><th>Aceites</th></tr></thead><tbody id="contract-versions-history"><tr><td colspan="4" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div></div>
@@ -4367,6 +4368,7 @@ function masterTab(tab,button){
   qsa('[data-master-tab]').forEach(item=>item.classList.toggle('active',item.dataset.masterTab===tab));
   if(button)button.classList.add('active');
   if(tab==='inscricoes')carregarMasterInscricoes();
+  if(tab==='parceiros')carregarPedidosLicencaMaster();
   if(tab==='logs')carregarMasterLogs();
   if(tab==='config')carregarConfiguracoesMaster();
   if(tab==='atendimentos')iniciarAtendimentos();else pararPollingAtendimentos();
@@ -4862,6 +4864,43 @@ async function enviarConviteParceiroMaster(id){
     await api('/api/master/partners/'+id+'/invite',{method:'POST'});
     alert(`Convite enviado para ${partner.email}. O link expira em 7 dias.`);
     await carregarMaster();
+  }catch(error){alert(error.message)}
+}
+
+// Modelo de revenda por licença (16/08/2026): pedidos de compra de licença
+// do parceiro ficam pendentes até o Master conferir que o pagamento chegou
+// (sem gateway de pagamento real integrado pro parceiro ainda) e confirmar
+// aqui — só então o saldo do parceiro é creditado.
+const LICENCA_ORDER_STATUS_LABEL={pending:['p-warn','Aguardando confirmação'],paid:['p-ok','Pago'],canceled:['p-off','Cancelado']};
+async function carregarPedidosLicencaMaster(){
+  const corpo=qs('#master-license-orders');if(!corpo)return;
+  corpo.innerHTML='<tr><td colspan="7" class="empty-state">Carregando...</td></tr>';
+  try{
+    const data=await api('/api/master/partner-license-orders?status=all');
+    const pedidos=data.orders||[];
+    corpo.innerHTML=pedidos.length?pedidos.map(o=>{
+      const [classe,rotulo]=LICENCA_ORDER_STATUS_LABEL[o.status]||['p-off',esc(o.status)];
+      const acao=o.status==='pending'
+        ?`<div class="acts"><button class="btn btn-p" type="button" onclick="confirmarPedidoLicencaMaster('${o.id}')">Confirmar pagamento</button><button class="btn btn-s" type="button" onclick="cancelarPedidoLicencaMaster('${o.id}')">Cancelar</button></div>`
+        :'—';
+      return `<tr><td><b>${esc(o.partner_name||o.partner_nickname)}</b></td><td>${esc(o.plan_code)}</td><td>${o.quantity}</td><td>R$ ${brl(Number(o.total_cents||0)/100)}</td><td><span class="pill ${classe}">${rotulo}</span></td><td>${formatarDataNovidade(o.created_at)}</td><td>${acao}</td></tr>`;
+    }).join(''):'<tr><td colspan="7" class="empty-state">Nenhum pedido de licença ainda.</td></tr>';
+  }catch(error){
+    corpo.innerHTML=`<tr><td colspan="7" class="empty-state">${esc(error.message)}</td></tr>`;
+  }
+}
+async function confirmarPedidoLicencaMaster(id){
+  if(!await titanConfirm('Confirme só depois de ver o pagamento chegar de verdade (PIX/transferência, fora do sistema). O saldo do parceiro é creditado na hora.','Confirmar pagamento de licenças'))return;
+  try{
+    await api('/api/master/partner-license-orders/'+id+'/confirm',{method:'POST'});
+    await carregarPedidosLicencaMaster();
+  }catch(error){alert(error.message)}
+}
+async function cancelarPedidoLicencaMaster(id){
+  if(!await titanConfirm('Cancelar este pedido de licenças? O parceiro precisará pedir de novo se ainda quiser comprar.','Cancelar pedido','err'))return;
+  try{
+    await api('/api/master/partner-license-orders/'+id+'/cancel',{method:'POST'});
+    await carregarPedidosLicencaMaster();
   }catch(error){alert(error.message)}
 }
 // O catálogo de ferramentas vem da API (masterData.planFeatures): ferramenta

@@ -69,6 +69,7 @@
       <button class="partner-nav-link" type="button" data-partner-tab="creditos" onclick="partnerTab('creditos',this)">Créditos</button>
       <button class="partner-nav-link" type="button" data-partner-tab="comissoes" onclick="partnerTab('comissoes',this)">Comissões</button>
       <button class="partner-nav-link" type="button" data-partner-tab="financeiro" onclick="partnerTab('financeiro',this)">Financeiro</button>
+      <button class="partner-nav-link" type="button" data-partner-tab="licencas" onclick="partnerTab('licencas',this)">Licenças</button>
       <button class="partner-nav-link" type="button" data-partner-tab="indicar" onclick="partnerTab('indicar',this)">Indicar cliente</button>
       <button class="partner-nav-link" type="button" data-partner-tab="suporte" onclick="partnerTab('suporte',this)">Suporte</button>
       <button class="partner-nav-link" type="button" data-partner-tab="novidades" onclick="partnerTab('novidades',this)">Novidades<span class="partner-badge" id="novidades-badge" style="display:none">0</span></button>
@@ -87,9 +88,18 @@
       <div class="partner-card">
         <div id="partner-status" class="partner-empty">Carregando carteira...</div>
         <div class="table-wrap"><table id="partner-table" style="display:none">
-          <thead><tr><th>Empresa</th><th>CNPJ</th><th>Status de emissão</th><th>WhatsApp (vínculo)</th></tr></thead>
+          <thead><tr><th>Empresa</th><th>CNPJ</th><th>Status de emissão</th><th>Assinatura</th><th>WhatsApp (vínculo)</th></tr></thead>
           <tbody id="partner-rows"></tbody>
         </table></div>
+        <form class="partner-form" id="assinatura-form" style="display:none;border-top:1px solid var(--line)" onsubmit="event.preventDefault();confirmarLiberarAssinatura()">
+          <h3>Liberar assinatura — <span id="assinatura-empresa-nome"></span></h3>
+          <p class="hint">Consome 1 licença do seu saldo do plano escolhido e passa a valer o preço de revenda que você definir para este cliente.</p>
+          <input type="hidden" id="assinatura-company-id">
+          <div class="partner-field"><label for="assinatura-plano">Plano</label><select id="assinatura-plano"></select></div>
+          <div class="partner-field"><label for="assinatura-preco">Valor de revenda para este cliente (R$)</label><input id="assinatura-preco" inputmode="decimal" placeholder="Ex.: 150,00"></div>
+          <div class="flex wrap" style="gap:8px"><button class="btn btn-gold" type="submit">Confirmar</button><button class="btn" type="button" onclick="fecharLiberarAssinatura()">Cancelar</button></div>
+          <div class="partner-form-status" id="assinatura-status" role="status"></div>
+        </form>
       </div>
     </section>
 
@@ -108,7 +118,7 @@
         <div id="comissoes-status" class="partner-empty">Carregando comissões...</div>
         <div id="comissoes-summary" class="partner-summary" style="display:none"></div>
         <div class="table-wrap"><table id="comissoes-table" style="display:none">
-          <thead><tr><th>Empresa</th><th>Mensalidade</th><th>Comissão estimada</th></tr></thead>
+          <thead><tr><th>Empresa</th><th>Modelo</th><th>Mensalidade cobrada do cliente</th><th>Sua margem</th></tr></thead>
           <tbody id="comissoes-rows"></tbody>
         </table></div>
       </div>
@@ -120,6 +130,31 @@
         <div class="table-wrap"><table id="financeiro-table" style="display:none">
           <thead><tr><th>Empresa</th><th>Plano</th><th>Mensalidade</th><th>Implantação</th></tr></thead>
           <tbody id="financeiro-rows"></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <section class="partner-view" id="partner-view-licencas" style="display:none">
+      <div class="partner-card">
+        <div style="padding:20px 22px 6px"><h3 style="color:var(--navy);font-size:15px">Comprar licenças</h3><p class="hint" style="margin-top:4px">Estoque pré-pago, por plano — cada licença comprada vira 1 assinatura que você pode liberar para um cliente da sua carteira, pelo valor de revenda que você escolher.</p></div>
+        <div class="table-wrap"><table id="licencas-catalogo-table">
+          <thead><tr><th>Plano</th><th>Custo da licença</th><th>Quantidade</th><th></th></tr></thead>
+          <tbody id="licencas-catalogo-rows"><tr><td colspan="4" class="partner-empty">Carregando planos...</td></tr></tbody>
+        </table></div>
+        <div class="partner-form-status" id="licencas-compra-status" role="status" style="padding:0 22px"></div>
+      </div>
+      <div class="partner-card" style="margin-top:16px">
+        <div class="card-h" style="padding:16px 22px 0"><h3 style="color:var(--navy);font-size:15px">Seu saldo</h3></div>
+        <div class="table-wrap"><table id="licencas-saldo-table">
+          <thead><tr><th>Plano</th><th>Licenças disponíveis</th></tr></thead>
+          <tbody id="licencas-saldo-rows"><tr><td colspan="2" class="partner-empty">Nenhuma licença comprada ainda.</td></tr></tbody>
+        </table></div>
+      </div>
+      <div class="partner-card" style="margin-top:16px">
+        <div class="card-h" style="padding:16px 22px 0"><h3 style="color:var(--navy);font-size:15px">Pedidos</h3></div>
+        <div class="table-wrap"><table id="licencas-pedidos-table">
+          <thead><tr><th>Plano</th><th>Qtd.</th><th>Valor total</th><th>Status</th><th>Pedido em</th></tr></thead>
+          <tbody id="licencas-pedidos-rows"><tr><td colspan="5" class="partner-empty">Nenhum pedido ainda.</td></tr></tbody>
         </table></div>
       </div>
     </section>
@@ -184,6 +219,7 @@
     const STORAGE_TOKEN='titan_nfse_session_v1',STORAGE_SESSION='titan_nfse_access_v1';
     const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
     const brl=n=>Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const dinheiro=value=>Number(String(value||'0').replace(/\./g,'').replace(',','.'))||0;
     function formatarCnpj(value){
       const digits=String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
       return digits.length===14?digits.replace(/^(.{2})(.{3})(.{3})(.{4})(\d{2})$/,'$1.$2.$3/$4-$5'):(value||'');
@@ -231,19 +267,68 @@
       status.innerHTML='Sessão de parceiro não encontrada ou expirada. <a href="/">Entrar de novo</a>.';
     }
 
-    async function carregarCarteira(){
+let PARCEIRO_EMPRESAS=[],PARCEIRO_PLANOS=null;
+async function garantirPlanosParceiro(){
+  if(PARCEIRO_PLANOS)return PARCEIRO_PLANOS;
+  const data=await buscarApiParceiro('/api/partner/plans');
+  PARCEIRO_PLANOS=data.plans||[];
+  return PARCEIRO_PLANOS;
+}
+async function carregarCarteira(){
       const status=document.querySelector('#partner-status'),tabela=document.querySelector('#partner-table'),corpo=document.querySelector('#partner-rows');
       status.className='partner-empty';status.textContent='Carregando carteira...';tabela.style.display='none';
       try{
         const data=await buscarApiParceiro('/api/partner/companies');
         const empresas=data.companies||[];
+        PARCEIRO_EMPRESAS=empresas;
         if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
-        corpo.innerHTML=empresas.map(company=>`<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td class="mono">${esc(formatarCnpj(company.federal_tax_id))}</td><td><span class="pill ${company.emission_enabled?'on':'off'}">${company.emission_enabled?'Emissão liberada':'Emissão suspensa'}</span></td><td><div style="display:flex;gap:6px;align-items:center"><input class="inp" style="max-width:150px" id="zap-${company.id}" value="${esc(company.whatsapp_phone||'')}" placeholder="(00) 00000-0000" inputmode="tel"><button class="btn" type="button" style="padding:6px 10px;font-size:12px" onclick="salvarWhatsappParceiro('${company.id}')">Salvar</button></div></td></tr>`).join('');
+        corpo.innerHTML=empresas.map(company=>{
+          const assinatura=company.resale_price_cents!=null
+            ?`R$ ${brl(Number(company.resale_price_cents)/100)}<br><button class="btn btn-s" type="button" style="padding:3px 8px;font-size:11.5px;margin-top:4px" onclick="abrirLiberarAssinatura('${company.id}')">Alterar</button>`
+            :`<span class="hint">Sem licença</span><br><button class="btn btn-s" type="button" style="padding:3px 8px;font-size:11.5px;margin-top:4px" onclick="abrirLiberarAssinatura('${company.id}')">Liberar assinatura</button>`;
+          return `<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td class="mono">${esc(formatarCnpj(company.federal_tax_id))}</td><td><span class="pill ${company.emission_enabled?'on':'off'}">${company.emission_enabled?'Emissão liberada':'Emissão suspensa'}</span></td><td>${assinatura}</td><td><div style="display:flex;gap:6px;align-items:center"><input class="inp" style="max-width:150px" id="zap-${company.id}" value="${esc(company.whatsapp_phone||'')}" placeholder="(00) 00000-0000" inputmode="tel"><button class="btn" type="button" style="padding:6px 10px;font-size:12px" onclick="salvarWhatsappParceiro('${company.id}')">Salvar</button></div></td></tr>`;
+        }).join('');
         status.style.display='none';tabela.style.display='table';
       }catch(error){
         if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
         status.className='partner-error';status.textContent=error.message;
       }
+    }
+
+    // "Liberar a assinatura" — pedido do usuário (16/08/2026): consome 1
+    // licença do saldo do plano escolhido e grava o preço de revenda que o
+    // PARCEIRO decide para aquele cliente, ativando a emissão.
+    async function abrirLiberarAssinatura(companyId){
+      const empresa=PARCEIRO_EMPRESAS.find(c=>c.id===companyId);if(!empresa)return;
+      const form=document.querySelector('#assinatura-form'),select=document.querySelector('#assinatura-plano');
+      document.querySelector('#assinatura-empresa-nome').textContent=empresa.trade_name||empresa.legal_name;
+      document.querySelector('#assinatura-company-id').value=companyId;
+      document.querySelector('#assinatura-status').textContent='';document.querySelector('#assinatura-status').className='partner-form-status';
+      try{
+        const planos=await garantirPlanosParceiro();
+        select.innerHTML=planos.map(p=>`<option value="${esc(p.code)}" ${p.code===empresa.plan_code?'selected':''}>${esc(p.name)} — custo da licença R$ ${brl(Number(p.price_cents||0)/100)}</option>`).join('')||'<option value="">Nenhum plano ativo</option>';
+      }catch(error){
+        document.querySelector('#assinatura-status').className='partner-form-status err';document.querySelector('#assinatura-status').textContent=error.message;
+      }
+      document.querySelector('#assinatura-preco').value=empresa.resale_price_cents!=null?String(Number(empresa.resale_price_cents)/100).replace('.',','):'';
+      form.style.display='grid';form.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+    function fecharLiberarAssinatura(){
+      document.querySelector('#assinatura-form').style.display='none';
+    }
+    async function confirmarLiberarAssinatura(){
+      const status=document.querySelector('#assinatura-status');
+      const companyId=document.querySelector('#assinatura-company-id').value,planCode=document.querySelector('#assinatura-plano').value;
+      const resalePriceCents=Math.round(dinheiro(document.querySelector('#assinatura-preco').value)*100);
+      if(!planCode){status.className='partner-form-status err';status.textContent='Escolha um plano.';return}
+      if(resalePriceCents<=0){status.className='partner-form-status err';status.textContent='Informe o valor de revenda para este cliente.';return}
+      status.className='partner-form-status';status.textContent='Liberando...';
+      try{
+        await chamarApiParceiro('/api/partner/licenses/assign',{method:'POST',body:JSON.stringify({companyId,planCode,resalePriceCents})});
+        fecharLiberarAssinatura();
+        await carregarCarteira();
+        alert('Assinatura liberada. A emissão desta empresa já está ativa.');
+      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
     }
 
     async function carregarCreditos(){
@@ -274,15 +359,52 @@
         const data=await buscarApiParceiro('/api/partner/comissoes');
         const empresas=data.companies||[];
         resumo.style.display='block';
-        resumo.innerHTML=`Comissão configurada pelo Master: <b>${brl(data.commissionPercent)}%</b> sobre a mensalidade de cada empresa com emissão liberada. Estimativa do mês corrente: <b>R$ ${brl(Number(data.totalCents||0)/100)}</b>. Valor de visibilidade — o repasse continua manual.`;
+        resumo.innerHTML=`Empresas liberadas por licença: sua margem é o valor de revenda menos o custo da licença. Empresas ainda no modelo antigo: comissão de <b>${brl(data.commissionPercent)}%</b> configurada pelo Master. Total do mês corrente: <b>R$ ${brl(Number(data.totalCents||0)/100)}</b>. Valor de visibilidade — o repasse continua manual.`;
         if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa com emissão liberada na carteira ainda.';return}
-        corpo.innerHTML=empresas.map(company=>`<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td>R$ ${brl(Number(company.price_cents||0)/100)}</td><td>R$ ${brl(Number(company.commission_cents||0)/100)}</td></tr>`).join('');
+        corpo.innerHTML=empresas.map(company=>`<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td><span class="pill ${company.model==='licenca'?'on':'off'}">${company.model==='licenca'?'Licença':'Percentual (legado)'}</span></td><td>R$ ${brl(Number(company.price_cents||0)/100)}</td><td>R$ ${brl(Number(company.commission_cents||0)/100)}</td></tr>`).join('');
         status.style.display='none';tabela.style.display='table';
       }catch(error){
         resumo.style.display='none';
         if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
         status.className='partner-error';status.textContent=error.message;
       }
+    }
+
+    // Estoque de licenças (fase de revenda, 16/08/2026): compra em lote, por
+    // plano, mensal e pré-paga. Fica pendente até o Master confirmar
+    // manualmente o pagamento (sem gateway de pagamento real integrado pro
+    // parceiro ainda) — só então o saldo abaixo aumenta.
+    const LICENCA_STATUS_LABEL={pending:['p-warn','Aguardando confirmação'],paid:['p-ok','Pago'],canceled:['p-off','Cancelado']};
+    async function carregarLicencas(){
+      const catalogo=document.querySelector('#licencas-catalogo-rows'),saldo=document.querySelector('#licencas-saldo-rows'),pedidos=document.querySelector('#licencas-pedidos-rows');
+      try{
+        const [planos,dadosLicencas]=await Promise.all([garantirPlanosParceiro(),buscarApiParceiro('/api/partner/licenses')]);
+        catalogo.innerHTML=planos.length?planos.map(p=>`<tr><td><b>${esc(p.name)}</b><br><span class="hint">${p.monthly_limit} notas/mês</span></td><td>R$ ${brl(Number(p.price_cents||0)/100)}</td><td><input class="inp" style="max-width:80px" type="number" min="1" value="1" id="qtd-${esc(p.code)}"></td><td><button class="btn btn-s" type="button" onclick="comprarLicencaParceiro('${esc(p.code)}')">Comprar</button></td></tr>`).join(''):'<tr><td colspan="4" class="partner-empty">Nenhum plano ativo no momento.</td></tr>';
+        const balances=dadosLicencas.balances||[];
+        saldo.innerHTML=balances.length?balances.map(b=>{
+          const plano=planos.find(p=>p.code===b.plan_code);
+          return `<tr><td>${esc(plano?.name||b.plan_code)}</td><td><b>${Number(b.available||0)}</b></td></tr>`;
+        }).join(''):'<tr><td colspan="2" class="partner-empty">Nenhuma licença comprada ainda.</td></tr>';
+        const orders=dadosLicencas.orders||[];
+        pedidos.innerHTML=orders.length?orders.map(o=>{
+          const plano=planos.find(p=>p.code===o.plan_code);
+          const [classe,rotulo]=LICENCA_STATUS_LABEL[o.status]||['p-off',o.status];
+          return `<tr><td>${esc(plano?.name||o.plan_code)}</td><td>${Number(o.quantity||0)}</td><td>R$ ${brl(Number(o.total_cents||0)/100)}</td><td><span class="pill ${classe}">${rotulo}</span></td><td>${formatarDataNovidadeParceiro(o.created_at)}</td></tr>`;
+        }).join(''):'<tr><td colspan="5" class="partner-empty">Nenhum pedido ainda.</td></tr>';
+      }catch(error){
+        catalogo.innerHTML=`<tr><td colspan="4" class="partner-empty">${esc(error.message)}</td></tr>`;
+      }
+    }
+    async function comprarLicencaParceiro(planCode){
+      const status=document.querySelector('#licencas-compra-status');
+      const input=document.querySelector('#qtd-'+planCode);
+      const quantity=Math.max(1,Math.round(Number(input?.value||1)));
+      status.className='partner-form-status';status.textContent='Enviando pedido...';
+      try{
+        const pedido=await chamarApiParceiro('/api/partner/licenses/orders',{method:'POST',body:JSON.stringify({planCode,quantity})});
+        status.className='partner-form-status ok';status.textContent=`Pedido de ${quantity} licença(s) enviado — R$ ${brl(pedido.totalCents/100)}. Aguardando o Master confirmar o pagamento.`;
+        await carregarLicencas();
+      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
     }
 
     const IMPLANTACAO_LABEL={self_service:'Autoimplantação',paid_pending:'Implantação paga — pendente',paid_active:'Implantação paga — ativa'};
@@ -425,7 +547,7 @@
         status.className='partner-error';status.textContent=error.message;
       }
     }
-    const PARTNER_LOADERS={carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro,perfil:carregarPerfilParceiro,novidades:carregarNovidadesParceiro};
+    const PARTNER_LOADERS={carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro,licencas:carregarLicencas,perfil:carregarPerfilParceiro,novidades:carregarNovidadesParceiro};
     function partnerTab(nome,botao){
       document.querySelectorAll('.partner-view').forEach(secao=>{secao.style.display=secao.id==='partner-view-'+nome?'block':'none'});
       document.querySelectorAll('.partner-nav-link').forEach(link=>{link.classList.remove('on');link.removeAttribute('aria-current')});
