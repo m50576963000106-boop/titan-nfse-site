@@ -719,15 +719,18 @@ test("portal expoe manifest e icones proprios para instalacao e empacotamento",a
   assert.match(headers,/\/assets\/\*\r?\n {2}Cache-Control: public, max-age=31536000, immutable/);
 });
 
-test("publica Termos de Uso e Política de Privacidade em rotas próprias",async()=>{
-  const privacidade=await readFile(resolve(root,"app/privacidade/page.tsx"),"utf8");
-  const termos=await readFile(resolve(root,"app/termos/page.tsx"),"utf8");
-  const politicaAlias=await readFile(resolve(root,"app/politica-de-privacidade/page.tsx"),"utf8");
-  const termosAlias=await readFile(resolve(root,"app/termos-de-uso/page.tsx"),"utf8");
-  const exclusao=await readFile(resolve(root,"app/exclusao-de-dados/page.tsx"),"utf8");
-  const contrato=await readFile(resolve(root,"app/contrato-de-uso/page.tsx"),"utf8");
-  const legalHeader=await readFile(resolve(root,"app/legal-page-header.tsx"),"utf8");
-  const css=await readFile(resolve(root,"app/globals.css"),"utf8");
+test("páginas legais estáticas (public/*.html) são a única fonte, completas e consistentes",async()=>{
+  // Achado 16/08/2026: existiam TRÊS cópias de cada documento legal (estas
+  // páginas estáticas, um cluster inteiro em app/*/page.tsx, e uma terceira
+  // no domínio da API via routes/legal.ts) — nenhuma delas era servida a
+  // partir das outras, cada uma podia divergir sem ninguém notar. Testado ao
+  // vivo (curl contra nfse.titanbackoffice.com.br/termos-de-uso, diff byte a
+  // byte contra este arquivo): quem está publicado de verdade é ESTA página
+  // estática, não a versão React (que tinha ficado mais completa, mas nunca
+  // foi o que o usuário via). Por pedido do usuário, o cluster React e as
+  // rotas da API foram removidos; a cláusula de ISS que só existia na versão
+  // React foi trazida pra cá antes de apagar a fonte antiga. Esta é agora a
+  // ÚNICA fonte.
   const legalCss=await readFile(resolve(root,"public/legal.css"),"utf8");
   const paginasEstaticas=await Promise.all([
     "termos-de-uso.html",
@@ -735,95 +738,48 @@ test("publica Termos de Uso e Política de Privacidade em rotas próprias",async
     "exclusao-de-dados.html",
     "contrato-de-uso.html",
   ].map(nome=>readFile(resolve(root,"public",nome),"utf8")));
+  const [termos,privacidade,exclusao,contrato]=paginasEstaticas;
 
-  // a rota catch-all faz notFound() fora da lista dela, entao estas paginas
-  // precisam existir como rotas proprias para nao caírem em 404
-  for (const [nome,pagina] of [["privacidade",privacidade],["termos",termos]]){
-    assert.match(pagina,/export const metadata/, `${nome}: falta metadata`);
-    assert.match(pagina,/TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA/, `${nome}: falta razão social`);
-    assert.match(pagina,/67\.261\.200\/0001-79/, `${nome}: falta CNPJ`);
-    assert.match(pagina,/nfse@titanbackoffice\.com\.br/, `${nome}: falta e-mail de contato`);
-    assert.match(pagina,/className="legal"/, `${nome}: falta o container rolável`);
-    assert.match(pagina,/<Link href="\/(?:termos(?:-de-uso)?|(?:politica-de-)?privacidade)">/, `${nome}: falta link cruzado`);
-  }
-  // exigencia do Art. 41 da LGPD: encarregado identificado publicamente
-  assert.match(privacidade,/Marlon Garcia Beira/);
-  assert.match(privacidade,/Art\. 41/);
-  // pontos que protegem a operacao em caso de disputa
-  assert.match(termos,/não presta consultoria fiscal ou\s+tributária/);
-  assert.match(termos,/ISS\s+municipal <b>não é calculado automaticamente<\/b>/);
-  assert.match(termos,/Limitação de responsabilidade/);
-  assert.match(termos,/Curitiba\/PR para dirimir controvérsias/);
-  assert.match(politicaAlias,/canonical: "\/politica-de-privacidade"/);
-  assert.match(termosAlias,/canonical: "\/termos-de-uso"/);
-  assert.match(exclusao,/Solicitação de exclusão de dados/);
-  assert.match(exclusao,/nfse@titanbackoffice\.com\.br/);
-  assert.match(exclusao,/Meta ou pelo WhatsApp/);
-  assert.match(exclusao,/canonical: "\/exclusao-de-dados"/);
-  // pedido do usuário (10/08/2026): contrato de sessão de uso, com o plano
-  // contratado como objeto e o pagamento confirmado como aceite registrado.
-  assert.match(contrato,/export const metadata/);
-  assert.match(contrato,/canonical: "\/contrato-de-uso"/);
-  assert.match(contrato,/TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA/);
-  assert.match(contrato,/67\.261\.200\/0001-79/);
-  assert.match(contrato,/className="legal"/);
-  assert.match(contrato,/objeto especificamente o\s+plano então selecionado/);
-  assert.match(contrato,/aceite formal das condições comerciais do plano correspondente/);
-  assert.match(contrato,/permanece pendente, sem prazo de expiração automático/);
-  assert.match(contrato,/<Link href="\/termos-de-uso">Termos de Uso<\/Link>/);
-  assert.match(contrato,/<Link href="\/politica-de-privacidade">Política de Privacidade<\/Link>/);
-  // as rotas estáticas são as publicadas no domínio e precisam conservar a
-  // mesma identidade visual navy/dourado da página inicial
-  assert.match(legalHeader,/\/titan-nfse-logo-transparent\.png/);
-  assert.match(legalHeader,/Voltar ao TITAN/);
   for (const pagina of paginasEstaticas){
     assert.match(pagina,/rel="canonical" href="https:\/\/nfse\.titanbackoffice\.com\.br\//);
     assert.match(pagina,/src="\/titan-nfse-logo-transparent\.png"/);
     assert.match(pagina,/class="home-button"/);
     assert.match(pagina,/id="conteudo"/);
+    assert.match(pagina,/TITAN BACKOFFICE SERVIÇOS ADMINISTRATIVOS LTDA/,"falta razão social");
+    assert.match(pagina,/67\.261\.200\/0001-79/,"falta CNPJ");
+    assert.match(pagina,/nfse@titanbackoffice\.com\.br/,"falta e-mail de contato");
   }
-  const fontesLegais=[
-    privacidade,
-    termos,
-    politicaAlias,
-    termosAlias,
-    exclusao,
-    contrato,
-    legalHeader,
-    ...paginasEstaticas,
-  ];
-  // item 10 da auditoria de lançamento: as páginas estáticas legadas
-  // (public/*.html, ainda publicamente acessíveis) e as rotas React atuais
-  // (app/*/page.tsx) tinham telefones de contato diferentes — dado de
-  // contato contraditório num documento legal/LGPD é ruim de verdade.
-  // Confere as duas fontes reais com telefone (privacidade/termos/exclusao;
-  // os aliases só reexportam, e legalHeader não tem telefone) contra o
-  // mesmo número, e que o antigo não sobrevive em lugar nenhum.
-  for (const [nome,pagina] of [["privacidade",privacidade],["termos",termos],["exclusao",exclusao],["contrato",contrato]]){
-    assert.match(pagina,/\(41\) 3790-0311/,`${nome}: telefone de contato divergente do resto do site`);
-  }
+  // exigencia do Art. 41 da LGPD: encarregado identificado publicamente
+  assert.match(privacidade,/Marlon Garcia Beira/);
+  // pontos que protegem a operacao em caso de disputa
+  assert.match(termos,/não substitui contador ou\s+consultoria fiscal/);
+  assert.match(termos,/ISS municipal <strong>não é calculado automaticamente<\/strong>/);
+  assert.match(termos,/Limitação de responsabilidade/);
+  assert.match(termos,/Curitiba\/PR/);
+  assert.match(exclusao,/Solicitação de exclusão de dados/);
+  assert.match(exclusao,/Meta ou pelo WhatsApp/);
+  // pedido do usuário (10/08/2026): contrato de sessão de uso, com o plano
+  // contratado como objeto e o pagamento confirmado como aceite registrado.
+  assert.match(contrato,/permanece pendente, sem prazo de expiração automática/);
+  assert.match(contrato,/href="\/termos-de-uso"/);
+  assert.match(contrato,/href="\/politica-de-privacidade"/);
+  // telefone de contato tem que ser o mesmo em toda página legal, e o
+  // número antigo não pode sobreviver em nenhuma delas
   for (const pagina of paginasEstaticas){
-    assert.match(pagina,/\(41\) 3790-0311/,"página legal estática: telefone de contato divergente do resto do site");
-  }
-  for (const fonte of fontesLegais){
-    assert.doesNotMatch(fonte,/3012-2998/,"telefone antigo (3012-2998) não pode sobreviver em nenhuma página legal");
-  }
-  for (const fonte of fontesLegais){
-    assert.doesNotMatch(fonte,/[—–·]/u,"página legal contém separador decorativo ou travessão");
+    assert.match(pagina,/\(41\) 3790-0311/,"telefone de contato divergente do resto do site");
+    assert.doesNotMatch(pagina,/3012-2998/,"telefone antigo (3012-2998) não pode sobreviver em nenhuma página legal");
+    assert.doesNotMatch(pagina,/[—–·]/u,"página legal contém separador decorativo ou travessão");
     assert.doesNotMatch(
-      fonte,
-      /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/u,
+      pagina,
+      /[\u{1F300}-\u{1FAFF}☀-➿]/u,
       "página legal contém emoji ou pictograma",
     );
   }
   for (const cor of ["#0b1629","#1a2c4a","#c9a84c","#8f7833","#f5f4ef"]){
     assert.ok(legalCss.includes(cor), `legal.css: falta a cor ${cor} da página inicial`);
-    assert.ok(css.includes(cor), `globals.css: falta a cor ${cor} da página inicial`);
   }
   assert.doesNotMatch(legalCss,/#064e59|#087f7c|#067c79/i);
   assert.match(legalCss,/@media \(max-width: 640px\)/);
-  // o body e overflow:hidden por causa do iframe; a rolagem vive no container
-  assert.match(css,/\.legal \{[\s\S]*?overflow-y: auto;/);
 });
 
 test("worker manda Content-Security-Policy restrita, cobrindo só as origens de verdade usadas no site",async()=>{
