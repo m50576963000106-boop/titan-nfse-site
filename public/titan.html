@@ -1018,11 +1018,10 @@
       <div class="card">
         <div class="card-h">
           <h2>Requisições — últimas 24 h</h2>
-          <span class="pill p-off right">0 requisições</span>
+          <span id="logs-count" class="pill p-off right">0 requisições</span>
         </div>
-        <div class="card-b" style="background:var(--navy);border-radius:0 0 var(--r) var(--r);padding:14px">
-          <pre class="mono" style="color:#66768f;font-size:11px;line-height:1.85;overflow-x:auto;white-space:pre">Aguardando a primeira integração.
-Nenhuma requisição foi enviada à Sefin Nacional.</pre>
+        <div id="logs-body" class="card-b" style="background:var(--navy);border-radius:0 0 var(--r) var(--r);padding:14px">
+          <pre class="mono" style="color:#66768f;font-size:11px;line-height:1.85;overflow-x:auto;white-space:pre">Carregando...</pre>
         </div>
       </div>
       <div class="alert a-info" style="margin-top:14px">
@@ -1791,6 +1790,7 @@ function go(v,el,limpar){
   if(v==='financeiro')carregarBilling();
   if(v==='dasn')carregarDasn();
   if(v==='emitente'){qs('#c-pw').value='';carregarCertificado();carregarMeuPlano();carregarMeuContrato()}
+  if(v==='logs')carregarLogsApi();
 }
 
 let recebimentos=[],recorrenciasRecebimento=[];
@@ -1932,6 +1932,50 @@ async function carregarDasn(){
   try{const data=await api('/api/dasn?year='+encodeURIComponent(year.value));qs('#dasn-total').textContent=`R$ ${Number(data.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`;qs('#dasn-list').innerHTML=data.entries?.length?data.entries.map(item=>`<div class="draft-item"><b>${String(item.reference_month).padStart(2,'0')}/${item.reference_year}</b><span>${esc(item.source)} · R$ ${Number(item.gross_amount||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span></div>`).join(''):'<div class="empty-state">Nenhum lançamento para o ano selecionado.</div>'}catch(error){qs('#dasn-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
 }
 async function salvarDasnManual(){const year=Number(qs('#dasn-year').value),month=Number(qs('#dasn-month').value),amount=dinheiro(qs('#dasn-amount').value);if(!year||month<1||month>12||amount<0){alert('Informe ano, mês e valor válidos.');return}try{await api('/api/dasn/manual',{method:'POST',body:JSON.stringify({year,month,amount})});qs('#dasn-amount').value='0,00';await carregarDasn();alert('Valor DASN salvo.')}catch(error){alert(error.message)}}
+
+// Logs da API — pedido do usuário (16/08/2026): a tela existia desde antes
+// mas nunca foi ligada (sempre mostrava "0 requisições"). GET /api/invoices/logs
+// junta o que já era gravado em invoices.request_xml/response_xml (emissão)
+// e invoice_events (cancelamento) das últimas 24h — nenhum log novo, só
+// exibição do que já existia. origem 'martyn' identifica o que veio do
+// WhatsApp (Martyn); o que falhou aqui é o mesmo evento que já dispara o
+// alerta técnico da Carmen por e-mail, não um segundo mecanismo.
+function logApiOrigemLabel(origem){return origem==='martyn'?'Martyn (WhatsApp)':'Portal'}
+function logApiTipoLabel(tipo){return tipo==='cancelamento'?'Cancelamento':'Emissão'}
+function logApiStatusInfo(status){
+  if(status==='authorized')return{classe:'p-ok',texto:'Autorizada'};
+  if(status==='accepted')return{classe:'p-ok',texto:'Aceito'};
+  if(status==='sending')return{classe:'p-warn',texto:'Enviando'};
+  if(status==='rejected')return{classe:'p-err',texto:'Rejeitada'};
+  if(status==='error')return{classe:'p-err',texto:'Erro técnico'};
+  return{classe:'p-off',texto:esc(status)};
+}
+async function carregarLogsApi(){
+  const pill=qs('#logs-count'),body=qs('#logs-body');
+  if(!pill||!body)return;
+  try{
+    const data=await api('/api/invoices/logs');
+    const logs=data.logs||[];
+    pill.className='pill right '+(logs.length?'p-ok':'p-off');
+    pill.textContent=`${logs.length} requisiç${logs.length===1?'ão':'ões'}`;
+    if(!logs.length){body.innerHTML='<pre class="mono" style="color:#66768f;font-size:11px;line-height:1.85;overflow-x:auto;white-space:pre">Aguardando a primeira integração.\nNenhuma requisição foi enviada à Sefin Nacional nas últimas 24h.</pre>';return}
+    body.innerHTML=logs.map(log=>{
+      const quando=new Date(log.quando).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const status=logApiStatusInfo(log.status);
+      const identificador=log.nfseNumber?`nNFSe ${esc(log.nfseNumber)}`:`DPS ${esc(log.dpsNumber??'—')}`;
+      const corpo=(rotulo,info)=>info?.corpo?`<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--brand);font-size:12px">${rotulo}${info.truncado?' (truncado)':''}</summary><pre class="mono" style="color:#66768f;font-size:11px;line-height:1.6;overflow-x:auto;white-space:pre-wrap;margin-top:4px">${esc(info.corpo)}</pre></details>`:'';
+      return `<div class="draft-item">
+        <b>${quando} · ${logApiTipoLabel(log.tipo)} · ${identificador}</b>
+        <span><span class="pill ${status.classe}">${status.texto}</span> · ${logApiOrigemLabel(log.origem)}${log.resumo?' · '+esc(log.resumo):''}</span>
+        ${corpo('Ver requisição enviada',log.request)}
+        ${corpo('Ver resposta da Sefin',log.response)}
+      </div>`;
+    }).join('');
+  }catch(error){
+    pill.className='pill right p-off';pill.textContent='0 requisições';
+    body.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`;
+  }
+}
 ['li-cnpj','li-mail','li-pw'].forEach(id=>qs('#'+id)?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();iniciarCadastro()}}));
 
 async function carregarEmpresaServidor(){
