@@ -43,6 +43,16 @@
     .partner-empty,.partner-error{padding:32px 18px;text-align:center;color:var(--muted);font-size:14px}
     .partner-error{color:#9b2226}
     .partner-error a{color:var(--gold-dark);font-weight:700}
+    .partner-form{padding:20px 22px;display:grid;gap:14px;max-width:420px}
+    .partner-form h3{color:var(--navy);font-size:15px}
+    .partner-form p.hint{color:var(--muted);font-size:12.5px;line-height:1.5;margin-top:-6px}
+    .partner-field label{display:block;margin-bottom:5px;color:var(--navy);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+    .partner-field input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;outline:none;font:inherit}
+    .partner-field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(231,150,69,.18)}
+    .partner-form-status{min-height:20px;font-size:12.5px;font-weight:650;white-space:pre-wrap}
+    .partner-form-status.err{color:#9b2226}
+    .partner-form-status.ok{color:var(--ok)}
+    .partner-divider{border:0;border-top:1px solid var(--line);margin:6px 0}
   </style>
 </head>
 <body>
@@ -53,6 +63,8 @@
       <button class="partner-nav-link" type="button" data-partner-tab="creditos" onclick="partnerTab('creditos',this)">Créditos</button>
       <button class="partner-nav-link" type="button" data-partner-tab="comissoes" onclick="partnerTab('comissoes',this)">Comissões</button>
       <button class="partner-nav-link" type="button" data-partner-tab="financeiro" onclick="partnerTab('financeiro',this)">Financeiro</button>
+      <button class="partner-nav-link" type="button" data-partner-tab="indicar" onclick="partnerTab('indicar',this)">Indicar cliente</button>
+      <button class="partner-nav-link" type="button" data-partner-tab="perfil" onclick="partnerTab('perfil',this)">Perfil</button>
     </nav>
     <button class="btn" type="button" id="partner-logout">Sair</button>
   </header>
@@ -101,6 +113,41 @@
           <thead><tr><th>Empresa</th><th>Plano</th><th>Mensalidade</th><th>Implantação</th></tr></thead>
           <tbody id="financeiro-rows"></tbody>
         </table></div>
+      </div>
+    </section>
+
+    <section class="partner-view" id="partner-view-indicar" style="display:none">
+      <div class="partner-card">
+        <form class="partner-form" onsubmit="event.preventDefault();indicarClienteParceiro()">
+          <h3>Indicar novo cliente</h3>
+          <p class="hint">Cadastra a empresa direto na sua carteira e envia o convite de acesso por e-mail — só funciona para um CNPJ que ainda não está na plataforma. Se o CNPJ já existir, peça ao Master para vincular à sua carteira.</p>
+          <div class="partner-field"><label for="ind-cnpj">CNPJ</label><input id="ind-cnpj" autocapitalize="characters" maxlength="18" placeholder="AA.AAA.AAA/AAAA-99"></div>
+          <div class="partner-field"><label for="ind-email">E-mail do responsável</label><input id="ind-email" type="email" placeholder="responsavel@empresa.com.br"></div>
+          <div class="partner-field"><label for="ind-whatsapp">WhatsApp (opcional)</label><input id="ind-whatsapp" placeholder="(00) 00000-0000" inputmode="tel"></div>
+          <button class="btn btn-gold" type="submit">Enviar convite</button>
+          <div class="partner-form-status" id="ind-status" role="status"></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="partner-view" id="partner-view-perfil" style="display:none">
+      <div class="partner-card">
+        <form class="partner-form" onsubmit="event.preventDefault();salvarPerfilParceiro()">
+          <h3>Seus dados</h3>
+          <div class="partner-field"><label for="perfil-nome">Nome</label><input id="perfil-nome"></div>
+          <div class="partner-field"><label>E-mail de acesso</label><input id="perfil-email" disabled></div>
+          <button class="btn" type="submit">Salvar nome</button>
+          <div class="partner-form-status" id="perfil-status" role="status"></div>
+        </form>
+        <hr class="partner-divider" style="margin:0 22px">
+        <form class="partner-form" onsubmit="event.preventDefault();trocarSenhaParceiro()">
+          <h3>Trocar senha</h3>
+          <div class="partner-field"><label for="senha-atual">Senha atual</label><input id="senha-atual" type="password" autocomplete="current-password"></div>
+          <div class="partner-field"><label for="senha-nova">Nova senha</label><input id="senha-nova" type="password" autocomplete="new-password" minlength="10" placeholder="Pelo menos 10 caracteres"></div>
+          <div class="partner-field"><label for="senha-confirma">Confirme a nova senha</label><input id="senha-confirma" type="password" autocomplete="new-password" minlength="10"></div>
+          <button class="btn" type="submit">Trocar senha</button>
+          <div class="partner-form-status" id="senha-status" role="status"></div>
+        </form>
       </div>
     </section>
   </main>
@@ -243,7 +290,70 @@
         alert('WhatsApp salvo. Isso também decide quais empresas aparecem juntas no seletor "empresa ativa" da empresa.');
       }catch(error){alert(error.message)}
     }
-    const PARTNER_LOADERS={carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro};
+    // Wrapper com método/corpo — buscarApiParceiro só faz GET. Mesma base de
+    // URL e mesmo tratamento de erro de rede que salvarWhatsappParceiro já usava.
+    async function chamarApiParceiro(caminho,options={}){
+      const token=tokenDeSessaoParceiro();
+      if(!token)throw new Error('SEM_SESSAO');
+      let response;
+      try{
+        response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+caminho,{...options,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token,...(options.headers||{})}});
+      }catch{
+        throw new Error('Não foi possível conectar. Verifique sua internet e tente novamente.');
+      }
+      if(response.status===401)throw new Error('SEM_SESSAO');
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||'Não foi possível concluir a operação.');
+      return data;
+    }
+
+    // Fase 2 (16/08/2026): perfil próprio do parceiro (nome + troca de senha)
+    // e indicação de cliente novo direto pela carteira, sem depender do Master.
+    async function carregarPerfilParceiro(){
+      const nome=document.querySelector('#perfil-nome'),email=document.querySelector('#perfil-email');
+      try{
+        const data=await chamarApiParceiro('/api/partner/profile',{method:'GET'});
+        nome.value=data.user?.name||'';email.value=data.user?.email||'';
+      }catch(error){
+        if(error.message==='SEM_SESSAO')return mostrarErroSessao(document.querySelector('#perfil-status'));
+        document.querySelector('#perfil-status').className='partner-form-status err';document.querySelector('#perfil-status').textContent=error.message;
+      }
+    }
+    async function salvarPerfilParceiro(){
+      const status=document.querySelector('#perfil-status'),nome=document.querySelector('#perfil-nome').value.trim();
+      if(nome.length<2){status.className='partner-form-status err';status.textContent='Informe seu nome.';return}
+      status.className='partner-form-status';status.textContent='Salvando...';
+      try{
+        await chamarApiParceiro('/api/partner/profile',{method:'PUT',body:JSON.stringify({name:nome})});
+        status.className='partner-form-status ok';status.textContent='Nome salvo.';
+      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
+    }
+    async function trocarSenhaParceiro(){
+      const status=document.querySelector('#senha-status');
+      const atual=document.querySelector('#senha-atual').value,nova=document.querySelector('#senha-nova').value,confirmacao=document.querySelector('#senha-confirma').value;
+      if(nova.length<10){status.className='partner-form-status err';status.textContent='A nova senha precisa ter pelo menos 10 caracteres.';return}
+      if(nova!==confirmacao){status.className='partner-form-status err';status.textContent='A confirmação não confere.';return}
+      status.className='partner-form-status';status.textContent='Trocando...';
+      try{
+        await chamarApiParceiro('/api/partner/password',{method:'PUT',body:JSON.stringify({currentPassword:atual,newPassword:nova,confirmation:confirmacao})});
+        status.className='partner-form-status ok';status.textContent='Senha trocada com sucesso.';
+        document.querySelector('#senha-atual').value='';document.querySelector('#senha-nova').value='';document.querySelector('#senha-confirma').value='';
+      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
+    }
+    async function indicarClienteParceiro(){
+      const status=document.querySelector('#ind-status');
+      const federalTaxId=document.querySelector('#ind-cnpj').value.replace(/\D/g,''),email=document.querySelector('#ind-email').value.trim(),whatsappPhone=document.querySelector('#ind-whatsapp').value.trim();
+      if(federalTaxId.length!==14){status.className='partner-form-status err';status.textContent='Informe um CNPJ válido (14 dígitos).';return}
+      if(!email){status.className='partner-form-status err';status.textContent='Informe o e-mail do responsável.';return}
+      status.className='partner-form-status';status.textContent='Consultando CNPJ e enviando convite...';
+      try{
+        await chamarApiParceiro('/api/partner/invitations',{method:'POST',body:JSON.stringify({federalTaxId,email,whatsappPhone:whatsappPhone||undefined})});
+        status.className='partner-form-status ok';status.textContent=`Convite enviado para ${email}. A empresa já está na sua carteira.`;
+        document.querySelector('#ind-cnpj').value='';document.querySelector('#ind-email').value='';document.querySelector('#ind-whatsapp').value='';
+        carregarCarteira();
+      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
+    }
+    const PARTNER_LOADERS={carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro,perfil:carregarPerfilParceiro};
     function partnerTab(nome,botao){
       document.querySelectorAll('.partner-view').forEach(secao=>{secao.style.display=secao.id==='partner-view-'+nome?'block':'none'});
       document.querySelectorAll('.partner-nav-link').forEach(link=>{link.classList.remove('on');link.removeAttribute('aria-current')});
