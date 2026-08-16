@@ -1069,7 +1069,7 @@
         </div></div>
       </div>
 
-      <div class="master-panel" id="master-panel-parceiros"><div class="card"><div class="card-h"><div><h3>Gestão de parceiros</h3><p>Um usuário pode ter no máximo um vínculo. Sem parceiro, o vínculo exibido é Administrador.</p></div></div><div class="card-b"><input id="partner-id" type="hidden"><div class="row r3"><div class="field"><label for="partner-name">Nome do parceiro</label><input id="partner-name" class="inp" placeholder="Razão social ou nome completo"></div><div class="field"><label for="partner-nickname">Apelido</label><input id="partner-nickname" class="inp" placeholder="Ex.: Contabilidade Alfa"></div><div class="field"><label for="partner-commission">Comissão (%)</label><input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex.: 10"><div class="hint">Usada na aba Comissões do Portal do Parceiro, sobre a mensalidade de cada empresa da carteira.</div></div></div><div class="row"><div class="field"><label>&nbsp;</label><div class="flex wrap"><button class="btn btn-p" id="partner-save" type="button" onclick="salvarParceiroMaster()">Cadastrar parceiro</button><button class="btn" id="partner-cancel" style="display:none" type="button" onclick="cancelarEdicaoParceiroMaster()">Cancelar edição</button></div></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Apelido</th><th>Comissão</th><th>Usuários vinculados</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-partners"></tbody></table></div></div></div></div>
+      <div class="master-panel" id="master-panel-parceiros"><div class="card"><div class="card-h"><div><h3>Gestão de parceiros</h3><p>Um usuário pode ter no máximo um vínculo. Sem parceiro, o vínculo exibido é Administrador.</p></div></div><div class="card-b"><input id="partner-id" type="hidden"><div class="row r3"><div class="field"><label for="partner-name">Nome do parceiro</label><input id="partner-name" class="inp" placeholder="Razão social ou nome completo"></div><div class="field"><label for="partner-nickname">Apelido</label><input id="partner-nickname" class="inp" placeholder="Ex.: Contabilidade Alfa"></div><div class="field"><label for="partner-commission">Comissão (%)</label><input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex.: 10"><div class="hint">Usada na aba Comissões do Portal do Parceiro, sobre a mensalidade de cada empresa da carteira.</div></div></div><div class="row"><div class="field"><label for="partner-email">E-mail do parceiro</label><input id="partner-email" class="inp" type="email" placeholder="parceiro@exemplo.com"><div class="hint">Acesso próprio ao Portal do Parceiro (login dedicado) — diferente de vincular um usuário de empresa cliente já existente. Necessário para enviar o convite.</div></div></div><div class="row"><div class="field"><label>&nbsp;</label><div class="flex wrap"><button class="btn btn-p" id="partner-save" type="button" onclick="salvarParceiroMaster()">Cadastrar parceiro</button><button class="btn" id="partner-cancel" style="display:none" type="button" onclick="cancelarEdicaoParceiroMaster()">Cancelar edição</button></div></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Apelido</th><th>E-mail / convite</th><th>Comissão</th><th>Usuários vinculados</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-partners"></tbody></table></div></div></div></div>
 
 
       <div class="master-panel" id="master-panel-planos"><div class="card"><div class="card-h"><div><h3>Planos</h3><p>Defina nome, preço e limite de NFS-e autorizadas por mês.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="plan-code">Código</label><input id="plan-code" class="inp" placeholder="ex.: pro100"></div><div class="field"><label for="plan-name">Nome do plano</label><input id="plan-name" class="inp" placeholder="Plano Profissional"></div><div class="field"><label for="plan-price">Preço mensal (R$)</label><input id="plan-price" class="inp" inputmode="decimal" placeholder="99,90"></div><div class="field"><label for="plan-limit">Limite de notas / mês</label><input id="plan-limit" class="inp" type="number" min="1" placeholder="100"></div></div><div class="row r2"><div class="field"><label for="plan-description">Descrição</label><input id="plan-description" class="inp" placeholder="Resumo do que está incluído"></div><div class="field"><label for="plan-active">Status</label><select id="plan-active" class="inp"><option value="true">Ativo</option><option value="false">Inativo</option></select></div></div><div class="field"><label>Ferramentas incluídas no plano</label><div id="plan-features" class="alert a-info" style="margin:0;padding:10px;display:grid;gap:7px"></div><div class="hint">O que estiver marcado é o que o cliente contrata. O que é padrão do produto aparece travado. A recusa também acontece na API: desmarcar aqui bloqueia de verdade, não só esconde o botão.</div></div><div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarPlanoMaster()">Salvar plano</button><button class="btn" id="plan-cancel" style="display:none" type="button" onclick="cancelarEdicaoPlanoMaster()">Cancelar edição</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Plano</th><th>Preço</th><th>Limite</th><th>Ferramentas</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-plans"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Ferramentas avulsas</h3><p>Preço de cada ferramenta fora do plano — liga uma empresa específica em Gestão por CNPJ &gt; Editar cliente. Some ao valor do plano; bloqueado quando o plano já inclui.</p></div></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Ferramenta</th><th>Preço avulso (R$)</th><th>Vendida avulsa?</th><th>Ação</th></tr></thead><tbody id="master-addons"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Pedidos de upgrade</h3><p>O cliente pede pelo portal; aprovar troca o plano na hora e avisa a empresa no sino.</p></div><span class="pill p-warn right" id="plan-upgrade-pending-pill" style="display:none">0 pendentes</span></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>De</th><th>Para</th><th>Nota</th><th>Pedido em</th><th>Ação</th></tr></thead><tbody id="master-plan-upgrade-requests"><tr><td colspan="6" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Contrato de Sessão de Uso</h3><p>Editar e publicar cria uma versão nova — a que o cliente já assinou nunca é sobrescrita.</p></div><span class="pill p-gold right" id="contract-current-pill">—</span></div><div class="card-b"><div class="field"><label for="contract-body">Texto do contrato (versão vigente)</label><textarea id="contract-body" class="inp" rows="16" style="font-family:inherit;line-height:1.5" oninput="this.dataset.dirty='1'"></textarea><div class="hint">Publicar avisa todas as empresas no sino: elas precisam ler e aceitar a versão nova para a Sessão de Uso continuar valendo.</div></div><div class="flex wrap"><button class="btn btn-s" type="button" onclick="publicarVersaoContrato('minor')">Publicar correção (versão menor)</button><button class="btn btn-p" type="button" onclick="publicarVersaoContrato('major')">Publicar revisão (versão maior)</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Versão</th><th>Publicada em</th><th>Por</th><th>Aceites</th></tr></thead><tbody id="contract-versions-history"><tr><td colspan="4" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div></div>
@@ -4847,7 +4847,23 @@ function renderMasterClientPartnerFilter(){
   select.value=masterClientPartnerFilter;
 }
 function imprimirClientesMaster(){document.body.classList.add('printing-master');window.print();window.setTimeout(()=>document.body.classList.remove('printing-master'),1000)}
-function renderMasterPartners(){const box=qs('#master-partners');if(!box||!masterData)return;box.innerHTML=masterData.partners.map(p=>`<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${brl(Number(p.commission_percent||0))}%</td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td><td><div class="acts"><button class="btn btn-s" type="button" onclick="editarParceiroMaster('${p.id}')">Editar</button><button class="btn btn-s" type="button" onclick="alternarStatusParceiroMaster('${p.id}')">${p.active?'Suspender':'Ativar'}</button></div></td></tr>`).join('')||'<tr><td colspan="6">Nenhum parceiro cadastrado.</td></tr>'}
+const PARTNER_INVITE_LABEL={accepted:'<span class="pill p-ok">Acesso ativo</span>',pending:'<span class="pill p-warn">Convite enviado</span>',none:'<span class="pill p-off">Sem convite</span>'};
+function renderMasterPartners(){const box=qs('#master-partners');if(!box||!masterData)return;box.innerHTML=masterData.partners.map(p=>{
+  const inviteStatus=p.invite_status||'none';
+  const conviteCell=p.email
+    ?`${esc(p.email)}<br>${PARTNER_INVITE_LABEL[inviteStatus]||PARTNER_INVITE_LABEL.none}${inviteStatus!=='accepted'?` <button class="btn btn-s" type="button" style="padding:3px 8px;font-size:11.5px" onclick="enviarConviteParceiroMaster('${p.id}')">${inviteStatus==='pending'?'Reenviar':'Enviar'} convite</button>`:''}`
+    :'<span class="hint">Sem e-mail cadastrado</span>';
+  return `<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${conviteCell}</td><td>${brl(Number(p.commission_percent||0))}%</td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td><td><div class="acts"><button class="btn btn-s" type="button" onclick="editarParceiroMaster('${p.id}')">Editar</button><button class="btn btn-s" type="button" onclick="alternarStatusParceiroMaster('${p.id}')">${p.active?'Suspender':'Ativar'}</button></div></td></tr>`;
+}).join('')||'<tr><td colspan="7">Nenhum parceiro cadastrado.</td></tr>'}
+async function enviarConviteParceiroMaster(id){
+  const partner=masterData?.partners.find(item=>item.id===id);if(!partner)return;
+  if(!partner.email){alert('Cadastre o e-mail do parceiro antes de enviar o convite.');return}
+  try{
+    await api('/api/master/partners/'+id+'/invite',{method:'POST'});
+    alert(`Convite enviado para ${partner.email}. O link expira em 7 dias.`);
+    await carregarMaster();
+  }catch(error){alert(error.message)}
+}
 // O catálogo de ferramentas vem da API (masterData.planFeatures): ferramenta
 // nova aparece aqui sozinha, sem mexer nesta tela.
 function catalogoDeFerramentas(){return masterData?.planFeatures||[]}
@@ -4927,12 +4943,13 @@ async function consultarNovoClienteCnpj(){const input=qs('#master-new-cnpj'),cnp
 async function criarConviteNovoCliente(){const email=qs('#master-new-email').value.trim(),planCode=qs('#master-new-plan').value,whatsappPhone=qs('#master-new-zap').value.trim();if(!masterNewLookup?.active){alert('Consulte um CNPJ ativo antes de gerar o convite.');return}if(!email||!planCode){alert('Informe e-mail e plano.');return}try{const result=await api('/api/master/invitations',{method:'POST',body:JSON.stringify({federalTaxId:masterNewLookup.federalTaxId,email,planCode,whatsappPhone:whatsappPhone||undefined})});const token=new URL(result.invitePath,location.origin).searchParams.get('invite'),link=new URL('/dashboard',location.origin);if(token)link.searchParams.set('invite',token);const box=qs('#master-new-link');box.style.display='block';box.innerHTML=`<b>Link pronto para envio</b><br><span id="master-new-link-value">${esc(link.href)}</span><br><button class="btn btn-s" style="margin-top:8px" onclick="copiarTextoSeguro(qs('#master-new-link-value').textContent,this)">Copiar link</button>`;await carregarMaster()}catch(error){alert(error.message)}}
 let masterEditingPartnerId='';
 async function salvarParceiroMaster(){
-  const name=qs('#partner-name').value.trim(),nickname=qs('#partner-nickname').value.trim(),commissionPercent=dinheiro(qs('#partner-commission').value);
+  const name=qs('#partner-name').value.trim(),nickname=qs('#partner-nickname').value.trim(),email=qs('#partner-email').value.trim(),commissionPercent=dinheiro(qs('#partner-commission').value);
   if(name.length<2||nickname.length<2){alert('Informe nome e apelido do parceiro.');return}
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){alert('Informe um e-mail válido, ou deixe em branco.');return}
   if(commissionPercent<0||commissionPercent>100){alert('A comissão precisa estar entre 0 e 100%.');return}
   const active=masterEditingPartnerId?qs('#partner-id').dataset.active!=='false':true;
   try{
-    await api('/api/master/partners'+(masterEditingPartnerId?'/'+masterEditingPartnerId:''),{method:masterEditingPartnerId?'PUT':'POST',body:JSON.stringify({name,nickname,active,commissionPercent})});
+    await api('/api/master/partners'+(masterEditingPartnerId?'/'+masterEditingPartnerId:''),{method:masterEditingPartnerId?'PUT':'POST',body:JSON.stringify({name,nickname,email,active,commissionPercent})});
     cancelarEdicaoParceiroMaster();
     await carregarMaster();
   }catch(error){alert(error.message)}
@@ -4941,7 +4958,7 @@ function editarParceiroMaster(id){
   const partner=masterData?.partners.find(item=>item.id===id);if(!partner)return;
   masterEditingPartnerId=id;
   qs('#partner-id').value=id;qs('#partner-id').dataset.active=String(partner.active!==false);
-  qs('#partner-name').value=partner.name;qs('#partner-nickname').value=partner.nickname;
+  qs('#partner-name').value=partner.name;qs('#partner-nickname').value=partner.nickname;qs('#partner-email').value=partner.email||'';
   qs('#partner-commission').value=String(Number(partner.commission_percent||0)).replace('.',',');
   qs('#partner-save').textContent='Salvar alterações';qs('#partner-cancel').style.display='inline-flex';
   masterTab('parceiros');
@@ -4949,7 +4966,7 @@ function editarParceiroMaster(id){
 function cancelarEdicaoParceiroMaster(){
   masterEditingPartnerId='';
   qs('#partner-id').value='';qs('#partner-id').dataset.active='';
-  qs('#partner-name').value='';qs('#partner-nickname').value='';qs('#partner-commission').value='';
+  qs('#partner-name').value='';qs('#partner-nickname').value='';qs('#partner-email').value='';qs('#partner-commission').value='';
   qs('#partner-save').textContent='Cadastrar parceiro';qs('#partner-cancel').style.display='none';
 }
 async function alternarStatusParceiroMaster(id){
@@ -5181,6 +5198,39 @@ async function aceitarConvite(token){
   }catch(error){alert(error.message)}
 }
 
+// Convite dedicado do Portal do Parceiro (16/08/2026) — mesma UI do convite
+// de cliente acima (reaproveita o card de login), só que ao aceitar entra
+// direto no Portal do Parceiro (/parceiro), não no dashboard do cliente:
+// sessão de parceiro não tem empresas nem certificado, é outro produto.
+async function prepararConviteParceiro(){
+  const token=new URLSearchParams(location.search).get('partner-invite');
+  if(!token)return;
+  try{
+    const invite=await api('/api/auth/partner-invitations/'+encodeURIComponent(token));
+    qs('.onboard-step').textContent='Convite de acesso';
+    qs('.login-h').textContent='Criar sua senha de parceiro';
+    qs('.login-sub').textContent=`Você foi convidado para o Portal do Parceiro TITAN NFS-e (${invite.partnerName}).`;
+    qs('#li-mail').value=invite.email;qs('#li-mail').closest('.login-field').style.display='none';
+    qs('#li-pw').placeholder='Crie sua senha';qs('#li-pw').autocomplete='new-password';
+    const senhaLabel=qs('label[for="li-pw"]');if(senhaLabel)senhaLabel.textContent='Crie sua senha';
+    const confirmWrap=qs('#li-reset-confirm-wrap');if(confirmWrap)confirmWrap.style.display='block';
+    const confirm=qs('#li-pw-confirm');if(confirm){confirm.value='';confirm.placeholder='Confirme sua senha';confirm.autocomplete='new-password'}
+    const confirmLabel=qs('label[for="li-pw-confirm"]');if(confirmLabel)confirmLabel.textContent='Confirme sua senha';
+    const campo=qs('#li-cnpj');if(campo)campo.closest('.login-field').style.display='none';
+    const button=qs('#login-action');button.textContent='Aceitar convite e entrar';button.onclick=()=>aceitarConviteParceiro(token);
+  }catch(error){qs('.login-sub').textContent=error.message;qs('#login-action').disabled=true}
+}
+async function aceitarConviteParceiro(token){
+  const password=qs('#li-pw').value,confirmation=qs('#li-pw-confirm').value;
+  if(password.length<10||confirmation.length<10){alert('Crie sua senha e confirme com pelo menos 10 caracteres.');return}
+  if(password!==confirmation){alert('A confirmação não confere. Digite a mesma senha nos dois campos.');return}
+  try{
+    const accepted=await api('/api/auth/partner-invitations/'+encodeURIComponent(token)+'/accept',{method:'POST',body:JSON.stringify({password,confirmation})});
+    salvarSessaoLocal([[STORAGE_TOKEN,accepted.token],[STORAGE_SESSION,JSON.stringify({user:accepted.user,companies:[]})]]);
+    window.top.location.href='/parceiro';
+  }catch(error){alert(error.message)}
+}
+
 async function prepararRedefinicao(token){
   qs('#login').classList.add('hide');qs('#reset-screen').classList.add('on');
   const action=qs('#reset-action'),hint=qs('#reset-hint'),account=qs('#reset-account'),password=qs('#reset-password'),confirmation=qs('#reset-password-confirm');
@@ -5238,9 +5288,10 @@ garantirBarreiraInicial();
 render();
 aplicarAcesso();
 prepararConvite();
+prepararConviteParceiro();
 faixaImpersonacao();
 const handoffGestor=lerHandoffGestor();if(handoffGestor)entrarViaGestor(handoffGestor);
-const temConvite=!!new URLSearchParams(location.search).get('invite');
+const temConvite=!!new URLSearchParams(location.search).get('invite')||!!new URLSearchParams(location.search).get('partner-invite');
 function ocultarCampoCnpjLogin(){qs('#li-cnpj')?.closest('.login-field')?.style.setProperty('display','none');}
 function ocultarCampoEmailLogin(){qs('#li-mail')?.closest('.login-field')?.style.setProperty('display','none');}
 if(PORTAL_FIRST&&!temConvite){
