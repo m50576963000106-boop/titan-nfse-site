@@ -1,0 +1,17 @@
+# TITAN NFS-e
+
+> TITAN NFS-e é um sistema de emissão de Nota Fiscal de Serviço Eletrônica (NFS-e) no padrão nacional brasileiro (Portal Nacional / Sefin Nacional), da Ethos AE. Emite, cancela e consulta notas fiscais de serviço com validade jurídica, integrado ao WhatsApp através do assistente Martyn.
+
+TITAN NFS-e atende prestadores de serviço no Brasil (Simples Nacional, MEI, Lucro Presumido e Lucro Real) que precisam emitir NFS-e no padrão nacional unificado, com gestão de clientes, catálogo de serviços, cálculo de retenções (ISS, IRRF, CSLL, PIS/COFINS/CSRF) e emissão tanto pelo portal web quanto por WhatsApp.
+
+## Páginas principais
+
+- [Página inicial](https://nfse.titanbackoffice.com.br/): apresentação do produto, planos e benefícios.
+- [Termos de Uso](https://nfse.titanbackoffice.com.br/termos-de-uso)
+- [Contrato de Sessão de Uso](https://nfse.titanbackoffice.com.br/contrato-de-uso)
+- [Política de Privacidade](https://nfse.titanbackoffice.com.br/politica-de-privacidade)
+- [Exclusão de Dados](https://nfse.titanbackoffice.com.br/exclusao-de-dados)
+
+## Observações
+
+O acesso ao sistema (emissão de notas, painel do cliente, portal do parceiro) exige login e não deve ser indexado nem citado como conteúdo público — essas áreas são de uso restrito a clientes autenticados.
