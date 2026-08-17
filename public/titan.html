@@ -1296,6 +1296,50 @@ function irParaLogoDestino(event){
 }
 const STORAGE_COMPANY_ID='titan_nfse_company_id_v1';
 const STORAGE_IMPERSONATING='titan_nfse_impersonating_v1';
+// Achado 17/08/2026 (pedido do usuário): mesmo mecanismo de nfs.html —
+// primeiro acesso de um dispositivo/navegador novo exige código de 6
+// dígitos por e-mail; este token (localStorage) evita repetir depois.
+const STORAGE_DEVICE_TRUST='titan_nfse_device_trust_v1';
+/**
+ * Achado 17/08/2026 (pedido do usuário): o mesmo navegador pode ter uma aba
+ * como Master/Parceiro e outra como uma empresa cliente ao mesmo tempo —
+ * fácil perder de vista qual aba é qual e agir na empresa errada. Trava por
+ * localStorage (compartilhado entre abas, ao contrário do sessionStorage
+ * do token/empresa em si, que é isolado por aba) com heartbeat: cada aba
+ * "dona" de uma empresa renova o carimbo a cada 5s; uma trava sem renovar
+ * há mais de JANELA_TRAVA_EMPRESA_MS é tratada como abandonada (aba
+ * fechada) e pode ser assumida por outra aba sem aviso.
+ */
+const CHAVE_TRAVA_EMPRESA='titan_nfse_trava_empresa_ativa_v1';
+const JANELA_TRAVA_EMPRESA_MS=15000;
+const ABA_ID=(window.crypto?.randomUUID?crypto.randomUUID():String(Math.random())+'-'+Date.now());
+let intervaloTravaEmpresa=null;
+function lerTravaEmpresa(){try{return JSON.parse(localStorage.getItem(CHAVE_TRAVA_EMPRESA)||'null')}catch{return null}}
+function travarEmpresaAtiva(companyId,companyName){
+  if(!companyId)return true;
+  const atual=lerTravaEmpresa();
+  const travaViva=atual&&(Date.now()-atual.timestamp)<JANELA_TRAVA_EMPRESA_MS;
+  if(travaViva&&atual.abaId!==ABA_ID&&atual.empresaId!==companyId){
+    titanAlert(`A empresa "${atual.nomeEmpresa||'outra empresa'}" já está em uso em outra aba/janela deste navegador. Feche essa aba, ou troque a empresa de uso nela, antes de continuar aqui.`,'Empresa em uso em outra aba','warn');
+    return false;
+  }
+  localStorage.setItem(CHAVE_TRAVA_EMPRESA,JSON.stringify({empresaId:companyId,nomeEmpresa:companyName||'',abaId:ABA_ID,timestamp:Date.now()}));
+  if(!intervaloTravaEmpresa){
+    intervaloTravaEmpresa=setInterval(()=>{
+      const trava=lerTravaEmpresa();
+      if(trava&&trava.abaId===ABA_ID)localStorage.setItem(CHAVE_TRAVA_EMPRESA,JSON.stringify({...trava,timestamp:Date.now()}));
+    },5000);
+  }
+  return true;
+}
+function liberarTravaEmpresa(){
+  const trava=lerTravaEmpresa();
+  if(trava&&trava.abaId===ABA_ID)localStorage.removeItem(CHAVE_TRAVA_EMPRESA);
+  if(intervaloTravaEmpresa){clearInterval(intervaloTravaEmpresa);intervaloTravaEmpresa=null}
+}
+// Fechar/recarregar a aba libera a trava na hora, em vez de esperar até
+// JANELA_TRAVA_EMPRESA_MS de heartbeat parado pra outra aba poder assumir.
+window.addEventListener('beforeunload',liberarTravaEmpresa);
 // Achado 13/08/2026: navegador embutido (ex.: abrir o link do convite de
 // dentro do WhatsApp/Instagram/Outlook) pode bloquear sessionStorage —
 // window.sessionStorage.setItem lança SecurityError "Access is denied for
@@ -1579,7 +1623,19 @@ async function iniciarCadastro(){
   definirCarregandoLogin(true);
   try{
     carregarAmbiente().catch(()=>{});
-    login=await api('/api/auth/login',{method:'POST',body:JSON.stringify(PORTAL_ADMIN?{email,password:senha}:{federalTaxId:cnpj,password:senha})});
+    const dispositivoConfiavel=localStorage.getItem(STORAGE_DEVICE_TRUST);
+    login=await api('/api/auth/login',{method:'POST',body:JSON.stringify(PORTAL_ADMIN?{email,password:senha}:{federalTaxId:cnpj,password:senha}),headers:dispositivoConfiavel?{'X-Device-Trust':dispositivoConfiavel}:{}});
+    // Achado 17/08/2026 (pedido do usuário): primeiro acesso de um
+    // dispositivo/navegador novo (login de empresa por CNPJ) fica pendente
+    // de um código de 6 dígitos por e-mail antes de liberar o token.
+    if(login.verificationRequired){
+      definirCarregandoLogin(false);
+      const codigo=(await titanPrompt('Mandamos um código de 6 dígitos pro e-mail '+(login.emailHint||'cadastrado')+'. Digite abaixo para confirmar este acesso.','','Confirme este acesso')||'').trim();
+      if(!/^\d{6}$/.test(codigo))throw new Error('Código inválido — informe os 6 dígitos recebidos por e-mail.');
+      definirCarregandoLogin(true);
+      login=await api('/api/auth/login/verify-device',{method:'POST',body:JSON.stringify({verificationId:login.verificationId,code:codigo})});
+      if(login.deviceTrustToken)localStorage.setItem(STORAGE_DEVICE_TRUST,login.deviceTrustToken);
+    }
     selecionarDestinoPortal(login);
     const paresSessao=[[STORAGE_TOKEN,login.token],[STORAGE_SESSION,JSON.stringify({user:login.user||{},companies:login.companies||[]})]];
     if(!PORTAL_ADMIN&&!PORTAL_HELP){
@@ -1656,6 +1712,7 @@ function aplicarAcesso(login){
   const access=login||JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}'),user=access.user||{};
   qs('#master-menu').style.display=user.isMaster?'block':'none';
   const companyId=sessionStorage.getItem(STORAGE_COMPANY_ID),company=(access.companies||[]).find(c=>c.id===companyId)||(access.companies||[])[0],permissions=company?.permissions||[],features=company?.features||['portal_emission'];
+  if(!user.isMaster)travarEmpresaAtiva(company?.id,company?.legal_name||company?.trade_name);
   // Permissão (o que o perfil do usuário libera) e feature (o que o PLANO da
   // empresa vende) são checagens independentes — um elemento só fica visível
   // se passar nas duas quando as duas se aplicam. Uma única passagem evita que
@@ -1679,7 +1736,7 @@ function aplicarAcesso(login){
   if(PORTAL_ADMIN)configurarEmpresasAdmin(access.companies||[]);
 }
 function moduloIndisponivel(nome){alert(`⚠ ${nome}\n\nMódulo em preparação. Nenhuma operação foi realizada.`)}
-function limparSessaoLocal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);localStorage.removeItem(STORAGE_EMPRESA);localStorage.removeItem(STORAGE_USUARIO);qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide')}
+function limparSessaoLocal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);localStorage.removeItem(STORAGE_EMPRESA);localStorage.removeItem(STORAGE_USUARIO);liberarTravaEmpresa();qs('#app')?.classList.remove('on');qs('#login')?.classList.remove('hide')}
 function garantirBarreiraInicial(){
   const token=sessionStorage.getItem(STORAGE_TOKEN);
   let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{}
@@ -1718,7 +1775,7 @@ function fecharMenuLateral(){alternarMenuLateral(false)}
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&qs('#sb')?.classList.contains('open'))fecharMenuLateral()});
 function abrirComercial(kind,button){go('comercial',button);novoComercial(kind);}
 function abrirGestao(tab){const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');if(!access.user?.isMaster){moduloIndisponivel('Usuários e permissões — acesso exclusivo do gestor');return}const suffix=tab?`?tab=${encodeURIComponent(tab)}`:'';window.open('/admin'+suffix,'_blank','noopener')}
-function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);sessionStorage.removeItem(STORAGE_IMPERSONATING);localStorage.removeItem(STORAGE_EMPRESA);localStorage.removeItem(STORAGE_USUARIO);location.reload()}
+function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);sessionStorage.removeItem(STORAGE_IMPERSONATING);localStorage.removeItem(STORAGE_EMPRESA);localStorage.removeItem(STORAGE_USUARIO);liberarTravaEmpresa();location.reload()}
 // Faixa da sessão administrativa (POST /master/companies/:id/session): a
 // sessionStorage é por aba, então só a aba aberta por abrirEmpresaEmissao
 // carrega STORAGE_IMPERSONATING — o painel Master original, em outra aba,
@@ -4350,6 +4407,8 @@ function alternarSeletorEmpresaAdmin(event){
 }
 function fecharSeletorEmpresaAdmin(){qs('#admin-company-menu')?.classList.remove('on');qs('#admin-company-trigger')?.setAttribute('aria-expanded','false')}
 async function selecionarEmpresaAdmin(companyId){
+  const alvo=empresasAdmin.find(e=>e.id===companyId);
+  if(!travarEmpresaAtiva(companyId,alvo?.legal_name||alvo?.trade_name)){fecharSeletorEmpresaAdmin();return}
   sessionStorage.setItem(STORAGE_COMPANY_ID,companyId);fecharSeletorEmpresaAdmin();renderEmpresasAdmin();
   await abrirEmpresaEmissao(companyId);
 }
