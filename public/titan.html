@@ -1589,6 +1589,16 @@ function selecionarDestinoPortal(access){
     salvarSessaoLocal([[STORAGE_COMPANY_ID,company.id]]);
     return;
   }
+  // Pedido do usuário (18/08/2026): com várias empresas vinculadas ao mesmo
+  // telefone, atualizar a página (F5) chama esta mesma função de novo
+  // (entrarComSessaoSalva, sessão já salva — não é login novo) — sem esta
+  // checagem, ela sempre voltava pra companies[0] (a mais antiga da lista),
+  // desfazendo a troca manual que o usuário já tinha feito em #tenant
+  // (trocarEmpresa()). Só cai pra companies[0] quando não há nenhuma empresa
+  // ativa salva ainda (primeiro login) ou a que estava salva não existe mais
+  // nesta lista — nunca sobrescreve uma escolha manual válida.
+  const existente=sessionStorage.getItem(STORAGE_COMPANY_ID);
+  if(existente&&companies.some(item=>item.id===existente))return;
   if(companies[0]?.id)salvarSessaoLocal([[STORAGE_COMPANY_ID,companies[0].id]]);
 }
 
