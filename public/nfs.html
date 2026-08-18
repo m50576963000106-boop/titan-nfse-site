@@ -25,14 +25,14 @@
       <a class="brand" href="/" onclick="return irParaLogoDestino(event)" aria-label="TITAN NFS-e, página inicial"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a>
       <nav class="nav-links" aria-label="Navegação da página">
         <a href="#beneficios">Benefícios</a>
-        <a href="#planos">Planos</a>
+        <a href="#planos" onclick="abrirPlanosModal();return false;">Planos</a>
         <a href="#martyn">Martyn</a>
         <a href="/faq">Dúvidas</a>
       </nav>
       <div class="nav-actions">
         <button class="btn" id="login-button" type="button" aria-expanded="false" aria-controls="login-drawer">Entrar <i data-lucide="log-in"></i></button>
         <a class="btn" href="/martyn_ia">Ajuda Martyn</a>
-        <a class="btn btn-gold" href="#planos">Contratar plano</a>
+        <a class="btn btn-gold" href="#planos" onclick="abrirPlanosModal();return false;">Contratar plano</a>
       </div>
     </nav>
   </header>
@@ -70,9 +70,9 @@
       <div class="hero-grid">
         <div>
           <div class="badge"><i data-lucide="sparkles"></i> Pronto para a obrigatoriedade nacional de 01/09</div>
-          <h1>Agilize a emissão da sua nota fiscal <span>com o TITAN.</span></h1>
+          <h1>Agilize a emissão da sua nota fiscal <span>com o TITAN NFS-e.</span></h1>
           <p class="hero-text">Cadastre uma vez, emita em segundos, no sistema ou mandando um áudio pro Martyn no WhatsApp. Menos telas, menos retrabalho, menos "deixa eu conferir de novo". O TITAN cuida da parte chata pra você cuidar do resto do seu dia.</p>
-          <div class="hero-actions"><a class="btn btn-gold" href="#planos">Quero emitir mais rápido</a><a class="btn" href="#funcionamento">Ver como funciona <i data-lucide="arrow-down"></i></a></div>
+          <div class="hero-actions"><a class="btn btn-gold" href="#planos" onclick="abrirPlanosModal();return false;">Quero emitir mais rápido</a><a class="btn" href="#funcionamento">Ver como funciona <i data-lucide="arrow-down"></i></a></div>
           <div class="hero-points">
             <span>Emissão em minutos, não em horas</span>
             <span>Martyn responde no WhatsApp, a qualquer hora</span>
@@ -92,12 +92,24 @@
               <div class="menu-line"></div>
             </aside>
             <div class="system-main">
-              <div class="system-topbar"><span class="system-title">Painel</span><span class="system-user"><i class="system-user-dot"></i> Empresa Exemplo Ltda</span></div>
-              <div class="system-kpis">
-                <div class="system-kpi"><small>Notas emitidas</small><strong>1.284</strong></div>
-                <div class="system-kpi"><small>Tempo economizado</small><strong>~40h/mês</strong></div>
-                <div class="system-kpi"><small>Erros evitados</small><strong>96</strong></div>
+              <!-- Pedido do usuário (18/08/2026): fiel ao Painel de verdade
+                   (titan.html#v-painel) — mesmos rótulos, dados de uma
+                   empresa pequena/realista, não números inflados. -->
+              <div class="system-topbar">
+                <div>
+                  <span class="system-eyebrow">Visão geral</span>
+                  <div class="system-title">Olá, Ana Souza 👋</div>
+                  <div class="system-company">Empresa Exemplo Ltda · CNPJ 12.345.678/0001-90 · São Paulo/SP · Simples Nacional — ME</div>
+                </div>
+                <button class="system-new-btn" type="button" tabindex="-1">+ Nova NFS-e</button>
               </div>
+              <div class="system-kpis">
+                <div class="system-kpi"><small>Notas no mês</small><strong>6</strong></div>
+                <div class="system-kpi"><small>Faturamento bruto</small><strong>R$ 20.400</strong></div>
+                <div class="system-kpi"><small>Autorizadas</small><strong>6</strong></div>
+                <div class="system-kpi ok"><small>Requer atenção</small><strong>0</strong></div>
+              </div>
+              <div class="system-chart-head"><b>Faturamento por competência</b><span>Últimos meses</span></div>
               <div class="system-chart">
                 <svg viewBox="0 0 280 110" preserveAspectRatio="none" aria-hidden="true">
                   <line x1="0" y1="27" x2="280" y2="27" class="chart-grid"></line>
@@ -114,7 +126,6 @@
                   <polyline points="18,66 52,54 86,60 120,42 154,46 188,28 222,20 259,8" class="chart-line"></polyline>
                 </svg>
               </div>
-              <div class="system-alert"><strong>Martyn:</strong> tudo certo por aqui, já confirmei os dados com o cliente, é só emitir.</div>
             </div>
           </div>
           <div class="system-fab" aria-hidden="true"><i data-lucide="message-circle"></i><span class="system-fab-dot"></span></div>
@@ -126,11 +137,11 @@
       <div class="section-head center">
         <div class="eyebrow">Benefícios</div>
         <h2>Muito mais que uma tela para emitir notas</h2>
-        <p>Cada recurso do TITAN existe pra tirar um pedaço do trabalho manual das suas costas, não só pra "ter mais uma função".</p>
+        <p>Cada recurso do TITAN existe pra tirar um pedaço do trabalho manual das suas costas — não só pra "ter mais uma função", mas sim pra economizar o seu tempo.</p>
       </div>
       <div class="benefits reveal">
         <article class="benefit"><div class="benefit-number">01</div><h3>Emissão inteligente</h3><p>Preencha uma vez, reaproveite sempre. Menos campo pra digitar, menos chance de errar, nota pronta em minutos.</p></article>
-        <article class="benefit"><div class="benefit-number">02</div><h3>Martyn no WhatsApp</h3><p>Pede a nota como quem manda mensagem pra um colega. O Martyn confirma os dados com você e emite, sem abrir o sistema.</p></article>
+        <article class="benefit"><div class="benefit-number">02</div><span class="benefit-tag">Incluso a partir do plano Essence</span><h3>Martyn no WhatsApp</h3><p>Pede a nota como quem manda mensagem pra um colega. O Martyn confirma os dados com você e emite, sem abrir o sistema.</p></article>
         <article class="benefit"><div class="benefit-number">03</div><h3>Validação fiscal</h3><p>O TITAN confere os dados antes de mandar pra Sefin, pra você não descobrir o erro só depois que a nota já foi rejeitada.</p></article>
         <article class="benefit"><div class="benefit-number">04</div><h3>Gestão de clientes</h3><p>Cadastrou um tomador uma vez? Nunca mais digita os dados dele de novo. O TITAN lembra por você.</p></article>
         <article class="benefit"><div class="benefit-number">05</div><h3>Orçamentos e O.S.</h3><p>Do orçamento à nota fiscal com um clique, sem recomeçar do zero em outra tela.</p></article>
@@ -189,6 +200,7 @@
       <div class="planos-modal" role="dialog" aria-modal="true" aria-labelledby="planos-modal-title">
         <div class="drawer-head"><div><h2 id="planos-modal-title">Nossos planos</h2><p>Escolha pelo seu volume de notas — a contratação libera seu acesso na hora.</p></div><button class="drawer-close" type="button" aria-label="Fechar planos" id="planos-modal-close"><i data-lucide="x"></i></button></div>
         <div class="pricing-grid" id="pricing-grid"><p class="pricing-note">Carregando planos...</p></div>
+        <p class="pricing-note"><b>Cobrança recorrente a cada 30 dias</b>, com pagamento via Pix ou cartão de crédito.</p>
         <p class="pricing-note">A cobrança automática via instituição financeira e os relatórios contábeis serão habilitados somente após a configuração segura das credenciais e do consentimento da empresa.</p>
       </div>
     </div>
@@ -219,8 +231,8 @@
     <section class="content-section section-dark" id="funcionamento">
       <div class="section-head">
         <div class="eyebrow">Como funciona</div>
-        <h2>Quatro passos. Nenhum deles chato.</h2>
-        <p>Configure uma vez. O resto do caminho fica cada vez mais rápido, porque o TITAN lembra do que você já cadastrou.</p>
+        <h2>Quatro passos, bem mais simples do que no Portal Nacional.</h2>
+        <p>Configure uma vez. Os demais ficam salvos — o TITAN entende a sua empresa e não pede esses dados de novo.</p>
       </div>
       <div class="steps-track" aria-hidden="true"><span class="steps-arrow"><i data-lucide="chevron-right"></i><i data-lucide="chevron-right"></i></span></div>
       <div class="steps reveal">
@@ -248,7 +260,7 @@
       <a class="footer-brand" href="/" aria-label="TITAN NFS-e"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a>
       <nav class="footer-links" aria-label="Navegação e documentos legais">
         <a href="#beneficios">Benefícios</a>
-        <a href="#planos">Planos</a>
+        <a href="#planos" onclick="abrirPlanosModal();return false;">Planos</a>
         <a href="#martyn">Martyn</a>
         <a href="/faq">Dúvidas</a>
         <a href="/termos-de-uso">Termos de Uso</a>
@@ -297,20 +309,20 @@
       {dir:'out',text:'Quero emitir uma nota',time:'08:30',at:5600},
       {dir:'in',text:'Perfeito! Me manda o nome do tomador, o valor e o tipo de serviço. Pode ser tudo numa mensagem só.',time:'08:30',at:8600},
       {dir:'out',text:'Empresa Exemplo Ltda\n850\nConsultoria',time:'08:30',at:11800},
-      {dir:'in',html:'Deixa eu confirmar:<br><br><b>Tomador:</b> Empresa Exemplo Ltda<br><b>Serviço:</b> Consultoria<br><b>Valor:</b> R$ 850,00<br><br>Confirma pra eu emitir?<br><br>1 - Sim<br>2 - Não, quero corrigir',time:'08:31',at:15800},
+      {dir:'in',html:'Deixa eu confirmar:<br><br><b>Tomador:</b> Empresa Exemplo Ltda<br><b>CNPJ:</b> 12.345.678/0001-90<br><b>Serviço:</b> Consultoria<br><b>Valor:</b> R$ 850,00<br><br>Confirma pra eu emitir?<br><br>1 - Sim<br>2 - Não, quero corrigir',time:'08:31',at:15800},
       {dir:'out',text:'1',time:'08:31',at:19300},
       {dir:'in',text:'Nota enviada pra Sefin! Assim que autorizar, o PDF e o XML chegam aqui mesmo.',time:'08:32',at:21800},
       {dir:'in',file:{nome:'NF 12 - Empresa Exemplo Ltda.pdf',tamanho:'164 KB'},time:'08:34',at:24500},
       {dir:'in',html:'NFS-e nº 12 autorizada, segue o DANFSe (PDF).<br><br>Link do XML: <span class="wa-link">nfse.titanbackoffice.com.br/n/exemplo01</span><br>O link é seguro e expira em 24 horas.',time:'08:34',at:27000},
       {dir:'in',text:'Precisando de mais alguma coisa, é só chamar!',time:'08:35',at:29500}
     ];
-    // Pedido do usuário (18/08/2026): balão de mensagem recebida não deveria
-    // repetir "Martyn:" toda hora — no WhatsApp de verdade (conversa 1:1,
-    // não grupo) o nome do remetente não aparece dentro do balão, só a
-    // posição/cor já diz quem mandou o quê.
+    // Pedido do usuário (18/08/2026, reafirmado): "Martyn:" em negrito na
+    // primeira linha do balão recebido, com a frase começando na linha de
+    // baixo — pedido explícito e repetido, mantém mesmo não sendo o padrão
+    // de conversa 1:1 do WhatsApp real.
     function conteudoMensagem(item){
-      if(item.file)return `<div class="wa-file"><div class="wa-file-icon">PDF</div><div><b>${escHtml(item.file.nome)}</b><small>${escHtml(item.file.tamanho)} · pdf</small></div></div>`;
-      return item.html||escHtml(item.text).replace(/\n/g,'<br>');
+      if(item.file)return `<b>Martyn:</b><br><div class="wa-file"><div class="wa-file-icon">PDF</div><div><b>${escHtml(item.file.nome)}</b><small>${escHtml(item.file.tamanho)} · pdf</small></div></div>`;
+      return `<b>Martyn:</b><br>${item.html||escHtml(item.text).replace(/\n/g,'<br>')}`;
     }
     // Achado do próprio usuário (18/08/2026): relógio real do dispositivo não
     // batia com o horário fictício das mensagens da demo (~08:29-08:35) —

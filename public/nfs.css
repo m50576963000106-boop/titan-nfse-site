@@ -9,7 +9,10 @@
     .nav-actions{position:relative;display:flex;align-items:center;gap:10px}
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:46px;padding:11px 18px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--navy);font-weight:700;font-size:14px;text-decoration:none;cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(11,22,41,.1)}
     .site-header .btn{border-color:var(--line-dark);background:rgba(255,255,255,.06);color:#fff}.site-header .btn:hover{background:rgba(255,255,255,.12)}
-    .btn-dark{background:var(--navy);border-color:var(--navy);color:#fff}.btn-gold{background:var(--gold);border-color:var(--gold);color:#241605}.btn-gold:hover{background:#d9bd6a}.site-header .btn-gold{color:#241605}
+    .btn-dark{background:var(--navy);border-color:var(--navy);color:#fff}.btn-gold{background:var(--gold);border-color:var(--gold);color:#241605}.btn-gold:hover{background:#d9bd6a}
+    /* Pedido do usuário (18/08/2026): "Contratar plano" no cabeçalho (fundo
+       navy) precisa ser branco com texto preto — não dourado. */
+    .site-header .btn-gold{background:#fff;border-color:#fff;color:#111}.site-header .btn-gold:hover{background:#f2f2f2}
     .login-drawer-backdrop{position:fixed;inset:0;z-index:160;display:none;background:rgba(11,22,41,.48);backdrop-filter:blur(3px)}.login-drawer-backdrop.open{display:block}.login-drawer{position:absolute;right:0;top:0;width:min(440px,100%);height:100%;overflow-y:auto;background:#fff;box-shadow:-18px 0 54px rgba(11,22,41,.24);padding:24px}.drawer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}.drawer-head h2{color:var(--navy);font-size:26px;letter-spacing:-.035em}.drawer-head p{margin-top:5px;color:var(--muted);font-size:13px;line-height:1.55}.drawer-close{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:#fff;cursor:pointer}.login-panel{padding:17px;border:1px solid var(--line);border-radius:14px;background:#fbfaf7;margin-bottom:14px}.login-panel h3{color:var(--navy);font-size:16px;margin-bottom:4px}.login-panel p{color:var(--muted);font-size:12px;line-height:1.5;margin-bottom:12px}.login-panel label{display:block;margin:10px 0 5px;color:var(--navy);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.login-panel input{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:#fff;outline:none}.login-panel input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.18)}.login-panel .btn{width:100%;margin-top:14px}.drawer-links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:12px}.drawer-links a{color:var(--gold-dark);font-weight:800;text-decoration:none}.drawer-status{min-height:20px;margin-top:10px;color:#9b2226;font-size:12px;font-weight:650;white-space:pre-wrap;user-select:text}
     .hero{position:relative;overflow:hidden;padding:88px 24px 96px;background:linear-gradient(135deg,rgba(255,255,255,.025),transparent 45%),var(--navy);color:#eaf0f8}
     .hero-grid{max-width:1180px;margin:auto;display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center}
@@ -35,28 +38,36 @@
     .system-bar{height:42px;background:#e5e3dc;border-bottom:1px solid #d0cec7;display:flex;align-items:center;padding:0 15px;gap:7px}.system-bar i{width:9px;height:9px;border-radius:50%;background:#a9a79f;display:block}
     .system-content{display:grid;grid-template-columns:132px 1fr;min-height:360px;color:#243248}
     .system-sidebar{background:var(--navy);padding:18px 14px;color:#eaf0f8}.mini-brand{color:var(--gold);font-weight:800;margin-bottom:22px;font-size:13px}.menu-line{height:30px;border-radius:7px;margin:8px 0;background:rgba(255,255,255,.06)}.menu-line.active{background:rgba(201,168,76,.18);border-left:3px solid var(--gold)}
-    .system-main{padding:22px}
-    .system-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:20px}
-    .system-title{color:#243248;font-weight:800;font-size:16px}
-    .system-user{display:flex;align-items:center;gap:6px;color:#6e7785;font-size:11.5px;font-weight:600}
-    .system-user-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);display:block}
-    .system-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.system-kpi{border:1px solid #d9d7cf;background:#fff;border-radius:10px;padding:13px}.system-kpi small{color:#6e7785;font-size:11px}.system-kpi strong{display:block;font-size:16px;margin-top:6px}
+    .system-main{padding:20px}
+    /* Pedido do usuário (18/08/2026): fiel ao Painel de verdade — mesmos
+       rótulos ("Notas no mês", "Faturamento bruto", "Autorizadas", "Requer
+       atenção", "Faturamento por competência"), dados de empresa pequena e
+       realista (não números inflados de vitrine). */
+    .system-topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:16px}
+    .system-eyebrow{display:block;color:var(--gold-dark);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+    .system-title{color:#243248;font-weight:800;font-size:15px}
+    .system-company{margin-top:3px;color:#6e7785;font-size:10px;line-height:1.4;max-width:220px}
+    .system-new-btn{flex-shrink:0;background:var(--gold);color:#241605;border:none;border-radius:7px;padding:8px 11px;font-size:11px;font-weight:800;cursor:default}
+    .system-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.system-kpi{border:1px solid #d9d7cf;background:#fff;border-radius:10px;padding:10px}.system-kpi small{color:#6e7785;font-size:9.5px;display:block}.system-kpi strong{display:block;font-size:15px;margin-top:5px}.system-kpi.ok strong{color:var(--ok)}
+    .system-chart-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}.system-chart-head b{color:#243248;font-size:12px}.system-chart-head span{color:#6e7785;font-size:10px}
     /* Pedido do usuário (18/08/2026): o "gráfico" era só uma borda inclinada
        simulando uma curva — pouco realista. Mini gráfico de barras + linha de
        tendência de verdade, em SVG inline (sem lib externa). */
-    .system-chart{height:120px;border-radius:10px;border:1px solid #d9d7cf;background:#fff;padding:6px 6px 0;overflow:hidden}
+    .system-chart{height:110px;border-radius:10px;border:1px solid #d9d7cf;background:#fff;padding:6px 6px 0;overflow:hidden}
     .system-chart svg{width:100%;height:100%;display:block}
     .chart-grid{stroke:#eeece5;stroke-width:1}
     .chart-bar{fill:#c7d3e3}
     .chart-bar-current{fill:var(--gold)}
     .chart-line{fill:none;stroke:#5679a5;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-    .system-alert{margin-top:12px;border-left:4px solid var(--gold);background:#fff7ed;color:#65513e;padding:12px 14px;border-radius:7px;font-size:12.5px;line-height:1.5}
     section.content-section{padding:88px 24px 96px}.section-light{background:var(--cream);color:var(--text)}.section-dark{background:var(--navy);color:#eaf0f8}
     .section-head{max-width:760px;margin:0 auto 40px}.section-head.center{text-align:center}.eyebrow{color:var(--gold-dark);text-transform:uppercase;letter-spacing:.1em;font-size:12px;font-weight:800;margin-bottom:9px}.section-dark .eyebrow{color:var(--gold)}
     .section-head h2{margin:0 0 12px;font-size:clamp(29px,3.6vw,42px);line-height:1.1;letter-spacing:-.03em}.section-light h2{color:var(--navy)}.section-dark h2{color:#fff}
     .section-head p{margin:0;font-size:16.5px;line-height:1.6}.section-light .section-head p{color:var(--muted)}.section-dark .section-head p{color:var(--muted-dark)}
     .benefits{max-width:1120px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
     .benefit{padding:24px;background:#fff;border:1px solid var(--line);border-radius:14px;min-height:180px;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}.benefit:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(11,22,41,.1);border-color:rgba(201,168,76,.4)}.benefit-number{width:38px;height:38px;border:1px solid rgba(201,168,76,.48);color:var(--gold-dark);border-radius:8px;display:grid;place-items:center;font-weight:800;margin-bottom:18px;font-size:14px;transition:background .22s ease,color .22s ease}.benefit:hover .benefit-number{background:var(--gold);color:#241605}.benefit h3{margin-bottom:8px;color:var(--navy);font-size:16.5px}.benefit p{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0}
+    /* Selo de "recurso pago a partir de tal plano" (pedido do usuário,
+       18/08/2026) — só usado onde o recurso não é padrão de todos os planos. */
+    .benefit-tag{display:inline-block;margin:-10px 0 10px;padding:2px 8px;border-radius:999px;background:var(--gold-soft);color:var(--gold-dark);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
     .time-stat{max-width:640px;margin:0 auto 40px;display:flex;align-items:center;justify-content:center;gap:22px}
     .time-stat-item{text-align:center}.time-stat-item strong{display:block;font-size:34px;font-weight:800;color:#fff;letter-spacing:-.03em}.time-stat-item span{display:block;margin-top:4px;color:var(--muted-dark);font-size:12.5px}
     .time-stat-item.featured strong{color:var(--gold)}
@@ -79,7 +90,10 @@
     /* Réplica do WhatsApp modo claro (pedido do usuário): papel de parede
        bege claro, balão recebido branco à esquerda, balão enviado verde
        claro à direita — cores oficiais aproximadas do app. */
-    .wa-phone{border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 18px 45px rgba(19,30,46,.12);max-width:380px;margin:0 auto;position:relative}
+    /* Pedido do usuário (18/08/2026): largura fixa de celular, nunca esticar
+       em telas maiores — width (não só max-width), com min() como rede de
+       segurança pra não estourar em celulares realmente estreitos. */
+    .wa-phone{border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 18px 45px rgba(19,30,46,.12);width:min(380px,100%);margin:0 auto;position:relative}
     .wa-statusbar{background:#000;color:#fff;font-size:11px;font-weight:600;padding:7px 16px 6px;display:flex;justify-content:space-between;align-items:center}
     .wa-notch{width:9px;height:9px;border-radius:50%;background:#000;box-shadow:0 0 0 1.5px #262626 inset;position:absolute;top:6px;left:50%;transform:translateX(-50%);z-index:2}
     .wa-statusbar-icons{display:flex;align-items:center;gap:5px}
@@ -97,6 +111,7 @@
     .wa-msg{max-width:78%;border-radius:8px;padding:6px 7px 8px 8px;font-size:13px;line-height:1.35;box-shadow:0 1px 1px rgba(0,0,0,.1);opacity:0;transform:translateY(6px);animation:wa-in .28s ease forwards}
     .wa-msg.in{align-self:flex-start;background:#fff;color:#111b21;border-top-left-radius:0}
     .wa-msg.out{align-self:flex-end;background:#d9fdd3;color:#111b21;border-top-right-radius:0}
+    .wa-msg b{display:block;margin-bottom:2px}
     .wa-time{display:block;text-align:right;font-size:10.5px;color:#667781;margin-top:2px}.wa-msg.out .wa-time{color:#53bdeb}
     .wa-file{display:flex;align-items:center;gap:10px;padding:2px}.wa-file-icon{width:34px;height:34px;border-radius:6px;background:#e35347;color:#fff;display:grid;place-items:center;font-size:9.5px;font-weight:800;flex-shrink:0}.wa-file b{display:block;font-size:12.5px;font-weight:600}.wa-file small{color:#667781;font-size:11px}
     .wa-link{color:#0a72c4;text-decoration:underline;word-break:break-all}
@@ -138,5 +153,5 @@
     @media(max-width:1180px){.hero-grid{grid-template-columns:1fr}}
     @media(max-width:980px){.martyn-layout{grid-template-columns:1fr}.benefits,.steps{grid-template-columns:repeat(2,1fr)}.nav-links{display:none}.steps-track{display:none}.step{animation:none}.steps-payoff{animation:none;opacity:1;transform:none;margin-top:22px}.payoff-note{animation:none;opacity:0}}
     @media(max-width:800px){.nav{min-height:70px;padding:8px 15px}.brand{width:150px;height:48px}.nav-actions .btn-gold{display:none}.hero{padding-top:56px}.pricing-grid,.comparison{grid-template-columns:1fr 1fr}.contact-shell{grid-template-columns:1fr}.footer-inner{flex-direction:column;text-align:center}.footer-links{justify-content:center;flex-wrap:wrap}}
-    @media(max-width:680px){.system-content{grid-template-columns:1fr}.system-sidebar{display:none}}
+    @media(max-width:680px){.system-content{grid-template-columns:1fr}.system-sidebar{display:none}.system-kpis{grid-template-columns:repeat(2,1fr)}.system-company{display:none}}
     @media(max-width:560px){.btn{padding:9px 13px;font-size:13px}.hero-actions{flex-direction:column}.hero-actions .btn{width:100%}.hero-points,.benefits,.comparison,.steps,.pricing-grid,.system-kpis{grid-template-columns:1fr}.contact-form{grid-template-columns:1fr}.contact-form textarea,.contact-form .full{grid-column:auto}section.content-section,.contact{padding-left:15px;padding-right:15px}.section-head h2{font-size:27px}.contact-copy,.contact-form{padding:28px 22px}}
