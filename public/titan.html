@@ -15,7 +15,7 @@
   const q=new URLSearchParams(location.search),path=location.pathname.match(/^\/([^/?#]+)\/?$/i)?.[1]||'',route=path.toLowerCase().replace(/[^a-z0-9_-]/g,'');
   const routeMode=route==='martyn_ia'?'help':route==='primeiro-acesso'||route==='primeiroacesso'?'first':route==='redefinir-senha'||route==='redefinirsenha'?'reset':route==='dashboard'?'client':route;
   const mode=(q.get('portal')||routeMode).toLowerCase(),isAdmin=mode==='admin'||mode==='adm',cnpj=String(q.get('tenant')||(/^[A-Z0-9]{12}[0-9]{2}$/i.test(path)?path:'')).toUpperCase().replace(/[^A-Z0-9]/g,'');
-  const modoEspecial=mode==='help'||mode==='first'||mode==='reset'||q.get('invite');
+  const modoEspecial=mode==='help'||mode==='first'||mode==='reset'||q.get('invite')||q.get('partner-invite');
   // Quem chega aqui logo após entrar em nfs.html já tem sessão salva — sem isto,
   // a tela de login (por baixo, escondida só depois que o JS confere a sessão)
   // aparece um instante antes do painel, como se fosse um segundo login.
@@ -1378,7 +1378,7 @@ document.body.classList.toggle('portal-admin',PORTAL_ADMIN);
 document.body.classList.toggle('portal-help',PORTAL_HELP);
 document.body.classList.toggle('portal-first',PORTAL_FIRST);
 function redirecionarParaLoginUnico(){
-  if(PORTAL_HELP||PORTAL_FIRST||PORTAL_RESET||PORTAL_QUERY.get('invite'))return;
+  if(PORTAL_HELP||PORTAL_FIRST||PORTAL_RESET||PORTAL_QUERY.get('invite')||PORTAL_QUERY.get('partner-invite'))return;
   if(sessionStorage.getItem(STORAGE_TOKEN))return;
   if(!PORTAL_ADMIN&&!PORTAL_CNPJ&&PORTAL_MODE!=='client')return;
   const target=new URL('/',location.origin);
@@ -1699,7 +1699,7 @@ function abrirAreaAutenticada(access){
   }
 }
 async function entrarComSessaoSalva(){
-  if(PORTAL_FIRST||PORTAL_RESET||new URLSearchParams(location.search).get('invite'))return false;
+  if(PORTAL_FIRST||PORTAL_RESET||new URLSearchParams(location.search).get('invite')||new URLSearchParams(location.search).get('partner-invite'))return false;
   const token=sessionStorage.getItem(STORAGE_TOKEN);
   if(!token)return false;
   let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{return false}
