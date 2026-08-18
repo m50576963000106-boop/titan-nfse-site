@@ -20,7 +20,7 @@
        progressive enhancement de verdade, não esconde conteúdo de quem não
        tem JS. html.js é adicionado sincronamente no primeiro <script>. */
     html.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}html.js .reveal.in{opacity:1;transform:translateY(0)}
-    @media(prefers-reduced-motion:reduce){html.js .reveal{opacity:1;transform:none;transition:none}.badge{animation:none}.wa-msg,.wa-typing{animation:none;opacity:1}.step,.steps-arrow{animation:none}.steps-payoff{animation:none;opacity:1;transform:none}}
+    @media(prefers-reduced-motion:reduce){html.js .reveal{opacity:1;transform:none;transition:none}.badge{animation:none}.wa-msg,.wa-typing{animation:none;opacity:1}.step,.steps-arrow{animation:none}.steps-payoff{animation:none;opacity:1;transform:none}.payoff-note{animation:none;opacity:0}}
     .hero h1{margin:0 0 20px;max-width:640px;color:#fff;font-size:clamp(36px,5.4vw,58px);line-height:1.06;letter-spacing:-.04em}.hero h1 span{color:var(--gold)}
     .hero-text{max-width:560px;margin:0 0 28px;color:var(--muted-dark);font-size:17px;line-height:1.65}
     .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:26px}.hero-actions .btn{padding:14px 22px}
@@ -111,25 +111,32 @@
        passos em loop; cada .step pulsa (levanta + clareia) bem no instante
        em que a seta passa por cima dele, via animation-delay escalonado. */
     /* Ciclo de 15s (pedido do usuário, 18/08/2026): ecoa o "~15s por nota,
-       com o TITAN" da seção de comparação — a mesma automação, em segundos,
-       de ponta a ponta. */
-    .steps-track{max-width:1120px;margin:0 auto 10px;height:22px;position:relative}
-    .steps-arrow{position:absolute;top:0;color:var(--gold);display:flex;animation:steps-arrow-move 15s ease-in-out infinite}
-    .steps-arrow svg{width:20px;height:20px}
-    @keyframes steps-arrow-move{0%,4%{left:6%}25%,29%{left:31%}50%,54%{left:56%}75%,79%{left:81%}96%,100%{left:6%}}
-    .steps{max-width:1120px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.step{border-top:3px solid var(--gold);background:rgba(255,255,255,.045);padding:22px;transition:transform .22s ease,background .22s ease;animation:step-pulse 15s ease-in-out infinite}.step:hover{transform:translateY(-4px);background:rgba(255,255,255,.08)}.step:nth-child(1){animation-delay:0s}.step:nth-child(2){animation-delay:3.75s}.step:nth-child(3){animation-delay:7.5s}.step:nth-child(4){animation-delay:11.25s}
+       com o TITAN" da seção de comparação. Os 4 passos acontecem rápido, na
+       primeira metade do ciclo (como a automação de verdade); a segunda
+       metade é o payoff — a nota virando e-mail — que agora fica visível
+       bem mais tempo, não é mais um flash de 1s. */
+    .steps-track{max-width:1120px;margin:0 auto 10px;height:26px;position:relative}
+    .steps-arrow{position:absolute;top:0;color:var(--gold);display:flex;gap:1px;animation:steps-arrow-move 15s ease-in-out infinite}
+    .steps-arrow svg{width:26px;height:26px}
+    .steps-arrow svg:last-child{margin-left:-10px}
+    @keyframes steps-arrow-move{0%,2%{left:6%;opacity:1}17%,19%{left:31%;opacity:1}33%,35%{left:56%;opacity:1}47%,92%{left:81%;opacity:1}98%,100%{left:81%;opacity:0}}
+    .steps{max-width:1120px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.step{border-top:3px solid var(--gold);background:rgba(255,255,255,.045);padding:22px;transition:transform .22s ease,background .22s ease;animation:step-pulse 15s ease-in-out infinite}.step:hover{transform:translateY(-4px);background:rgba(255,255,255,.08)}.step:nth-child(1){animation-delay:0s}.step:nth-child(2){animation-delay:1.875s}.step:nth-child(3){animation-delay:3.75s}.step:nth-child(4){animation-delay:5.625s}
     @keyframes step-pulse{0%,4%,29%,100%{transform:translateY(0);background:rgba(255,255,255,.045);border-top-color:var(--gold)}8%,21%{transform:translateY(-6px);background:rgba(255,255,255,.1);border-top-color:#fff}}
     .step small{color:var(--gold);font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:11px}.step h3{margin:12px 0 8px;color:#fff;font-size:16px}.step p{color:var(--muted-dark);margin:0;font-size:13.5px;line-height:1.6}
-    /* Payoff no fim do ciclo (pedido do usuário): quando a 4ª etapa termina,
-       um selo de "nota enviada por e-mail" aparece brevemente — o resultado
-       visível de completar os 4 passos — e some antes do ciclo reiniciar. */
-    .steps-payoff{max-width:640px;margin:18px auto 0;display:flex;align-items:center;justify-content:center;gap:9px;color:var(--gold);font-size:13.5px;font-weight:700;text-align:center;opacity:0;transform:scale(.85);animation:steps-payoff-show 15s ease-in-out infinite}
-    .steps-payoff svg{width:19px;height:19px;flex-shrink:0}
-    @keyframes steps-payoff-show{0%,78%{opacity:0;transform:scale(.85)}84%,94%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.85)}}
+    /* Payoff (pedido do usuário, 18/08/2026): não é mais só um texto que
+       pisca — é um envelope com uma notinha entrando dentro dele, e fica
+       visível por boa parte do ciclo (não 1s), como o resultado que fica
+       na tela depois que os 4 passos terminam. */
+    .steps-payoff{max-width:640px;margin:18px auto 0;display:flex;align-items:center;justify-content:center;gap:12px;color:var(--gold);font-size:13.5px;font-weight:700;text-align:center;opacity:0;transform:scale(.85);animation:steps-payoff-show 15s ease-in-out infinite}
+    @keyframes steps-payoff-show{0%,44%{opacity:0;transform:scale(.85)}50%,96%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.85)}}
+    .payoff-mail{position:relative;width:38px;height:32px;flex-shrink:0}
+    .payoff-mail svg{width:38px;height:28px;position:absolute;bottom:0;left:0}
+    .payoff-note{position:absolute;left:9px;width:20px;height:14px;background:#fff;border:1.5px solid var(--gold);border-radius:2px;animation:payoff-note-slide 15s ease-in-out infinite}
+    @keyframes payoff-note-slide{0%,47%{top:-16px;opacity:0}53%{top:-2px;opacity:1}58%,96%{top:6px;opacity:0}100%{top:-16px;opacity:0}}
     .contact{padding:92px 24px;background:var(--cream)}.contact-shell{max-width:1040px;margin:auto;display:grid;grid-template-columns:.8fr 1.2fr;overflow:hidden;border-radius:20px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}.contact-copy{padding:40px;background:var(--navy);color:#fff}.contact-copy h2{font-size:32px;line-height:1.14;letter-spacing:-.03em}.contact-copy p{margin-top:15px;color:#aebbd0;line-height:1.7}.contact-copy .tag{display:inline-block;margin-bottom:18px;color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.contact-form{padding:38px;display:grid;grid-template-columns:1fr 1fr;gap:13px}.contact-form input,.contact-form textarea,.contact-form select{width:100%;padding:13px;border:1px solid var(--line);border-radius:9px;background:#fff;outline:none;font:inherit;color:inherit}.contact-form input:focus,.contact-form textarea:focus,.contact-form select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.18)}.contact-form textarea,.contact-form .full{grid-column:1/-1}.contact-form textarea{min-height:100px;resize:vertical}.form-status{min-height:22px;color:var(--ok);font-size:13px;font-weight:650}.form-hint{margin-top:-4px;color:var(--muted);font-size:12.5px;line-height:1.5}
     footer{padding:34px 24px;background:var(--navy);color:#8fa0ba;font-size:13px}.footer-inner{max-width:1120px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}.footer-brand{display:flex;align-items:center}.footer-brand img{display:block;height:34px;width:auto}.footer-links{display:flex;align-items:center;flex-wrap:wrap;gap:0}.footer-links a{color:#aebbd0;font-size:12.5px;text-decoration:none;transition:color .18s ease}.footer-links a:hover,.footer-links a:focus-visible{color:var(--gold)}.footer-links a+a::before{content:"·";margin:0 10px;color:#55647c}.footer-tagline{color:#6d7d97;font-size:12.5px}
     @media(max-width:1180px){.hero-grid{grid-template-columns:1fr}}
-    @media(max-width:980px){.martyn-layout{grid-template-columns:1fr}.benefits,.steps{grid-template-columns:repeat(2,1fr)}.nav-links{display:none}.steps-track{display:none}.step{animation:none}.steps-payoff{animation:none;opacity:1;transform:none;margin-top:22px}}
+    @media(max-width:980px){.martyn-layout{grid-template-columns:1fr}.benefits,.steps{grid-template-columns:repeat(2,1fr)}.nav-links{display:none}.steps-track{display:none}.step{animation:none}.steps-payoff{animation:none;opacity:1;transform:none;margin-top:22px}.payoff-note{animation:none;opacity:0}}
     @media(max-width:800px){.nav{min-height:70px;padding:8px 15px}.brand{width:150px;height:48px}.nav-actions .btn-gold{display:none}.hero{padding-top:56px}.pricing-grid,.comparison{grid-template-columns:1fr 1fr}.contact-shell{grid-template-columns:1fr}.footer-inner{flex-direction:column;text-align:center}.footer-links{justify-content:center;flex-wrap:wrap}}
     @media(max-width:680px){.system-content{grid-template-columns:1fr}.system-sidebar{display:none}}
     @media(max-width:560px){.btn{padding:9px 13px;font-size:13px}.hero-actions{flex-direction:column}.hero-actions .btn{width:100%}.hero-points,.benefits,.comparison,.steps,.pricing-grid,.system-kpis{grid-template-columns:1fr}.contact-form{grid-template-columns:1fr}.contact-form textarea,.contact-form .full{grid-column:auto}section.content-section,.contact{padding-left:15px;padding-right:15px}.section-head h2{font-size:27px}.contact-copy,.contact-form{padding:28px 22px}}
