@@ -1062,6 +1062,25 @@
       <div class="master-panel" id="master-panel-planos"><div class="card"><div class="card-h"><div><h3>Planos</h3><p>Defina nome, preço e limite de NFS-e autorizadas por mês.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="plan-code">Código</label><input id="plan-code" class="inp" placeholder="ex.: pro100"></div><div class="field"><label for="plan-name">Nome do plano</label><input id="plan-name" class="inp" placeholder="Plano Profissional"></div><div class="field"><label for="plan-price">Preço mensal (R$)</label><input id="plan-price" class="inp" inputmode="decimal" placeholder="99,90"></div><div class="field"><label for="plan-limit">Limite de notas / mês</label><input id="plan-limit" class="inp" type="number" min="1" placeholder="100"></div></div><div class="row r2"><div class="field"><label for="plan-description">Descrição</label><input id="plan-description" class="inp" placeholder="Resumo do que está incluído"></div><div class="field"><label for="plan-active">Status</label><select id="plan-active" class="inp"><option value="true">Ativo</option><option value="false">Inativo</option></select></div></div><div class="field"><label>Ferramentas incluídas no plano</label><div id="plan-features" class="alert a-info" style="margin:0;padding:10px;display:grid;gap:7px"></div><div class="hint">O que estiver marcado é o que o cliente contrata. O que é padrão do produto aparece travado. A recusa também acontece na API: desmarcar aqui bloqueia de verdade, não só esconde o botão.</div></div><div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarPlanoMaster()">Salvar plano</button><button class="btn" id="plan-cancel" style="display:none" type="button" onclick="cancelarEdicaoPlanoMaster()">Cancelar edição</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Plano</th><th>Preço</th><th>Limite</th><th>Ferramentas</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-plans"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Ferramentas avulsas</h3><p>Preço de cada ferramenta fora do plano — liga uma empresa específica em Gestão por CNPJ &gt; Editar cliente. Some ao valor do plano; bloqueado quando o plano já inclui.</p></div></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Ferramenta</th><th>Preço avulso (R$)</th><th>Vendida avulsa?</th><th>Ação</th></tr></thead><tbody id="master-addons"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Pedidos de upgrade</h3><p>O cliente pede pelo portal; aprovar troca o plano na hora e avisa a empresa no sino.</p></div><span class="pill p-warn right" id="plan-upgrade-pending-pill" style="display:none">0 pendentes</span></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>De</th><th>Para</th><th>Nota</th><th>Pedido em</th><th>Ação</th></tr></thead><tbody id="master-plan-upgrade-requests"><tr><td colspan="6" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Contrato de Sessão de Uso</h3><p>Editar e publicar cria uma versão nova — a que o cliente já assinou nunca é sobrescrita.</p></div><span class="pill p-gold right" id="contract-current-pill">—</span></div><div class="card-b"><div class="field"><label for="contract-body">Texto do contrato (versão vigente)</label><textarea id="contract-body" class="inp" rows="16" style="font-family:inherit;line-height:1.5" oninput="this.dataset.dirty='1'"></textarea><div class="hint">Publicar avisa todas as empresas no sino: elas precisam ler e aceitar a versão nova para a Sessão de Uso continuar valendo.</div></div><div class="flex wrap"><button class="btn btn-s" type="button" onclick="publicarVersaoContrato('minor')">Publicar correção (versão menor)</button><button class="btn btn-p" type="button" onclick="publicarVersaoContrato('major')">Publicar revisão (versão maior)</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Versão</th><th>Publicada em</th><th>Por</th><th>Aceites</th></tr></thead><tbody id="contract-versions-history"><tr><td colspan="4" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div></div>
 
       <div class="master-panel" id="master-panel-config">
+        <div class="card"><div class="card-h"><div><h3>Minha conta</h3><p>Seu e-mail e senha de login como Master. Trocar o e-mail exige confirmar um código de 6 dígitos mandado pro endereço novo — o e-mail atual só muda depois disso.</p></div></div><div class="card-b">
+          <div class="row r2">
+            <div class="field"><label>E-mail atual</label><span class="pill p-off" id="master-account-email">—</span></div>
+            <div class="field"><label>Nome</label><span class="pill p-off" id="master-account-name">—</span></div>
+          </div>
+          <div class="section-title" style="margin-top:14px">Trocar e-mail de login</div>
+          <div class="row r2">
+            <div class="field"><label for="acct-new-email">Novo e-mail</label><input id="acct-new-email" class="inp" type="email" autocomplete="off" placeholder="novo@dominio.com.br"></div>
+            <div class="field"><label for="acct-email-pw">Sua senha atual</label><input id="acct-email-pw" class="inp" type="password" autocomplete="current-password"></div>
+          </div>
+          <div class="flex wrap"><button class="btn btn-p" type="button" onclick="solicitarTrocaEmailMaster()">Mandar código de confirmação</button><span id="master-account-email-status" class="foot-note"></span></div>
+          <div class="section-title" style="margin-top:20px">Trocar senha</div>
+          <div class="row r3">
+            <div class="field"><label for="acct-cur-pw">Senha atual</label><input id="acct-cur-pw" class="inp" type="password" autocomplete="current-password"></div>
+            <div class="field"><label for="acct-new-pw">Nova senha</label><input id="acct-new-pw" class="inp" type="password" autocomplete="new-password" minlength="10"></div>
+            <div class="field"><label for="acct-new-pw2">Confirmar nova senha</label><input id="acct-new-pw2" class="inp" type="password" autocomplete="new-password" minlength="10"></div>
+          </div>
+          <div class="flex wrap"><button class="btn btn-p" type="button" onclick="trocarSenhaMaster()">Trocar senha</button><span id="master-account-password-status" class="foot-note"></span></div>
+        </div></div>
         <div class="card"><div class="card-h"><div><h3>Fila de emissão fiscal</h3><p>Concorrência se ajusta sozinha pra manter a espera dentro do alvo (pedido do usuário 14/08) — sobe quando a fila pressiona, desce quando está tranquila, nunca passa do teto.</p></div><button class="btn btn-s" type="button" onclick="carregarFilaFiscalMaster()">Atualizar</button></div><div class="card-b">
           <div class="row r3">
             <div class="field"><label>Concorrência agora</label><span class="pill p-gold" id="fq-atual" style="font-size:16px">—</span></div>
@@ -4415,10 +4434,53 @@ function masterTab(tab,button){
   if(tab==='inscricoes')carregarMasterInscricoes();
   if(tab==='parceiros')carregarPedidosLicencaMaster();
   if(tab==='logs')carregarMasterLogs();
-  if(tab==='config')carregarConfiguracoesMaster();
+  if(tab==='config'){carregarConfiguracoesMaster();carregarContaMaster();}
   if(tab==='atendimentos')iniciarAtendimentos();else pararPollingAtendimentos();
   fecharMenuLateral();
   window.scrollTo(0,0);
+}
+
+// Conta própria do Master (18/08/2026, pedido do usuário): antes não havia
+// tela nenhuma pro Master trocar seu próprio e-mail/senha de login (as
+// telas de "Gestão por CNPJ" recusam de propósito mexer numa conta Master).
+// Troca de senha é direta; troca de e-mail pede o código de 6 dígitos
+// (mandado pro endereço NOVO) pelo mesmo modal titanPrompt já usado na
+// verificação de dispositivo novo no login.
+async function carregarContaMaster(){
+  try{
+    const conta=await api('/api/master/account');
+    qs('#master-account-email').textContent=conta.email||'—';
+    qs('#master-account-name').textContent=conta.name||'—';
+  }catch(error){/* painel de config já mostra o erro de outras chamadas — não duplica aviso */}
+}
+async function solicitarTrocaEmailMaster(){
+  const status=qs('#master-account-email-status');
+  const newEmail=qs('#acct-new-email').value.trim();
+  const currentPassword=qs('#acct-email-pw').value;
+  if(!newEmail||!currentPassword){status.textContent='Informe o novo e-mail e sua senha atual.';return}
+  status.textContent='Enviando código...';
+  try{
+    const resp=await api('/api/master/account/email-change',{method:'POST',body:JSON.stringify({newEmail,currentPassword})});
+    const codigo=(await titanPrompt('Mandamos um código de 6 dígitos pro e-mail '+(resp.emailHint||'informado')+'. Digite abaixo para confirmar a troca.','','Confirme o novo e-mail')||'').trim();
+    if(!/^\d{6}$/.test(codigo)){status.textContent='Troca cancelada — código não confirmado.';return}
+    const confirmado=await api('/api/master/account/email-change/confirm',{method:'POST',body:JSON.stringify({verificationId:resp.verificationId,code:codigo})});
+    sessionStorage.setItem(STORAGE_TOKEN,confirmado.token);
+    qs('#master-account-email').textContent=confirmado.email;
+    qs('#acct-new-email').value='';qs('#acct-email-pw').value='';
+    status.textContent='E-mail atualizado com sucesso.';
+  }catch(error){status.textContent=error.message||'Não foi possível trocar o e-mail.'}
+}
+async function trocarSenhaMaster(){
+  const status=qs('#master-account-password-status');
+  const currentPassword=qs('#acct-cur-pw').value,newPassword=qs('#acct-new-pw').value,confirmation=qs('#acct-new-pw2').value;
+  if(newPassword.length<10){status.textContent='A nova senha precisa ter pelo menos 10 caracteres.';return}
+  if(newPassword!==confirmation){status.textContent='A confirmação da nova senha não confere.';return}
+  status.textContent='Salvando...';
+  try{
+    await api('/api/master/account/password',{method:'PUT',body:JSON.stringify({currentPassword,newPassword,confirmation})});
+    qs('#acct-cur-pw').value='';qs('#acct-new-pw').value='';qs('#acct-new-pw2').value='';
+    status.textContent='Senha atualizada com sucesso.';
+  }catch(error){status.textContent=error.message||'Não foi possível trocar a senha.'}
 }
 
 /* ── Atendimentos: espelho do WhatsApp Web para o Master ─────────────────── */
