@@ -98,7 +98,22 @@
                 <div class="system-kpi"><small>Tempo economizado</small><strong>~40h/mês</strong></div>
                 <div class="system-kpi"><small>Erros evitados</small><strong>96</strong></div>
               </div>
-              <div class="system-chart"></div>
+              <div class="system-chart">
+                <svg viewBox="0 0 280 110" preserveAspectRatio="none" aria-hidden="true">
+                  <line x1="0" y1="27" x2="280" y2="27" class="chart-grid"></line>
+                  <line x1="0" y1="54" x2="280" y2="54" class="chart-grid"></line>
+                  <line x1="0" y1="81" x2="280" y2="81" class="chart-grid"></line>
+                  <rect x="8" y="70" width="20" height="34" rx="3" class="chart-bar"></rect>
+                  <rect x="42" y="58" width="20" height="46" rx="3" class="chart-bar"></rect>
+                  <rect x="76" y="64" width="20" height="40" rx="3" class="chart-bar"></rect>
+                  <rect x="110" y="46" width="20" height="58" rx="3" class="chart-bar"></rect>
+                  <rect x="144" y="50" width="20" height="54" rx="3" class="chart-bar"></rect>
+                  <rect x="178" y="32" width="20" height="72" rx="3" class="chart-bar"></rect>
+                  <rect x="212" y="24" width="20" height="80" rx="3" class="chart-bar"></rect>
+                  <rect x="246" y="10" width="26" height="94" rx="3" class="chart-bar chart-bar-current"></rect>
+                  <polyline points="18,66 52,54 86,60 120,42 154,46 188,28 222,20 259,8" class="chart-line"></polyline>
+                </svg>
+              </div>
               <div class="system-alert"><strong>Martyn:</strong> tudo certo por aqui, já confirmei os dados com o cliente, é só emitir.</div>
             </div>
           </div>
@@ -130,6 +145,11 @@
         <h2>O Portal Nacional emite a nota. O TITAN te devolve o seu tempo.</h2>
         <p>A mesma infraestrutura oficial, sem nada de gambiarra, só com tudo que faltava pra emitir sem perder a tarde inteira nisso.</p>
       </div>
+      <div class="time-stat reveal">
+        <div class="time-stat-item"><strong>~40s</strong><span>por nota, só no Portal Nacional</span></div>
+        <div class="time-stat-arrow"><i data-lucide="arrow-right"></i></div>
+        <div class="time-stat-item featured"><strong>~15s</strong><span>por nota, com o TITAN</span></div>
+      </div>
       <div class="comparison reveal">
         <article class="comparison-card">
           <h3>Portal Nacional</h3>
@@ -159,10 +179,11 @@
       <div class="section-head center">
         <div class="eyebrow">Planos sob medida</div>
         <h2>Um plano para cada fase do seu negócio</h2>
-        <p>Os limites consideram NFS-e autorizadas no mês. A contratação e a liberação do acesso são confirmadas pela equipe TITAN.</p>
+        <p>Os limites consideram NFS-e autorizadas e canceladas no mês. A contratação libera seu acesso — contrate e libere o seu acesso agora mesmo.</p>
       </div>
       <div class="pricing">
-        <div class="pricing-grid reveal" id="pricing-grid"><p class="pricing-note">Carregando planos...</p></div>
+        <div class="pricing-cta" id="pricing-cta"><button class="btn btn-gold" type="button" id="pricing-toggle">Consultar planos</button></div>
+        <div class="pricing-grid reveal" id="pricing-grid" hidden><p class="pricing-note">Carregando planos...</p></div>
         <p class="pricing-note">A cobrança automática via instituição financeira e os relatórios contábeis serão habilitados somente após a configuração segura das credenciais e do consentimento da empresa.</p>
       </div>
     </section>
@@ -172,12 +193,18 @@
         <div class="section-head">
           <div class="eyebrow">Martyn, seu assistente fiscal</div>
           <h2>Emitir nota de dentro do WhatsApp que você já usa</h2>
-          <p>Sem baixar app, sem decorar tela nova: manda um áudio ou uma mensagem pro Martyn, ele confirma os dados com você e cuida do resto, inclusive de explicar aquele erro de Sefin que ninguém entende.</p>
+          <p>O Martyn é um assistente emissor de nota: sem baixar app, sem decorar tela nova, manda um áudio ou uma mensagem pra ele, no WhatsApp que você já usa todo dia, e a nota sai de lá mesmo.</p>
+          <div class="martyn-points">
+            <span><i data-lucide="mic"></i> Entende áudio ou texto, sem formulário pra preencher</span>
+            <span><i data-lucide="check-check"></i> Confirma tomador, serviço e valor com você antes de emitir</span>
+            <span><i data-lucide="file-check-2"></i> PDF e XML chegam prontos no chat, assim que a Sefin autoriza</span>
+            <span><i data-lucide="message-circle-question"></i> Explica aquele erro de Sefin que ninguém entende</span>
+          </div>
         </div>
 
         <div class="wa-phone">
           <div class="wa-notch"></div>
-          <div class="wa-statusbar"><span>9:41</span><span class="wa-statusbar-icons"><span class="wa-signal"><i></i><i></i><i></i><i></i></span><span class="wa-battery"><i></i></span></span></div>
+          <div class="wa-statusbar"><span id="wa-clock">9:41</span><span class="wa-statusbar-icons"><span class="wa-signal"><i></i><i></i><i></i><i></i></span><span class="wa-battery"><i></i></span></span></div>
           <div class="wa-header"><img class="wa-avatar" src="/titan-nfse-logo-transparent.png" alt=""><div><b>Titan Backoffice</b><span class="wa-status">online</span></div></div>
           <div class="wa-body" id="martyn-chat-body"></div>
         </div>
@@ -190,6 +217,7 @@
         <h2>Quatro passos. Nenhum deles chato.</h2>
         <p>Configure uma vez. O resto do caminho fica cada vez mais rápido, porque o TITAN lembra do que você já cadastrou.</p>
       </div>
+      <div class="steps-track" aria-hidden="true"><span class="steps-arrow"><i data-lucide="arrow-right"></i></span></div>
       <div class="steps reveal">
         <article class="step"><small>Etapa 01</small><h3>Configure a empresa</h3><p>Cinco minutos, uma vez só. Depois disso, o TITAN nunca mais pede esses dados de novo.</p></article>
         <article class="step"><small>Etapa 02</small><h3>Selecione cliente e serviço</h3><p>Do cadastro que já existe, no sistema ou direto no WhatsApp, conversando com o Martyn.</p></article>
@@ -244,6 +272,12 @@
     async function carregarBrandingPortal(){try{const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/system/branding');const data=await response.json();if(response.ok&&data.portalLogoDataUrl)document.querySelectorAll('img[src="/titan-nfse-logo-transparent.png"]').forEach(img=>{img.src=data.portalLogoDataUrl})}catch{}}
     carregarBrandingPortal();
     function escHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+    // Pedido do usuário (18/08/2026): horário fixo "9:41" na barra de status
+    // não batia com o horário das mensagens da demo (08:29+), quebrando a
+    // fidelidade com o WhatsApp de verdade. Hora real do dispositivo, igual a
+    // barra de status de um celular de verdade — sempre "agora", nunca destoa.
+    function atualizarRelogioWa(){const relogio=document.querySelector('#wa-clock');if(relogio)relogio.textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}
+    atualizarRelogioWa();setInterval(atualizarRelogioWa,30000);
     // Demo do Martyn (pedido do usuário): dados fictícios (Empresa Exemplo),
     // ordem cronológica, simulando "digitando..." antes de cada resposta do
     // Martyn, igual ao WhatsApp de verdade. "at" é o instante (ms desde o
@@ -301,6 +335,17 @@
     // mão aqui ficavam desatualizados toda vez que o Master mudava um plano
     // — busca direto de master_plans (GET /api/onboarding/plans) pra nunca
     // mais divergir.
+    // Pedido do usuário (18/08/2026): tirar o preço da página inicial — em vez
+    // dele, mostrar tempo economizado por mês. Conta oficial usada na seção
+    // de comparação (#comparacao): ~40s por nota no Portal Nacional puro
+    // contra ~15s pelo TITAN, então 25s economizados por nota autorizada.
+    const SEGUNDOS_ECONOMIZADOS_POR_NOTA=25;
+    function tempoEconomizadoHtml(limiteMensal){
+      const minutos=Math.round(Number(limiteMensal||0)*SEGUNDOS_ECONOMIZADOS_POR_NOTA/60);
+      if(minutos<60)return `~${minutos} min <small>economizados/mês</small>`;
+      const horas=(minutos/60).toLocaleString('pt-BR',{maximumFractionDigits:1});
+      return `~${horas}h <small>economizadas/mês</small>`;
+    }
     async function carregarPlanosPublicos(){
       const box=document.querySelector('#pricing-grid');if(!box)return;
       try{
@@ -311,7 +356,7 @@
         // pública, que já tem o card "Personalizado" pra quem precisa de mais.
         const plans=(todosPlanos||[]).filter(p=>['light10','essence20','advanced50'].includes(p.code));
         if(!response.ok||!plans?.length)throw new Error('sem planos');
-        box.innerHTML=plans.map((p,i)=>`<article class="price-card${i===Math.floor((plans.length-1)/2)?' featured':''}"><h3>${escHtml(p.name)}</h3><div class="price-value">R$ ${(p.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})} <small>/ mês</small></div><p>${escHtml(p.description||`Até ${p.monthlyLimit} notas autorizadas por mês.`)}</p>${p.benefits?.length?`<p class="pricing-note" style="margin:10px 0 0">${p.benefits.map(escHtml).join(' · ')}</p>`:''}<a class="btn btn-gold" href="#contratar" onclick="selecionarPlanoContato('${p.code}')">Quero este plano</a></article>`).join('')
+        box.innerHTML=plans.map((p,i)=>`<article class="price-card${i===Math.floor((plans.length-1)/2)?' featured':''}"><h3>${escHtml(p.name)}</h3><div class="price-value">${tempoEconomizadoHtml(p.monthlyLimit)}</div><p>${escHtml(p.description||`Até ${p.monthlyLimit} notas autorizadas por mês.`)}</p>${p.benefits?.length?`<p class="pricing-note" style="margin:10px 0 0">${p.benefits.map(escHtml).join(' · ')}</p>`:''}<a class="btn btn-gold" href="#contratar" onclick="selecionarPlanoContato('${p.code}')">Quero este plano</a></article>`).join('')
           +'<article class="price-card custom"><h3>Personalizado</h3><div class="price-value">Sob consulta</div><p>Precisa de um limite maior? Montamos sob medida para o seu volume.</p><a class="btn" href="#contratar" onclick="selecionarPlanoContato(\'personalizado\')">Fale com a gente</a></article>';
         // Achado 15/08/2026 (pedido do usuário): o formulário não sabia qual
         // card a pessoa clicou — "Quero este plano" só rolava a página, sem
@@ -322,6 +367,14 @@
       }catch{box.innerHTML='<p class="pricing-note">Não foi possível carregar os planos agora. Fale com a gente pelo formulário abaixo.</p>'}
     }
     carregarPlanosPublicos();
+    // Pedido do usuário (18/08/2026): em vez de expor os planos direto na
+    // página inicial, um botão único "Consultar planos" — os planos (já
+    // carregados em segundo plano acima) só aparecem quando a pessoa pede.
+    document.querySelector('#pricing-toggle')?.addEventListener('click',()=>{
+      document.querySelector('#pricing-grid').hidden=false;
+      document.querySelector('#pricing-cta').style.display='none';
+      document.querySelector('#pricing-grid').scrollIntoView({behavior:'smooth',block:'nearest'});
+    });
     // Só troca a seleção quando um card de plano é clicado (nunca sobrescreve
     // sozinho); o cliente sempre pode mudar depois direto no formulário.
     function selecionarPlanoContato(planCode){const select=document.querySelector('#contact-plan');if(select)select.value=planCode}
