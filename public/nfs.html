@@ -340,6 +340,11 @@
     }
     function openLoginDrawer(focusTarget='client'){loginBackdrop.classList.add('open');loginButton.setAttribute('aria-expanded','true');setTimeout(()=>document.querySelector(focusTarget==='admin'?'#admin-email':'#client-cnpj')?.focus(),80)}
     function closeLoginDrawer(){loginBackdrop.classList.remove('open');loginButton.setAttribute('aria-expanded','false');fecharPainelVerificacao()}
+    // X-Device-Trust vale pra login de empresa (CNPJ) e de Parceiro (o
+    // backend decide se confere, auth.ts) — sempre manda quando existe um
+    // dispositivo confiável salvo. Precisa estar na allowlist de CORS do
+    // servidor (server.ts) pra não travar o fetch inteiro por causa de um
+    // header extra num preflight (achado 18/08/2026).
     async function authLogin(payload){const deviceTrust=localStorage.getItem(STORAGE_DEVICE_TRUST);const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json',...(deviceTrust?{'X-Device-Trust':deviceTrust}:{})},body:JSON.stringify(payload)});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Não foi possível entrar.');return data}
     async function verifyLoginDevice(verificationId,code){const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/auth/login/verify-device',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({verificationId,code})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||'Não foi possível confirmar o código.');if(data.deviceTrustToken)localStorage.setItem(STORAGE_DEVICE_TRUST,data.deviceTrustToken);return data}
     function saveSession(access,company){sessionStorage.setItem(STORAGE_TOKEN,access.token);sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:access.user||{},companies:access.companies||[]}));if(company?.id)sessionStorage.setItem(STORAGE_COMPANY_ID,company.id)}
@@ -373,24 +378,32 @@
       }catch{}
       if(hint)hint.textContent=CONTACT_HINT_PADRAO;
     });
-    let pendingClientVerification=null;
-    function fecharPainelVerificacao(){pendingClientVerification=null;const painel=document.querySelector('#client-verify-form');if(painel)painel.style.display='none';const login=document.querySelector('#client-login-form');if(login)login.style.display=''}
+    // Painel de código de 6 dígitos é compartilhado pelos dois logins que
+    // podem pedir verificação (cliente por CNPJ, parceiro por e-mail — Master
+    // fica de fora, ver auth.ts) — pendingVerification guarda qual formulário
+    // chamou e o que fazer depois de confirmar o código.
+    let pendingVerification=null;
+    function fecharPainelVerificacao(){const painel=document.querySelector('#client-verify-form');if(painel)painel.style.display='none';if(pendingVerification?.formulario)pendingVerification.formulario.style.display='';pendingVerification=null}
+    function abrirPainelVerificacao(formulario,verificationId,emailHint,aoConfirmar){
+      pendingVerification={verificationId,aoConfirmar,formulario};
+      document.querySelector('#client-verify-hint').textContent='Mandamos um código de 6 dígitos pro e-mail '+(emailHint||'cadastrado')+'.';
+      formulario.style.display='none';
+      const painel=document.querySelector('#client-verify-form');painel.style.display='';
+      document.querySelector('#client-verify-code').value='';document.querySelector('#client-verify-status').textContent='';
+      setTimeout(()=>document.querySelector('#client-verify-code')?.focus(),80);
+    }
     function finalizarLoginCliente(access,cnpj){const company=(access.companies||[]).find(item=>normalizeTaxId(item.federal_tax_id)===cnpj);if(!company)throw new Error('Seu usuário não possui acesso liberado para este CNPJ.');saveSession(access,company);navegarAposLogin('/dashboard')}
+    function finalizarLoginAdmin(access){if(!access.user?.isMaster&&!access.user?.isPartner)throw new Error('Este acesso é exclusivo do administrador Master ou de um Parceiro cadastrado.');saveSession(access,null);navegarAposLogin(access.user.isMaster?'/admin':'/parceiro')}
     document.querySelector('#client-login-form').addEventListener('submit',async event=>{event.preventDefault();const status=document.querySelector('#client-login-status'),cnpj=normalizeTaxId(document.querySelector('#client-cnpj').value),password=document.querySelector('#client-password').value;status.textContent='';if(!/^[A-Z0-9]{12}[0-9]{2}$/.test(cnpj)||password.length<10){status.textContent='Informe um CNPJ válido e uma senha individual com pelo menos 10 caracteres.';return}try{status.textContent='Entrando...';const access=await authLogin({federalTaxId:cnpj,password});
-      if(access.verificationRequired){
-        pendingClientVerification={verificationId:access.verificationId,cnpj};
-        document.querySelector('#client-verify-hint').textContent='Mandamos um código de 6 dígitos pro e-mail '+(access.emailHint||'cadastrado')+'.';
-        event.target.style.display='none';
-        const painel=document.querySelector('#client-verify-form');painel.style.display='';
-        document.querySelector('#client-verify-code').value='';document.querySelector('#client-verify-status').textContent='';
-        setTimeout(()=>document.querySelector('#client-verify-code')?.focus(),80);
-        return;
-      }
+      if(access.verificationRequired){abrirPainelVerificacao(event.target,access.verificationId,access.emailHint,(a)=>finalizarLoginCliente(a,cnpj));return}
       finalizarLoginCliente(access,cnpj)
     }catch(error){status.textContent=error.message}});
-    document.querySelector('#client-verify-form').addEventListener('submit',async event=>{event.preventDefault();const status=document.querySelector('#client-verify-status'),code=document.querySelector('#client-verify-code').value.trim();if(!pendingClientVerification){fecharPainelVerificacao();return}if(!/^\d{6}$/.test(code)){status.textContent='Informe os 6 dígitos do código.';return}try{status.textContent='Confirmando...';const access=await verifyLoginDevice(pendingClientVerification.verificationId,code);finalizarLoginCliente(access,pendingClientVerification.cnpj)}catch(error){status.textContent=error.message}});
+    document.querySelector('#client-verify-form').addEventListener('submit',async event=>{event.preventDefault();const status=document.querySelector('#client-verify-status'),code=document.querySelector('#client-verify-code').value.trim();if(!pendingVerification){fecharPainelVerificacao();return}if(!/^\d{6}$/.test(code)){status.textContent='Informe os 6 dígitos do código.';return}try{status.textContent='Confirmando...';const access=await verifyLoginDevice(pendingVerification.verificationId,code);pendingVerification.aoConfirmar(access)}catch(error){status.textContent=error.message}});
     document.querySelector('#client-verify-back').addEventListener('click',fecharPainelVerificacao);
-    document.querySelector('#admin-login-form').addEventListener('submit',async event=>{event.preventDefault();const status=document.querySelector('#admin-login-status'),email=document.querySelector('#admin-email').value.trim(),password=document.querySelector('#admin-password').value;status.textContent='';if(!email||password.length<10){status.textContent='Informe e-mail e senha com pelo menos 10 caracteres.';return}try{status.textContent='Entrando...';const access=await authLogin({email,password});if(!access.user?.isMaster&&!access.user?.isPartner)throw new Error('Este acesso é exclusivo do administrador Master ou de um Parceiro cadastrado.');saveSession(access,null);navegarAposLogin(access.user.isMaster?'/admin':'/parceiro')}catch(error){status.textContent=error.message}});
+    document.querySelector('#admin-login-form').addEventListener('submit',async event=>{event.preventDefault();const status=document.querySelector('#admin-login-status'),email=document.querySelector('#admin-email').value.trim(),password=document.querySelector('#admin-password').value;status.textContent='';if(!email||password.length<10){status.textContent='Informe e-mail e senha com pelo menos 10 caracteres.';return}try{status.textContent='Entrando...';const access=await authLogin({email,password});
+      if(access.verificationRequired){abrirPainelVerificacao(event.target,access.verificationId,access.emailHint,finalizarLoginAdmin);return}
+      finalizarLoginAdmin(access)
+    }catch(error){status.textContent=error.message}});
     function aplicarIntencaoLogin(){const routeIntent=location.pathname==='/entrar'?'client':'';const intent=(PAGE_QUERY.get('login')||routeIntent).toLowerCase(),tenant=normalizeTaxId(PAGE_QUERY.get('tenant'));if(/^[A-Z0-9]{12}[0-9]{2}$/.test(tenant)){const input=document.querySelector('#client-cnpj');input.value=tenant;maskCnpjInput({target:input});}if(intent==='admin'||intent==='client'||tenant.length===14)openLoginDrawer(intent==='admin'?'admin':'client')}
     aplicarIntencaoLogin();
     document.querySelector('#contact-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,status=document.querySelector('#contact-status'),data=Object.fromEntries(new FormData(form));if(!/^[A-Z0-9]{12}[0-9]{2}$/.test(normalizeTaxId(data.federalTaxId||''))){status.textContent='Informe um CNPJ válido para consultarmos o regime tributário e agilizar a pré-inscrição.';return}status.textContent='Enviando...';try{const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const out=await response.json();if(!response.ok)throw new Error(out.error||'Não foi possível enviar.');form.reset();status.textContent='Recebemos sua pré-inscrição. Consultamos seu regime tributário automaticamente. Em breve nossa equipe entra em contato.'}catch(error){status.textContent=error.message}});
