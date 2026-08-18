@@ -70,7 +70,7 @@
       <div class="hero-grid">
         <div>
           <div class="badge"><i data-lucide="sparkles"></i> Pronto para a obrigatoriedade nacional de 01/09</div>
-          <h1>Emitir nota fiscal não devia tomar sua tarde inteira. <span>Agora não toma.</span></h1>
+          <h1>Agilize a emissão da sua nota fiscal <span>com o TITAN.</span></h1>
           <p class="hero-text">Cadastre uma vez, emita em segundos, no sistema ou mandando um áudio pro Martyn no WhatsApp. Menos telas, menos retrabalho, menos "deixa eu conferir de novo". O TITAN cuida da parte chata pra você cuidar do resto do seu dia.</p>
           <div class="hero-actions"><a class="btn btn-gold" href="#planos">Quero emitir mais rápido</a><a class="btn" href="#funcionamento">Ver como funciona <i data-lucide="arrow-down"></i></a></div>
           <div class="hero-points">
@@ -92,7 +92,7 @@
               <div class="menu-line"></div>
             </aside>
             <div class="system-main">
-              <div class="system-title"></div>
+              <div class="system-topbar"><span class="system-title">Painel</span><span class="system-user"><i class="system-user-dot"></i> Empresa Exemplo Ltda</span></div>
               <div class="system-kpis">
                 <div class="system-kpi"><small>Notas emitidas</small><strong>1.284</strong></div>
                 <div class="system-kpi"><small>Tempo economizado</small><strong>~40h/mês</strong></div>
@@ -117,6 +117,7 @@
               <div class="system-alert"><strong>Martyn:</strong> tudo certo por aqui, já confirmei os dados com o cliente, é só emitir.</div>
             </div>
           </div>
+          <div class="system-fab" aria-hidden="true"><i data-lucide="message-circle"></i><span class="system-fab-dot"></span></div>
         </div>
       </div>
     </section>
@@ -181,12 +182,16 @@
         <h2>Um plano para cada fase do seu negócio</h2>
         <p>Os limites consideram NFS-e autorizadas e canceladas no mês. A contratação libera seu acesso — contrate e libere o seu acesso agora mesmo.</p>
       </div>
-      <div class="pricing">
-        <div class="pricing-cta" id="pricing-cta"><button class="btn btn-gold" type="button" id="pricing-toggle">Consultar planos</button></div>
-        <div class="pricing-grid reveal" id="pricing-grid" hidden><p class="pricing-note">Carregando planos...</p></div>
+      <div class="pricing-cta"><button class="btn btn-gold" type="button" id="pricing-toggle">Consultar planos</button></div>
+    </section>
+
+    <div class="planos-modal-backdrop" id="planos-modal-backdrop">
+      <div class="planos-modal" role="dialog" aria-modal="true" aria-labelledby="planos-modal-title">
+        <div class="drawer-head"><div><h2 id="planos-modal-title">Nossos planos</h2><p>Escolha pelo seu volume de notas — a contratação libera seu acesso na hora.</p></div><button class="drawer-close" type="button" aria-label="Fechar planos" id="planos-modal-close"><i data-lucide="x"></i></button></div>
+        <div class="pricing-grid" id="pricing-grid"><p class="pricing-note">Carregando planos...</p></div>
         <p class="pricing-note">A cobrança automática via instituição financeira e os relatórios contábeis serão habilitados somente após a configuração segura das credenciais e do consentimento da empresa.</p>
       </div>
-    </section>
+    </div>
 
     <section class="content-section section-light" id="martyn">
       <div class="martyn-layout reveal">
@@ -204,7 +209,7 @@
 
         <div class="wa-phone">
           <div class="wa-notch"></div>
-          <div class="wa-statusbar"><span id="wa-clock">9:41</span><span class="wa-statusbar-icons"><span class="wa-signal"><i></i><i></i><i></i><i></i></span><span class="wa-battery"><i></i></span></span></div>
+          <div class="wa-statusbar"><span id="wa-clock">08:29</span><span class="wa-statusbar-icons"><span class="wa-signal"><i></i><i></i><i></i><i></i></span><span class="wa-battery"><i></i></span></span></div>
           <div class="wa-header"><img class="wa-avatar" src="/titan-nfse-logo-transparent.png" alt=""><div><b>Titan Backoffice</b><span class="wa-status">online</span></div></div>
           <div class="wa-body" id="martyn-chat-body"></div>
         </div>
@@ -224,6 +229,7 @@
         <article class="step"><small>Etapa 03</small><h3>Valide as informações</h3><p>O TITAN aponta o que está fora do lugar antes de enviar, não depois que a Sefin já rejeitou.</p></article>
         <article class="step"><small>Etapa 04</small><h3>Emita e compartilhe</h3><p>Fica no histórico pra sempre; pelo WhatsApp, o PDF e o XML já chegam prontos, sem você pedir.</p></article>
       </div>
+      <div class="steps-payoff" aria-hidden="true"><i data-lucide="mail-check"></i> Nota enviada por e-mail — o mesmo que o Portal Nacional levaria ~40s pra fazer, o TITAN faz em ~15s</div>
     </section>
 
     <section class="contact" id="contratar">
@@ -272,12 +278,6 @@
     async function carregarBrandingPortal(){try{const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/system/branding');const data=await response.json();if(response.ok&&data.portalLogoDataUrl)document.querySelectorAll('img[src="/titan-nfse-logo-transparent.png"]').forEach(img=>{img.src=data.portalLogoDataUrl})}catch{}}
     carregarBrandingPortal();
     function escHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-    // Pedido do usuário (18/08/2026): horário fixo "9:41" na barra de status
-    // não batia com o horário das mensagens da demo (08:29+), quebrando a
-    // fidelidade com o WhatsApp de verdade. Hora real do dispositivo, igual a
-    // barra de status de um celular de verdade — sempre "agora", nunca destoa.
-    function atualizarRelogioWa(){const relogio=document.querySelector('#wa-clock');if(relogio)relogio.textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}
-    atualizarRelogioWa();setInterval(atualizarRelogioWa,30000);
     // Demo do Martyn (pedido do usuário): dados fictícios (Empresa Exemplo),
     // ordem cronológica, simulando "digitando..." antes de cada resposta do
     // Martyn, igual ao WhatsApp de verdade. "at" é o instante (ms desde o
@@ -298,16 +298,25 @@
       {dir:'in',html:'NFS-e nº 12 autorizada, segue o DANFSe (PDF).<br><br>Link do XML: <span class="wa-link">nfse.titanbackoffice.com.br/n/exemplo01</span><br>O link é seguro e expira em 24 horas.',time:'08:34',at:27000},
       {dir:'in',text:'Precisando de mais alguma coisa, é só chamar!',time:'08:35',at:29500}
     ];
+    // Pedido do usuário (18/08/2026): balão de mensagem recebida não deveria
+    // repetir "Martyn:" toda hora — no WhatsApp de verdade (conversa 1:1,
+    // não grupo) o nome do remetente não aparece dentro do balão, só a
+    // posição/cor já diz quem mandou o quê.
     function conteudoMensagem(item){
-      if(item.file)return `<b>Martyn:</b><br><div class="wa-file"><div class="wa-file-icon">PDF</div><div><b>${escHtml(item.file.nome)}</b><small>${escHtml(item.file.tamanho)} · pdf</small></div></div>`;
-      return `<b>Martyn:</b><br>${item.html||escHtml(item.text).replace(/\n/g,'<br>')}`;
+      if(item.file)return `<div class="wa-file"><div class="wa-file-icon">PDF</div><div><b>${escHtml(item.file.nome)}</b><small>${escHtml(item.file.tamanho)} · pdf</small></div></div>`;
+      return item.html||escHtml(item.text).replace(/\n/g,'<br>');
     }
+    // Achado do próprio usuário (18/08/2026): relógio real do dispositivo não
+    // batia com o horário fictício das mensagens da demo (~08:29-08:35) —
+    // pior que o "9:41" fixo de antes, porque agora nunca coincidem. Em vez
+    // disso, a barra de status segue o horário DA MENSAGEM que está passando
+    // na conversa (sincroniza com cada balão que aparece).
     function iniciarDemoMartyn(){
-      const caixa=document.querySelector('#martyn-chat-body');
+      const caixa=document.querySelector('#martyn-chat-body'),relogio=document.querySelector('#wa-clock');
       if(!caixa||caixa.dataset.emAndamento)return;caixa.dataset.emAndamento='1';
       const TEMPO_DIGITANDO=1100;
       function rodarCiclo(){
-        caixa.innerHTML='';
+        caixa.innerHTML='';if(relogio)relogio.textContent=MARTYN_DEMO[0].time;
         MARTYN_DEMO.forEach(item=>{
           if(item.dir==='in'){
             setTimeout(()=>{
@@ -318,12 +327,14 @@
               const bolha=document.createElement('div');bolha.className='wa-msg in';
               bolha.innerHTML=conteudoMensagem(item)+'<span class="wa-time">'+item.time+'</span>';
               caixa.appendChild(bolha);caixa.scrollTop=caixa.scrollHeight;
+              if(relogio)relogio.textContent=item.time;
             },item.at);
           }else{
             setTimeout(()=>{
               const bolha=document.createElement('div');bolha.className='wa-msg out';
               bolha.innerHTML=escHtml(item.text).replace(/\n/g,'<br>')+'<span class="wa-time">'+item.time+' ✓✓</span>';
               caixa.appendChild(bolha);caixa.scrollTop=caixa.scrollHeight;
+              if(relogio)relogio.textContent=item.time;
             },item.at);
           }
         });
@@ -335,16 +346,17 @@
     // mão aqui ficavam desatualizados toda vez que o Master mudava um plano
     // — busca direto de master_plans (GET /api/onboarding/plans) pra nunca
     // mais divergir.
-    // Pedido do usuário (18/08/2026): tirar o preço da página inicial — em vez
-    // dele, mostrar tempo economizado por mês. Conta oficial usada na seção
-    // de comparação (#comparacao): ~40s por nota no Portal Nacional puro
-    // contra ~15s pelo TITAN, então 25s economizados por nota autorizada.
+    // Pedido do usuário (18/08/2026): o preço não fica exposto direto na
+    // página inicial — abre numa tela separada (modal), com o valor de cada
+    // plano E, bem pequenininho, o tempo economizado por mês. Conta oficial
+    // usada também na seção de comparação (#comparacao): ~40s por nota no
+    // Portal Nacional puro contra ~15s pelo TITAN, 25s economizados/nota.
     const SEGUNDOS_ECONOMIZADOS_POR_NOTA=25;
-    function tempoEconomizadoHtml(limiteMensal){
+    function tempoEconomizadoTexto(limiteMensal){
       const minutos=Math.round(Number(limiteMensal||0)*SEGUNDOS_ECONOMIZADOS_POR_NOTA/60);
-      if(minutos<60)return `~${minutos} min <small>economizados/mês</small>`;
+      if(minutos<60)return `~${minutos} min economizados/mês, depois de parametrizado`;
       const horas=(minutos/60).toLocaleString('pt-BR',{maximumFractionDigits:1});
-      return `~${horas}h <small>economizadas/mês</small>`;
+      return `~${horas}h economizadas/mês, depois de parametrizado`;
     }
     async function carregarPlanosPublicos(){
       const box=document.querySelector('#pricing-grid');if(!box)return;
@@ -356,8 +368,8 @@
         // pública, que já tem o card "Personalizado" pra quem precisa de mais.
         const plans=(todosPlanos||[]).filter(p=>['light10','essence20','advanced50'].includes(p.code));
         if(!response.ok||!plans?.length)throw new Error('sem planos');
-        box.innerHTML=plans.map((p,i)=>`<article class="price-card${i===Math.floor((plans.length-1)/2)?' featured':''}"><h3>${escHtml(p.name)}</h3><div class="price-value">${tempoEconomizadoHtml(p.monthlyLimit)}</div><p>${escHtml(p.description||`Até ${p.monthlyLimit} notas autorizadas por mês.`)}</p>${p.benefits?.length?`<p class="pricing-note" style="margin:10px 0 0">${p.benefits.map(escHtml).join(' · ')}</p>`:''}<a class="btn btn-gold" href="#contratar" onclick="selecionarPlanoContato('${p.code}')">Quero este plano</a></article>`).join('')
-          +'<article class="price-card custom"><h3>Personalizado</h3><div class="price-value">Sob consulta</div><p>Precisa de um limite maior? Montamos sob medida para o seu volume.</p><a class="btn" href="#contratar" onclick="selecionarPlanoContato(\'personalizado\')">Fale com a gente</a></article>';
+        box.innerHTML=plans.map((p,i)=>`<article class="price-card${i===Math.floor((plans.length-1)/2)?' featured':''}"><h3>${escHtml(p.name)}</h3><div class="price-value">R$ ${(p.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})} <small>/ mês</small></div><p>${escHtml(p.description||`Até ${p.monthlyLimit} notas autorizadas por mês.`)}</p><p class="price-time-saved">${tempoEconomizadoTexto(p.monthlyLimit)}</p>${p.benefits?.length?`<p class="pricing-note" style="margin:10px 0 0">${p.benefits.map(escHtml).join(' · ')}</p>`:''}<a class="btn btn-gold" href="#contratar" onclick="selecionarPlanoContato('${p.code}');fecharPlanosModal()">Quero este plano</a></article>`).join('')
+          +'<article class="price-card custom"><h3>Personalizado</h3><div class="price-value">Sob consulta</div><p>Precisa de um limite maior? Montamos sob medida para o seu volume.</p><a class="btn" href="#contratar" onclick="selecionarPlanoContato(\'personalizado\');fecharPlanosModal()">Fale com a gente</a></article>';
         // Achado 15/08/2026 (pedido do usuário): o formulário não sabia qual
         // card a pessoa clicou — "Quero este plano" só rolava a página, sem
         // levar a escolha junto. Preenche o select de planos do formulário
@@ -366,15 +378,17 @@
         if(planSelect)planSelect.innerHTML='<option value="">Ainda não decidi / quero conversar</option>'+plans.map(p=>`<option value="${p.code}">${escHtml(p.name)}</option>`).join('')+'<option value="personalizado">Personalizado (sob consulta)</option>';
       }catch{box.innerHTML='<p class="pricing-note">Não foi possível carregar os planos agora. Fale com a gente pelo formulário abaixo.</p>'}
     }
-    carregarPlanosPublicos();
-    // Pedido do usuário (18/08/2026): em vez de expor os planos direto na
-    // página inicial, um botão único "Consultar planos" — os planos (já
-    // carregados em segundo plano acima) só aparecem quando a pessoa pede.
-    document.querySelector('#pricing-toggle')?.addEventListener('click',()=>{
-      document.querySelector('#pricing-grid').hidden=false;
-      document.querySelector('#pricing-cta').style.display='none';
-      document.querySelector('#pricing-grid').scrollIntoView({behavior:'smooth',block:'nearest'});
-    });
+    let planosCarregados=false;
+    // Pedido do usuário (18/08/2026): "Consultar planos" abre uma tela
+    // separada (modal), não um reveal na mesma tela — mesmo padrão do
+    // login-drawer já usado nesta página. Só busca os planos na primeira
+    // vez que abre, não a cada clique.
+    const planosModalBackdrop=document.querySelector('#planos-modal-backdrop');
+    function abrirPlanosModal(){if(!planosCarregados){planosCarregados=true;carregarPlanosPublicos()}planosModalBackdrop.classList.add('open')}
+    function fecharPlanosModal(){planosModalBackdrop.classList.remove('open')}
+    document.querySelector('#pricing-toggle')?.addEventListener('click',abrirPlanosModal);
+    document.querySelector('#planos-modal-close')?.addEventListener('click',fecharPlanosModal);
+    planosModalBackdrop.addEventListener('click',event=>{if(event.target===planosModalBackdrop)fecharPlanosModal()});
     // Só troca a seleção quando um card de plano é clicado (nunca sobrescreve
     // sozinho); o cliente sempre pode mudar depois direto no formulário.
     function selecionarPlanoContato(planCode){const select=document.querySelector('#contact-plan');if(select)select.value=planCode}
@@ -403,7 +417,7 @@
     function saveSession(access,company){sessionStorage.setItem(STORAGE_TOKEN,access.token);sessionStorage.setItem(STORAGE_SESSION,JSON.stringify({user:access.user||{},companies:access.companies||[]}));if(company?.id)sessionStorage.setItem(STORAGE_COMPANY_ID,company.id)}
     function safeNext(defaultTarget){const next=PAGE_QUERY.get('next')||'';if(!next)return defaultTarget;try{const url=new URL(next,location.origin);return url.origin===location.origin?url.pathname+url.search+url.hash:defaultTarget}catch{return defaultTarget}}
     function navegarAposLogin(defaultTarget){window.top.location.href=safeNext(defaultTarget)}
-    loginButton.addEventListener('click',()=>openLoginDrawer());loginClose.addEventListener('click',closeLoginDrawer);loginBackdrop.addEventListener('click',event=>{if(event.target===loginBackdrop)closeLoginDrawer()});loginDrawer.addEventListener('click',event=>event.stopPropagation());document.addEventListener('keydown',event=>{if(event.key==='Escape')closeLoginDrawer()});document.querySelector('#client-cnpj').addEventListener('input',maskCnpjInput);document.querySelector('#contact-cnpj').addEventListener('input',maskCnpjInput);
+    loginButton.addEventListener('click',()=>openLoginDrawer());loginClose.addEventListener('click',closeLoginDrawer);loginBackdrop.addEventListener('click',event=>{if(event.target===loginBackdrop)closeLoginDrawer()});loginDrawer.addEventListener('click',event=>event.stopPropagation());document.addEventListener('keydown',event=>{if(event.key==='Escape'){closeLoginDrawer();fecharPlanosModal()}});document.querySelector('#client-cnpj').addEventListener('input',maskCnpjInput);document.querySelector('#contact-cnpj').addEventListener('input',maskCnpjInput);
     // Achado 15/08/2026 (pedido do usuário): ao completar o CNPJ, consulta a
     // base pública (mesma origem "public", já com balde de limite próprio —
     // ver registry/cnpj.ts) e sugere razão social/e-mail/telefone — nunca

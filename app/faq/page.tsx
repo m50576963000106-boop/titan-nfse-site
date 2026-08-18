@@ -20,24 +20,39 @@ const PERGUNTAS = [
       "Não. Você escolhe o serviço numa lista e o TITAN indica automaticamente as opções mais próximas pela descrição — sem precisar decorar código nenhum.",
   },
   {
-    pergunta: "Minha contabilidade continua responsável pelos impostos?",
+    pergunta: "Quanto tempo leva para minha nota ser autorizada depois que eu emito?",
     resposta:
-      "Sim. O TITAN organiza clientes, notas e XMLs num pacote pronto para a contabilidade — ele não substitui o seu contador, só facilita o trabalho de ambos.",
+      "Na maioria das vezes, segundos. O TITAN manda a nota pra Sefin Nacional assim que você confirma, e o retorno (autorizada ou rejeitada) chega no histórico — sem precisar ficar atualizando a tela.",
   },
   {
-    pergunta: "Posso testar antes de contratar de verdade?",
+    pergunta: "Errei um dado na nota — dá para corrigir depois de já ter emitido?",
     resposta:
-      "Sim. O ambiente de Produção Restrita simula toda a emissão sem gerar documentos com validade fiscal, para você validar o fluxo com calma.",
+      "NFS-e autorizada não pode ser editada, só cancelada (dentro do prazo permitido) e emitida de novo, certinha. O TITAN reaproveita os dados da nota original pra você não digitar tudo de novo.",
   },
   {
-    pergunta: "E se eu ultrapassar o limite do meu plano?",
+    pergunta: "Dá para cancelar uma nota já emitida?",
     resposta:
-      "Sem problema — é só migrar para o plano seguinte ou pedir um limite personalizado. Fale com a gente a qualquer momento.",
+      "Dá, pelo portal ou pelo WhatsApp com o Martyn, respeitando o prazo definido pelo município. O PDF e o XML atualizados (já com o cancelamento) ficam disponíveis assim que você confirmar.",
   },
   {
-    pergunta: "Preciso trocar de certificado digital?",
+    pergunta: "O que é o DANFSe e para que ele serve?",
     resposta:
-      "Não necessariamente. Você usa o certificado que já tem — o TITAN cuida da assinatura da nota a partir dele.",
+      "É o PDF de representação da NFS-e — o documento que você entrega pro seu cliente. A nota fiscal em si é o XML autorizado pela Sefin; o DANFSe é só a versão legível dele.",
+  },
+  {
+    pergunta: "Meu cliente recebe a nota automaticamente, ou eu preciso enviar?",
+    resposta:
+      "Se o e-mail do tomador estiver cadastrado, o TITAN manda o PDF e o link do XML sozinho assim que a nota é autorizada. Pelo WhatsApp com o Martyn, os dois chegam no próprio chat.",
+  },
+  {
+    pergunta: "Posso emitir nota para pessoa física, só com CPF?",
+    resposta:
+      "Pode. O cadastro do tomador aceita CPF ou CNPJ — o TITAN valida o dígito verificador antes de mandar pra Sefin, pra você não descobrir o erro só depois da rejeição.",
+  },
+  {
+    pergunta: "E se a Sefin rejeitar a nota que eu emiti?",
+    resposta:
+      "O TITAN mostra o motivo da rejeição em português (não só o código técnico da Sefin) e deixa você corrigir e reenviar na hora, sem perder os dados que já tinha preenchido.",
   },
   {
     pergunta: "Dá para emitir e cancelar notas pelo WhatsApp?",
