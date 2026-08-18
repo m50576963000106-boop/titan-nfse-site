@@ -94,7 +94,7 @@
       <div class="alert a-warn" id="conta-restrita-aviso" style="display:none;margin:0 10px 12px;font-size:12px"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div>Pagamento não identificado. Acesso restrito a Notas emitidas até a confirmação.</div></div>
       <div class="sb-sec">Visão geral</div>
       <button class="sb-link active" data-permission="dashboard" onclick="go('painel',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</button>
-      <button class="sb-link" type="button" disabled aria-disabled="true" title="Em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Agenda e vencimentos</button>
+      <button class="sb-link" type="button" data-permission="financial" onclick="go('agenda',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Agenda e vencimentos</button>
 
       <div class="sb-sec">Notas fiscais</div>
       <button class="sb-link" id="sb-emitir" data-permission="emit" onclick="go('emitir',this,true)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Emitir NFS-e</button>
@@ -105,7 +105,7 @@
       <div class="sb-sec">Vendas e serviços</div>
       <button class="sb-link" data-permission="emit" onclick="abrirComercial('quote',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg>Orçamentos</button>
       <button class="sb-link" data-permission="emit" onclick="abrirComercial('service_order',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg>Ordens de serviço</button>
-      <button class="sb-link" type="button" disabled aria-disabled="true" title="Em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 8h8M8 12h8"/></svg>Contratos recorrentes</button>
+      <button class="sb-link" type="button" data-permission="emit" data-feature="invoice_recurrences" onclick="go('recorrentes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 8h8M8 12h8"/></svg>Contratos recorrentes</button>
 
       <div class="sb-sec">Financeiro</div>
       <button class="sb-link" type="button" data-permission="financial" onclick="alternarGrupoMenu('financeiro-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg>Financeiro<span class="nav-alert">⚠</span><span class="sb-chevron">›</span></button>
@@ -550,8 +550,13 @@
         <div id="client-list" class="draft-list"></div></div></div>
     </section>
 
+    <section class="view" id="v-agenda">
+      <div class="page-h"><h1>Agenda e vencimentos</h1><p>Todos os próximos vencimentos num só lugar: recebimentos já agendados e a próxima nota recorrente prevista de cada cliente.</p></div>
+      <div class="card"><div class="card-h"><h2>Próximos vencimentos</h2><button class="btn btn-s" type="button" onclick="carregarAgenda()">Atualizar</button></div><div class="card-b" id="agenda-list"><div class="empty-state">Carregando...</div></div></div>
+    </section>
+
     <section class="view" id="v-recorrentes">
-      <div class="page-h"><h1>Notas recorrentes</h1><p>Configure uma vez e o TITAN emite sozinho todo mês, no dia escolhido — sem precisar abrir o portal.</p></div>
+      <div class="page-h"><h1>Notas recorrentes / Contratos recorrentes</h1><p>Configure uma vez e o TITAN emite sozinho todo mês, no dia escolhido — sem precisar abrir o portal. Cada emissão já gera o recebimento correspondente em Financeiro automaticamente.</p></div>
       <div class="card"><div class="card-h"><h2>Recorrências cadastradas</h2><div class="flex" style="gap:6px"><button class="btn btn-p" type="button" onclick="novaRecorrencia()">+ Nova recorrência</button><button class="btn btn-s" onclick="carregarRecorrencias()">Atualizar</button></div></div><div class="card-b">
         <div class="tbl-scroll"><table class="tbl-cards-mobile">
           <thead><tr><th>Cliente / serviço</th><th style="text-align:right">Valor</th><th>Agenda</th><th>Próxima emissão</th><th>Situação</th><th style="text-align:right">Ações</th></tr></thead>
@@ -893,7 +898,7 @@
           <button class="btn btn-p" type="button" onclick="salvarRecorrenciaRecebimento()">Criar recorrência</button><div class="hint">A recorrência gera parcelas programadas; a emissão fiscal continua revisável antes de transmitir.</div>
         </div></div>
       </div>
-      <div class="card" style="margin-top:16px"><div class="card-h"><div><h2>Agenda e cobrança</h2><p>Fluxo similar ao Nibo: receber, revisar cobrança, marcar recebido e acompanhar pré-NFS-e.</p></div><select id="rec-filter" class="inp" style="max-width:180px" onchange="carregarRecebimentos()"><option value="all">Todos</option><option value="scheduled">Agendados</option><option value="to_charge">A cobrar</option><option value="charged">Cobrados</option><option value="received">Recebidos</option><option value="overdue">Vencidos</option></select></div><div class="card-b" id="rec-list"><div class="empty-state">Nenhum recebimento carregado.</div></div></div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><div><h2>Agenda e cobrança</h2><p>Fluxo similar ao Nibo: receber, revisar cobrança, marcar recebido e acompanhar pré-NFS-e.</p></div><div class="flex wrap" style="gap:8px;align-items:center"><select id="rec-filter" class="inp" style="max-width:180px" onchange="carregarRecebimentos()"><option value="all">Todos</option><option value="scheduled">Agendados</option><option value="to_charge">A cobrar</option><option value="charged">Cobrados</option><option value="received">Recebidos</option><option value="overdue">Vencidos</option></select><input id="rec-filter-from" class="inp" type="date" style="max-width:150px" title="Vencimento de" onchange="carregarRecebimentos()"><input id="rec-filter-to" class="inp" type="date" style="max-width:150px" title="Vencimento até" onchange="carregarRecebimentos()"></div></div><div class="card-b" id="rec-list"><div class="empty-state">Nenhum recebimento carregado.</div></div></div>
       <div class="grid g2" style="align-items:start;margin-top:16px" data-permission="financial_drafts">
         <div class="card"><div class="card-h"><h2>Rascunhos financeiros</h2><span class="pill p-off">não aprovado para MVP</span></div><div class="card-b"><div class="draft-item"><b>Boletos e Pix por provedor</b><span>Depende de provedor homologado, idempotência e conciliação.</span></div><div class="draft-item"><b>Fluxo de caixa completo</b><span>Entradas futuras estão previstas; saídas e contas a pagar ficam para fase posterior.</span></div></div></div>
         <div class="card"><div class="card-h"><h2>Automação futura</h2><span class="pill p-off">rascunho</span></div><div class="card-b"><div class="draft-item"><b>Cobrança automática em lote</b><span>Bloqueada até existir opt-in, fila, rate limit e confirmação final.</span></div><div class="draft-item"><b>Emissão automática irrestrita</b><span>Permitida futuramente só para contratos fiscalmente validados.</span></div></div></div>
@@ -1055,8 +1060,9 @@
         </div></div>
       </div>
 
-      <div class="master-panel" id="master-panel-parceiros"><div class="card"><div class="card-h"><div><h3>Gestão de parceiros</h3><p>Um usuário pode ter no máximo um vínculo. Sem parceiro, o vínculo exibido é Administrador.</p></div></div><div class="card-b"><input id="partner-id" type="hidden"><div class="row r3"><div class="field"><label for="partner-name">Nome do parceiro</label><input id="partner-name" class="inp" placeholder="Razão social ou nome completo"></div><div class="field"><label for="partner-nickname">Apelido</label><input id="partner-nickname" class="inp" placeholder="Ex.: Contabilidade Alfa"></div><div class="field"><label for="partner-commission">Comissão (%)</label><input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex.: 10"><div class="hint">Usada na aba Comissões do Portal do Parceiro, sobre a mensalidade de cada empresa da carteira.</div></div></div><div class="row"><div class="field"><label for="partner-email">E-mail do parceiro</label><input id="partner-email" class="inp" type="email" placeholder="parceiro@exemplo.com"><div class="hint">Acesso próprio ao Portal do Parceiro (login dedicado) — diferente de vincular um usuário de empresa cliente já existente. Necessário para enviar o convite.</div></div></div><div class="row"><div class="field"><label>&nbsp;</label><div class="flex wrap"><button class="btn btn-p" id="partner-save" type="button" onclick="salvarParceiroMaster()">Cadastrar parceiro</button><button class="btn" id="partner-cancel" style="display:none" type="button" onclick="cancelarEdicaoParceiroMaster()">Cancelar edição</button></div></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Apelido</th><th>E-mail / convite</th><th>Comissão</th><th>Usuários vinculados</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-partners"></tbody></table></div></div></div>
-        <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Pedidos de licença</h3><p>Modelo de revenda: o parceiro compra o estoque de licenças e revende pro cliente pelo valor que quiser. Confirme aqui só depois de ver o pagamento chegar (PIX/transferência, fora do sistema).</p></div><button class="btn btn-s" type="button" onclick="carregarPedidosLicencaMaster()">Atualizar</button></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Parceiro</th><th>Plano</th><th>Qtd.</th><th>Valor total</th><th>Status</th><th>Pedido em</th><th>Ação</th></tr></thead><tbody id="master-license-orders"><tr><td colspan="7" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div></div>
+      <div class="master-panel" id="master-panel-parceiros"><div class="card"><div class="card-h"><div><h3>Gestão de parceiros</h3><p>Um usuário pode ter no máximo um vínculo. Sem parceiro, o vínculo exibido é Administrador.</p></div></div><div class="card-b"><input id="partner-id" type="hidden"><div class="row r3"><div class="field"><label for="partner-name">Nome do parceiro</label><input id="partner-name" class="inp" placeholder="Razão social ou nome completo"></div><div class="field"><label for="partner-nickname">Apelido</label><input id="partner-nickname" class="inp" placeholder="Ex.: Contabilidade Alfa"></div><div class="field"><label for="partner-commission">Comissão (%)</label><input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex.: 10"><div class="hint">Usada na aba Comissões do Portal do Parceiro, sobre a mensalidade de cada empresa da carteira.</div></div></div><div class="row"><div class="field"><label for="partner-email">E-mail do parceiro</label><input id="partner-email" class="inp" type="email" placeholder="parceiro@exemplo.com"><div class="hint">Acesso próprio ao Portal do Parceiro (login dedicado) — diferente de vincular um usuário de empresa cliente já existente. Necessário para enviar o convite.</div></div><div class="field"><label for="partner-cnpj">CNPJ/CPF do parceiro</label><input id="partner-cnpj" class="inp" placeholder="00.000.000/0000-00"><div class="hint">Obrigatório para liberar licenças cobradas — é o tomador da nota fiscal emitida pela TITAN BACKOFFICE.</div></div></div><div class="row"><div class="field"><label>&nbsp;</label><div class="flex wrap"><button class="btn btn-p" id="partner-save" type="button" onclick="salvarParceiroMaster()">Cadastrar parceiro</button><button class="btn" id="partner-cancel" style="display:none" type="button" onclick="cancelarEdicaoParceiroMaster()">Cancelar edição</button></div></div></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Apelido</th><th>CNPJ/CPF</th><th>E-mail / convite</th><th>Comissão</th><th>Usuários vinculados</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-partners"></tbody></table></div></div></div>
+        <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Pedidos de licença</h3><p>Modelo de revenda: o parceiro compra o estoque de licenças e revende pro cliente pelo valor que quiser. Confirme aqui só depois de ver o pagamento chegar (PIX/transferência, fora do sistema).</p></div><button class="btn btn-s" type="button" onclick="carregarPedidosLicencaMaster()">Atualizar</button></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Parceiro</th><th>Plano</th><th>Qtd.</th><th>Valor total</th><th>Status</th><th>Pedido em</th><th>Ação</th></tr></thead><tbody id="master-license-orders"><tr><td colspan="7" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div>
+        <div class="card" style="margin-top:16px"><div class="card-h"><div><h3>Cobranças de licença</h3><p>Cobrança inicial (na liberação) e recorrente (a cada 30 dias, por empresa-cliente usando a licença). Confirmar emite a NFS-e real (TITAN BACKOFFICE → parceiro) e libera/desbloqueia na hora.</p></div><button class="btn btn-s" type="button" onclick="carregarCobrancasLicencaMaster()">Atualizar</button></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Parceiro</th><th>Empresa (recorrente)</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-license-charges"><tr><td colspan="6" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div></div>
 
 
       <div class="master-panel" id="master-panel-planos"><div class="card"><div class="card-h"><div><h3>Planos</h3><p>Defina nome, preço e limite de NFS-e autorizadas por mês.</p></div></div><div class="card-b"><div class="row r2"><div class="field"><label for="plan-code">Código</label><input id="plan-code" class="inp" placeholder="ex.: pro100"></div><div class="field"><label for="plan-name">Nome do plano</label><input id="plan-name" class="inp" placeholder="Plano Profissional"></div><div class="field"><label for="plan-price">Preço mensal (R$)</label><input id="plan-price" class="inp" inputmode="decimal" placeholder="99,90"></div><div class="field"><label for="plan-limit">Limite de notas / mês</label><input id="plan-limit" class="inp" type="number" min="1" placeholder="100"></div></div><div class="row r2"><div class="field"><label for="plan-description">Descrição</label><input id="plan-description" class="inp" placeholder="Resumo do que está incluído"></div><div class="field"><label for="plan-active">Status</label><select id="plan-active" class="inp"><option value="true">Ativo</option><option value="false">Inativo</option></select></div></div><div class="field"><label>Ferramentas incluídas no plano</label><div id="plan-features" class="alert a-info" style="margin:0;padding:10px;display:grid;gap:7px"></div><div class="hint">O que estiver marcado é o que o cliente contrata. O que é padrão do produto aparece travado. A recusa também acontece na API: desmarcar aqui bloqueia de verdade, não só esconde o botão.</div></div><div class="flex wrap"><button class="btn btn-p" type="button" onclick="salvarPlanoMaster()">Salvar plano</button><button class="btn" id="plan-cancel" style="display:none" type="button" onclick="cancelarEdicaoPlanoMaster()">Cancelar edição</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Plano</th><th>Preço</th><th>Limite</th><th>Ferramentas</th><th>Status</th><th>Ação</th></tr></thead><tbody id="master-plans"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Ferramentas avulsas</h3><p>Preço de cada ferramenta fora do plano — liga uma empresa específica em Gestão por CNPJ &gt; Editar cliente. Some ao valor do plano; bloqueado quando o plano já inclui.</p></div></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Ferramenta</th><th>Preço avulso (R$)</th><th>Vendida avulsa?</th><th>Ação</th></tr></thead><tbody id="master-addons"></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Pedidos de upgrade</h3><p>O cliente pede pelo portal; aprovar troca o plano na hora e avisa a empresa no sino.</p></div><span class="pill p-warn right" id="plan-upgrade-pending-pill" style="display:none">0 pendentes</span></div><div class="card-b"><div class="table-wrap"><table><thead><tr><th>Empresa</th><th>De</th><th>Para</th><th>Nota</th><th>Pedido em</th><th>Ação</th></tr></thead><tbody id="master-plan-upgrade-requests"><tr><td colspan="6" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div><div class="card"><div class="card-h"><div><h3>Contrato de Sessão de Uso</h3><p>Editar e publicar cria uma versão nova — a que o cliente já assinou nunca é sobrescrita.</p></div><span class="pill p-gold right" id="contract-current-pill">—</span></div><div class="card-b"><div class="field"><label for="contract-body">Texto do contrato (versão vigente)</label><textarea id="contract-body" class="inp" rows="16" style="font-family:inherit;line-height:1.5" oninput="this.dataset.dirty='1'"></textarea><div class="hint">Publicar avisa todas as empresas no sino: elas precisam ler e aceitar a versão nova para a Sessão de Uso continuar valendo.</div></div><div class="flex wrap"><button class="btn btn-s" type="button" onclick="publicarVersaoContrato('minor')">Publicar correção (versão menor)</button><button class="btn btn-p" type="button" onclick="publicarVersaoContrato('major')">Publicar revisão (versão maior)</button></div><div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Versão</th><th>Publicada em</th><th>Por</th><th>Aceites</th></tr></thead><tbody id="contract-versions-history"><tr><td colspan="4" class="empty-state">Carregando...</td></tr></tbody></table></div></div></div></div>
@@ -1858,6 +1864,7 @@ function go(v,el,limpar){
   if(v==='outros')carregarOutros();
   if(v==='clientes')carregarClientesCadastro();
   if(v==='recorrentes')carregarRecorrencias();
+  if(v==='agenda')carregarAgenda();
   if(v==='comercial'){renderEmpresaComercial();carregarComerciais();popularClientesComercial();carregarPerfisServico().then(popularServicosComercial);}
   if(v==='recebimentos')carregarRecebimentos();
   if(v==='financeiro')carregarBilling();
@@ -1924,8 +1931,12 @@ async function carregarRecebimentos(){
   await carregarRegistrosAuxiliares();
   popularSelectsRegistros();
   const filter=qs('#rec-filter')?.value||'all';
+  const dueFrom=qs('#rec-filter-from')?.value||'',dueTo=qs('#rec-filter-to')?.value||'';
+  let query='?status='+encodeURIComponent(filter);
+  if(dueFrom)query+='&dueFrom='+encodeURIComponent(dueFrom);
+  if(dueTo)query+='&dueTo='+encodeURIComponent(dueTo);
   try{
-    const [summary,items,recs]=await Promise.all([api('/api/workspace/receivables/summary'),api('/api/workspace/receivables?status='+encodeURIComponent(filter)),api('/api/workspace/recurrences')]);
+    const [summary,items,recs]=await Promise.all([api('/api/workspace/receivables/summary'),api('/api/workspace/receivables'+query),api('/api/workspace/recurrences')]);
     recebimentos=items||[];recorrenciasRecebimento=recs||[];
     qs('#rec-open').textContent='R$ '+brl(Number(summary.open_amount||0));
     qs('#rec-overdue').textContent='R$ '+brl(Number(summary.overdue_amount||0));
@@ -1943,7 +1954,8 @@ function renderRecebimento(item){
   const receber=item.status!=='received'&&item.status!=='cancelled'?`<button class="btn btn-s" type="button" onclick="mudarStatusRecebimento('${item.id}','received')">Marcar recebido</button>`:'';
   const emitir=item.fiscal_status==='pending_issue'&&!item.invoice_id?`<button class="btn btn-s" type="button" onclick="prepararNotaRecebimento('${item.id}')">Preparar NFS-e</button>`:'';
   const meta=[item.competence?`Competência ${item.competence}`:'',item.category,item.cost_center].filter(Boolean).join(' · ');
-  return `<div class="draft-item"><div><b>${esc(item.title)}</b><span>${esc(item.customer_name)} · vence ${due} · <b>${amount}</b></span><div class="hint">${esc(meta||'Sem classificação')} · ${esc(collection)} · ${esc(fiscal)}${item.notes?' · '+esc(item.notes):''}</div></div><div class="acts" style="margin-top:8px"><span class="pill ${status[0]}">${status[1]}</span>${cobrar}${receber}${emitir}</div></div>`;
+  const gerado=item.invoice_recurrence_id?'<span class="pill p-off" title="Criado automaticamente quando a nota recorrente foi emitida">Gerado por recorrência</span>':'';
+  return `<div class="draft-item"><div><b>${esc(item.title)}</b><span>${esc(item.customer_name)} · vence ${due} · <b>${amount}</b></span><div class="hint">${esc(meta||'Sem classificação')} · ${esc(collection)} · ${esc(fiscal)}${item.notes?' · '+esc(item.notes):''}</div></div><div class="acts" style="margin-top:8px"><span class="pill ${status[0]}">${status[1]}</span>${gerado}${cobrar}${receber}${emitir}</div></div>`;
 }
 async function salvarRecebimento(){
   const customerName=qs('#rec-client').value.trim(),c=clientePorNomeRecebimento(customerName),amount=Number(qs('#rec-value').value.replace(/\./g,'').replace(',','.'));
@@ -3725,6 +3737,24 @@ function clienteSelecionadoRecorrencia(){
   const value=(qs('#rc-customer')?.value||'').trim().toLocaleLowerCase('pt-BR');
   return clientesCadastro.find(c=>String(c.legal_name||'').trim().toLocaleLowerCase('pt-BR')===value)||null;
 }
+async function carregarAgenda(){
+  const box=qs('#agenda-list');if(!box)return;
+  box.innerHTML='<div class="empty-state">Carregando...</div>';
+  try{
+    const data=await api('/api/workspace/agenda');
+    const AGENDA_STATUS_LABEL={draft:['p-off','Rascunho'],scheduled:['p-gold','Agendado'],to_charge:['p-gold','A cobrar'],charged:['p-off','Cobrado'],overdue:['p-off','Vencido']};
+    const itens=[
+      ...(data.receivables||[]).map(r=>({data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'recebimento',status:r.status})),
+      ...(data.recurring||[]).map(r=>({data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'previsto',status:null}))
+    ].sort((a,b)=>a.data.localeCompare(b.data));
+    if(!itens.length){box.innerHTML='<div class="empty-state">Nenhum vencimento nos próximos 90 dias.</div>';return}
+    box.innerHTML=itens.map(item=>{
+      const due=new Date(item.data+'T00:00:00').toLocaleDateString('pt-BR');
+      const tipoPill=item.tipo==='previsto'?'<span class="pill p-off" title="Nota recorrente ainda não emitida — vira recebimento quando disparar">Nota recorrente prevista</span>':(()=>{const [c,l]=AGENDA_STATUS_LABEL[item.status]||['p-off',item.status];return `<span class="pill ${c}">${l}</span>`})();
+      return `<div class="draft-item"><div><b>${esc(item.titulo)}</b><span>${esc(item.cliente)} · vence ${due} · <b>R$ ${brl(Number(item.valor||0))}</b></span></div><div class="acts" style="margin-top:8px">${tipoPill}</div></div>`;
+    }).join('');
+  }catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+}
 async function carregarRecorrencias(){
   try{
     if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');
@@ -4442,7 +4472,7 @@ function masterTab(tab,button){
   qsa('[data-master-tab]').forEach(item=>item.classList.toggle('active',item.dataset.masterTab===tab));
   if(button)button.classList.add('active');
   if(tab==='inscricoes')carregarMasterInscricoes();
-  if(tab==='parceiros')carregarPedidosLicencaMaster();
+  if(tab==='parceiros'){carregarPedidosLicencaMaster();carregarCobrancasLicencaMaster();}
   if(tab==='logs')carregarMasterLogs();
   if(tab==='config'){carregarConfiguracoesMaster();carregarContaMaster();}
   if(tab==='atendimentos')iniciarAtendimentos();else pararPollingAtendimentos();
@@ -4971,8 +5001,9 @@ function renderMasterPartners(){const box=qs('#master-partners');if(!box||!maste
   const conviteCell=p.email
     ?`${esc(p.email)}<br>${PARTNER_INVITE_LABEL[inviteStatus]||PARTNER_INVITE_LABEL.none}${inviteStatus!=='accepted'?` <button class="btn btn-s" type="button" style="padding:3px 8px;font-size:11.5px" onclick="enviarConviteParceiroMaster('${p.id}')">${inviteStatus==='pending'?'Reenviar':'Enviar'} convite</button>`:''}`
     :'<span class="hint">Sem e-mail cadastrado</span>';
-  return `<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${conviteCell}</td><td>${brl(Number(p.commission_percent||0))}%</td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td><td><div class="acts"><button class="btn btn-s" type="button" onclick="editarParceiroMaster('${p.id}')">Editar</button><button class="btn btn-s" type="button" onclick="alternarStatusParceiroMaster('${p.id}')">${p.active?'Suspender':'Ativar'}</button></div></td></tr>`;
-}).join('')||'<tr><td colspan="7">Nenhum parceiro cadastrado.</td></tr>'}
+  const cnpjCell=p.federal_tax_id?`<span class="mono">${esc(formatarCnpj(p.federal_tax_id))}</span>`:'<span class="pill p-warn" title="Necessário para liberar licenças cobradas">Sem CNPJ/CPF</span>';
+  return `<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${cnpjCell}</td><td>${conviteCell}</td><td>${brl(Number(p.commission_percent||0))}%</td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td><td><div class="acts"><button class="btn btn-s" type="button" onclick="editarParceiroMaster('${p.id}')">Editar</button><button class="btn btn-s" type="button" onclick="alternarStatusParceiroMaster('${p.id}')">${p.active?'Suspender':'Ativar'}</button></div></td></tr>`;
+}).join('')||'<tr><td colspan="8">Nenhum parceiro cadastrado.</td></tr>'}
 async function enviarConviteParceiroMaster(id){
   const partner=masterData?.partners.find(item=>item.id===id);if(!partner)return;
   if(!partner.email){alert('Cadastre o e-mail do parceiro antes de enviar o convite.');return}
@@ -5017,6 +5048,36 @@ async function cancelarPedidoLicencaMaster(id){
   try{
     await api('/api/master/partner-license-orders/'+id+'/cancel',{method:'POST'});
     await carregarPedidosLicencaMaster();
+  }catch(error){alert(error.message)}
+}
+// Cobranças de licença (18/08/2026, pedido do usuário): cobrança inicial (na
+// liberação do pedido) e recorrente (a cada 30 dias, uma por empresa-cliente
+// usando a licença — jobs/partner-license-billing.ts). Confirmar aqui emite
+// a NFS-e real (TITAN BACKOFFICE → parceiro) e, se for recorrente, desbloqueia
+// a empresa-cliente na hora.
+const LICENCA_CHARGE_STATUS_LABEL={pending:['p-warn','Aguardando pagamento'],paid:['p-ok','Paga'],overdue:['p-err','Vencida'],canceled:['p-off','Cancelada']};
+async function carregarCobrancasLicencaMaster(){
+  const corpo=qs('#master-license-charges');if(!corpo)return;
+  corpo.innerHTML='<tr><td colspan="6" class="empty-state">Carregando...</td></tr>';
+  try{
+    const data=await api('/api/master/partner-license-charges?status=all');
+    const cobrancas=data.charges||[];
+    corpo.innerHTML=cobrancas.length?cobrancas.map(c=>{
+      const [classe,rotulo]=LICENCA_CHARGE_STATUS_LABEL[c.status]||['p-off',esc(c.status)];
+      const acao=(c.status==='pending'||c.status==='overdue')
+        ?`<button class="btn btn-p" type="button" onclick="confirmarCobrancaLicencaMaster('${c.id}')">Confirmar pagamento</button>`
+        :(c.invoice_id?'<span class="hint">Nota emitida</span>':'—');
+      return `<tr><td><b>${esc(c.partner_name||c.partner_nickname)}</b></td><td>${c.company_name?esc(c.company_name):'<span class="hint">Cobrança inicial</span>'}</td><td>R$ ${brl(Number(c.amount_cents||0)/100)}</td><td>${formatarDataNovidade(c.due_at)}</td><td><span class="pill ${classe}">${rotulo}</span></td><td>${acao}</td></tr>`;
+    }).join(''):'<tr><td colspan="6" class="empty-state">Nenhuma cobrança de licença ainda.</td></tr>';
+  }catch(error){
+    corpo.innerHTML=`<tr><td colspan="6" class="empty-state">${esc(error.message)}</td></tr>`;
+  }
+}
+async function confirmarCobrancaLicencaMaster(id){
+  if(!await titanConfirm('Confirme só depois de ver o pagamento chegar de verdade (PIX/transferência, fora do sistema). Isso emite a NFS-e real da TITAN BACKOFFICE pro parceiro e libera a licença na hora.','Confirmar pagamento de cobrança'))return;
+  try{
+    await api('/api/master/partner-license-charges/'+id+'/confirm-payment',{method:'POST'});
+    await carregarCobrancasLicencaMaster();
   }catch(error){alert(error.message)}
 }
 // O catálogo de ferramentas vem da API (masterData.planFeatures): ferramenta
@@ -5098,13 +5159,13 @@ async function consultarNovoClienteCnpj(){const input=qs('#master-new-cnpj'),cnp
 async function criarConviteNovoCliente(){const email=qs('#master-new-email').value.trim(),planCode=qs('#master-new-plan').value,whatsappPhone=qs('#master-new-zap').value.trim();if(!masterNewLookup?.active){alert('Consulte um CNPJ ativo antes de gerar o convite.');return}if(!email||!planCode){alert('Informe e-mail e plano.');return}try{const result=await api('/api/master/invitations',{method:'POST',body:JSON.stringify({federalTaxId:masterNewLookup.federalTaxId,email,planCode,whatsappPhone:whatsappPhone||undefined})});const token=new URL(result.invitePath,location.origin).searchParams.get('invite'),link=new URL('/dashboard',location.origin);if(token)link.searchParams.set('invite',token);const box=qs('#master-new-link');box.style.display='block';box.innerHTML=`<b>Link pronto para envio</b><br><span id="master-new-link-value">${esc(link.href)}</span><br><button class="btn btn-s" style="margin-top:8px" onclick="copiarTextoSeguro(qs('#master-new-link-value').textContent,this)">Copiar link</button>`;await carregarMaster()}catch(error){alert(error.message)}}
 let masterEditingPartnerId='';
 async function salvarParceiroMaster(){
-  const name=qs('#partner-name').value.trim(),nickname=qs('#partner-nickname').value.trim(),email=qs('#partner-email').value.trim(),commissionPercent=dinheiro(qs('#partner-commission').value);
+  const name=qs('#partner-name').value.trim(),nickname=qs('#partner-nickname').value.trim(),email=qs('#partner-email').value.trim(),federalTaxId=normalizarDocumento(qs('#partner-cnpj').value.trim()),commissionPercent=dinheiro(qs('#partner-commission').value);
   if(name.length<2||nickname.length<2){alert('Informe nome e apelido do parceiro.');return}
   if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){alert('Informe um e-mail válido, ou deixe em branco.');return}
   if(commissionPercent<0||commissionPercent>100){alert('A comissão precisa estar entre 0 e 100%.');return}
   const active=masterEditingPartnerId?qs('#partner-id').dataset.active!=='false':true;
   try{
-    await api('/api/master/partners'+(masterEditingPartnerId?'/'+masterEditingPartnerId:''),{method:masterEditingPartnerId?'PUT':'POST',body:JSON.stringify({name,nickname,email,active,commissionPercent})});
+    await api('/api/master/partners'+(masterEditingPartnerId?'/'+masterEditingPartnerId:''),{method:masterEditingPartnerId?'PUT':'POST',body:JSON.stringify({name,nickname,email,federalTaxId,active,commissionPercent})});
     cancelarEdicaoParceiroMaster();
     await carregarMaster();
   }catch(error){alert(error.message)}
@@ -5114,6 +5175,7 @@ function editarParceiroMaster(id){
   masterEditingPartnerId=id;
   qs('#partner-id').value=id;qs('#partner-id').dataset.active=String(partner.active!==false);
   qs('#partner-name').value=partner.name;qs('#partner-nickname').value=partner.nickname;qs('#partner-email').value=partner.email||'';
+  qs('#partner-cnpj').value=partner.federal_tax_id?formatarCnpj(partner.federal_tax_id):'';
   qs('#partner-commission').value=String(Number(partner.commission_percent||0)).replace('.',',');
   qs('#partner-save').textContent='Salvar alterações';qs('#partner-cancel').style.display='inline-flex';
   masterTab('parceiros');
@@ -5121,7 +5183,7 @@ function editarParceiroMaster(id){
 function cancelarEdicaoParceiroMaster(){
   masterEditingPartnerId='';
   qs('#partner-id').value='';qs('#partner-id').dataset.active='';
-  qs('#partner-name').value='';qs('#partner-nickname').value='';qs('#partner-email').value='';qs('#partner-commission').value='';
+  qs('#partner-name').value='';qs('#partner-nickname').value='';qs('#partner-email').value='';qs('#partner-cnpj').value='';qs('#partner-commission').value='';
   qs('#partner-save').textContent='Cadastrar parceiro';qs('#partner-cancel').style.display='none';
 }
 async function alternarStatusParceiroMaster(id){

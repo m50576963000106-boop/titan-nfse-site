@@ -158,6 +158,13 @@
           <tbody id="licencas-pedidos-rows"><tr><td colspan="5" class="partner-empty">Nenhum pedido ainda.</td></tr></tbody>
         </table></div>
       </div>
+      <div class="partner-card" style="margin-top:16px">
+        <div class="card-h" style="padding:16px 22px 0"><h3 style="color:var(--navy);font-size:15px">Cobranças</h3><p class="hint" style="margin-top:4px">Cobrança inicial (na liberação do pedido) e recorrente, a cada 30 dias, por empresa em uso. Confirmação de pagamento é feita pelo TITAN — aqui é só consulta.</p></div>
+        <div class="table-wrap"><table id="licencas-cobrancas-table">
+          <thead><tr><th>Empresa</th><th>Valor</th><th>Vencimento</th><th>Status</th></tr></thead>
+          <tbody id="licencas-cobrancas-rows"><tr><td colspan="4" class="partner-empty">Nenhuma cobrança ainda.</td></tr></tbody>
+        </table></div>
+      </div>
     </section>
 
     <section class="partner-view" id="partner-view-indicar" style="display:none">
@@ -376,10 +383,11 @@ async function carregarCarteira(){
     // manualmente o pagamento (sem gateway de pagamento real integrado pro
     // parceiro ainda) — só então o saldo abaixo aumenta.
     const LICENCA_STATUS_LABEL={pending:['p-warn','Aguardando confirmação'],paid:['p-ok','Pago'],canceled:['p-off','Cancelado']};
+    const LICENCA_CHARGE_STATUS_LABEL_PARCEIRO={pending:['p-warn','Aguardando pagamento'],paid:['p-ok','Paga'],overdue:['p-err','Vencida'],canceled:['p-off','Cancelada']};
     async function carregarLicencas(){
-      const catalogo=document.querySelector('#licencas-catalogo-rows'),saldo=document.querySelector('#licencas-saldo-rows'),pedidos=document.querySelector('#licencas-pedidos-rows');
+      const catalogo=document.querySelector('#licencas-catalogo-rows'),saldo=document.querySelector('#licencas-saldo-rows'),pedidos=document.querySelector('#licencas-pedidos-rows'),cobrancas=document.querySelector('#licencas-cobrancas-rows');
       try{
-        const [planos,dadosLicencas]=await Promise.all([garantirPlanosParceiro(),buscarApiParceiro('/api/partner/licenses')]);
+        const [planos,dadosLicencas,dadosCobrancas]=await Promise.all([garantirPlanosParceiro(),buscarApiParceiro('/api/partner/licenses'),buscarApiParceiro('/api/partner/license-charges')]);
         catalogo.innerHTML=planos.length?planos.map(p=>`<tr><td><b>${esc(p.name)}</b><br><span class="hint">${p.monthly_limit} notas/mês</span></td><td>R$ ${brl(Number(p.price_cents||0)/100)}</td><td><input class="inp" style="max-width:80px" type="number" min="1" value="1" id="qtd-${esc(p.code)}"></td><td><button class="btn btn-s" type="button" onclick="comprarLicencaParceiro('${esc(p.code)}')">Comprar</button></td></tr>`).join(''):'<tr><td colspan="4" class="partner-empty">Nenhum plano ativo no momento.</td></tr>';
         const balances=dadosLicencas.balances||[];
         saldo.innerHTML=balances.length?balances.map(b=>{
@@ -392,6 +400,11 @@ async function carregarCarteira(){
           const [classe,rotulo]=LICENCA_STATUS_LABEL[o.status]||['p-off',o.status];
           return `<tr><td>${esc(plano?.name||o.plan_code)}</td><td>${Number(o.quantity||0)}</td><td>R$ ${brl(Number(o.total_cents||0)/100)}</td><td><span class="pill ${classe}">${rotulo}</span></td><td>${formatarDataNovidadeParceiro(o.created_at)}</td></tr>`;
         }).join(''):'<tr><td colspan="5" class="partner-empty">Nenhum pedido ainda.</td></tr>';
+        const charges=dadosCobrancas.charges||[];
+        cobrancas.innerHTML=charges.length?charges.map(c=>{
+          const [classe,rotulo]=LICENCA_CHARGE_STATUS_LABEL_PARCEIRO[c.status]||['p-off',c.status];
+          return `<tr><td>${c.company_name?esc(c.company_name):'<span class="hint">Cobrança inicial</span>'}</td><td>R$ ${brl(Number(c.amount_cents||0)/100)}</td><td>${formatarDataNovidadeParceiro(c.due_at)}</td><td><span class="pill ${classe}">${rotulo}</span></td></tr>`;
+        }).join(''):'<tr><td colspan="4" class="partner-empty">Nenhuma cobrança ainda.</td></tr>';
       }catch(error){
         catalogo.innerHTML=`<tr><td colspan="4" class="partner-empty">${esc(error.message)}</td></tr>`;
       }
