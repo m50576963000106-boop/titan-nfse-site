@@ -243,6 +243,23 @@ main{margin-left:230px;padding:58px 0 0}
 .card-h h2{font-size:13px;font-weight:650;letter-spacing:-.01em}
 .card-b{padding:16px}
 
+/* Agenda e vencimentos (pedido do usuário, 18/08/2026): calendário de
+   verdade, não lista — grade do mês com os vencimentos no dia certo. */
+.agenda-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r)}
+.agenda-cal-head{background:#fafaf8;padding:8px 6px;text-align:center;font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+.agenda-cal-cell{background:#fff;min-height:78px;padding:6px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:background .15s ease}
+.agenda-cal-cell.vazio{background:#fafaf8;cursor:default}
+.agenda-cal-cell.tem-item:hover{background:var(--gold-soft,#faf2e2)}
+.agenda-cal-cell.hoje{background:rgba(201,168,76,.09)}
+.agenda-cal-cell.hoje .agenda-cal-dia{color:var(--gold);font-weight:800}
+.agenda-cal-dia{font-size:11.5px;font-weight:650;color:var(--ink-2)}
+.agenda-pill{font-size:9.5px;padding:2px 5px;border-radius:5px;background:var(--ok-bg);color:var(--ok);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agenda-pill.previsto{background:var(--warn-bg);color:var(--warn)}
+.agenda-pill-mais{font-size:9.5px;color:var(--ink-3);font-weight:650}
+.agenda-day-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.agenda-day-detail h3{font-size:13px;margin-bottom:10px;color:var(--ink)}
+@media(max-width:680px){.agenda-cal-cell{min-height:58px;font-size:10px}.agenda-cal-head{font-size:9.5px;padding:6px 2px}}
+
 .grid{display:grid;gap:14px}
 .g4{grid-template-columns:repeat(4,1fr)}
 .g3{grid-template-columns:repeat(3,1fr)}
