@@ -590,7 +590,7 @@
             <div class="field"><label>Meu serviço</label><div class="input-action"><select id="rc-service" class="inp" onchange="verificarVencimentoRecorrencia()"><option value="">Selecione um serviço cadastrado</option></select><button type="button" class="btn btn-s" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint">Só serviço cujo ISS incide no seu próprio estabelecimento pode virar recorrência automática — sem obra (CNO) nem evento, que exigem dado que ninguém confirma todo mês sozinho.</div></div>
             <div class="row r2"><div class="field"><label>Valor (R$)</label><input id="rc-amount" class="inp num" inputmode="decimal" value="0,00"></div><div class="field"><label>Dia do mês</label><input id="rc-day" class="inp" inputmode="numeric" maxlength="2" placeholder="1 a 28"></div></div>
             <div class="row r2"><div class="field"><label>Horário</label><input id="rc-time" class="inp" type="time" value="09:00"></div><div class="field"><label>Frequência</label><select id="rc-frequency" class="inp"><option value="1">Mensal</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></div></div>
-            <div class="row r2"><div class="field"><label>Dia de vencimento (opcional)</label><input id="rc-due-day" class="inp" inputmode="numeric" maxlength="2" placeholder="1 a 28" oninput="verificarVencimentoRecorrencia()"><div class="hint" id="rc-due-day-hint" style="display:none"></div></div><div class="field"><label>Encerrar em (opcional)</label><input id="rc-end-date" class="inp" type="date"></div></div>
+            <div class="row r2"><div class="field"><label>Dia de vencimento</label><input id="rc-due-day" class="inp" inputmode="numeric" maxlength="2" placeholder="1 a 28" oninput="verificarVencimentoRecorrencia()"><div class="hint">Vencimento financeiro do recebimento gerado a cada emissão — é o que aparece na Agenda e o que a cobrança usa.</div><div class="hint" id="rc-due-day-hint" style="display:none"></div></div><div class="field"><label>Encerrar em (opcional)</label><input id="rc-end-date" class="inp" type="date"></div></div>
             <div class="field"><label>Observação (opcional)</label><input id="rc-description" class="inp" placeholder="Ex.: mensalidade contábil"></div>
             <div class="foot-note">A emissão sai sozinha no dia e horário escolhidos, sem aprovação manual.</div>
           </div>
@@ -598,7 +598,7 @@
         </div>
       </div>
       <div class="card" style="margin-top:14px"><div class="card-h"><h2>Importar recorrências por planilha (CSV)</h2></div><div class="card-b">
-        <div class="hint">Baixe o modelo, preencha no Excel ou Google Sheets e envie de volta — uma recorrência por linha. Cliente (CPF/CNPJ) e serviço (número ou nome de Meus Serviços) precisam já estar cadastrados.</div>
+        <div class="hint">Baixe o modelo, preencha no Excel ou Google Sheets e envie de volta — uma recorrência por linha. Cliente (CPF/CNPJ) e serviço (número ou nome de Meus Serviços) precisam já estar cadastrados. O dia de vencimento é obrigatório: é ele que define o vencimento do recebimento na Agenda.</div>
         <div class="setup-actions" style="margin:10px 0 0">
           <button class="btn btn-s" type="button" onclick="baixarModeloRecorrenciaCsv()">Baixar modelo (.csv)</button>
           <button class="btn btn-s" type="button" onclick="qs('#rc-import-file').click()">Selecionar arquivo .csv</button>
@@ -827,22 +827,14 @@
         <div class="modal-card"><div class="modal-head"><div><h2 id="rec-form-title">Agendar recebimento</h2></div></div>
           <div class="modal-body">
             <div class="row r2"><div class="field"><label for="rec-title">Descrição</label><input id="rec-title" class="inp" placeholder="Honorários mensais"></div><div class="field"><label for="rec-client">Cliente</label><input id="rec-client" class="inp" list="rec-client-list" placeholder="Razão social ou nome"><datalist id="rec-client-list"></datalist></div></div>
-            <label style="display:flex;align-items:center;gap:8px;margin:4px 0 14px;cursor:pointer"><input type="checkbox" id="rec-recorrente" onchange="alternarRecebimentoRecorrente()"> <span>É recorrente — repete todo mês, gera nota fiscal e recebimento sozinho</span></label>
-            <div id="rec-oneoff-fields">
-              <div class="row r2"><div class="field"><label for="rec-value">Valor (R$)</label><input id="rec-value" class="inp num" inputmode="decimal" placeholder="0,00"></div><div class="field"><label for="rec-due">Vencimento</label><input id="rec-due" class="inp" type="date"></div></div>
-              <div class="row r2"><div class="field"><label for="rec-competence">Competência</label><input id="rec-competence" class="inp" placeholder="2026-07"></div><div class="field"><label for="rec-category">Categoria</label><select id="rec-category" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'categoria')"><option value="">Selecione...</option></select></div></div>
-              <div class="row r2"><div class="field"><label for="rec-cost-center">Centro de custo</label><select id="rec-cost-center" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'centro')"><option value="">Selecione...</option></select></div><div class="field"><label for="rec-channel">Cobrança</label><select id="rec-channel" class="inp"><option value="none">Sem cobrança agora</option><option value="whatsapp">WhatsApp/API zap — revisar antes</option><option value="manual">Manual</option></select></div></div>
-              <div class="field"><label for="rec-issue">NFS-e</label><select id="rec-issue" class="inp"><option value="false">Somente controle financeiro</option><option value="true">Gerar pré-NFS-e pendente de revisão</option></select></div>
-              <div class="field"><label for="rec-notes">Observações</label><textarea id="rec-notes" class="inp" rows="3" placeholder="Parâmetros, contrato, competência ou instruções de cobrança"></textarea></div>
-            </div>
-            <div id="rec-recurring-fields" style="display:none">
-              <div class="row r2"><div class="field"><label for="rec-service">Meu serviço</label><select id="rec-service" class="inp"><option value="">Selecione um serviço cadastrado</option></select><div class="hint">O cliente também precisa ser um cadastro existente — a nota recorrente automática exige os dois.</div></div><div class="field"><label for="rec-value-r">Valor (R$)</label><input id="rec-value-r" class="inp num" inputmode="decimal" placeholder="0,00"></div></div>
-              <div class="row r2"><div class="field"><label for="rec-day">Dia do mês</label><input id="rec-day" class="inp" inputmode="numeric" placeholder="1 a 28"></div><div class="field"><label for="rec-due-day">Dia de vencimento <span class="info-tip" title="Opcional — só preenche a variável #vencimento na descrição do serviço.">?</span></label><input id="rec-due-day" class="inp" inputmode="numeric" placeholder="Opcional"></div></div>
-              <div class="row r2"><div class="field"><label for="rec-frequency">Frequência</label><select id="rec-frequency" class="inp"><option value="1">Mensal</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></div><div class="field"><label for="rec-end-date">Termina em <span class="info-tip" title="Opcional — deixe em branco pra continuar até você pausar.">?</span></label><input id="rec-end-date" class="inp" type="date"></div></div>
-              <div class="hint">Todo disparo emite a NFS-e sozinho e já cria o recebimento correspondente aqui em Recebimentos, com vencimento certinho na Agenda.</div>
-            </div>
+            <div class="row r2"><div class="field"><label for="rec-value">Valor (R$)</label><input id="rec-value" class="inp num" inputmode="decimal" placeholder="0,00"></div><div class="field"><label for="rec-due">Vencimento</label><input id="rec-due" class="inp" type="date"></div></div>
+            <div class="row r2"><div class="field"><label for="rec-competence">Competência</label><input id="rec-competence" class="inp" placeholder="2026-07"></div><div class="field"><label for="rec-category">Categoria</label><select id="rec-category" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'categoria')"><option value="">Selecione...</option></select></div></div>
+            <div class="row r2"><div class="field"><label for="rec-cost-center">Centro de custo</label><select id="rec-cost-center" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'centro')"><option value="">Selecione...</option></select></div><div class="field"><label for="rec-channel">Cobrança</label><select id="rec-channel" class="inp"><option value="none">Sem cobrança agora</option><option value="whatsapp">WhatsApp/API zap — revisar antes</option><option value="manual">Manual</option></select></div></div>
+            <div class="field"><label for="rec-issue">NFS-e</label><select id="rec-issue" class="inp"><option value="false">Somente controle financeiro</option><option value="true">Gerar pré-NFS-e pendente de revisão</option></select></div>
+            <div class="field"><label for="rec-notes">Observações</label><textarea id="rec-notes" class="inp" rows="3" placeholder="Parâmetros, contrato, competência ou instruções de cobrança"></textarea></div>
+            <div class="hint" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">Isto agenda um recebimento único. Se repete todo mês, cadastre em Notas recorrentes — a nota sai sozinha e o recebimento é criado junto.<button class="btn btn-s" type="button" onclick="irParaNovaRecorrencia()">Notas recorrentes</button></div>
           </div>
-          <div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharModalRecebimento()">Cancelar</button><button class="btn btn-p" type="button" id="rec-save-btn" onclick="salvarRecebimentoOuRecorrente()">Agendar recebimento</button></div>
+          <div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharModalRecebimento()">Cancelar</button><button class="btn btn-p" type="button" id="rec-save-btn" onclick="salvarRecebimento()">Agendar recebimento</button></div>
         </div>
       </div>
       <div class="card" style="margin-top:16px"><div class="card-h"><div><h2>Agenda e cobrança</h2><p>Receber, revisar cobrança, marcar recebido e acompanhar a pré-NFS-e.</p></div><div class="flex wrap" style="gap:8px;align-items:center"><input id="rec-filter-client" class="inp" style="max-width:180px" placeholder="Filtrar por cliente"><select id="rec-filter" class="inp" style="max-width:170px"><option value="all">Todos</option><option value="scheduled">Agendados</option><option value="to_charge">A cobrar</option><option value="charged">Cobrados</option><option value="received">Recebidos</option><option value="overdue">Vencidos</option></select><input id="rec-filter-from" class="inp" type="date" style="max-width:150px" title="Vencimento de"><span class="hint">até</span><input id="rec-filter-to" class="inp" type="date" style="max-width:150px" title="Vencimento até"><button class="btn btn-p" type="button" onclick="carregarRecebimentos()">Buscar</button></div></div><div class="card-b" id="rec-list"><div class="empty-state">Nenhum recebimento carregado.</div></div></div>
@@ -1819,7 +1811,7 @@ function go(v,el,limpar){
   if(v==='logs')carregarLogsApi();
 }
 
-let recebimentos=[],recorrenciasRecebimento=[];
+let recebimentos=[];
 function clientePorNomeRecebimento(name){const value=(name||'').trim().toLocaleLowerCase('pt-BR');return clientesCadastro.find(c=>(c.legal_name||'').trim().toLocaleLowerCase('pt-BR')===value||(c.trade_name||'').trim().toLocaleLowerCase('pt-BR')===value)}
 async function popularClientesRecebimento(){try{if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');const dl=qs('#rec-client-list');if(dl)dl.innerHTML=clientesCadastro.map(c=>`<option value="${esc(c.legal_name)}">${esc(c.tax_id||'')}</option>`).join('')}catch{}}
 
@@ -1884,8 +1876,8 @@ async function carregarRecebimentos(){
   if(dueTo)query+='&dueTo='+encodeURIComponent(dueTo);
   if(clientFilter)query+='&search='+encodeURIComponent(clientFilter);
   try{
-    const [summary,items,recs]=await Promise.all([api('/api/workspace/receivables/summary'),api('/api/workspace/receivables'+query),api('/api/workspace/recurrences')]);
-    recebimentos=items||[];recorrenciasRecebimento=recs||[];
+    const [summary,items]=await Promise.all([api('/api/workspace/receivables/summary'),api('/api/workspace/receivables'+query)]);
+    recebimentos=items||[];
     qs('#rec-open').textContent='R$ '+brl(Number(summary.open_amount||0));
     qs('#rec-overdue').textContent='R$ '+brl(Number(summary.overdue_amount||0));
     qs('#rec-month').textContent='R$ '+brl(Number(summary.received_month||0));
@@ -1905,33 +1897,20 @@ function renderRecebimento(item){
   const gerado=item.invoice_recurrence_id?'<span class="pill p-off" title="Criado automaticamente quando a nota recorrente foi emitida">Gerado por recorrência</span>':'';
   return `<div class="draft-item"><div><b>${esc(item.title)}</b><span>${esc(item.customer_name)} · vence ${due} · <b>${amount}</b></span><div class="hint">${esc(meta||'Sem classificação')} · ${esc(collection)} · ${esc(fiscal)}${item.notes?' · '+esc(item.notes):''}</div></div><div class="acts" style="margin-top:8px"><span class="pill ${status[0]}">${status[1]}</span>${gerado}${cobrar}${receber}${emitir}</div></div>`;
 }
-// Pedido do usuário (18/08/2026): "Agendar recebimento" e "Recorrência de
-// honorários" eram dois cards/fluxos separados pro mesmo assunto — agora um
-// checkbox só troca os campos do MESMO formulário. Recorrente não usa mais
-// /workspace/recurrences (registro antigo, só controlava financeiro, nunca
-// nem aparecia listado em lugar nenhum) — vira de verdade uma nota
-// recorrente via /api/invoice-recurrences, que já gera nota fiscal E
-// recebimento sozinha a cada disparo.
 // Pedido do usuário (18/08/2026): "Agendar recebimento" precisa ser um botão
 // que abre modal, igual "+ Nova recorrência" (abrirModalRecorrencia) — mesmo
 // padrão de .modal-backdrop.on usado em todo o resto do portal.
+// Pedido do usuário (19/08/2026): recorrência tem UM lugar só — "Notas
+// recorrentes". O checkbox "É recorrente" que existia aqui criava a mesma
+// coisa (mesmo POST /api/invoice-recurrences), num segundo formulário com
+// campos duplicados, sem caminho de edição depois. Este modal voltou a ser
+// só recebimento avulso, com atalho pra tela certa.
 function abrirModalRecebimento(){qs('#recebimento-modal').classList.add('on')}
 function fecharModalRecebimento(){qs('#recebimento-modal').classList.remove('on')}
-async function alternarRecebimentoRecorrente(){
-  const recorrente=qs('#rec-recorrente').checked;
-  qs('#rec-oneoff-fields').style.display=recorrente?'none':'';
-  qs('#rec-recurring-fields').style.display=recorrente?'':'none';
-  qs('#rec-save-btn').textContent=recorrente?'Criar contrato recorrente':'Agendar recebimento';
-  if(recorrente&&!perfisServico.length){await carregarPerfisServico()}
-  if(recorrente)popularServicosRecebimentoServico();
-}
-function popularServicosRecebimentoServico(){
-  const select=qs('#rec-service');if(!select)return;
-  select.innerHTML='<option value="">Selecione um serviço cadastrado</option>'+perfisServico.map(item=>`<option value="${item.id}">${item.display_number?item.display_number+' — ':''}${esc(item.name)} — ${esc(item.national_code)}</option>`).join('');
-}
-async function salvarRecebimentoOuRecorrente(){
-  if(qs('#rec-recorrente').checked)await salvarRecebimentoRecorrente();
-  else await salvarRecebimento();
+function irParaNovaRecorrencia(){
+  fecharModalRecebimento();
+  go('recorrentes',qs('.user-sidebar .sb-link[onclick*="recorrentes"]'));
+  novaRecorrencia();
 }
 async function salvarRecebimento(){
   const customerName=qs('#rec-client').value.trim(),c=clientePorNomeRecebimento(customerName),amount=Number(qs('#rec-value').value.replace(/\./g,'').replace(',','.'));
@@ -1941,27 +1920,6 @@ async function salvarRecebimento(){
   if(salvandoRecebimento)return;
   salvandoRecebimento=true;qs('#rec-save-btn').disabled=true;
   try{await api('/api/workspace/receivables',{method:'POST',body:JSON.stringify(body)});['#rec-title','#rec-client','#rec-value','#rec-due','#rec-competence','#rec-category','#rec-cost-center','#rec-notes'].forEach(id=>qs(id).value='');fecharModalRecebimento();await carregarRecebimentos();alert('Recebimento agendado.')}catch(error){alert(error.message)}finally{salvandoRecebimento=false;qs('#rec-save-btn').disabled=false}
-}
-async function salvarRecebimentoRecorrente(){
-  const customerName=qs('#rec-client').value.trim(),cliente=clientePorNomeRecebimento(customerName);
-  const serviceProfileId=qs('#rec-service').value,amount=dinheiro(qs('#rec-value-r').value),dayOfMonth=Number(qs('#rec-day').value);
-  const dueDayTexto=qs('#rec-due-day').value.trim();
-  if(!cliente){alert('Selecione um cliente cadastrado (o mesmo campo Cliente acima).');return}
-  if(!serviceProfileId){alert('Selecione um serviço cadastrado.');return}
-  if(!amount||amount<=0){alert('Informe um valor maior que zero.');return}
-  if(!dayOfMonth||dayOfMonth<1||dayOfMonth>28){alert('Informe um dia do mês entre 1 e 28.');return}
-  if(dueDayTexto&&(Number(dueDayTexto)<1||Number(dueDayTexto)>28)){alert('O dia de vencimento precisa estar entre 1 e 28.');return}
-  const body={customerId:cliente.id,serviceProfileId,amount,dayOfMonth,dueDayOfMonth:dueDayTexto?Number(dueDayTexto):undefined,frequencyMonths:Number(qs('#rec-frequency').value)||1,endDate:qs('#rec-end-date').value||undefined,description:qs('#rec-title').value.trim()||undefined};
-  if(salvandoRecebimento)return;
-  salvandoRecebimento=true;qs('#rec-save-btn').disabled=true;
-  try{
-    await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify(body)});
-    ['#rec-title','#rec-client','#rec-value-r','#rec-day','#rec-due-day','#rec-end-date'].forEach(id=>qs(id).value='');
-    qs('#rec-service').value='';qs('#rec-frequency').value='1';
-    fecharModalRecebimento();
-    await carregarRecebimentos();
-    alert('Contrato recorrente criado — a partir de agora ele emite a nota e gera o recebimento sozinho, todo mês.');
-  }catch(error){alert(error.message)}finally{salvandoRecebimento=false;qs('#rec-save-btn').disabled=false}
 }
 async function mudarStatusRecebimento(id,status,channel){
   try{await api('/api/workspace/receivables/'+id+'/status',{method:'PATCH',body:JSON.stringify({status,chargeChannel:channel})});await carregarRecebimentos()}catch(error){alert(error.message)}
@@ -3857,27 +3815,56 @@ function renderCalendarioAgenda(){
     const ehHoje=hoje.getFullYear()===ano&&hoje.getMonth()===mes&&hoje.getDate()===dia;
     let valorHtml='',countHtml='';
     if(itensDoDia.length){
-      const totalDia=itensDoDia.reduce((soma,item)=>soma+Number(item.valor||0),0);
-      const todosPrevistos=itensDoDia.every(item=>item.tipo==='previsto');
-      valorHtml=`<span class="agenda-cal-valor${todosPrevistos?' previsto':''}">R$ ${brl(totalDia)}</span>`;
+      // Valor do dia = o que ainda FALTA receber (pedido do usuário,
+      // 19/08/2026): recebido já não entra na conta. Um dia inteiramente
+      // quitado mostra "Recebido" em vez de R$ 0,00 — zero pareceria "não
+      // havia nada previsto aqui".
+      const pendentes=itensDoDia.filter(item=>item.status!=='received');
+      const totalPendente=pendentes.reduce((soma,item)=>soma+Number(item.valor||0),0);
+      const todosPrevistos=pendentes.length&&pendentes.every(item=>item.tipo==='previsto');
+      valorHtml=pendentes.length
+        ?`<span class="agenda-cal-valor${todosPrevistos?' previsto':''}">R$ ${brl(totalPendente)}</span>`
+        :'<span class="agenda-cal-valor recebido">Recebido</span>';
       countHtml=itensDoDia.length>1?`<span class="agenda-cal-count">${itensDoDia.length} lanç.</span>`:'';
     }
     celulas+=`<div class="agenda-cal-cell${ehHoje?' hoje':''}${itensDoDia.length?' tem-item':''}" onclick="mostrarDiaAgenda(${dia})"><span class="agenda-cal-dia">${dia}</span>${valorHtml}${countHtml}</div>`;
   }
   box.innerHTML=celulas;
   qs('#agenda-day-detail').style.display='none';
+  agendaDiaAberto=null;
 }
-function mostrarDiaAgenda(dia){
+const AGENDA_FILTROS=[['todos','Todos'],['receber','A receber'],['recebido','Recebido'],['previsto','Previsto']];
+let agendaDiaAberto=null,agendaFiltro='todos';
+function itensDoDiaAgenda(dia){
   const ano=agendaMesAtual.getFullYear(),mes=agendaMesAtual.getMonth();
-  const itensDoDia=agendaItens.filter(item=>{const [ai,mi,di]=item.data.split('-').map(Number);return ai===ano&&mi-1===mes&&di===dia});
+  return agendaItens.filter(item=>{const [ai,mi,di]=item.data.split('-').map(Number);return ai===ano&&mi-1===mes&&di===dia});
+}
+function agendaItemNoFiltro(item,filtro){
+  if(filtro==='receber')return item.tipo==='recebimento'&&item.status!=='received';
+  if(filtro==='recebido')return item.tipo==='recebimento'&&item.status==='received';
+  if(filtro==='previsto')return item.tipo==='previsto';
+  return true;
+}
+function filtrarDiaAgenda(filtro){agendaFiltro=filtro;mostrarDiaAgenda(agendaDiaAberto)}
+function mostrarDiaAgenda(dia){
+  if(dia==null)return;
+  if(agendaDiaAberto!==dia){agendaDiaAberto=dia;agendaFiltro='todos'}
+  const mes=agendaMesAtual.getMonth();
+  const itensDoDia=itensDoDiaAgenda(dia);
   const box=qs('#agenda-day-detail');
-  if(!itensDoDia.length){box.style.display='none';return}
+  if(!itensDoDia.length){box.style.display='none';agendaDiaAberto=null;return}
   box.style.display='block';
-  const total=itensDoDia.reduce((soma,item)=>soma+Number(item.valor||0),0);
-  box.innerHTML=`<h3>${dia} de ${AGENDA_MESES[mes]} <span style="font-weight:400;color:var(--ink-3);font-size:12.5px">· total do dia R$ ${brl(total)}</span></h3>`+itensDoDia.map(item=>{
+  const visiveis=itensDoDia.filter(item=>agendaItemNoFiltro(item,agendaFiltro));
+  const total=visiveis.reduce((soma,item)=>soma+Number(item.valor||0),0);
+  const filtros=AGENDA_FILTROS.map(([id,label])=>{
+    const quantos=itensDoDia.filter(item=>agendaItemNoFiltro(item,id)).length;
+    return `<button class="btn btn-s comm-tab-btn${agendaFiltro===id?' on':''}" type="button" onclick="filtrarDiaAgenda('${id}')">${label} (${quantos})</button>`;
+  }).join('');
+  const lista=visiveis.length?visiveis.map(item=>{
     const tipoPill=item.tipo==='previsto'?'<span class="pill p-off" title="Nota recorrente ainda não emitida — vira recebimento quando disparar">Nota recorrente prevista</span>':(()=>{const [c,l]=AGENDA_STATUS_LABEL[item.status]||['p-off',item.status];return `<span class="pill ${c}">${l}</span>`})();
     return `<div class="draft-item"><div><b>${esc(item.titulo)}</b><span>${esc(item.cliente)} · R$ ${brl(Number(item.valor||0))}</span></div><div class="acts" style="margin-top:8px">${tipoPill}</div></div>`;
-  }).join('');
+  }).join(''):'<div class="empty-state">Nenhum lançamento neste filtro.</div>';
+  box.innerHTML=`<h3>${dia} de ${AGENDA_MESES[mes]} <span style="font-weight:400;color:var(--ink-3);font-size:12.5px">· R$ ${brl(total)} em ${AGENDA_FILTROS.find(([id])=>id===agendaFiltro)[1].toLowerCase()}</span></h3><div class="agenda-day-filters">${filtros}</div>${lista}`;
 }
 async function carregarRecorrencias(){
   try{
@@ -3921,8 +3908,8 @@ async function salvarRecorrencia(){
   if(!serviceProfileId){alert('Selecione um serviço cadastrado.');return}
   if(!amount||amount<=0){alert('Informe um valor maior que zero.');return}
   if(!dayOfMonth||dayOfMonth<1||dayOfMonth>28){alert('Informe um dia do mês entre 1 e 28.');return}
-  if(dueDayTexto&&(Number(dueDayTexto)<1||Number(dueDayTexto)>28)){alert('O dia de vencimento precisa estar entre 1 e 28.');return}
-  const payload={customerId:cliente.id,serviceProfileId,amount,dayOfMonth,runTime:qs('#rc-time').value||'09:00',dueDayOfMonth:dueDayTexto?Number(dueDayTexto):undefined,frequencyMonths:Number(qs('#rc-frequency').value)||1,endDate:qs('#rc-end-date').value||undefined,description:qs('#rc-description').value.trim()||undefined};
+  if(!dueDayTexto||Number(dueDayTexto)<1||Number(dueDayTexto)>28){alert('Informe o dia de vencimento (1 a 28). É ele que define o vencimento do recebimento na Agenda.');return}
+  const payload={customerId:cliente.id,serviceProfileId,amount,dayOfMonth,runTime:qs('#rc-time').value||'09:00',dueDayOfMonth:Number(dueDayTexto),frequencyMonths:Number(qs('#rc-frequency').value)||1,endDate:qs('#rc-end-date').value||undefined,description:qs('#rc-description').value.trim()||undefined};
   try{
     if(recorrenciaEditando)await api('/api/invoice-recurrences/'+recorrenciaEditando,{method:'PUT',body:JSON.stringify(payload)});
     else await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify(payload)});
@@ -4001,7 +3988,7 @@ function numeroValorCsv(valorTexto,delimitador){
   return delimitador===','?(Number(String(valorTexto||'0').replace(/[^0-9.-]/g,''))||0):dinheiro(valorTexto);
 }
 function validarLinhaRecorrencia(partes,delimitador){
-  const [doc,servicoCampo,valorTexto,diaTexto,horaTexto,freqTexto,fimTexto]=partes;
+  const [doc,servicoCampo,valorTexto,diaTexto,vencTexto,horaTexto,freqTexto,fimTexto]=partes;
   const docNormalizado=(doc||'').replace(/\D/g,'');
   const cliente=clientesCadastro.find(c=>(c.tax_id||'').replace(/\D/g,'')===docNormalizado);
   const servicoCampoLimpo=(servicoCampo||'').trim();
@@ -4010,6 +3997,7 @@ function validarLinhaRecorrencia(partes,delimitador){
     : perfisServico.find(p=>supNorm(p.name)===supNorm(servicoCampoLimpo));
   const amount=numeroValorCsv(valorTexto,delimitador);
   const dayOfMonth=Number(diaTexto);
+  const dueDayOfMonth=Number(vencTexto);
   const horaLimpa=(horaTexto||'').trim();
   const runTime=/^([01]?\d|2[0-3]):[0-5]\d$/.test(horaLimpa)?horaLimpa.padStart(5,'0'):null;
   const frequencyMonths=Number(freqTexto)||1;
@@ -4019,14 +4007,15 @@ function validarLinhaRecorrencia(partes,delimitador){
   if(!servico)erros.push(`serviço "${servicoCampoLimpo}" não encontrado`);
   if(!amount||amount<=0)erros.push('valor inválido');
   if(!dayOfMonth||dayOfMonth<1||dayOfMonth>28)erros.push('dia do mês inválido (1 a 28)');
+  if(!dueDayOfMonth||dueDayOfMonth<1||dueDayOfMonth>28)erros.push('dia de vencimento inválido (1 a 28)');
   if(!runTime)erros.push('horário inválido (use HH:MM)');
   if(![1,3,6,12].includes(frequencyMonths))erros.push('frequência precisa ser 1, 3, 6 ou 12');
-  return {cliente,servico,amount,dayOfMonth,runTime:runTime||'09:00',frequencyMonths,endDate,erros,doc,servicoCampoLimpo};
+  return {cliente,servico,amount,dayOfMonth,dueDayOfMonth,runTime:runTime||'09:00',frequencyMonths,endDate,erros,doc,servicoCampoLimpo};
 }
 function baixarModeloRecorrenciaCsv(){
   const linhas=[
-    'CPF/CNPJ do cliente;Servico (numero ou nome);Valor;Dia do mes;Horario (HH:MM);Frequencia (1/3/6/12);Data fim (opcional, AAAA-MM-DD)',
-    '12345678000195;Honorarios contabeis;500,00;5;09:00;1;'
+    'CPF/CNPJ do cliente;Servico (numero ou nome);Valor;Dia do mes;Dia de vencimento;Horario (HH:MM);Frequencia (1/3/6/12);Data fim (opcional, AAAA-MM-DD)',
+    '12345678000195;Honorarios contabeis;500,00;5;10;09:00;1;'
   ];
   const blob=new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
@@ -4060,13 +4049,14 @@ function renderPreviaImportacaoCsv(){
   const validas=recorrenciasCsvParseadas.filter(r=>!r.erros.length).length;
   box.innerHTML=`
     <div class="tbl-scroll" style="margin-top:10px"><table class="tbl-cards-mobile">
-      <thead><tr><th>Linha</th><th>Cliente</th><th>Serviço</th><th style="text-align:right">Valor</th><th>Dia</th><th>Hora</th><th>Status</th></tr></thead>
+      <thead><tr><th>Linha</th><th>Cliente</th><th>Serviço</th><th style="text-align:right">Valor</th><th>Dia</th><th>Vencimento</th><th>Hora</th><th>Status</th></tr></thead>
       <tbody>${recorrenciasCsvParseadas.map(r=>`<tr>
         <td data-th="Linha">${r.numero}</td>
         <td data-th="Cliente">${esc(r.cliente?r.cliente.legal_name:(r.doc||'—'))}</td>
         <td data-th="Serviço">${esc(r.servico?r.servico.name:(r.servicoCampoLimpo||'—'))}</td>
         <td class="r" data-th="Valor">${r.amount?('R$ '+brl(r.amount)):'—'}</td>
         <td data-th="Dia">${r.dayOfMonth||'—'}</td>
+        <td data-th="Vencimento">${r.dueDayOfMonth||'—'}</td>
         <td data-th="Hora">${r.runTime}</td>
         <td data-th="Status">${r.erros.length?`<span class="pill p-err">${esc(r.erros.join('; '))}</span>`:'<span class="pill p-ok">OK</span>'}</td>
       </tr>`).join('')}</tbody>
@@ -4078,7 +4068,7 @@ async function confirmarImportacaoRecorrenciaCsv(){
   for(const r of recorrenciasCsvParseadas){
     if(r.erros.length)continue;
     try{
-      await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify({customerId:r.cliente.id,serviceProfileId:r.servico.id,amount:r.amount,dayOfMonth:r.dayOfMonth,runTime:r.runTime,frequencyMonths:r.frequencyMonths,endDate:r.endDate})});
+      await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify({customerId:r.cliente.id,serviceProfileId:r.servico.id,amount:r.amount,dayOfMonth:r.dayOfMonth,dueDayOfMonth:r.dueDayOfMonth,runTime:r.runTime,frequencyMonths:r.frequencyMonths,endDate:r.endDate})});
       ok++;
     }catch(error){falhas.push(`Linha ${r.numero}: ${error.message}`)}
   }

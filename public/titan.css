@@ -255,7 +255,9 @@ main{margin-left:230px;padding:58px 0 0}
 .agenda-cal-dia{font-size:11.5px;font-weight:650;color:var(--ink-2)}
 .agenda-cal-valor{font-size:11px;font-weight:800;color:var(--ink);line-height:1.25}
 .agenda-cal-valor.previsto{color:var(--warn)}
+.agenda-cal-valor.recebido{color:var(--ok);font-size:10px}
 .agenda-cal-count{font-size:9px;color:var(--ink-3)}
+.agenda-day-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .agenda-pill{font-size:9.5px;padding:2px 5px;border-radius:5px;background:var(--ok-bg);color:var(--ok);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .agenda-pill.previsto{background:var(--warn-bg);color:var(--warn)}
 .agenda-pill-mais{font-size:9.5px;color:var(--ink-3);font-weight:650}
