@@ -3703,7 +3703,12 @@ async function consultarProgressoAtualizacaoLote(){
 function baixarModeloClientesCsv(){
   const linhas=[
     'CNPJ;E-mail;Razao social (opcional);Telefone (opcional)',
-    '12345678000195;contato@empresa.com.br;;'
+    // '#' no início = linha de exemplo, ignorada na importação. Sem isso, o
+    // CNPJ de exemplo (que tem dígito verificador válido) era lido como
+    // cliente de verdade: quem baixasse o modelo e preenchesse abaixo
+    // importava junto uma empresa que não é dele, e ainda levava um erro de
+    // "CNPJ não encontrado" sem entender de onde veio.
+    '#12345678000195;contato@empresa.com.br;;  <- linha de exemplo, apague ou deixe: o # faz o sistema ignorar'
   ];
   const blob=new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
@@ -3727,7 +3732,7 @@ function selecionarArquivoClientesCsv(file){
   reader.onload=()=>{
     const texto=String(reader.result||'');
     const delimitador=detectarDelimitadorCsv(texto);
-    const linhas=texto.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    const linhas=texto.split(/\r?\n/).map(l=>l.trim()).filter(l=>l&&!l.startsWith('#')); // '#' = linha de exemplo do modelo, nunca importada
     clientesCsvParseadas=linhas
       .map((linha,i)=>({numero:i+1,partes:dividirLinhaCsv(linha,delimitador)}))
       .filter((item,i)=>i!==0||(item.partes[0]||'').replace(/\D/g,'').length===14) // 1ª linha sem CNPJ de 14 dígitos = cabeçalho
@@ -4116,7 +4121,7 @@ function validarLinhaRecorrencia(partes,delimitador){
 function baixarModeloRecorrenciaCsv(){
   const linhas=[
     'CPF/CNPJ do cliente;Servico (numero ou nome);Valor;Dia do mes;Dia de vencimento;Horario (HH:MM);Frequencia (1/3/6/12);Data fim (opcional, AAAA-MM-DD);Parcelas (opcional)',
-    '12345678000195;Honorarios contabeis;500,00;5;10;09:00;1;;12'
+    '#12345678000195;Honorarios contabeis;500,00;5;10;09:00;1;;12  <- linha de exemplo, o # faz o sistema ignorar'
   ];
   const blob=new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
@@ -4134,7 +4139,7 @@ function selecionarArquivoRecorrenciaCsv(file){
     await carregarPerfisServico();
     const texto=String(reader.result||'');
     const delimitador=detectarDelimitadorCsv(texto);
-    const linhas=texto.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    const linhas=texto.split(/\r?\n/).map(l=>l.trim()).filter(l=>l&&!l.startsWith('#')); // '#' = linha de exemplo do modelo, nunca importada
     recorrenciasCsvParseadas=linhas
       .map((linha,i)=>({numero:i+1,partes:dividirLinhaCsv(linha,delimitador)}))
       .filter((item,i)=>i!==0||(Number(item.partes[3])>=1&&Number(item.partes[3])<=28)) // 1ª linha com "dia" não numérico = cabeçalho
