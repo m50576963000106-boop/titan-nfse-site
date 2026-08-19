@@ -549,6 +549,15 @@
         </div>
         <div id="cl-bulk-status" class="hint" style="display:none"></div>
         <div id="client-list" class="draft-list"></div></div></div>
+      <div class="card" style="margin-top:14px"><div class="card-h"><h2>Importar clientes por planilha (CSV)</h2></div><div class="card-b">
+        <div class="hint">Baixe o modelo, preencha com o CNPJ (obrigatório) e o e-mail de cada cliente — razão social e endereço são completados automaticamente pela BrasilAPI antes de gravar.</div>
+        <div class="setup-actions" style="margin:10px 0 0">
+          <button class="btn btn-s" type="button" onclick="baixarModeloClientesCsv()">Baixar modelo (.csv)</button>
+          <button class="btn btn-s" type="button" onclick="qs('#cl-import-file').click()">Selecionar arquivo .csv</button>
+          <input id="cl-import-file" type="file" accept=".csv,text/csv" style="display:none" onchange="selecionarArquivoClientesCsv(this.files[0])">
+        </div>
+        <div id="cl-import-preview"></div>
+      </div></div>
     </section>
 
     <section class="view" id="v-agenda">
@@ -3698,6 +3707,99 @@ async function consultarProgressoAtualizacaoLote(){
     }
   }catch(error){clearInterval(clienteBulkPollTimer);clienteBulkPollTimer=null;clienteBulkJobId=null;qs('#cl-bulk-btn').disabled=false;qs('#cl-bulk-status').textContent=error.message;}
 }
+// Importação de clientes por planilha (pedido do usuário, 19/08/2026): lê e
+// valida o CSV no navegador (mesmo padrão do CSV de recorrências —
+// dividirLinhaCsv/detectarDelimitadorCsv, mais abaixo no arquivo), mas ao
+// confirmar manda o lote inteiro pro backend de uma vez, que vira um job
+// (uma linha por tick, cada uma consulta a BrasilAPI antes de gravar) — não
+// dá pra fazer uma chamada síncrona por linha aqui como em recorrências,
+// porque cada linha depende de uma API externa com limite de taxa.
+function baixarModeloClientesCsv(){
+  const linhas=[
+    'CNPJ;E-mail;Razao social (opcional);Telefone (opcional)',
+    '12345678000195;contato@empresa.com.br;;'
+  ];
+  const blob=new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='modelo-clientes.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(url);
+}
+function validarLinhaClienteCsv(partes){
+  const [cnpjTexto,email,legalName,phone]=partes;
+  const cnpj=(cnpjTexto||'').replace(/\D/g,'');
+  const erros=[];
+  if(cnpj.length!==14)erros.push('CNPJ inválido (14 dígitos)');
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))erros.push('e-mail inválido');
+  return {cnpj:(cnpjTexto||'').trim(),email:(email||'').trim()||undefined,legalName:(legalName||'').trim()||undefined,phone:(phone||'').trim()||undefined,erros};
+}
+let clientesCsvParseadas=[];
+function selecionarArquivoClientesCsv(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const texto=String(reader.result||'');
+    const delimitador=detectarDelimitadorCsv(texto);
+    const linhas=texto.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    clientesCsvParseadas=linhas
+      .map((linha,i)=>({numero:i+1,partes:dividirLinhaCsv(linha,delimitador)}))
+      .filter((item,i)=>i!==0||(item.partes[0]||'').replace(/\D/g,'').length===14) // 1ª linha sem CNPJ de 14 dígitos = cabeçalho
+      .map(item=>({numero:item.numero,...validarLinhaClienteCsv(item.partes)}));
+    renderPreviaImportacaoClientesCsv();
+  };
+  reader.readAsText(file,'utf-8');
+  qs('#cl-import-file').value='';
+}
+function renderPreviaImportacaoClientesCsv(){
+  const box=qs('#cl-import-preview');if(!box)return;
+  if(!clientesCsvParseadas.length){box.innerHTML='<div class="empty-state">Nenhuma linha reconhecida no arquivo.</div>';return}
+  const validas=clientesCsvParseadas.filter(r=>!r.erros.length).length;
+  box.innerHTML=`
+    <div class="tbl-scroll" style="margin-top:10px"><table class="tbl-cards-mobile">
+      <thead><tr><th>Linha</th><th>CNPJ</th><th>E-mail</th><th>Status</th></tr></thead>
+      <tbody>${clientesCsvParseadas.map(r=>`<tr>
+        <td data-th="Linha">${r.numero}</td>
+        <td data-th="CNPJ" class="mono">${esc(r.cnpj||'—')}</td>
+        <td data-th="E-mail">${esc(r.email||'—')}</td>
+        <td data-th="Status">${r.erros.length?`<span class="pill p-err">${esc(r.erros.join('; '))}</span>`:'<span class="pill p-ok">OK</span>'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <div class="setup-actions" style="margin-top:10px"><span class="foot-note" style="margin:0">${validas} de ${clientesCsvParseadas.length} linha(s) prontas para importar. A API completa o que faltar (razão social, endereço) antes de gravar.</span><button class="btn btn-a right" type="button" ${validas?'':'disabled'} onclick="confirmarImportacaoClientesCsv()">Confirmar importação</button></div>`;
+}
+let clienteCsvImportJobId=null,clienteCsvImportPollTimer=null;
+async function confirmarImportacaoClientesCsv(){
+  const linhasValidas=clientesCsvParseadas.filter(r=>!r.erros.length).map(r=>({cnpj:r.cnpj,email:r.email,legalName:r.legalName,phone:r.phone}));
+  if(!linhasValidas.length)return;
+  const box=qs('#cl-import-preview');
+  try{
+    const job=await api('/api/customers/import-csv',{method:'POST',body:JSON.stringify({rows:linhasValidas})});
+    clienteCsvImportJobId=job.id;
+    clientesCsvParseadas=[];
+    box.innerHTML=`<div class="hint">Importando 0 de ${job.totalRows}… cada linha consulta a Receita Federal, então é devagar de propósito (uma a cada poucos segundos, pra não estourar o limite de consultas). Pode sair desta tela — continua sozinho.</div>`;
+    clienteCsvImportPollTimer=setInterval(consultarProgressoImportacaoClientesCsv,3000);
+  }catch(error){
+    box.innerHTML=`<div class="foot-note" style="color:#b91c1c">${esc(error.message)}</div>`;
+  }
+}
+async function consultarProgressoImportacaoClientesCsv(){
+  if(!clienteCsvImportJobId)return;
+  const box=qs('#cl-import-preview');
+  try{
+    const job=await api('/api/customers/import-csv/'+clienteCsvImportJobId);
+    if(job.status==='queued'||job.status==='running'){
+      box.innerHTML=`<div class="hint">Importando ${job.processed_count} de ${job.total_rows}… (${job.succeeded_count} ok, ${job.failed_count} falharam até agora)</div>`;
+      return;
+    }
+    clearInterval(clienteCsvImportPollTimer);clienteCsvImportPollTimer=null;clienteCsvImportJobId=null;
+    const falhas=(job.failures||[]).map(f=>`Linha ${f.row} (${esc(f.cnpj)}): ${esc(f.message)}`);
+    box.innerHTML=`<div class="foot-note">${job.succeeded_count} de ${job.total_rows} cliente(s) importado(s).</div>`+(falhas.length?`<div class="foot-note" style="color:#b91c1c">${falhas.join('<br>')}</div>`:'');
+    if(job.succeeded_count>0)await carregarClientesCadastro();
+  }catch(error){
+    clearInterval(clienteCsvImportPollTimer);clienteCsvImportPollTimer=null;clienteCsvImportJobId=null;
+    box.innerHTML=`<div class="foot-note" style="color:#b91c1c">${esc(error.message)}</div>`;
+  }
+}
 // salvarCliente já é upsert por CNPJ/CPF (ON CONFLICT no banco): preencher o
 // formulário com um cliente existente e salvar de novo atualiza em vez de
 // duplicar — não precisa de rota nem de estado de edição separados.
@@ -4304,28 +4406,54 @@ async function carregarStatusImportacao(){
       :'Nenhuma busca feita ainda — clique no botão abaixo pra trazer os documentos e cadastrar os clientes automaticamente.';
   }catch(error){hint.textContent=error.message}
 }
+let portalImportJobId=null,portalImportPollTimer=null;
+// Pedido do usuário (19/08/2026): "buscar tudo", não só um lote por clique —
+// o botão dispara um job em background (jobs/portal-import.ts, backend) que
+// continua sozinho até alcançar o NSU mais recente do ADN; aqui só fica o
+// polling, mesmo padrão de dispararAtualizacaoEmLoteClientes/
+// consultarProgressoAtualizacaoLote (Clientes > Atualizar todos).
 async function buscarPortalNacional(){
   if(!empresaAtual){alert('Cadastre e salve a empresa antes de buscar no Portal Nacional.');return}
   const btn=qs('#btn-buscar-portal'),out=qs('#import-result');
   if(btn.disabled)return;
   btn.disabled=true;btn.textContent='Buscando...';out.innerHTML='';
   try{
-    const result=await api('/api/import/sync',{method:'POST',body:JSON.stringify({maxPages:5,cadastrarTomadores:true,preview:false})});
-    const found=result.imported>0;
-    out.innerHTML=`
-      <div class="result ${found?'ok':''}">
-        <div class="flex" style="margin-bottom:9px"><span class="pill ${found?'p-ok':'p-off'}">${found?'Busca concluída':'ADN consultado — nenhum documento novo'}</span></div>
-        <div class="kv"><span>Documentos novos</span><b>${result.imported}</b></div>
-        <div class="kv"><span>Clientes cadastrados/atualizados</span><b>${result.customers}</b></div>
-        <div class="kv"><span>Notas como prestador</span><b>${result.provider}</b></div>
-        <div class="kv"><span>Notas como tomador</span><b>${result.borrower}</b></div>
-        <div class="foot-note">Resposta real da API de Contribuintes do ADN em ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}.</div>
-      </div>`;
+    const job=await api('/api/import/sync-job',{method:'POST'});
+    portalImportJobId=job.id;
+    out.innerHTML='<div class="hint">Buscando no Portal Nacional… isso pode levar alguns minutos pra empresas com histórico grande. Pode sair desta tela — a busca continua sozinha.</div>';
+    portalImportPollTimer=setInterval(consultarProgressoBuscaPortal,3000);
+  }catch(error){
+    out.innerHTML=`<div class="result no"><span class="pill p-err">Não foi possível iniciar a busca</span><div class="chave" style="color:#7d1c1f">${esc(error.message)}</div></div>`;
+    btn.disabled=false;btn.textContent='Buscar dados do Portal Nacional';
+  }
+}
+async function consultarProgressoBuscaPortal(){
+  if(!portalImportJobId)return;
+  const out=qs('#import-result');
+  try{
+    const job=await api('/api/import/sync-job/'+portalImportJobId);
+    if(job.status==='running'||job.status==='queued'){
+      out.innerHTML=`<div class="hint">Buscando… ${job.documents_imported} documento(s) e ${job.customers_imported} cliente(s) até agora.</div>`;
+      return;
+    }
+    clearInterval(portalImportPollTimer);portalImportPollTimer=null;portalImportJobId=null;
+    qs('#btn-buscar-portal').disabled=false;qs('#btn-buscar-portal').textContent='Buscar dados do Portal Nacional';
+    if(job.status==='completed'){
+      out.innerHTML=`
+        <div class="result ok">
+          <div class="flex" style="margin-bottom:9px"><span class="pill p-ok">Busca concluída</span></div>
+          <div class="kv"><span>Documentos novos</span><b>${job.documents_imported}</b></div>
+          <div class="kv"><span>Clientes cadastrados/atualizados</span><b>${job.customers_imported}</b></div>
+          <div class="foot-note">Resposta real da API de Contribuintes do ADN em ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}.</div>
+        </div>`;
+    }else{
+      out.innerHTML=`<div class="result no"><span class="pill p-err">A busca parou</span><div class="chave" style="color:#7d1c1f">${esc(job.error||'Erro desconhecido.')}</div></div>`;
+    }
     carregarStatusImportacao();
   }catch(error){
-    out.innerHTML=`<div class="result no"><span class="pill p-err">Não foi possível buscar</span><div class="chave" style="color:#7d1c1f">${esc(error.message)}</div></div>`;
-  }finally{
-    btn.disabled=false;btn.textContent='Buscar dados do Portal Nacional';
+    clearInterval(portalImportPollTimer);portalImportPollTimer=null;portalImportJobId=null;
+    qs('#btn-buscar-portal').disabled=false;qs('#btn-buscar-portal').textContent='Buscar dados do Portal Nacional';
+    out.innerHTML=`<div class="result no"><span class="pill p-err">Não foi possível acompanhar a busca</span><div class="chave" style="color:#7d1c1f">${esc(error.message)}</div></div>`;
   }
 }
 
