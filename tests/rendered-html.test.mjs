@@ -1318,48 +1318,34 @@ test("pedido do usuário (10/08/2026): modo restrito por falta de pagamento esco
   assert.match(html,/\}else if\(contaRestrita\)\{\s*go\('notas',qs\('\.sb-link\[onclick\*="notas"\]'\)\);/);
 });
 
-test("pedido do usuário (12/08/2026): IBS/CBS na emissão — toggle, destinatário, compra governamental e cIndOp pesquisável", async()=>{
+test("Etapa 3 (19/08/2026): a configuração IBS/CBS saiu da emissão e vive em Meus Serviços", async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
-  assert.match(html,/id="s-ibscbs-card" style="display:none"/);
-  assert.match(html,/id="s-ibscbs-preencher"[^>]*onchange="atualizarBlocoIbscbsEmissao\(\)"/);
-  assert.match(html,/id="s-ibscbs-inddest"/);
-  assert.match(html,/id="s-ibscbs-govcompra"/);
-  assert.match(html,/id="s-ibscbs-indop-search"[^>]*oninput="pesquisarIndOp\(\)"/);
-  assert.match(html,/function carregarIndOpCatalogo\(\)/);
-  assert.match(html,/api\('\/api\/services\/ibscbs-indop'\)/);
-  assert.match(html,/function atualizarCardIbscbsEmissao\(item\)/);
-  // card só aparece quando o serviço selecionado tem CST+cClassTrib
-  assert.match(html,/const aplica=Boolean\(item&&item\.ibscbs_cst&&item\.ibscbs_class_trib\);/);
-  // não deixa emitir com o cIndOp digitado mas não confirmado na lista —
-  // mesma trava já usada pro município (auditoria de 11/08/2026).
-  assert.match(html,/if\(!indOpConfirmado\|\|qs\('#s-ibscbs-indop-search'\)\.value\.trim\(\)!==indOpTextoEsperado\)/);
-  assert.match(html,/function montarCamposIbscbsEmissao\(\)/);
-  // ibscbs é irmão de service no payload (schema real do backend, ver
-  // types.ts), achado 12/08/2026 corrigindo a primeira versão desta tela.
-  assert.match(html,/ibscbs:montarCamposIbscbsEmissao\(\)/);
-  assert.match(html,/indDest,\s*cIndOp:qs\('#s-ibscbs-indop'\)\.value\|\|undefined,\s*compraGovernamental,/);
-});
+  // Substitui os dois testes de 12/08/2026 que travavam o bloco IBS/CBS na
+  // TELA DE EMISSÃO. Pedido do dono do produto: "aqui em Emitir NFS-e
+  // identificamos o cliente, o serviço, valor e detalhes necessários. As
+  // demais configurações devem ser em MEUS SERVIÇOS".
+  assert.doesNotMatch(html,/id="s-ibscbs-card"/,"o card do passo 6 tem que ter sumido da emissão");
+  assert.doesNotMatch(html,/id="s-ibscbs-preencher"/,"não se pergunta mais 'preencher IBS/CBS?' a cada nota");
+  assert.doesNotMatch(html,/function montarCamposIbscbsEmissao\(/,"a emissão não monta mais o bloco na mão");
+  assert.doesNotMatch(html,/id="s-ibscbs-dest-/,"destinatário diferente do adquirente ficou de fora (decisão de 19/08/2026)");
 
-test("pedido do usuário (12/08/2026): grupo dest (destinatário) e compra governamental completos conforme leiaute oficial", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
-  // sub-formulário do destinatário só aparece quando indDest=1 (destinatário
-  // diferente do adquirente) — Anexo VI exige o grupo dest nesse caso.
-  assert.match(html,/id="s-ibscbs-dest-fields" style="display:none"/);
-  assert.match(html,/id="s-ibscbs-inddest"[^>]*onchange="atualizarBlocoIbscbsDestinatario\(\)"/);
-  assert.match(html,/function atualizarBlocoIbscbsDestinatario\(\)\{/);
-  assert.match(html,/id="s-ibscbs-dest-mun-search"[^>]*oninput="pesquisarMunicipio\('s-ibscbs-dest'\)"/);
-  assert.match(html,/function montarDestinatarioIbscbs\(\)\{/);
-  // trava de confirmação do município do destinatário, mesmo padrão do
-  // município de incidência (auditoria de 11/08/2026).
-  assert.match(html,/O município do destinatário não foi confirmado/);
-  // tipo de ente governamental (1-4) e tipo de operação (1-5) só aparecem
-  // junto de compra governamental; gRefNFSe só quando tpOper=2 ou 3.
-  assert.match(html,/id="s-ibscbs-govcompra"[^>]*onchange="atualizarBlocoIbscbsGovCompra\(\)"/);
-  assert.match(html,/id="s-ibscbs-tpentegov"/);
-  assert.match(html,/id="s-ibscbs-tpoper"[^>]*onchange="atualizarBlocoIbscbsRefNFSe\(\)"/);
-  assert.match(html,/function atualizarBlocoIbscbsRefNFSe\(\)\{/);
-  assert.match(html,/id="s-ibscbs-refnfse-field" style="display:none"/);
-  assert.match(html,/id="s-ibscbs-indfinal"/);
+  // Os campos agora são cadastro do serviço.
+  assert.match(html,/id="cad-ibscbs-indfinal"/);
+  assert.match(html,/id="cad-ibscbs-tpoper"/);
+  assert.match(html,/id="cad-ibscbs-indop-search"[^>]*oninput="pesquisarIndOpCadastro\(\)"/);
+  // "uso ou consumo pessoal" ganhou explicação — era a dúvida do usuário.
+  assert.match(html,/uso ou consumo pessoal\?[\s\S]{0,120}info-tip/);
+  // cIndOp abre a lista ao clicar: antes só reagia depois de 2 caracteres, e
+  // por isso parecia que o campo não existia.
+  assert.match(html,/id="cad-ibscbs-indop-search"[^>]*onfocus="pesquisarIndOpCadastro\(\)"/);
+  assert.match(html,/const rows=\(term\?indOpCatalogo\.filter/,"sem termo digitado, mostra o catálogo inteiro");
+  // tpOper 2 e 3 dependem de chave de NFS-e referenciada (dado da nota) e não
+  // entram no cadastro — só 1, 4 e 5.
+  assert.doesNotMatch(html,/id="cad-ibscbs-tpoper"[\s\S]{0,400}value="2"/);
+
+  // O payload da emissão passa a copiar o cadastro, sem decidir nada.
+  assert.match(html,/ibscbs:perfil\?\.ibscbs_cst&&perfil\?\.ibscbs_class_trib\?\{/);
+  assert.match(html,/indDest:0,/);
 });
 
 test("pedido do usuário (12/08/2026): CST/cClassTrib do IBS/CBS vira dropdown pesquisável em Meus Serviços", async()=>{
