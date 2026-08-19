@@ -663,7 +663,7 @@
         <p>Dados que compõem o prestador na DPS e definem por onde esta empresa pode emitir.</p>
       </div>
 
-      <div class="grid g2" style="align-items:start">
+      <div class="stack" style="max-width:760px;margin:0 auto">
         <div class="card">
           <div class="card-h">
             <h2>Identificação</h2>
@@ -722,160 +722,81 @@
           </div>
         </div>
 
-        <div class="stack">
-          <div class="card">
-            <div class="card-h"><h2>Configuração da DPS Nacional</h2><span class="pill p-ok right">v1.01</span></div>
-            <div class="card-b">
-              <div class="row r2"><div class="field"><label for="e-series">Série da DPS</label><input id="e-series" class="inp mono" type="number" min="1" max="99999" value="1"><div class="hint">Campo série: 1 a 99999.</div></div><div class="field"><label for="e-next">Próximo número da DPS</label><input id="e-next" class="inp mono" inputmode="numeric" value="1"><div class="hint">Sequencial de até 15 dígitos.</div></div></div>
-              <div class="row r2"><div class="field"><label for="e-simple-ap">Regime de Apuração Tributária pelo SN</label><select id="e-simple-ap" class="inp"><option value="1">Normal — tributos federais e municipal pelo SN</option><option value="2">Híbrido — federal pelo SN e ISSQN fora do SN</option></select></div><div class="field"><label for="e-special">Regime especial de tributação</label><select id="e-special" class="inp"><option value="0">0 — Nenhum</option><option value="1">1 — Microempresa municipal</option><option value="2">2 — Estimativa</option><option value="3">3 — Sociedade de profissionais</option><option value="4">4 — Cooperativa</option><option value="5">5 — MEI</option><option value="6">6 — ME/EPP do Simples Nacional</option></select></div></div>
-              <div class="field"><label for="e-simple-total">Percentual aproximado total de tributos do Simples (%)</label><input id="e-simple-total" class="inp num" inputmode="decimal" placeholder="Informe conforme a apuração da empresa"><div class="hint">Obrigatório para ME/EPP em Produção; compõe o campo pTotTribSN da DPS.</div></div>
-              <div class="row r3"><div class="field"><label for="e-tax-fed">Tributos federais aproximados (%)</label><input id="e-tax-fed" class="inp num" inputmode="decimal" placeholder="Ex.: 4,65"></div><div class="field"><label for="e-tax-est">Tributos estaduais aproximados (%)</label><input id="e-tax-est" class="inp num" inputmode="decimal" placeholder="Ex.: 0,00"></div><div class="field"><label for="e-tax-mun">Tributos municipais aproximados (%)</label><input id="e-tax-mun" class="inp num" inputmode="decimal" placeholder="Ex.: 5,00"></div></div>
-              <div class="hint">Fora do Simples Nacional (MEI ou Lucro Presumido/Real), a DPS pede esse detalhamento em três percentuais em vez do total único acima — compõe o campo pTotTrib da DPS (Lei nº 12.741/2012). Opcional: sem preencher, a nota sai normalmente sem esse detalhamento.</div>
-              <div class="kv"><span>Tipo de ambiente</span><b id="config-env">Verificando...</b></div><div class="kv"><span>Tipo do emitente</span><b>1 — Prestador</b></div><div class="kv"><span>Versão do leiaute</span><b>1.01</b></div>
-              <div class="foot-note">Alterar o próximo número pode gerar duplicidade de DPS. Use somente para alinhar a sequência já utilizada pela empresa.</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-h">
-              <h2>Habilitação para emitir</h2>
-              <button class="btn btn-s right" onclick="checarHabilitacao()">Verificar agora</button>
-            </div>
-            <div class="card-b" id="hab"></div>
-          </div>
-
-          <div class="card">
-            <div class="card-h"><h2>Parâmetros do município</h2></div>
-            <div class="card-b" style="padding:10px 16px 14px">
-              <div class="alert a-info">Consulta automática aos parâmetros oficiais de cada município (convênio com o Sistema Nacional, modo de emissão, regimes especiais) está em desenvolvimento. Hoje a alíquota de ISS é a que você configura manualmente no cadastro de cada serviço — confira sempre com a legislação do seu município.</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-h"><h2>Meu plano</h2><span class="pill p-gold right" id="plan-current-pill">—</span></div>
-            <div class="card-b" id="plan-consumo-box" style="padding-bottom:0"></div>
-            <div class="card-b" id="plan-upgrade-box"><div class="empty-state">Carregando planos disponíveis...</div></div>
-          </div>
-
-          <div class="card">
-            <div class="card-h"><h2>Meu contrato</h2><span class="pill p-gold right" id="contract-status-pill">—</span></div>
-            <div class="card-b" id="contract-box"><div class="empty-state">Carregando...</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Certificado A1 incorporado em Configurações -->
-      <div class="grid g2" style="align-items:start;margin-top:16px" data-permission="certificate">
-        <div class="stack">
-          <div class="card">
-            <div class="card-h"><h2>Certificado A1<button class="info-btn" type="button" title="O que é, onde conseguir e como enviar" onclick="orientacaoCertificadoA1()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></h2><span class="pill p-off right" id="cert-status">Verificando</span></div>
-            <div class="empty-state" id="cert-details">Consultando o cofre seguro...</div>
-          </div>
-
-          <div class="card" data-permission="import" data-feature="portal_import">
-            <div class="card-h"><h2>Importar do Portal Nacional</h2></div>
-            <div class="card-b">
-              <p class="sm" style="color:var(--ink-2);margin:0 0 12px">Traga do ADN os documentos e a última DPS emitida, para manter a numeração em dia antes de continuar emitindo por aqui. Usa o mesmo certificado configurado ao lado.</p>
-              <button class="btn btn-a" type="button" style="width:100%" onclick="go('importar')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Abrir importação</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="stack">
-          <div class="card">
-            <div class="card-h"><h2>Adicionar certificado</h2></div>
-            <div class="card-b">
-              <label class="drop" for="c-file" id="cert-drop" style="display:block;cursor:pointer">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b8f99" stroke-width="1.6" style="margin:0 auto"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                <div class="big">Arraste o arquivo .pfx ou .p12</div>
-                <div class="sm" id="cert-file-name">ou clique para escolher — máx. 8 MB</div>
-                <input id="c-file" type="file" accept=".pfx,.p12,application/x-pkcs12" hidden>
-              </label>
-              <div class="field" style="margin-top:14px">
-                <label for="c-pw">Senha do certificado</label>
-                <input id="c-pw" name="certificate_passphrase" class="inp" type="password" autocomplete="new-password" data-lpignore="true" placeholder="••••••••••">
-                <div class="hint">Não é a senha de login do TITAN — é a senha definida pela Autoridade Certificadora na emissão do certificado. Guardada com AES-256-GCM. A chave mestra fica fora do banco e fora do <span class="mono">.env</span> da aplicação.</div>
-              </div>
-              <button class="btn btn-p" id="btn-cert" style="width:100%" onclick="enviarCertificado()">Enviar ao cofre seguro</button>
-            </div>
-          </div>
-
-          <div class="alert a-info">
-            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            <div><b>Hospedagem compartilhada não serve aqui.</b> O mTLS exige apresentar um certificado de cliente diferente por empresa a cada requisição. Em cPanel compartilhado você não controla o handshake TLS de saída. Este módulo precisa de VPS ou container próprio.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ---------- IMPORTAR ---------- -->
-    <section class="view" id="v-importar">
-      <div class="page-h">
-        <h1>Importar do Portal Nacional</h1>
-        <p>Consulta no ADN os documentos em que o CNPJ aparece como emitente, tomador ou intermediário. Os tomadores podem ser cadastrados a partir dos XMLs recuperados.</p>
-      </div>
-
-      <div class="grid g-emit">
-        <div class="stack">
-          <div class="card">
-            <div class="card-h"><h2>Primeira carga</h2></div>
-            <div class="card-b">
-              <div class="alert a-info" style="margin-bottom:14px">
-                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                <div>A API de contribuintes documenta a consulta de um DF-e pelo NSU informado. A carga histórica deve percorrer os NSUs disponíveis e guardar o último processado. O manual atual não promete, por si só, carga integral desde o NSU 0.</div>
-              </div>
-              <div class="row r2">
-                <div class="field">
-                  <label for="i-nsu">NSU inicial</label>
-                  <input id="i-nsu" class="inp mono" value="0">
-                  <div class="hint">Informe o NSU inicial aceito pelo ADN. Depois da primeira carga, guarde o último NSU processado.</div>
-                </div>
-                <div class="field">
-                  <label for="i-papel">Trazer notas como</label>
-                  <select id="i-papel" class="inp">
-                    <option>Prestador e tomador</option>
-                    <option>Só prestador (emitidas)</option>
-                    <option>Só tomador (recebidas)</option>
-                  </select>
-                  <div class="hint">O ADN distribui para quem consta na nota como prestador, tomador ou intermediário.</div>
-                </div>
-              </div>
-              <label class="flex" style="font-size:12.5px;color:var(--ink-2);cursor:pointer;margin-bottom:14px">
-                <input type="checkbox" id="i-tom"> Cadastrar tomadores automaticamente a partir dos XMLs
-              </label>
-              <button class="btn btn-a" id="btn-imp" onclick="importar(true)" style="width:100%">Ver prévia da importação</button>
-              <button class="btn btn-a" id="btn-imp-confirmar" onclick="importar(false)" style="width:100%;margin-top:8px;display:none">Confirmar e importar</button>
-            </div>
-          </div>
-
-          <div class="alert a-warn">
-            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
-            <div><b>NSU não é ordem de emissão.</b> O número é dado por ordem de chegada no ADN, não pela data da nota. A nota de janeiro pode ter NSU maior que a de março. Ordene pela data de emissão do XML depois de importar, nunca pelo NSU.</div>
-          </div>
-
-          <div class="alert a-info">
-            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            <div><b>O certificado define a raiz autorizada.</b> A consulta por NSU pode informar um CNPJ diferente do certificado, desde que ambos tenham a mesma raiz. Empresas de raízes distintas continuam exigindo certificados próprios.</div>
-          </div>
-        </div>
-
-        <div class="card sticky">
-          <div class="card-h">
-            <h2>Progresso</h2>
-            <span class="pill p-off right mono">NSU</span>
-          </div>
+        <div class="card">
+          <div class="card-h"><h2>Configuração da DPS Nacional</h2><span class="pill p-ok right">v1.01</span></div>
           <div class="card-b">
-            <div id="imp-vazio" class="foot-note" style="margin:0">Nada importado ainda. A tela acompanha consultas e documentos processados; não exibe um percentual de histórico total sem um limite confirmado pela API.</div>
-            <div id="imp-run" style="display:none">
-              <div class="flex" style="justify-content:space-between;font-size:12px">
-                <span class="mono" id="imp-nsu">NSU 0</span>
-                <span class="num" id="imp-tot">0 documentos</span>
-              </div>
-              <div class="bar-imp"><i id="imp-bar"></i></div>
-              <div id="imp-lotes" style="margin-top:10px"></div>
-            </div>
-            <div id="imp-fim"></div>
+            <div class="row r2"><div class="field"><label for="e-series">Série da DPS</label><input id="e-series" class="inp mono" type="number" min="1" max="99999" value="1"><div class="hint">Campo série: 1 a 99999.</div></div><div class="field"><label for="e-next">Próximo número da DPS</label><input id="e-next" class="inp mono" inputmode="numeric" value="1"><div class="hint">Sequencial de até 15 dígitos.</div></div></div>
+            <div class="row r2"><div class="field"><label for="e-simple-ap">Regime de Apuração Tributária pelo SN</label><select id="e-simple-ap" class="inp"><option value="1">Normal — tributos federais e municipal pelo SN</option><option value="2">Híbrido — federal pelo SN e ISSQN fora do SN</option></select></div><div class="field"><label for="e-special">Regime especial de tributação</label><select id="e-special" class="inp"><option value="0">0 — Nenhum</option><option value="1">1 — Microempresa municipal</option><option value="2">2 — Estimativa</option><option value="3">3 — Sociedade de profissionais</option><option value="4">4 — Cooperativa</option><option value="5">5 — MEI</option><option value="6">6 — ME/EPP do Simples Nacional</option></select></div></div>
+            <div class="field"><label for="e-simple-total">Percentual aproximado total de tributos do Simples (%)</label><input id="e-simple-total" class="inp num" inputmode="decimal" placeholder="Informe conforme a apuração da empresa"><div class="hint">Obrigatório para ME/EPP em Produção; compõe o campo pTotTribSN da DPS.</div></div>
+            <div class="row r3"><div class="field"><label for="e-tax-fed">Tributos federais aproximados (%)</label><input id="e-tax-fed" class="inp num" inputmode="decimal" placeholder="Ex.: 4,65"></div><div class="field"><label for="e-tax-est">Tributos estaduais aproximados (%)</label><input id="e-tax-est" class="inp num" inputmode="decimal" placeholder="Ex.: 0,00"></div><div class="field"><label for="e-tax-mun">Tributos municipais aproximados (%)</label><input id="e-tax-mun" class="inp num" inputmode="decimal" placeholder="Ex.: 5,00"></div></div>
+            <div class="hint">Fora do Simples Nacional (MEI ou Lucro Presumido/Real), a DPS pede esse detalhamento em três percentuais em vez do total único acima — compõe o campo pTotTrib da DPS (Lei nº 12.741/2012). Opcional: sem preencher, a nota sai normalmente sem esse detalhamento.</div>
+            <div class="kv"><span>Tipo de ambiente</span><b id="config-env">Verificando...</b></div><div class="kv"><span>Tipo do emitente</span><b>1 — Prestador</b></div><div class="kv"><span>Versão do leiaute</span><b>1.01</b></div>
+            <div class="foot-note">Alterar o próximo número pode gerar duplicidade de DPS. Use somente para alinhar a sequência já utilizada pela empresa.</div>
           </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h">
+            <h2>Habilitação para emitir</h2>
+            <button class="btn btn-s right" onclick="checarHabilitacao()">Verificar agora</button>
+          </div>
+          <div class="card-b" id="hab"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><h2>Parâmetros do município</h2></div>
+          <div class="card-b" style="padding:10px 16px 14px">
+            <div class="alert a-info">Consulta automática aos parâmetros oficiais de cada município (convênio com o Sistema Nacional, modo de emissão, regimes especiais) está em desenvolvimento. Hoje a alíquota de ISS é a que você configura manualmente no cadastro de cada serviço — confira sempre com a legislação do seu município.</div>
+          </div>
+        </div>
+
+        <div class="card" data-permission="certificate">
+          <div class="card-h"><h2>Certificado A1<button class="info-btn" type="button" title="O que é, onde conseguir e como enviar" onclick="orientacaoCertificadoA1()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button></h2><span class="pill p-off right" id="cert-status">Verificando</span></div>
+          <div class="empty-state" id="cert-details">Consultando o cofre seguro...</div>
+        </div>
+
+        <div class="card" data-permission="certificate">
+          <div class="card-h"><h2>Adicionar certificado</h2></div>
+          <div class="card-b">
+            <label class="drop" for="c-file" id="cert-drop" style="display:block;cursor:pointer">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b8f99" stroke-width="1.6" style="margin:0 auto"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              <div class="big">Arraste o arquivo .pfx ou .p12</div>
+              <div class="sm" id="cert-file-name">ou clique para escolher — máx. 8 MB</div>
+              <input id="c-file" type="file" accept=".pfx,.p12,application/x-pkcs12" hidden>
+            </label>
+            <div class="field" style="margin-top:14px">
+              <label for="c-pw">Senha do certificado</label>
+              <input id="c-pw" name="certificate_passphrase" class="inp" type="password" autocomplete="new-password" data-lpignore="true" placeholder="••••••••••">
+              <div class="hint">Não é a senha de login do TITAN — é a senha definida pela Autoridade Certificadora na emissão do certificado. Guardada com AES-256-GCM. A chave mestra fica fora do banco e fora do <span class="mono">.env</span> da aplicação.</div>
+            </div>
+            <button class="btn btn-p" id="btn-cert" style="width:100%" onclick="enviarCertificado()">Enviar ao cofre seguro</button>
+          </div>
+        </div>
+
+        <div class="alert a-info" data-permission="certificate">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <div><b>Hospedagem compartilhada não serve aqui.</b> O mTLS exige apresentar um certificado de cliente diferente por empresa a cada requisição. Em cPanel compartilhado você não controla o handshake TLS de saída. Este módulo precisa de VPS ou container próprio.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><h2>Importar do Portal Nacional</h2><span class="pill p-off right" id="import-status-pill">—</span></div>
+          <div class="card-b">
+            <p class="sm" style="color:var(--ink-2);margin:0 0 12px">Busca no ADN os documentos fiscais e cadastra automaticamente os dados de clientes (razão social, CNPJ, endereço) a partir das notas encontradas. Usa o certificado configurado acima.</p>
+            <div class="hint" id="import-status-hint">Carregando status...</div>
+            <button class="btn btn-a" type="button" id="btn-buscar-portal" style="width:100%;margin-top:10px" onclick="buscarPortalNacional()">Buscar dados do Portal Nacional</button>
+            <div id="import-result" style="margin-top:12px"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><h2>Meu plano</h2><span class="pill p-gold right" id="plan-current-pill">—</span></div>
+          <div class="card-b" id="plan-consumo-box" style="padding-bottom:0"></div>
+          <div class="card-b" id="plan-upgrade-box"><div class="empty-state">Carregando planos disponíveis...</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><h2>Meu contrato</h2><span class="pill p-gold right" id="contract-status-pill">—</span></div>
+          <div class="card-b" id="contract-box"><div class="empty-state">Carregando...</div></div>
         </div>
       </div>
     </section>
@@ -1447,7 +1368,7 @@ function buscarNoPortal(value){
   const input=qs('#global-search'),query=String(value||'').trim().toLocaleLowerCase('pt-BR');
   buscaPortalView='';
   if(!input)return;
-  const aliases=[['nota','notas'],['nfse','emitir'],['emissão','emitir'],['emissao','emitir'],['cliente','clientes'],['tomador','clientes'],['orçamento','comercial'],['orcamento','comercial'],['ordem','comercial'],['meus serviços','servicos'],['meus servicos','servicos'],['serviço','servicos'],['servico','servicos'],['certificado','cert'],['importar','importar'],['empresa','emitente'],['emitente','emitente'],['ajuda','ajuda'],['martyn','ajuda'],['suporte','ajuda'],['master','master']];
+  const aliases=[['nota','notas'],['nfse','emitir'],['emissão','emitir'],['emissao','emitir'],['cliente','clientes'],['tomador','clientes'],['orçamento','comercial'],['orcamento','comercial'],['ordem','comercial'],['meus serviços','servicos'],['meus servicos','servicos'],['serviço','servicos'],['servico','servicos'],['certificado','cert'],['importar','emitente'],['empresa','emitente'],['emitente','emitente'],['ajuda','ajuda'],['martyn','ajuda'],['suporte','ajuda'],['master','master']];
   const alias=aliases.find(([term])=>query.includes(term));
   const links=[...qsa('.sb-link')].filter(el=>getComputedStyle(el).display!=='none');
   const match=alias?links.find(el=>(el.getAttribute('onclick')||'').includes(`go('${alias[1]}'`)):links.find(el=>supNorm(el.textContent).includes(supNorm(query)));
@@ -1862,7 +1783,6 @@ function go(v,el,limpar){
   if(el)el.classList.add('active');
   fecharMenuLateral();
   window.scrollTo(0,0);
-  if(v==='importar')carregarImportStatus();
   if(v==='servicos'){carregarPerfisServico();buscarCatalogoServico()}
   if(v==='ajuda'){helpRenderTopics();helpRenderFaq()}
   if(v==='master')carregarMaster();
@@ -1886,7 +1806,7 @@ function go(v,el,limpar){
   if(v==='recebimentos')carregarRecebimentos();
   if(v==='financeiro')carregarBilling();
   if(v==='dasn')carregarDasn();
-  if(v==='emitente'){qs('#c-pw').value='';carregarCertificado();carregarMeuPlano();carregarMeuContrato()}
+  if(v==='emitente'){qs('#c-pw').value='';carregarCertificado();carregarMeuPlano();carregarMeuContrato();carregarStatusImportacao()}
   if(v==='logs')carregarLogsApi();
 }
 
@@ -4102,41 +4022,32 @@ async function carregarMeuPlano(){
     const atual=vitrine.plans.find(p=>p.code===company.plan_code);
     qs('#plan-current-pill').textContent=atual?atual.name:(company.plan_code||'—');
     const pendente=pedidos.find(p=>p.status==='pending');
-    if(pendente){
-      box.innerHTML=`<div class="alert a-info"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg><div><b>Pedido de upgrade em análise.</b> ${esc(pendente.current_plan_name||pendente.current_plan_code)} → ${esc(pendente.requested_plan_name||pendente.requested_plan_code)}. A TITAN avisa no sino assim que decidir.</div></div>
-        <button class="btn btn-s" type="button" onclick="cancelarPedidoUpgrade('${pendente.id}')">Cancelar pedido</button>`;
-      return;
-    }
-    // Achado 14/08/2026 (validação ao vivo): sem comparar preço, uma empresa
-    // no plano mais caro (ex.: Ultra) via até o plano "teste" (interno, R$0,00,
-    // usado antes de atribuir um plano pago de verdade) listado como "upgrade".
-    // A API já devolve vitrine.plans ordenado por price_cents, então só falta
-    // exigir preço maior que o atual — sem isso (atual não encontrado na
-    // vitrine, caso raro de plano desativado), mantém o comportamento antigo.
-    const outros=vitrine.plans.filter(p=>atual?p.price_cents>atual.price_cents:p.code!==company.plan_code);
-    if(!outros.length){box.innerHTML='<div class="empty-state">Você já está no plano mais completo disponível.</div>';return}
     const nomeFeature=code=>vitrine.featureCatalog.find(f=>f.code===code)?.name||code;
-    box.innerHTML=`
-      <div class="field"><label for="plan-target">Solicitar upgrade para</label>
-        <select id="plan-target" class="inp" onchange="mostrarFeaturesPlanoAlvo()">${outros.map(p=>`<option value="${esc(p.code)}">${esc(p.name)} — R$ ${brl(p.price_cents/100)}/mês</option>`).join('')}</select>
+    // Pedido do usuário (18/08/2026): mostrar o catálogo completo de planos
+    // (não só os mais caros que o atual) — cada plano vira um cartão com o
+    // botão de solicitar mudança pra qualquer direção (upgrade ou downgrade;
+    // o backend já aceita as duas, plan-upgrade-requests.ts:76-92).
+    const aviso=pendente?`<div class="alert a-info" style="margin-bottom:12px">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        <div><b>Pedido de mudança em análise.</b> ${esc(pendente.current_plan_name||pendente.current_plan_code)} → ${esc(pendente.requested_plan_name||pendente.requested_plan_code)}. A TITAN avisa no sino assim que decidir.</div>
       </div>
-      <div class="hint" id="plan-target-features"></div>
-      <div class="field"><label for="plan-note">Observação (opcional)</label><textarea id="plan-note" class="inp" rows="2" placeholder="Ex.: preciso emitir mais notas por mês"></textarea></div>
-      <button class="btn btn-a" type="button" onclick="solicitarUpgradePlano()">Solicitar upgrade</button>`;
-    window.__vitrinePlanos=vitrine;
-    mostrarFeaturesPlanoAlvo();
+      <button class="btn btn-s" type="button" style="margin-bottom:14px" onclick="cancelarPedidoUpgrade('${pendente.id}')">Cancelar pedido</button>`:'';
+    box.innerHTML=aviso+vitrine.plans.map(p=>{
+      const ehAtual=p.code===company.plan_code;
+      const nomes=p.features.map(nomeFeature);
+      return `<div class="card" style="margin-bottom:10px${ehAtual?';border-color:var(--gold)':''}">
+        <div class="card-h"><h2 style="font-size:12.5px">${esc(p.name)}</h2><span class="pill ${ehAtual?'p-gold':'p-off'} right">${ehAtual?'Plano atual':'R$ '+brl(p.price_cents/100)+'/mês'}</span></div>
+        <div class="card-b" style="padding:10px 16px 14px">
+          <div class="hint" style="margin-bottom:10px">${esc(p.description||('Inclui: '+nomes.join(', ')))}</div>
+          ${ehAtual||pendente?'':`<button class="btn btn-s" type="button" style="width:100%" onclick="solicitarUpgradePlano('${esc(p.code)}')">Solicitar mudança para ${esc(p.name)}</button>`}
+        </div>
+      </div>`;
+    }).join('');
   }catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
 }
-function mostrarFeaturesPlanoAlvo(){
-  const vitrine=window.__vitrinePlanos,code=qs('#plan-target')?.value,alvo=vitrine?.plans.find(p=>p.code===code);
-  const hint=qs('#plan-target-features');if(!hint||!alvo)return;
-  const nomes=alvo.features.map(f=>vitrine.featureCatalog.find(x=>x.code===f)?.name||f);
-  hint.textContent=alvo.description||('Inclui: '+nomes.join(', '));
-}
-async function solicitarUpgradePlano(){
-  const requestedPlanCode=qs('#plan-target')?.value,note=qs('#plan-note')?.value.trim();
+async function solicitarUpgradePlano(requestedPlanCode){
   if(!requestedPlanCode)return;
-  try{await api('/api/plans/upgrade-requests',{method:'POST',body:JSON.stringify({requestedPlanCode,note:note||undefined})});await carregarMeuPlano()}catch(error){alert(error.message)}
+  try{await api('/api/plans/upgrade-requests',{method:'POST',body:JSON.stringify({requestedPlanCode})});await carregarMeuPlano()}catch(error){alert(error.message)}
 }
 async function cancelarPedidoUpgrade(id){
   if(!await titanConfirm('Cancelar o pedido de upgrade em análise?','Cancelar pedido','warn'))return;
@@ -4383,78 +4294,38 @@ async function converterComercial(index){
 
 
 /* ---------- importação ADN ---------- */
-let impRodando=false;
-async function carregarImportStatus(){
+async function carregarStatusImportacao(){
+  const hint=qs('#import-status-hint');if(!hint)return;
   try{
     const state=await api('/api/import');
-    qs('#i-nsu').value=state.lastNsu||'0';
-    if(state.documents>0){
-      qs('#imp-vazio').innerHTML=`Base local: <b>${state.documents}</b> DF-e e <b>${state.customers}</b> clientes vindos do Portal Nacional. Último NSU: <span class="mono">${esc(state.lastNsu)}</span>.`;
-    }
-  }catch(error){qs('#imp-vazio').textContent=error.message}
+    qs('#import-status-pill').textContent=state.documents>0?'Já buscado':'Nunca buscado';
+    hint.textContent=state.documents>0
+      ?`Base local: ${state.documents} documento(s) e ${state.customers} cliente(s) já trazidos do Portal Nacional. Último NSU: ${state.lastNsu}.`
+      :'Nenhuma busca feita ainda — clique no botão abaixo pra trazer os documentos e cadastrar os clientes automaticamente.';
+  }catch(error){hint.textContent=error.message}
 }
-async function importar(preview){
-  if(!empresaAtual){
-    alert('Cadastre e salve a empresa antes de configurar a importação.');
-    go('emitente',qs('#sb-configuracoes'));
-    return;
-  }
-  if(impRodando)return;
-  impRodando=true;
-  qs('#btn-imp').disabled=true;
-  qs('#btn-imp-confirmar').disabled=true;
-  qs('#imp-vazio').style.display='none';
-  qs('#imp-run').style.display='block';
-  qs('#imp-fim').innerHTML='';
-  qs('#imp-lotes').innerHTML='';
-
-  const nsu=Math.max(0,Number(qs('#i-nsu').value)||0);
-  const cadastrarTomadores=!!qs('#i-tom')?.checked;
-  qs('#imp-nsu').textContent='NSU '+nsu;
-  qs('#imp-tot').textContent=preview?'consultando ADN (prévia)':'consultando ADN';
-  qs('#imp-bar').style.width='35%';
+async function buscarPortalNacional(){
+  if(!empresaAtual){alert('Cadastre e salve a empresa antes de buscar no Portal Nacional.');return}
+  const btn=qs('#btn-buscar-portal'),out=qs('#import-result');
+  if(btn.disabled)return;
+  btn.disabled=true;btn.textContent='Buscando...';out.innerHTML='';
   try{
-    const result=await api('/api/import/sync',{method:'POST',body:JSON.stringify({nsu,maxPages:5,cadastrarTomadores,preview:!!preview})});
-    qs('#imp-nsu').textContent='NSU '+result.lastNsu;
-    qs('#imp-bar').style.width='100%';
-    qs('#imp-lotes').innerHTML=result.batches.map(batch=>`<div class="lote"><span class="mono">GET /DFe/${esc(batch.fromNsu)} → ${esc(batch.toNsu)}</span><b>${batch.documents} documento(s)</b></div>`).reverse().join('');
-    if(result.preview){
-      qs('#imp-tot').textContent=result.documentos.novos+' documento(s) novo(s) na prévia';
-      const semNovidade=!result.documentos.novos;
-      qs('#imp-fim').innerHTML=`
-        <div class="result" style="margin-top:12px">
-          <div class="flex" style="margin-bottom:9px"><span class="pill ${semNovidade?'p-off':'p-warn'}">${semNovidade?'Prévia — nenhum documento novo':'Prévia — nada foi gravado ainda'}</span></div>
-          <div class="kv"><span>Documentos novos</span><b>${result.documentos.novos}</b></div>
-          <div class="kv"><span>Documentos duplicados (já importados)</span><b>${result.documentos.duplicados}</b></div>
-          <div class="kv"><span>Tomadores novos${cadastrarTomadores?'':' (cadastro desligado)'}</span><b>${result.tomadores.novos}</b></div>
-          <div class="kv"><span>Tomadores que seriam alterados${cadastrarTomadores?'':' (cadastro desligado)'}</span><b>${result.tomadores.alterados}</b></div>
-          <div class="kv"><span>Documentos sem tomador identificável</span><b>${result.tomadores.ignorados}</b></div>
-          <div class="foot-note">${cadastrarTomadores?'Cadastro automático de tomadores ligado — confirme só depois de revisar os números acima.':'Cadastro automático de tomadores desligado — só os documentos serão importados.'}</div>
-        </div>`;
-      qs('#btn-imp-confirmar').style.display=result.documentos.novos?'block':'none';
-    }else{
-      qs('#imp-tot').textContent=result.imported+' documentos novos';
-      qs('#i-nsu').value=result.lastNsu;
-      qs('#btn-imp-confirmar').style.display='none';
-      const found=result.imported>0;
-      qs('#imp-fim').innerHTML=`
-        <div class="result ${found?'ok':''}" style="margin-top:12px">
-          <div class="flex" style="margin-bottom:9px"><span class="pill ${found?'p-ok':'p-off'}">${found?'Importação concluída':'ADN consultado — nenhum documento novo'}</span></div>
-          <div class="kv"><span>Notas como prestador</span><b>${result.provider}</b></div>
-          <div class="kv"><span>Notas como tomador</span><b>${result.borrower}</b></div>
-          <div class="kv"><span>Clientes processados</span><b>${result.customers}</b></div>
-          <div class="kv"><span>Status oficial</span><b>${esc(result.status)}</b></div>
-          <div class="kv"><span>Último NSU</span><b class="mono" style="font-size:11.5px">${esc(result.lastNsu)}</b></div>
-          <div class="foot-note">Resposta real da API de Contribuintes do ADN em ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}.</div>
-        </div>`;
-    }
+    const result=await api('/api/import/sync',{method:'POST',body:JSON.stringify({maxPages:5,cadastrarTomadores:true,preview:false})});
+    const found=result.imported>0;
+    out.innerHTML=`
+      <div class="result ${found?'ok':''}">
+        <div class="flex" style="margin-bottom:9px"><span class="pill ${found?'p-ok':'p-off'}">${found?'Busca concluída':'ADN consultado — nenhum documento novo'}</span></div>
+        <div class="kv"><span>Documentos novos</span><b>${result.imported}</b></div>
+        <div class="kv"><span>Clientes cadastrados/atualizados</span><b>${result.customers}</b></div>
+        <div class="kv"><span>Notas como prestador</span><b>${result.provider}</b></div>
+        <div class="kv"><span>Notas como tomador</span><b>${result.borrower}</b></div>
+        <div class="foot-note">Resposta real da API de Contribuintes do ADN em ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}.</div>
+      </div>`;
+    carregarStatusImportacao();
   }catch(error){
-    qs('#imp-bar').style.width='100%';
-    qs('#imp-fim').innerHTML=`<div class="result no" style="margin-top:12px"><span class="pill p-err">Importação recusada</span><div class="chave" style="color:#7d1c1f">${esc(error.message)}</div></div>`;
+    out.innerHTML=`<div class="result no"><span class="pill p-err">Não foi possível buscar</span><div class="chave" style="color:#7d1c1f">${esc(error.message)}</div></div>`;
   }finally{
-    impRodando=false;
-    qs('#btn-imp').disabled=false;
-    qs('#btn-imp-confirmar').disabled=false;
+    btn.disabled=false;btn.textContent='Buscar dados do Portal Nacional';
   }
 }
 
@@ -5655,8 +5526,8 @@ const supTopics=[
   a:()=>`Regras oficiais atuais:<ul><li><b>MEI prestador de serviços</b>: padrão nacional obrigatório desde <b>01/09/2023</b> nas hipóteses de emissão;</li><li><b>ME/EPP optante pelo Simples Nacional</b>: uso obrigatório do Emissor Nacional a partir de <b>01/09/2026</b>, conforme a Resolução CGSN nº 189/2026;</li><li><b>Demais contribuintes</b>: a forma de emissão depende do regime, da legislação e da solução adotada pelo município.</li></ul>Não existe uma regra geral dizendo que todas as empresas passaram obrigatoriamente ao portal em 01/01/2026.${supFonte(SUP_OFICIAL.simples2026,'Comunicado oficial CGSN 189/2026')}`,
   act:[['Dados do emitente','emitente']]},
  {id:'importar',chip:'Importar do ADN',kw:['importar','trazer notas','sincroniz','distribui','adn','baixar do portal','notas recebidas'],
-  a:()=>`Em <b>Importar do Portal</b>, o TITAN consulta a distribuição do ADN para a empresa autenticada e traz documentos em que ela aparece como prestador, tomador ou intermediário. O certificado deve pertencer ao CNPJ da empresa ativa.`,
-  act:[['Abrir Importar do Portal','importar']]},
+  a:()=>`Em <b>Configurações</b>, o card "Importar do Portal Nacional" consulta a distribuição do ADN para a empresa autenticada e traz documentos em que ela aparece como prestador, tomador ou intermediário, cadastrando os clientes automaticamente. O certificado deve pertencer ao CNPJ da empresa ativa.`,
+  act:[['Abrir Configurações','emitente']]},
  {id:'ambiente',chip:'Ambiente',kw:['ambiente','restrit','producao','teste','validade juridica','homolog','tpamb','oficial'],
   a:()=>`Ambiente atual: <b>${supAmb()}</b>.<ul><li><b>Produção Restrita</b> (tpAmb=2): testes, sem validade fiscal;</li><li><b>Produção oficial</b> (tpAmb=1): documentos com validade fiscal quando autorizados.</li></ul>A troca é controlada no servidor para evitar emissões acidentais.`},
  {id:'clientes',chip:'Clientes / CNPJ',kw:['cliente','tomador','consultar cnpj','cadastro de cliente','brasilapi','buscar cnpj'],
