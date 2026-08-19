@@ -135,7 +135,7 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
   assert.match(html,/function entrarComSessaoSalva/);
   assert.match(html,/entrarComSessaoSalva\(\)\.catch/);
   assert.match(html,/abrirAreaAutenticada\(access\)/);
-  assert.match(html,/async function selecionarEmpresaAdmin\(companyId\)[\s\S]{0,260}abrirEmpresaEmissao\(companyId\)/);
+  assert.match(html,/async function selecionarEmpresaAdmin\(companyId\)[\s\S]{0,350}abrirEmpresaEmissao\(companyId\)/);
   assert.match(html,/Preparando o ambiente fiscal da empresa/);
   assert.match(html,/Sem usuário ativo/);
   assert.doesNotMatch(html,/mode:"master_impersonation"/);
@@ -183,13 +183,13 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   // A landing foi redesenhada (headline, benefícios e comparação com o Portal
   // Nacional) — as asserções abaixo casam com o conteúdo real de hoje, não
-  // com o headline antigo "Vamos colocar sua empresa na nota fiscal nacional".
-  assert.match(landing,/Toda a segurança do Portal Nacional\. <span>Toda a inteligência do TITAN\.<\/span>/);
+  // com headlines antigos já substituídos em rodadas anteriores.
+  assert.match(landing,/Agilize a emissão da sua nota fiscal <span>com o TITAN NFS-e\.<\/span>/);
   assert.match(landing,/\/api\/contact/);
   assert.match(landing,/titan-nfse-logo-transparent\.png/);
   assert.match(landing,/\/api\/system\/branding/);
   assert.match(landing,/carregarBrandingPortal/);
-  assert.match(landing,/Emita notas com mais rapidez, reduza erros e organize clientes e serviços em um só lugar/);
+  assert.match(landing,/Cadastre uma vez, emita em segundos, no sistema ou mandando um áudio pro Martyn no WhatsApp\./);
   assert.match(landing,/Muito mais que uma tela para emitir notas/);
   assert.match(landing,/id="login-drawer"/);
   assert.match(landing,/client-login-form/);
@@ -413,7 +413,9 @@ test("replica logica de recebimentos com agendamento recorrencia cobranca e NFS-
   assert.match(html,/\/api\/workspace\/receivables\/'\+id\+'\/collection-review/);
   assert.match(html,/\/api\/workspace\/recurrences/);
   assert.match(html,/Agendar recebimento/);
-  assert.match(html,/Recorrência de honorários/);
+  // Recebimento avulso e recorrência de honorários viraram um formulário só
+  // (modal), com um checkbox que troca os campos — não duas telas separadas.
+  assert.match(html,/É recorrente — repete todo mês, gera nota fiscal e recebimento sozinho/);
   assert.match(html,/WhatsApp\/API zap/);
   assert.match(html,/pré-NFS-e pendente/);
   assert.match(html,/function prepararNotaRecebimento/);
@@ -478,15 +480,15 @@ test("convite operacional cria apenas senha e confirmação",async()=>{
   assert.doesNotMatch(inviteFlow,/JSON\.stringify\(\{name,password\}\)/);
 });
 
-test("exibe planos SaaS com limites e valores publicados",async()=>{
+test("planos SaaS abrem em modal separado, com preço e valores reais buscados da API (não mais expostos direto na home)",async()=>{
+  // Pedido do usuário: a home não expõe preço fixo — abre um modal separado
+  // ("Consultar planos") que busca os planos reais (com preço) da API.
   const html=await readFile(resolve(root,"public/nfs.html"),"utf8");
   assert.match(html,/id="planos"/);
-  assert.match(html,/Plano Light/);
-  assert.match(html,/R\$ 29,90/);
-  assert.match(html,/Plano SN 20/);
-  assert.match(html,/R\$ 49,90/);
-  assert.match(html,/Plano SN 50/);
-  assert.match(html,/R\$ 79,90/);
+  assert.match(html,/id="planos-modal-backdrop"/);
+  assert.match(html,/id="pricing-grid"/);
+  assert.match(html,/function abrirPlanosModal\(\)/);
+  assert.match(html,/fetch\(\(window\.TITAN_API_URL\|\|''\)\.replace\(\/\\\/\$\/,''\)\+'\/api\/onboarding\/plans'\)/);
   assert.match(html,/price-card custom/);
   assert.match(html,/Sob consulta/);
 });
@@ -601,7 +603,9 @@ test("sessão administrativa do Master exibe faixa persistente de impersonação
   // gravado dentro de entrarViaGestor (único caminho que consome o handoff do
   // Master) e limpo em sairPortal — persiste num reload da mesma aba e nunca
   // vaza pra aba original do painel Master (sessionStorage é por aba)
-  assert.match(html,/sessionStorage\.setItem\(STORAGE_IMPERSONATING,data\.companies\[0\]\.trade_name\|\|data\.companies\[0\]\.legal_name\|\|'empresa selecionada'\)/);
+  // As chamadas individuais de sessionStorage.setItem viraram uma só
+  // salvarSessaoLocal([[chave,valor],...]) — mesmo efeito, uma chamada batched.
+  assert.match(html,/\[STORAGE_IMPERSONATING,data\.companies\[0\]\.trade_name\|\|data\.companies\[0\]\.legal_name\|\|'empresa selecionada'\]/);
   assert.match(html,/sessionStorage\.removeItem\(STORAGE_IMPERSONATING\)/);
   assert.match(html,/render\(\);faixaImpersonacao\(\);PORTAL_HELP/);
   assert.match(html,/^faixaImpersonacao\(\);$/m);
@@ -631,7 +635,9 @@ test("Master aplica verificação de inadimplência sob demanda e vê o total de
   assert.match(html,/onclick="aplicarBloqueioInadimplenciaMaster\(\)"/);
   assert.match(html,/async function aplicarBloqueioInadimplenciaMaster\(\)\{/);
   assert.match(html,/await api\('\/api\/billing\/enforce',\{method:'POST'\}\)/);
-  assert.match(html,/const resultados=data\.results\|\|\[\],bloqueadas=resultados\.filter\(item=>item\.blocked\)\.length/);
+  // A contagem de bloqueadas passou a vir pronta do backend (data.blocked),
+  // em vez de filtrar um array de resultados no cliente.
+  assert.match(html,/\$\{data\.checked\|\|0\} empresa\(s\) verificada\(s\) · \$\{data\.blocked\|\|0\} bloqueada\(s\) por inadimplência agora\./);
   assert.match(html,/id="master-monthly-invoices"/);
   assert.match(html,/masterData\.monthlyAuthorizedInvoices/);
 });
@@ -872,8 +878,11 @@ test("login por e-mail em nfs.html reconhece Master OU Parceiro e redireciona pa
   assert.match(form,/<h3>Master ou Parceiro<\/h3>/);
   const handler=landing.slice(landing.indexOf("document.querySelector('#admin-login-form').addEventListener"),landing.indexOf("function aplicarIntencaoLogin"));
   assert.match(handler,/const access=await authLogin\(\{email,password\}\)/);
-  assert.match(handler,/if\(!access\.user\?\.isMaster&&!access\.user\?\.isPartner\)throw new Error/);
-  assert.match(handler,/saveSession\(access,null\);navegarAposLogin\(access\.user\.isMaster\?'\/admin':'\/parceiro'\)/);
+  // A checagem isMaster/isPartner e o redirecionamento foram extraídos para
+  // finalizarLoginAdmin(access), chamada pelo handler do formulário.
+  assert.match(handler,/finalizarLoginAdmin\(access\)/);
+  assert.match(landing,/function finalizarLoginAdmin\(access\)\{if\(!access\.user\?\.isMaster&&!access\.user\?\.isPartner\)throw new Error/);
+  assert.match(landing,/saveSession\(access,null\);navegarAposLogin\(access\.user\.isMaster\?'\/admin':'\/parceiro'\)/);
 });
 
 test("rota /parceiro abre parceiro.html num iframe próprio, fora do shell de titan.html",async()=>{
@@ -885,8 +894,12 @@ test("rota /parceiro abre parceiro.html num iframe próprio, fora do shell de ti
 
 test("parceiro.html carrega a carteira do parceiro (GET /api/partner/companies) sem form de login próprio",async()=>{
   const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
-  // Sessão vem só do login em nfs.html — sem form de login próprio nesta tela
-  assert.doesNotMatch(html,/<form/);
+  // Sessão vem só do login em nfs.html. A tela ganhou formulários próprios
+  // (indicar cliente, suporte, perfil, trocar senha) desde então, mas
+  // nenhum deles estabelece sessão — o que continua proibido é uma segunda
+  // rota de autenticação (authLogin/saveSession) duplicando o login.
+  assert.doesNotMatch(html,/authLogin\(/);
+  assert.doesNotMatch(html,/saveSession\(/);
   assert.match(html,/return token&&access\.user\?\.isPartner\?token:null;/);
   assert.match(html,/await fetch\(\(window\.TITAN_API_URL\|\|''\)\.replace\(\/\\\/\$\/,''\)\+caminho,\{headers:\{Authorization:'Bearer '\+token\}\}\)/);
   assert.match(html,/buscarApiParceiro\('\/api\/partner\/companies'\)/);
@@ -935,7 +948,8 @@ test("topbar do parceiro tem Carteira/Créditos/Comissões/Financeiro, todas as 
 
 test("partnerTab troca a seção visível e recarrega os dados da aba escolhida",async()=>{
   const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
-  assert.match(html,/const PARTNER_LOADERS=\{carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro\};/);
+  // Mais abas de parceiro entraram desde então (licenças, perfil, novidades).
+  assert.match(html,/const PARTNER_LOADERS=\{carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro,licencas:carregarLicencas,perfil:carregarPerfilParceiro,novidades:carregarNovidadesParceiro\};/);
   assert.match(html,/function partnerTab\(nome,botao\)\{/);
   assert.match(html,/secao\.style\.display=secao\.id==='partner-view-'\+nome\?'block':'none'/);
   assert.match(html,/PARTNER_LOADERS\[nome\]\?\.\(\);/);
@@ -951,7 +965,9 @@ test("aba Créditos mostra cota mensal, uso do mês corrente e funções contrat
 test("aba Comissões calcula a estimativa a partir do % que o Master configurou, sem inventar valor (GET /api/partner/comissoes)",async()=>{
   const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
   assert.match(html,/buscarApiParceiro\('\/api\/partner\/comissoes'\)/);
-  assert.match(html,/Comissão configurada pelo Master: <b>\$\{brl\(data\.commissionPercent\)\}%<\/b>/);
+  // Copy ganhou contexto do modelo de revenda por licença (empresas
+  // liberadas por licença vs. empresas no modelo antigo de comissão).
+  assert.match(html,/comissão de <b>\$\{brl\(data\.commissionPercent\)\}%<\/b> configurada pelo Master/);
   assert.match(html,/Number\(company\.commission_cents\|\|0\)\/100/);
 });
 
@@ -966,7 +982,8 @@ test("Master define a comissão (%) do parceiro, usada pela aba Comissões do Po
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/<input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex\.: 10">/);
   assert.match(html,/commissionPercent=dinheiro\(qs\('#partner-commission'\)\.value\)/);
-  assert.match(html,/JSON\.stringify\(\{name,nickname,active,commissionPercent\}\)/);
+  // Ganhou email e CNPJ do parceiro desde então (Frontend Master: campo CNPJ).
+  assert.match(html,/JSON\.stringify\(\{name,nickname,email,federalTaxId,active,commissionPercent\}\)/);
   assert.match(html,/qs\('#partner-commission'\)\.value=String\(Number\(partner\.commission_percent\|\|0\)\)\.replace\('\.',','\);/);
   assert.match(html,/commissionPercent:Number\(partner\.commission_percent\|\|0\)/);
 });
@@ -1101,17 +1118,23 @@ test("botão 'Enviar por WhatsApp' sem função nenhuma foi removido da lista de
   assert.doesNotMatch(html,/title="Enviar por WhatsApp"/);
 });
 
-test("cadastro da empresa exige inscrição municipal e endereço antes de salvar, não só razão social e CNPJ",async()=>{
+test("cadastro da empresa exige razão social, CNPJ e endereço antes de salvar; inscrição municipal é opcional",async()=>{
+  // Inscrição municipal virou campo (opcional) — nem toda empresa/município
+  // exige — mas razão social, CNPJ e endereço continuam obrigatórios.
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/for="e-im">Inscrição municipal <span[^>]*>\(opcional\)<\/span>/);
   const inicio=html.indexOf("async function salvarCadastro()");
   const bloco=html.slice(inicio,inicio+2000);
-  assert.match(bloco,/if\(!empresa\.rs\|\|!empresa\.cnpj\|\|!empresa\.im\|\|!empresa\.endereco\)\{/);
+  assert.match(bloco,/if\(!empresa\.rs\|\|!empresa\.cnpj\|\|!empresa\.endereco\)\{/);
 });
 
 test("recebimentos e recorrências recusam valor zero ou negativo, não só valor vazio",async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/if\(!body\.title\|\|!body\.customerName\|\|!body\.dueDate\|\|!\(amount>0\)\)\{/);
-  assert.match(html,/if\(!body\.title\|\|!body\.customerName\|\|!body\.startDate\|\|!\(amount>0\)\)\{/);
+  // A recorrência passou a usar cliente/serviço cadastrados em vez de texto
+  // livre com startDate — a checagem de valor>0 virou uma validação por
+  // campo (mensagem específica por erro), mas o zero/negativo continua barrado.
+  assert.match(html,/if\(!amount\|\|amount<=0\)\{alert\('Informe um valor maior que zero\.'\);return\}/);
 });
 
 test("município digitado em checarHabilitacao passa por esc() antes de virar innerHTML",async()=>{
@@ -1185,7 +1208,10 @@ test("vistoria de 09/08/2026: nav das ferramentas fora do Light some quando o pl
   // As 4 ferramentas gateadas por requireFeature no backend precisam do
   // mesmo gate na tela — senão o botão fica visível e só falha ao clicar.
   assert.match(html,/data-permission="emit" data-feature="invoice_recurrences" onclick="go\('recorrentes',this\)"/);
-  assert.match(html,/data-permission="import" data-feature="portal_import" onclick="go\('importar',this\)"/);
+  // O gatilho de Importar deixou de ser um link fixo na barra lateral e virou
+  // um card de atalho (com o próprio botão "Abrir importação" dentro) — o
+  // card inteiro, botão incluído, continua gateado pelas mesmas duas checagens.
+  assert.match(html,/<div class="card" data-permission="import" data-feature="portal_import">[\s\S]{0,550}onclick="go\('importar'\)"/);
   assert.match(html,/data-permission="financial" data-feature="receivables" onclick="go\('recebimentos',this\)"/);
   assert.match(html,/data-feature="dasn_simei" onclick="go\('dasn',this\)"/);
   // Cobranças TITAN (o que a própria TITAN cobra do cliente) não é uma
@@ -1197,7 +1223,8 @@ test("vistoria de 09/08/2026: nav das ferramentas fora do Light some quando o pl
   // dois atributos estão juntos no mesmo botão.
   assert.match(html,/features=company\?\.features\|\|\['portal_emission'\]/);
   assert.match(html,/qsa\('\[data-permission\],\[data-feature\]'\)\.forEach/);
-  assert.match(html,/const okPermissao=!el\.dataset\.permission\|\|user\.isMaster\|\|permissions\.includes\(el\.dataset\.permission\)/);
+  // Passou a aceitar múltiplas permissões separadas por vírgula no mesmo elemento.
+  assert.match(html,/const okPermissao=!el\.dataset\.permission\|\|user\.isMaster\|\|el\.dataset\.permission\.split\(','\)\.some\(p=>permissions\.includes\(p\)\)/);
   assert.match(html,/const okFeature=!el\.dataset\.feature\|\|user\.isMaster\|\|features\.includes\(el\.dataset\.feature\)/);
 });
 
@@ -1392,7 +1419,7 @@ test("pedido do usuário (12/08/2026, atualizado 14-15/08/2026): notas recorrent
   assert.match(html,/qs\('#rc-end-date'\)\.value=item\.end_date\|\|'';/);
   // "hora certa" (14/08/2026) e dia de vencimento pra #vencimento (15/08/2026).
   assert.match(html,/id="rc-time" class="inp" type="time"/);
-  assert.match(html,/id="rc-due-day" class="inp num"/);
+  assert.match(html,/id="rc-due-day" class="inp"/);
   assert.match(html,/runTime:qs\('#rc-time'\)\.value\|\|'09:00',dueDayOfMonth:dueDayTexto\?Number\(dueDayTexto\):undefined/);
   // importação por CSV (14/08/2026, "não txt ou ;"): upload de arquivo +
   // prévia por linha, sem endpoint novo, reaproveita o mesmo POST de sempre.
