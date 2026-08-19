@@ -4444,7 +4444,7 @@ async function consultarProgressoBuscaPortal(){
           <div class="flex" style="margin-bottom:9px"><span class="pill p-ok">Busca concluída</span></div>
           <div class="kv"><span>Documentos novos</span><b>${job.documents_imported}</b></div>
           <div class="kv"><span>Clientes cadastrados/atualizados</span><b>${job.customers_imported}</b></div>
-          <div class="foot-note">Resposta real da API de Contribuintes do ADN em ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}.</div>
+          <div class="foot-note">Resposta real da API de Contribuintes do ADN em ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}. Razão social e endereço de quem só veio com o CNPJ chegam em instantes — atualização automática via BrasilAPI já disparada.</div>
         </div>`;
     }else{
       out.innerHTML=`<div class="result no"><span class="pill p-err">A busca parou</span><div class="chave" style="color:#7d1c1f">${esc(job.error||'Erro desconhecido.')}</div></div>`;
