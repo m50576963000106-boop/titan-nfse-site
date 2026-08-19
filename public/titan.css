@@ -149,6 +149,17 @@ html.impersonating .sidebar,html.impersonating .topbar{top:var(--imp-h,38px)}
 .sb-link.active{background:var(--navy-2);color:var(--cream);font-weight:600}
 .sb-link.active .ic{color:var(--gold)}
 .ic{width:16px;height:16px;flex:none;color:#66768f}
+/* Etapa A da análise do portal (19/08/2026), decisão do dono do produto:
+   "ocultar telas". Item de menu desativado continua no HTML (é só ligar de
+   volta quando a função existir), mas sai da vista — item cinza ocupando
+   espaço promete uma função que ainda não há. Vale para Boletos, Conciliação
+   bancária, Fluxo de caixa completo, E-mail, WhatsApp/API, Open Finance,
+   API e webhooks e Usuários e permissões. */
+.sb-nav .sb-link[disabled]{display:none}
+/* O grupo "Integrações" tinha 4 itens e TODOS estão desativados — sem esta
+   regra sobraria um expansor que abre vazio. Financeiro continua visível
+   porque ainda tem Recebimentos e DASN-SIMEI de verdade. */
+#integracoes-menu,#integracoes-menu-trigger{display:none!important}
 .admin-sidebar{display:none}
 .portal-admin .user-sidebar{display:none!important}
 .portal-admin .admin-sidebar{display:block}

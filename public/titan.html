@@ -117,7 +117,7 @@
       <button class="sb-link" data-permission="financial" onclick="go('outros',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Outros</button>
 
       <div class="sb-sec">Integrações</div>
-      <button class="sb-link" type="button" onclick="alternarGrupoMenu('integracoes-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Integrações<span class="sb-chevron">›</span></button>
+      <button class="sb-link" id="integracoes-menu-trigger" type="button" onclick="alternarGrupoMenu('integracoes-menu',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Integrações<span class="sb-chevron">›</span></button>
       <div class="sb-submenu" id="integracoes-menu"><button class="sb-link" type="button" disabled aria-disabled="true">E-mail</button><button class="sb-link" type="button" data-permission="integrations" disabled aria-disabled="true">WhatsApp/API (rascunho)</button><button class="sb-link" type="button" data-permission="integrations" disabled aria-disabled="true">Open Finance</button><button class="sb-link" type="button" data-permission="integrations" disabled aria-disabled="true">API e webhooks</button></div>
 
        <div class="sb-sec">Configurações</div>
@@ -291,7 +291,7 @@
             <div class="card-b">
               <div class="row r21">
                 <div class="field">
-                  <label for="t-doc">CPF / CNPJ</label>
+                  <label for="t-doc">CPF / CNPJ <span class="info-tip" title="Documento de quem CONTRATOU o serviço (o tomador), não o seu. CNPJ traz o cadastro sozinho da base pública; CPF precisa do nome digitado. O dígito verificador é conferido antes de emitir — errado aqui, a Sefin rejeita a nota.">?</span></label>
                   <div class="input-action"><input id="t-doc" class="inp" autocapitalize="characters" maxlength="18" placeholder="CPF ou AA.AAA.AAA/AAAA-99" oninput="mascararDocumento(this)"><button class="btn btn-s" id="btn-cnpj" type="button" onclick="consultarCnpj()">Buscar CNPJ</button></div>
                   <div class="hint" id="cnpj-hint">Consulta gratuita pela BrasilAPI. CPF e CNPJ alfanumérico podem ser preenchidos manualmente.</div>
                 </div>
@@ -334,7 +334,7 @@
             <div class="card-h emit-card-h"><div class="emit-card-title"><span class="emit-step">2</span><div><h2>Serviço prestado</h2><p>Escolha o serviço, CTN, NBS e município de incidência.</p></div></div></div>
             <div class="card-b">
               <div class="field">
-                <label for="s-comp">Data de competência</label>
+                <label for="s-comp">Data de competência <span class="info-tip" title="O mês em que o serviço foi PRESTADO, que nem sempre é o dia de hoje: serviço de agosto emitido em setembro tem competência de agosto. É por ela que a nota entra na sua apuração. Não pode ser data futura — a Sefin rejeita.">?</span></label>
                 <input id="s-comp" class="inp" type="date" required onchange="atualizarCompetenciaFiscal()">
                 <div class="hint" id="s-comp-hint">Campo obrigatório da DPS. A data usa o fuso de Brasília.</div>
               </div>
@@ -356,7 +356,7 @@
                 <div class="field"><label for="s-nbs-search">Código NBS <span class="required-mark">*</span></label><div class="input-action"><input id="s-nbs-search" class="inp" inputmode="numeric" placeholder="Código ou descrição NBS" onfocus="garantirNbsCarregado('s-nbs')"><button class="btn btn-s" type="button" onclick="buscarNbsEmissao()">Buscar</button></div><select id="s-nbs" class="inp mono" required onchange="validarNbsDigitacao()" onfocus="garantirNbsCarregado('s-nbs')"><option value="">Pesquise o catálogo NBS</option></select><div class="hint" id="s-nbs-hint">Selecione um NBS oficial pelo código ou pela descrição.</div></div>
               </div>
               <div class="field">
-                <label for="s-desc">Descrição</label>
+                <label for="s-desc">Descrição <span class="info-tip" title="O que foi feito, com as palavras que o seu cliente entende — é o que ele lê na nota. Descrição genérica demais ("serviços prestados") costuma gerar pergunta do contador dele. Até 1000 caracteres.">?</span></label>
                 <textarea id="s-desc" class="inp" placeholder="Descreva o serviço prestado" maxlength="1000" oninput="qs('#s-desc-count').textContent=this.value.length"></textarea>
                 <div class="hint"><span id="s-desc-count">0</span>/1000 caracteres — limite da DPS nacional (xDescServ)</div>
               </div>
@@ -367,7 +367,7 @@
               </div>
               <div class="row r2">
                 <div class="field mb0">
-                  <label for="s-val" id="s-val-label">Valor deste serviço (R$)</label>
+                  <label for="s-val" id="s-val-label">Valor deste serviço (R$) <span class="info-tip" title="Valor BRUTO do serviço, antes de qualquer retenção. As retenções são calculadas em cima dele e aparecem no resumo — não desconte nada aqui.">?</span></label>
                   <input id="s-val" class="inp num" value="0,00" inputmode="decimal" oninput="atualizarValorServicoAtual()">
                   <div class="hint" id="s-val-hint">Valor referente ao serviço descrito acima. Para repetir este mesmo código nacional/NBS com outro valor, use "+ Novo serviço desta mesma natureza". Para somar um serviço diferente já cadastrado, use "Adicionar outro serviço cadastrado" na etapa 3.</div>
                   <button class="btn btn-s" type="button" id="s-add-same-nature" onclick="adicionarNovoServicoMesmaNatureza()">+ Novo serviço desta mesma natureza</button>
@@ -404,8 +404,8 @@
               <div class="hint" id="s-ret-lock-hint" style="display:none">Impostos conforme o cadastro do serviço em Meus Serviços. <button class="btn btn-s" type="button" onclick="abrirGestaoServicoAtual()">Editar cadastro do serviço</button></div>
               <div id="s-ret-fields">
               <div class="row r2">
-                <div class="field"><label for="s-trib-iss">Tributação do ISSQN</label><select id="s-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação de serviço</option><option value="4">4 — Não incidência</option></select></div>
-                <div class="field"><label for="s-ret-iss">Retenção do ISSQN</label><select id="s-ret-iss" class="inp" onchange="lerParametros()"><option value="1">1 — Não retido</option><option value="2">2 — Retido pelo tomador</option><option value="3">3 — Retido pelo intermediário</option></select></div>
+                <div class="field"><label for="s-trib-iss">Tributação do ISSQN <span class="info-tip" title="Vem do cadastro do serviço e quase nunca muda: "Operação tributável" é o caso normal. Imunidade, exportação e não incidência são exceções que precisam de fundamento — na dúvida, confirme com seu contador antes de trocar.">?</span></label><select id="s-trib-iss" class="inp"><option value="1">1 — Operação tributável</option><option value="2">2 — Imunidade</option><option value="3">3 — Exportação de serviço</option><option value="4">4 — Não incidência</option></select></div>
+                <div class="field"><label for="s-ret-iss">Retenção do ISSQN <span class="info-tip" title="Quem recolhe o ISS: "Não retido" é você quem paga (o caso comum). "Tomador" significa que seu cliente vai reter o ISS e recolher no lugar — só marque se ele exigiu isso e a lei do município permitir.">?</span></label><select id="s-ret-iss" class="inp" onchange="lerParametros()"><option value="1">1 — Não retido</option><option value="2">2 — Retido pelo tomador</option><option value="3">3 — Retido pelo intermediário</option></select></div>
               </div>
               <div class="row r2">
                 <div class="field"><label for="s-cst">CST PIS/COFINS</label><select id="s-cst" class="inp"><option value="">Não informar</option><option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>49</option><option>50</option><option>51</option><option>52</option><option>53</option><option>54</option><option>55</option><option>56</option><option>60</option><option>61</option><option>62</option><option>63</option><option>64</option><option>65</option><option>66</option><option>67</option><option>70</option><option>71</option><option>72</option><option>73</option><option>74</option><option>75</option><option>98</option><option>99</option></select></div>
@@ -2475,7 +2475,7 @@ async function carregarServicos(){
   // mas antes os 920 itens (até 400 de uma vez) já vinham carregados sem
   // nenhuma ação do usuário (achado do relatório de auditoria 13/08) — agora
   // só carrega na primeira interação real, ver garantirNbsCarregado().
-  const [catalogo]=await Promise.all([api('/api/services/catalog?limit=400'),carregarPerfisServico()]);
+  const [catalogo]=await Promise.all([emVoo('services/catalog',()=>api('/api/services/catalog?limit=400')),carregarPerfisServico()]);
   catalogoServicos=catalogo.services;
   qs('#s-cod').innerHTML=catalogoServicos.map(item=>`<option value="${item.code}">${item.code.slice(0,2)}.${item.code.slice(2,4)}.${item.code.slice(4)} — ${esc(item.description)}</option>`).join('');
   if(catalogoServicos.some(item=>item.code==='170101'))qs('#s-cod').value='170101';
@@ -2631,8 +2631,28 @@ async function buscarNbsCadastro(){
   try{await carregarNbsCatalogo(query,'cad-nbs')}catch(error){alert(error.message)}finally{if(button){button.disabled=false;button.textContent='Buscar'}}
 }
 
+/**
+ * Duas chamadas iguais disparadas ao mesmo tempo viram UMA só (achado da
+ * análise do portal, 19/08/2026: no carregamento saíam 19 chamadas de API,
+ * com /api/customers, /api/services/profiles e /api/services/catalog pedidos
+ * duas vezes cada — quase 1,5s de rede jogada fora, porque cada chamada custa
+ * de 450 a 960ms).
+ *
+ * Só compartilha o que está EM VOO: assim que a promessa termina, a chave é
+ * liberada. Isso mantém o comportamento de sempre para quem chama depois de
+ * salvar/excluir (precisa mesmo de dado fresco) — quem passa a ser
+ * deduplicado é só a concorrência do carregamento. Mesma técnica já usada em
+ * carregarIndOpCatalogo e carregarMunicipiosCatalogo.
+ */
+const chamadasEmVoo=new Map();
+function emVoo(chave,fn){
+  if(chamadasEmVoo.has(chave))return chamadasEmVoo.get(chave);
+  const promessa=Promise.resolve().then(fn).finally(()=>chamadasEmVoo.delete(chave));
+  chamadasEmVoo.set(chave,promessa);
+  return promessa;
+}
 async function carregarPerfisServico(){
-  try{perfisServico=await api('/api/services/profiles')}catch{perfisServico=[]}
+  try{perfisServico=await emVoo('services/profiles',()=>api('/api/services/profiles'))}catch{perfisServico=[]}
   qs('#s-profile').innerHTML='<option value="">Preenchimento avulso</option>'+perfisServico.map(item=>`<option value="${item.id}">${item.display_number?item.display_number+' — ':''}${esc(item.name)}</option>`).join('');
   const list=qs('#svc-list');
   if(!perfisServico.length){list.innerHTML='<div class="empty-state">Nenhum serviço cadastrado. Clique em Novo para criar o primeiro perfil.</div>';return}
@@ -3642,7 +3662,7 @@ let clienteBuscaTimer;
 function filtrarClientesCadastro(){clearTimeout(clienteBuscaTimer);clienteBuscaTimer=setTimeout(carregarClientesCadastro,250);}
 async function carregarClientesCadastro(){
   const busca=qs('#cl-search')?.value.trim()||'';
-  try{clientesCadastro=await api('/api/customers?search='+encodeURIComponent(busca));qs('#client-list').innerHTML=clientesCadastro.length?clientesCadastro.map((item,index)=>`<div class="draft-item"><b>${esc(item.legal_name)}</b><span>${esc(item.tax_id)} · ${esc(item.address||'sem endereço')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="editarClienteCadastro(${index})">Editar</button><button class="btn btn-s" onclick="usarClienteNaEmissao(${index})">Usar na emissão</button></div></div>`).join(''):'<div class="empty-state">Nenhum cliente encontrado.</div>'}catch(error){qs('#client-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+  try{clientesCadastro=await emVoo('customers?'+busca,()=>api('/api/customers?search='+encodeURIComponent(busca)));qs('#client-list').innerHTML=clientesCadastro.length?clientesCadastro.map((item,index)=>`<div class="draft-item"><b>${esc(item.legal_name)}</b><span>${esc(item.tax_id)} · ${esc(item.address||'sem endereço')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="editarClienteCadastro(${index})">Editar</button><button class="btn btn-s" onclick="usarClienteNaEmissao(${index})">Usar na emissão</button></div></div>`).join(''):'<div class="empty-state">Nenhum cliente encontrado.</div>'}catch(error){qs('#client-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
 }
 function novoClienteCadastro(){
   ['cl-doc','cl-nome','cl-mail','cl-mail-alt','cl-fone','cl-end','cl-cidade','cl-uf','cl-mun','cl-cep'].forEach(id=>{const el=qs('#'+id);if(el)el.value=''});
