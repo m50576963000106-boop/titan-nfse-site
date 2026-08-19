@@ -618,7 +618,7 @@
     </section>
 
     <section class="view" id="v-comercial">
-      <div class="page-h master-head"><div><h1>Meus Ordens de serviços/orçamentos</h1><p>Pesquise, acompanhe a situação e converta para NFS-e.</p></div><div class="flex wrap" style="gap:8px"><button class="btn btn-s" type="button" onclick="abrirClientes()">Acessar clientes</button><button class="btn btn-s" type="button" onclick="novoComercial('service_order')">+ Nova O.S.</button><button class="btn btn-p" type="button" onclick="novoComercial('quote')">+ Novo Orçamento</button></div></div>
+      <div class="page-h master-head"><div><h1>Minhas ordens de serviço e orçamentos</h1><p>Pesquise, acompanhe a situação e converta para NFS-e.</p></div><div class="flex wrap" style="gap:8px"><button class="btn btn-s" type="button" onclick="abrirClientes()">Acessar clientes</button><button class="btn btn-s" type="button" onclick="novoComercial('service_order')">+ Nova O.S.</button><button class="btn btn-p" type="button" onclick="novoComercial('quote')">+ Novo Orçamento</button></div></div>
 
       <div class="card"><div class="card-h"><div><h2>Lista</h2></div></div><div class="card-b"><div class="commercial-controls"><input id="co-search" class="inp" placeholder="Buscar por número, título ou cliente" oninput="renderComerciais()"><select id="co-filter" class="inp" onchange="renderComerciais()"><option value="">Todos os status</option><option value="draft">Em elaboração</option><option value="approved">Aprovado</option><option value="converted">Convertido</option><option value="cancelled">Cancelado</option></select><button class="btn btn-s" onclick="carregarComerciais()">Atualizar</button></div><div id="commercial-list" class="draft-list"></div><div class="commercial-summary"><span id="commercial-count">0 documento(s)</span><span>A conversão exige revisão antes da emissão.</span></div></div></div>
 
@@ -2332,7 +2332,40 @@ async function salvarLogoComercial(input){
 
 function selecionarCliente(index){
   const cliente=clientesEncontrados[index];
-  if(cliente)preencherCliente(cliente);
+  if(!cliente)return;
+  preencherCliente(cliente);
+  completarClienteSelecionado(cliente);
+}
+/**
+ * Pedido do usuário (19/08/2026): "quando eu clico em clientes do portal e
+ * seleciono o cadastro, ele já tem que buscar o CNPJ sozinho — não preciso
+ * ficar buscando o CNPJ de novo. Quanto menor o trabalho do cliente, melhor."
+ *
+ * Cliente vindo do histórico de emissões ou do Portal Nacional chega só com
+ * nome e documento; era o usuário quem clicava "Buscar CNPJ" pra completar.
+ * Agora a consulta sai sozinha quando falta algo que a nota precisa
+ * (município, endereço) ou o regime tributário — que a partir de hoje é o que
+ * dispensa a pergunta "qual o regime do tomador?" na conferência com o Martyn.
+ *
+ * Silencioso de propósito em caso de falha: a BrasilAPI fora do ar não pode
+ * travar a emissão, e o que já estava preenchido continua valendo.
+ */
+async function completarClienteSelecionado(cliente){
+  const cnpj=normalizarDocumento(cliente.tax_id||'');
+  if(!cnpjComFormatoValido(cnpj))return;
+  const completo=cliente.municipality_code&&cliente.street&&cliente.tax_regime;
+  if(completo)return;
+  const hint=qs('#cnpj-hint');
+  if(hint)hint.textContent='Completando os dados deste cliente na base pública...';
+  try{
+    const atualizado=await api('/api/customers/cnpj/'+cnpj);
+    // O usuário pode ter trocado de cliente enquanto a consulta ia e voltava.
+    if(normalizarDocumento(qs('#t-doc').value)!==cnpj)return;
+    preencherCliente(atualizado);
+    if(hint)hint.textContent='Cadastro completado automaticamente.';
+  }catch(error){
+    if(hint)hint.textContent='';
+  }
 }
 
 async function buscarClientes(force=false){
@@ -3576,9 +3609,27 @@ const PREFLIGHT_MAPA={
 const PF_STATUS_LABEL={NOT_APPLICABLE:'não se aplica',NOT_SUBJECT:'sem retenção',EXEMPT_OR_DISPENSED:'dispensado',REQUIRED:'retenção obrigatória',CONDITIONAL:'depende de confirmação',NEEDS_REVIEW:'precisa de revisão',BLOCKED:'bloqueado'};
 const PF_STATUS_CLS={NOT_APPLICABLE:'off',NOT_SUBJECT:'ok',EXEMPT_OR_DISPENSED:'ok',REQUIRED:'warn',CONDITIONAL:'warn',NEEDS_REVIEW:'warn',BLOCKED:'err'};
 
-function abrirPreflight(){preflightFatos={};conferirComMartyn();}
+// Fatos que o cadastro respondeu sozinho (derivados do código do serviço e do
+// cliente — /api/invoices/preflight devolve em `derivados`) e quais deles o
+// usuário pediu para reabrir no "trocar". O último preflight fica guardado
+// para o "trocar" redesenhar a tela na hora, sem ida e volta ao servidor.
+// preflightMeta guarda o rótulo/pergunta de cada fato derivado mesmo depois de
+// o usuário trocar a resposta: aí o servidor para de devolver o derivado (quem
+// manda é a resposta), e sem essa memória o campo sumiria da tela sem deixar
+// como voltar atrás.
+let preflightDerivados=[],preflightAbertos={},preflightUltimo=null,preflightMeta={};
+function abrirPreflight(){preflightFatos={};preflightAbertos={};preflightUltimo=null;preflightMeta={};conferirComMartyn();}
 function fecharPreflight(){const p=qs('#preflight-panel');if(p){p.style.display='none';p.innerHTML='';}}
 function pfResponder(id,valor){const cfg=PREFLIGHT_MAPA[id];if(!cfg)return;preflightFatos[cfg.fato]=cfg.tipo==='bool'?(valor==='sim'):valor;conferirComMartyn();}
+function pfAbrirTroca(fatos){String(fatos).split(',').filter(Boolean).forEach(f=>{preflightAbertos[f]=true});if(preflightUltimo)renderPreflight(preflightUltimo);}
+/** Controle de resposta de uma pergunta do mapa — usado tanto na pergunta quanto na troca de um fato derivado. */
+function pfControle(perguntaId){
+  const cfg=PREFLIGHT_MAPA[perguntaId];
+  if(!cfg)return '<div class="pf-q-info">Confirme este ponto com seu contador antes de emitir.</div>';
+  if(cfg.tipo==='bool'){const atual=preflightFatos[cfg.fato];return `<div class="pf-q-acts"><button type="button" class="${atual===true?'on':''}" onclick="pfResponder('${perguntaId}','sim')">Sim</button><button type="button" class="${atual===false?'on':''}" onclick="pfResponder('${perguntaId}','nao')">Não</button></div>`;}
+  const atual=preflightFatos[cfg.fato]||'';
+  return `<select class="inp pf-q-sel" onchange="pfResponder('${perguntaId}',this.value)"><option value="">Selecione…</option>${cfg.opcoes.map(([lab,val])=>`<option value="${val}" ${atual===val?'selected':''}>${esc(lab)}</option>`).join('')}</select>`;
+}
 
 async function conferirComMartyn(){
   const painel=qs('#preflight-panel');
@@ -3597,6 +3648,8 @@ async function conferirComMartyn(){
 function renderPreflight(pf){
   const painel=qs('#preflight-panel');
   painel.style.display='block';
+  preflightUltimo=pf;preflightDerivados=pf.derivados||[];
+  preflightDerivados.forEach(d=>{preflightMeta[d.fato]=d});
   const blocos=[...(pf.structuralBlocks||[]),...(pf.dpsFindings||[]).map(f=>f.message)];
   const temPendencia=(pf.questions||[]).some(q=>q.answerType!=='CONFIRMACAO')||(pf.reviewFlags||[]).length;
   const status=pf.blocked?{cls:'pf-err',txt:'Ainda não dá para emitir'}:temPendencia?{cls:'pf-warn',txt:'Quase lá — confirme os pontos abaixo'}:{cls:'pf-ok',txt:'Tudo certo para emitir'};
@@ -3609,15 +3662,25 @@ function renderPreflight(pf){
     return `<div class="pf-dec"><span class="d d-${cls}"></span><span><b>${esc(tax)}</b>: ${esc(label)}${esc(calc)}</span></div>`;
   }).join('')+'</div>';
   if((pf.reviewFlags||[]).length)html+='<div class="pf-sec"><span class="pf-sec-t pf-t-warn">Requer revisão do contador</span><ul>'+pf.reviewFlags.map(f=>`<li>${esc(f)}</li>`).join('')+'</ul></div>';
-  const perguntas=(pf.questions||[]).filter(q=>q.answerType!=='CONFIRMACAO');
+  // Hipóteses que o código do serviço levantou: ficam à vista, com a origem
+  // escrita, e podem ser trocadas. Quando o código dispensa a retenção, a
+  // pergunta some — resta só a linha discreta "ajustar" no rodapé da seção.
+  const hipoteses=preflightDerivados.filter(d=>d.hipotese&&!preflightAbertos[d.fato]);
+  const dispensas=preflightDerivados.filter(d=>!d.hipotese&&!preflightAbertos[d.fato]&&d.perguntaId);
+  const reabertos=Object.keys(preflightAbertos).map(f=>preflightMeta[f]).filter(d=>d&&d.perguntaId);
+  if(hipoteses.length||dispensas.length||reabertos.length){
+    html+='<div class="pf-sec"><span class="pf-sec-t">O Martyn já respondeu por você</span>';
+    html+=hipoteses.map(d=>`<div class="pf-der"><div><b>${esc(d.rotulo)}</b>: ${esc(d.valor)}<div class="pf-der-src">${esc(d.origem)}</div></div>${d.perguntaId?`<button type="button" class="pf-der-x" onclick="pfAbrirTroca('${esc(d.fato)}')">trocar</button>`:''}</div>`).join('');
+    html+=reabertos.map(d=>`<div class="pf-q"><div class="pf-q-topic">${esc(d.rotulo)}</div><div class="pf-q-prompt">${esc((pf.questions||[]).find(q=>q.id===d.perguntaId)?.prompt||d.rotulo)}</div>${pfControle(d.perguntaId)}</div>`).join('');
+    if(dispensas.length)html+=`<div class="pf-der-off">Sem retenção pelo código do serviço: ${dispensas.map(d=>esc(d.rotulo)).join(', ')}. <button type="button" class="pf-der-x" onclick="pfAbrirTroca('${dispensas.map(d=>esc(d.fato)).join(',')}')">ajustar</button></div>`;
+    html+='</div>';
+  }
+  const reabertosIds=reabertos.map(d=>d.perguntaId);
+  const perguntas=(pf.questions||[]).filter(q=>q.answerType!=='CONFIRMACAO'&&!reabertosIds.includes(q.id));
   const confirmacao=(pf.questions||[]).find(q=>q.answerType==='CONFIRMACAO');
-  if(perguntas.length)html+='<div class="pf-sec"><span class="pf-sec-t">Perguntas do Martyn</span>'+perguntas.map(q=>{
-    const cfg=PREFLIGHT_MAPA[q.id];let controle;
-    if(cfg&&cfg.tipo==='bool'){const atual=preflightFatos[cfg.fato];controle=`<div class="pf-q-acts"><button type="button" class="${atual===true?'on':''}" onclick="pfResponder('${q.id}','sim')">Sim</button><button type="button" class="${atual===false?'on':''}" onclick="pfResponder('${q.id}','nao')">Não</button></div>`;}
-    else if(cfg&&cfg.tipo==='enum'){const atual=preflightFatos[cfg.fato]||'';controle=`<select class="inp pf-q-sel" onchange="pfResponder('${q.id}',this.value)"><option value="">Selecione…</option>${cfg.opcoes.map(([lab,val])=>`<option value="${val}" ${atual===val?'selected':''}>${esc(lab)}</option>`).join('')}</select>`;}
-    else controle='<div class="pf-q-info">Confirme este ponto com seu contador antes de emitir.</div>';
-    return `<div class="pf-q"><div class="pf-q-topic">${esc(q.topic)}</div><div class="pf-q-prompt">${esc(q.prompt)}</div>${controle}</div>`;
-  }).join('')+'</div>';
+  if(perguntas.length)html+='<div class="pf-sec"><span class="pf-sec-t">Perguntas do Martyn</span>'+perguntas.map(q=>
+    `<div class="pf-q"><div class="pf-q-topic">${esc(q.topic)}</div><div class="pf-q-prompt">${esc(q.prompt)}</div>${pfControle(q.id)}</div>`
+  ).join('')+'</div>';
   html+='<div class="pf-foot">';
   if(pf.blocked)html+='<div class="pf-foot-note">Resolva os pontos que impedem a emissão e confira de novo.</div><button class="btn" type="button" onclick="conferirComMartyn()">Conferir de novo</button>';
   else{
@@ -3701,6 +3764,18 @@ function novoClienteCadastro(){
   qs('#cliente-modal-title').textContent='Novo cliente';
   abrirModalCliente();
 }
+// Digitou o CNPJ inteiro? Busca sozinho, sem esperar o clique em "Buscar CNPJ"
+// (mesmo pedido de 19/08/2026 que fez a seleção de cliente na emissão
+// autocompletar). O botão continua ali só como nova tentativa quando a
+// consulta pública falha. Silencioso no erro: quem quiser insistir clica.
+let clienteDocBuscado='';
+qs('#cl-doc')?.addEventListener('blur',async()=>{
+  const cnpj=normalizarDocumento(qs('#cl-doc').value);
+  if(!cnpjComFormatoValido(cnpj)||cnpj===clienteDocBuscado)return;
+  if((qs('#cl-nome').value||'').trim()&&(qs('#cl-mun').value||'').trim())return;
+  clienteDocBuscado=cnpj;
+  try{preencherClienteCadastro(await api('/api/customers/cnpj/'+cnpj))}catch(error){clienteDocBuscado=''}
+});
 function abrirModalCliente(){qs('#cliente-modal').classList.add('on');window.setTimeout(()=>qs('#cl-doc')?.focus(),40)}
 function fecharModalCliente(){qs('#cliente-modal').classList.remove('on')}
 // Achado 12/08/2026 (pedido do usuário): reconsulta a CNPJ pra todo cliente
@@ -4860,11 +4935,39 @@ function renderConversa(d,opts={}){
     const saida=m.direction==='out',humano=m.agent==='human';
     // Sempre identifica quem falou: cliente (nome), Martyn (atendente virtual) ou o atendente humano.
     const autor=saida?(humano?(m.agentName||'Atendente'):'Martyn'):clienteNome;
-    const prefixoAnexo=m.kind==='image'?'🖼️ ':m.kind==='document'?'📎 ':'';
+    const prefixoAnexo=m.kind==='image'?'🖼️ ':m.kind==='document'?'📎 ':m.temAudio?'🎤 ':'';
     const corpo=esc(prefixoAnexo+(m.body||(m.mediaMimeType?('['+m.mediaMimeType+']'):'[arquivo]')));
-    return `<div class="atend-msg ${saida?(humano?'m-human':'m-bot'):'m-in'}"><span class="atend-msg-author">${esc(autor)}</span><span class="atend-msg-body">${corpo}</span><span class="atend-msg-time">${esc(formatarHora(m.createdAt))}</span></div>`;
+    // Áudio do cliente: até 19/08/2026 a tela só mostrava a transcrição — e
+    // quando ela falha (ruído, fala cortada) não sobrava nada para conferir.
+    // O player é carregado sob demanda: a mídia vem da Meta na hora, e baixar
+    // todos os áudios de uma conversa ao abrir seria desperdício.
+    const audio=m.temAudio&&m.messageId?`<button type="button" class="atend-audio" onclick="ouvirAudioAtendimento(this,'${esc(m.messageId)}')">▶ Ouvir o áudio</button>`:'';
+    return `<div class="atend-msg ${saida?(humano?'m-human':'m-bot'):'m-in'}"><span class="atend-msg-author">${esc(autor)}</span><span class="atend-msg-body">${corpo}</span>${audio}<span class="atend-msg-time">${esc(formatarHora(m.createdAt))}</span></div>`;
   }).join('')||'<div class="atend-empty">Sem mensagens.</div>';
   if(perto||!opts.silencioso)box.scrollTop=box.scrollHeight;
+}
+/**
+ * Troca o botão pelo player nativo do navegador. A rota exige o token da
+ * sessão (Authorization), então não dá para apontar <audio src> direto para
+ * ela — o áudio vem por apiBlob e vira uma URL de objeto local.
+ */
+async function ouvirAudioAtendimento(botao,messageId){
+  const phoneKey=atendState.atual;
+  if(!phoneKey||botao.disabled)return;
+  botao.disabled=true;botao.textContent='Carregando o áudio…';
+  try{
+    const blob=await apiBlob('/api/master/whatsapp/conversations/'+encodeURIComponent(phoneKey)+'/midia/'+encodeURIComponent(messageId));
+    const player=document.createElement('audio');
+    player.controls=true;player.className='atend-audio-player';player.src=URL.createObjectURL(blob);
+    // Revoga só quando a mensagem sai da tela (renderConversa recria tudo a
+    // cada atualização): revogar no 'ended' impediria ouvir de novo.
+    player.addEventListener('emptied',()=>URL.revokeObjectURL(player.src));
+    botao.replaceWith(player);
+    player.play().catch(()=>{});
+  }catch(error){
+    botao.disabled=false;botao.textContent='▶ Ouvir o áudio';
+    const status=qs('#atend-th-status');if(status)status.textContent=error.message||'Não consegui carregar este áudio.';
+  }
 }
 function selecionarAnexoAtendimento(file){
   const status=qs('#atend-th-status');
