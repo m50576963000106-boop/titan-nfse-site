@@ -190,7 +190,15 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
   assert.match(landing,/\/api\/system\/branding/);
   assert.match(landing,/carregarBrandingPortal/);
   assert.match(landing,/Cadastre uma vez, emita em segundos, no sistema ou mandando um áudio pro Martyn no WhatsApp\./);
-  assert.match(landing,/Muito mais que uma tela para emitir notas/);
+  // Reorganização de 19/08/2026 (pedido do usuário: Problema → Solução →
+  // Demonstração → Planos → Contratação). O título antigo da seção de
+  // benefícios ("Muito mais que uma tela para emitir notas") deu lugar à
+  // dupla problema/solução — travar as duas garante que a narrativa nova
+  // não seja desfeita sem querer.
+  assert.match(landing,/<div class="eyebrow">O problema<\/div>/);
+  assert.match(landing,/Emitir direto no Portal Nacional custa mais do que parece/);
+  assert.match(landing,/<div class="eyebrow">A solução<\/div>/);
+  assert.match(landing,/O TITAN faz o mesmo Portal Nacional lembrar o que você já digitou/);
   assert.match(landing,/id="login-drawer"/);
   assert.match(landing,/client-login-form/);
   assert.match(landing,/admin-login-form/);
@@ -411,11 +419,18 @@ test("replica logica de recebimentos com agendamento recorrencia cobranca e NFS-
   assert.match(html,/\/api\/workspace\/receivables\/summary/);
   assert.match(html,/\/api\/workspace\/receivables/);
   assert.match(html,/\/api\/workspace\/receivables\/'\+id\+'\/collection-review/);
-  assert.match(html,/\/api\/workspace\/recurrences/);
   assert.match(html,/Agendar recebimento/);
-  // Recebimento avulso e recorrência de honorários viraram um formulário só
-  // (modal), com um checkbox que troca os campos — não duas telas separadas.
-  assert.match(html,/É recorrente — repete todo mês, gera nota fiscal e recebimento sozinho/);
+  // Pedido do usuário (19/08/2026): recorrência tem UM lugar só — "Notas
+  // recorrentes". O checkbox "É recorrente" que existia neste modal criava a
+  // mesma coisa (mesmo POST /api/invoice-recurrences) por um segundo
+  // formulário duplicado e sem caminho de edição. Aqui ficou só recebimento
+  // avulso + atalho pra tela certa; o GET /api/workspace/recurrences que
+  // rodava a cada carregamento (resultado nunca lido) saiu junto.
+  assert.doesNotMatch(html,/É recorrente — repete todo mês/);
+  assert.doesNotMatch(html,/id="rec-recurring-fields"/);
+  assert.doesNotMatch(html,/\/api\/workspace\/recurrences/);
+  assert.match(html,/function irParaNovaRecorrencia\(\)/);
+  assert.match(html,/onclick="salvarRecebimento\(\)"/);
   assert.match(html,/WhatsApp\/API zap/);
   assert.match(html,/pré-NFS-e pendente/);
   assert.match(html,/function prepararNotaRecebimento/);
@@ -1208,10 +1223,14 @@ test("vistoria de 09/08/2026: nav das ferramentas fora do Light some quando o pl
   // As 4 ferramentas gateadas por requireFeature no backend precisam do
   // mesmo gate na tela — senão o botão fica visível e só falha ao clicar.
   assert.match(html,/data-permission="emit" data-feature="invoice_recurrences" onclick="go\('recorrentes',this\)"/);
-  // O gatilho de Importar deixou de ser um link fixo na barra lateral e virou
-  // um card de atalho (com o próprio botão "Abrir importação" dentro) — o
-  // card inteiro, botão incluído, continua gateado pelas mesmas duas checagens.
-  assert.match(html,/<div class="card" data-permission="import" data-feature="portal_import">[\s\S]{0,550}onclick="go\('importar'\)"/);
+  // Pedido do usuário (19/08/2026): a tela separada de importação (v-importar)
+  // deixou de existir — virou o card "Importar do Portal Nacional" dentro de
+  // Configurações, com um botão só, liberado pra qualquer empresa (a busca
+  // depende do certificado da própria empresa, não de plano). Por isso não há
+  // mais gate de permissão/feature nem rota 'importar' pra travar aqui.
+  assert.doesNotMatch(html,/onclick="go\('importar'\)"/);
+  assert.doesNotMatch(html,/id="v-importar"/);
+  assert.match(html,/onclick="buscarPortalNacional\(\)"/);
   assert.match(html,/data-permission="financial" data-feature="receivables" onclick="go\('recebimentos',this\)"/);
   assert.match(html,/data-feature="dasn_simei" onclick="go\('dasn',this\)"/);
   // Cobranças TITAN (o que a própria TITAN cobra do cliente) não é uma
@@ -1232,13 +1251,18 @@ test("pedido de upgrade automático (vistoria de 09/08/2026): empresa pede pelo 
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   // Lado da empresa: card "Meu plano" dentro de Emitente/Configurações, carregado
   // ao navegar para lá — não é uma tela nova que ninguém vai encontrar.
-  assert.match(html,/if\(v==='emitente'\)\{[^}]*carregarMeuPlano\(\);carregarMeuContrato\(\)\}/);
+  assert.match(html,/if\(v==='emitente'\)\{[^}]*carregarMeuPlano\(\);carregarMeuContrato\(\)/);
   assert.match(html,/id="plan-upgrade-box"/);
   assert.match(html,/async function carregarMeuPlano\(\)/);
   assert.match(html,/api\('\/api\/plans'\)/);
   assert.match(html,/api\('\/api\/plans\/upgrade-requests'\)/);
-  assert.match(html,/async function solicitarUpgradePlano\(\)/);
-  assert.match(html,/api\('\/api\/plans\/upgrade-requests',\{method:'POST',body:JSON\.stringify\(\{requestedPlanCode,note:note\|\|undefined\}\)\}\)/);
+  // Pedido do usuário (19/08/2026): "Meu plano" passou a listar todos os
+  // planos, cada um com o próprio botão "Solicitar mudança" — o plano-alvo
+  // chega por parâmetro, não mais lido de um <select> único na tela.
+  assert.match(html,/async function solicitarUpgradePlano\(requestedPlanCode\)/);
+  // O campo livre de observação saiu junto com o <select> — o pedido agora é
+  // um clique no card do plano desejado, sem formulário intermediário.
+  assert.match(html,/api\('\/api\/plans\/upgrade-requests',\{method:'POST',body:JSON\.stringify\(\{requestedPlanCode\}\)\}\)/);
   assert.match(html,/async function cancelarPedidoUpgrade\(id\)/);
   // Lado do Master: fila de pedidos dentro do painel de Planos, com contador
   // no sino do painel (pill) para não depender de abrir a tela pra saber que
@@ -1263,7 +1287,7 @@ test("pedido do usuário (10/08/2026): contrato editável e versionado, com Meu 
   assert.match(html,/async function publicarVersaoContrato\(bump\)/);
   assert.match(html,/api\('\/api\/master\/contract-versions',\{method:'POST',body:JSON\.stringify\(\{body,bump\}\)\}\)/);
   // Cliente: consulta, aceita e baixa dentro de Emitente\/Configurações.
-  assert.match(html,/if\(v==='emitente'\)\{[^}]*carregarMeuPlano\(\);carregarMeuContrato\(\)\}/);
+  assert.match(html,/if\(v==='emitente'\)\{[^}]*carregarMeuPlano\(\);carregarMeuContrato\(\)/);
   assert.match(html,/id="contract-box"/);
   assert.match(html,/async function carregarMeuContrato\(\)/);
   assert.match(html,/api\('\/api\/contract'\)/);
@@ -1417,17 +1441,27 @@ test("pedido do usuário (12/08/2026, atualizado 14-15/08/2026): notas recorrent
   assert.match(html,/frequencyMonths:Number\(qs\('#rc-frequency'\)\.value\)\|\|1,endDate:qs\('#rc-end-date'\)\.value\|\|undefined/);
   assert.match(html,/qs\('#rc-frequency'\)\.value=String\(item\.frequency_months\|\|1\);/);
   assert.match(html,/qs\('#rc-end-date'\)\.value=item\.end_date\|\|'';/);
-  // "hora certa" (14/08/2026) e dia de vencimento pra #vencimento (15/08/2026).
+  // "hora certa" (14/08/2026) e dia de vencimento (15/08/2026). Desde
+  // 19/08/2026 o vencimento é OBRIGATÓRIO (pedido do usuário): é o vencimento
+  // financeiro do recebimento gerado, o que aparece na Agenda — por isso a
+  // validação bloqueia em vez de mandar undefined, e o label perdeu o
+  // "(opcional)".
   assert.match(html,/id="rc-time" class="inp" type="time"/);
   assert.match(html,/id="rc-due-day" class="inp"/);
-  assert.match(html,/runTime:qs\('#rc-time'\)\.value\|\|'09:00',dueDayOfMonth:dueDayTexto\?Number\(dueDayTexto\):undefined/);
+  assert.match(html,/<label>Dia de vencimento<\/label>/);
+  assert.match(html,/if\(!dueDayTexto\|\|Number\(dueDayTexto\)<1\|\|Number\(dueDayTexto\)>28\)\{alert\('Informe o dia de vencimento/);
+  assert.match(html,/runTime:qs\('#rc-time'\)\.value\|\|'09:00',dueDayOfMonth:Number\(dueDayTexto\)/);
   // importação por CSV (14/08/2026, "não txt ou ;"): upload de arquivo +
   // prévia por linha, sem endpoint novo, reaproveita o mesmo POST de sempre.
+  // A planilha usa a mesma API, então ganhou a coluna de vencimento junto —
+  // sem ela o backend recusaria toda linha importada.
   assert.match(html,/id="rc-import-file" type="file" accept="\.csv,text\/csv"/);
   assert.match(html,/function baixarModeloRecorrenciaCsv\(\)\{/);
   assert.match(html,/function selecionarArquivoRecorrenciaCsv\(file\)\{/);
   assert.match(html,/async function confirmarImportacaoRecorrenciaCsv\(\)\{/);
-  assert.match(html,/api\('\/api\/invoice-recurrences',\{method:'POST',body:JSON\.stringify\(\{customerId:r\.cliente\.id,serviceProfileId:r\.servico\.id,amount:r\.amount,dayOfMonth:r\.dayOfMonth,runTime:r\.runTime,frequencyMonths:r\.frequencyMonths,endDate:r\.endDate\}\)\}\)/);
+  assert.match(html,/Dia do mes;Dia de vencimento;Horario \(HH:MM\)/);
+  assert.match(html,/erros\.push\('dia de vencimento inválido \(1 a 28\)'\)/);
+  assert.match(html,/api\('\/api\/invoice-recurrences',\{method:'POST',body:JSON\.stringify\(\{customerId:r\.cliente\.id,serviceProfileId:r\.servico\.id,amount:r\.amount,dayOfMonth:r\.dayOfMonth,dueDayOfMonth:r\.dueDayOfMonth,runTime:r\.runTime,frequencyMonths:r\.frequencyMonths,endDate:r\.endDate\}\)\}\)/);
 });
 
 test("pedido do usuário (12/08/2026): ícones de informação (i) nos campos de Meus Serviços com comportamento/limitação não óbvios", async()=>{
