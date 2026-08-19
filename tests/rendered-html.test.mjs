@@ -1438,7 +1438,21 @@ test("pedido do usuário (12/08/2026, atualizado 14-15/08/2026): notas recorrent
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.match(html,/id="rc-frequency"[^>]*>[\s\S]*?<option value="1">Mensal<\/option>[\s\S]*?<option value="3">Trimestral<\/option>[\s\S]*?<option value="6">Semestral<\/option>[\s\S]*?<option value="12">Anual<\/option>/);
   assert.match(html,/id="rc-end-date"[^>]*type="date"/);
-  assert.match(html,/frequencyMonths:Number\(qs\('#rc-frequency'\)\.value\)\|\|1,endDate:qs\('#rc-end-date'\)\.value\|\|undefined/);
+  // Pedido do usuário (19/08/2026): o contrato passou a terminar de 3 jeitos
+  // — sem data, numa data, ou por número de parcelas — então endDate e
+  // totalOccurrences saem do MESMO seletor (#rc-termino) e nunca vão juntos.
+  assert.match(html,/frequencyMonths:Number\(qs\('#rc-frequency'\)\.value\)\|\|1,endDate:termino==='data'\?\(qs\('#rc-end-date'\)\.value\|\|undefined\):undefined,totalOccurrences:termino==='parcelas'\?vezes:undefined/);
+  assert.match(html,/id="rc-termino"/);
+  assert.match(html,/function alternarTerminoRecorrencia\(\)/);
+  // Parcelamento aceita as duas formas que o usuário descreveu ("parcelar o
+  // valor total em tantas vezes OU tantas vezes desse valor"), e o que vai
+  // pro backend é sempre o valor de CADA nota.
+  assert.match(html,/function valorDaParcelaRecorrencia\(\)/);
+  assert.match(html,/id="rc-parcelas-modo"/);
+  assert.match(html,/const valorDaNota=termino==='parcelas'\?valorDaParcelaRecorrencia\(\):amount/);
+  // A prévia mostra o total real: dividir nem sempre fecha exato, e esconder
+  // o centavo perdido seria mentir sobre o que será emitido.
+  assert.match(html,/não cabem na divisão exata/);
   assert.match(html,/qs\('#rc-frequency'\)\.value=String\(item\.frequency_months\|\|1\);/);
   assert.match(html,/qs\('#rc-end-date'\)\.value=item\.end_date\|\|'';/);
   // "hora certa" (14/08/2026) e dia de vencimento (15/08/2026). Desde
@@ -1461,7 +1475,12 @@ test("pedido do usuário (12/08/2026, atualizado 14-15/08/2026): notas recorrent
   assert.match(html,/async function confirmarImportacaoRecorrenciaCsv\(\)\{/);
   assert.match(html,/Dia do mes;Dia de vencimento;Horario \(HH:MM\)/);
   assert.match(html,/erros\.push\('dia de vencimento inválido \(1 a 28\)'\)/);
-  assert.match(html,/api\('\/api\/invoice-recurrences',\{method:'POST',body:JSON\.stringify\(\{customerId:r\.cliente\.id,serviceProfileId:r\.servico\.id,amount:r\.amount,dayOfMonth:r\.dayOfMonth,dueDayOfMonth:r\.dueDayOfMonth,runTime:r\.runTime,frequencyMonths:r\.frequencyMonths,endDate:r\.endDate\}\)\}\)/);
+  // Parcelas entraram na planilha junto (19/08/2026) — a planilha usa o mesmo
+  // endpoint, então cada campo novo obrigatório/opcional precisa existir aqui
+  // também, senão a importação passa a criar contrato diferente do da tela.
+  assert.match(html,/Data fim \(opcional, AAAA-MM-DD\);Parcelas \(opcional\)/);
+  assert.match(html,/erros\.push\('parcelas inválidas \(1 a 120, ou deixe em branco\)'\)/);
+  assert.match(html,/api\('\/api\/invoice-recurrences',\{method:'POST',body:JSON\.stringify\(\{customerId:r\.cliente\.id,serviceProfileId:r\.servico\.id,amount:r\.amount,dayOfMonth:r\.dayOfMonth,dueDayOfMonth:r\.dueDayOfMonth,runTime:r\.runTime,frequencyMonths:r\.frequencyMonths,endDate:r\.endDate,totalOccurrences:r\.totalOccurrences\}\)\}\)/);
 });
 
 test("pedido do usuário (12/08/2026): ícones de informação (i) nos campos de Meus Serviços com comportamento/limitação não óbvios", async()=>{

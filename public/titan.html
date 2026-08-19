@@ -101,7 +101,6 @@
       <button class="sb-link" id="sb-emitir" data-permission="emit" onclick="go('emitir',this,true)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Emitir NFS-e</button>
       <button class="sb-link" data-permission="invoices" data-restrito-ok onclick="go('notas',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>Notas emitidas</button>
       <button class="sb-link" data-permission="emit" onclick="go('rascunhos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg>Rascunhos</button>
-      <button class="sb-link" data-permission="emit" data-feature="invoice_recurrences" onclick="go('recorrentes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg>Notas recorrentes</button>
 
       <div class="sb-sec">Vendas e serviços</div>
       <button class="sb-link" data-permission="emit" onclick="abrirComercial('quote',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg>Orçamentos</button>
@@ -561,7 +560,7 @@
     </section>
 
     <section class="view" id="v-agenda">
-      <div class="page-h"><h1>Agenda e vencimentos</h1><p>Todos os próximos vencimentos num só lugar: recebimentos já agendados e a próxima nota recorrente prevista de cada cliente, no dia certo do calendário.</p></div>
+      <div class="page-h"><h1>Agenda e vencimentos</h1><p>A projeção financeira dos próximos meses: cada lançamento aparece no dia do <b>vencimento</b> — não no dia em que a nota é emitida. Inclui recebimentos já agendados e o que os contratos recorrentes ainda vão gerar.</p></div>
       <div class="card">
         <div class="card-h">
           <div class="flex" style="gap:6px;align-items:center"><button class="ico-btn" type="button" onclick="mudarMesAgenda(-1)" aria-label="Mês anterior">‹</button><h2 id="agenda-mes-label" style="min-width:170px;text-align:center">—</h2><button class="ico-btn" type="button" onclick="mudarMesAgenda(1)" aria-label="Próximo mês">›</button></div>
@@ -575,8 +574,8 @@
     </section>
 
     <section class="view" id="v-recorrentes">
-      <div class="page-h"><h1>Notas recorrentes / Contratos recorrentes</h1><p>Configure uma vez e o TITAN emite sozinho todo mês, no dia escolhido — sem precisar abrir o portal. Cada emissão já gera o recebimento correspondente em Financeiro automaticamente.</p></div>
-      <div class="card"><div class="card-h"><h2>Recorrências cadastradas</h2><div class="flex" style="gap:6px"><button class="btn btn-p" type="button" onclick="novaRecorrencia()">+ Nova recorrência</button><button class="btn btn-s" onclick="carregarRecorrencias()">Atualizar</button></div></div><div class="card-b">
+      <div class="page-h"><h1>Contratos recorrentes</h1><p>Configure uma vez e o TITAN emite a nota sozinho, no dia e horário escolhidos — sem precisar abrir o portal. Cada emissão já gera o recebimento correspondente, com o vencimento certinho na Agenda.</p></div>
+      <div class="card"><div class="card-h"><h2>Contratos cadastrados</h2><div class="flex" style="gap:6px"><button class="btn btn-p" type="button" onclick="novaRecorrencia()">+ Novo contrato</button><button class="btn btn-s" onclick="carregarRecorrencias()">Atualizar</button></div></div><div class="card-b">
         <div class="tbl-scroll"><table class="tbl-cards-mobile">
           <thead><tr><th>Cliente / serviço</th><th style="text-align:right">Valor</th><th>Agenda</th><th>Próxima emissão</th><th>Situação</th><th style="text-align:right">Ações</th></tr></thead>
           <tbody id="recurrence-list"></tbody>
@@ -584,20 +583,30 @@
       </div></div>
 
       <div class="modal-backdrop" id="recorrencia-modal" role="dialog" aria-modal="true" aria-labelledby="rc-form-title">
-        <div class="modal-card"><div class="modal-head"><div><h2 id="rc-form-title">Nova recorrência</h2></div></div>
+        <div class="modal-card"><div class="modal-head"><div><h2 id="rc-form-title">Novo contrato recorrente</h2></div></div>
           <div class="modal-body">
             <div class="field"><label>Cliente cadastrado</label><div class="input-action"><input id="rc-customer" class="inp" list="rc-customer-list" placeholder="Pesquise pela razão social" autocomplete="off"><button type="button" class="btn btn-s" onclick="abrirClientes()">Clientes</button></div><datalist id="rc-customer-list"></datalist></div>
             <div class="field"><label>Meu serviço</label><div class="input-action"><select id="rc-service" class="inp" onchange="verificarVencimentoRecorrencia()"><option value="">Selecione um serviço cadastrado</option></select><button type="button" class="btn btn-s" onclick="go('servicos',qs('.sb-link[onclick*=&quot;servicos&quot;]'))">Meus serviços</button></div><div class="hint">Só serviço cujo ISS incide no seu próprio estabelecimento pode virar recorrência automática — sem obra (CNO) nem evento, que exigem dado que ninguém confirma todo mês sozinho.</div></div>
-            <div class="row r2"><div class="field"><label>Valor (R$)</label><input id="rc-amount" class="inp num" inputmode="decimal" value="0,00"></div><div class="field"><label>Dia do mês</label><input id="rc-day" class="inp" inputmode="numeric" maxlength="2" placeholder="1 a 28"></div></div>
+            <div class="row r2"><div class="field"><label id="rc-amount-label">Valor (R$)</label><input id="rc-amount" class="inp num" inputmode="decimal" value="0,00" oninput="renderPreviaParcelas()"></div><div class="field"><label>Dia do mês</label><input id="rc-day" class="inp" inputmode="numeric" maxlength="2" placeholder="1 a 28"></div></div>
+            <div class="field" id="rc-preset-wrap" style="display:none"><label>Usar um padrão</label><select id="rc-preset" class="inp" onchange="aplicarPresetRecorrencia()"><option value="">Preencher na mão</option></select><div class="hint">Preenche dia de emissão, horário e dia de vencimento de uma vez. Cadastre padrões em Cadastros → Outros.</div></div>
             <div class="row r2"><div class="field"><label>Horário</label><input id="rc-time" class="inp" type="time" value="09:00"></div><div class="field"><label>Frequência</label><select id="rc-frequency" class="inp"><option value="1">Mensal</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></div></div>
-            <div class="row r2"><div class="field"><label>Dia de vencimento</label><input id="rc-due-day" class="inp" inputmode="numeric" maxlength="2" placeholder="1 a 28" oninput="verificarVencimentoRecorrencia()"><div class="hint">Vencimento financeiro do recebimento gerado a cada emissão — é o que aparece na Agenda e o que a cobrança usa.</div><div class="hint" id="rc-due-day-hint" style="display:none"></div></div><div class="field"><label>Encerrar em (opcional)</label><input id="rc-end-date" class="inp" type="date"></div></div>
+            <div class="field"><label>Dia de vencimento</label><input id="rc-due-day" class="inp" inputmode="numeric" maxlength="2" placeholder="1 a 28" oninput="verificarVencimentoRecorrencia()"><div class="hint">Vencimento financeiro do recebimento gerado a cada emissão — é o que aparece na Agenda e o que a cobrança usa.</div><div class="hint" id="rc-due-day-hint" style="display:none"></div></div>
+            <div class="field"><label>Como este contrato termina</label><select id="rc-termino" class="inp" onchange="alternarTerminoRecorrencia()"><option value="aberto">Sem data pra terminar — repete até eu pausar</option><option value="data">Encerrar numa data</option><option value="parcelas">Número de parcelas</option></select></div>
+            <div class="field" id="rc-end-date-wrap" style="display:none"><label>Encerrar em</label><input id="rc-end-date" class="inp" type="date"></div>
+            <div id="rc-parcelas-wrap" style="display:none">
+              <div class="row r2">
+                <div class="field"><label>Quantas vezes</label><input id="rc-parcelas" class="inp" inputmode="numeric" maxlength="3" placeholder="Ex.: 12" oninput="renderPreviaParcelas()"></div>
+                <div class="field"><label>O valor informado é</label><select id="rc-parcelas-modo" class="inp" onchange="renderPreviaParcelas()"><option value="parcela">O valor de cada parcela</option><option value="total">O valor total do contrato</option></select></div>
+              </div>
+              <div class="hint" id="rc-parcelas-previa"></div>
+            </div>
             <div class="field"><label>Observação (opcional)</label><input id="rc-description" class="inp" placeholder="Ex.: mensalidade contábil"></div>
             <div class="foot-note">A emissão sai sozinha no dia e horário escolhidos, sem aprovação manual.</div>
           </div>
-          <div class="modal-actions"><button class="btn btn-s" type="button" id="rc-cancel-btn" onclick="cancelarEdicaoRecorrencia()">Cancelar</button><button class="btn btn-p" type="button" onclick="salvarRecorrencia()">Salvar recorrência</button></div>
+          <div class="modal-actions"><button class="btn btn-s" type="button" id="rc-cancel-btn" onclick="cancelarEdicaoRecorrencia()">Cancelar</button><button class="btn btn-p" type="button" onclick="salvarRecorrencia()">Salvar contrato</button></div>
         </div>
       </div>
-      <div class="card" style="margin-top:14px"><div class="card-h"><h2>Importar recorrências por planilha (CSV)</h2></div><div class="card-b">
+      <div class="card" style="margin-top:14px"><div class="card-h"><h2>Importar contratos por planilha (CSV)</h2></div><div class="card-b">
         <div class="hint">Baixe o modelo, preencha no Excel ou Google Sheets e envie de volta — uma recorrência por linha. Cliente (CPF/CNPJ) e serviço (número ou nome de Meus Serviços) precisam já estar cadastrados. O dia de vencimento é obrigatório: é ele que define o vencimento do recebimento na Agenda.</div>
         <div class="setup-actions" style="margin:10px 0 0">
           <button class="btn btn-s" type="button" onclick="baixarModeloRecorrenciaCsv()">Baixar modelo (.csv)</button>
@@ -832,7 +841,7 @@
             <div class="row r2"><div class="field"><label for="rec-cost-center">Centro de custo</label><select id="rec-cost-center" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'centro')"><option value="">Selecione...</option></select></div><div class="field"><label for="rec-channel">Cobrança</label><select id="rec-channel" class="inp"><option value="none">Sem cobrança agora</option><option value="whatsapp">WhatsApp/API zap — revisar antes</option><option value="manual">Manual</option></select></div></div>
             <div class="field"><label for="rec-issue">NFS-e</label><select id="rec-issue" class="inp"><option value="false">Somente controle financeiro</option><option value="true">Gerar pré-NFS-e pendente de revisão</option></select></div>
             <div class="field"><label for="rec-notes">Observações</label><textarea id="rec-notes" class="inp" rows="3" placeholder="Parâmetros, contrato, competência ou instruções de cobrança"></textarea></div>
-            <div class="hint" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">Isto agenda um recebimento único. Se repete todo mês, cadastre em Notas recorrentes — a nota sai sozinha e o recebimento é criado junto.<button class="btn btn-s" type="button" onclick="irParaNovaRecorrencia()">Notas recorrentes</button></div>
+            <div class="hint" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">Isto agenda um recebimento único. Se repete todo mês, cadastre em Contratos recorrentes — a nota sai sozinha e o recebimento é criado junto.<button class="btn btn-s" type="button" onclick="irParaNovaRecorrencia()">Contratos recorrentes</button></div>
           </div>
           <div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharModalRecebimento()">Cancelar</button><button class="btn btn-p" type="button" id="rec-save-btn" onclick="salvarRecebimento()">Agendar recebimento</button></div>
         </div>
@@ -898,7 +907,7 @@
     </section>
 
     <section class="view" id="v-outros">
-      <div class="page-h"><h1>Outros cadastros</h1><p>Categorias e centros de custo usados em Recebimentos, pra padronizar em vez de digitar toda vez.</p></div>
+      <div class="page-h"><h1>Outros cadastros</h1><p>O que se repete em vários lugares fica guardado aqui, pra não digitar toda vez: categorias e centros de custo dos Recebimentos, e os padrões de data dos contratos recorrentes.</p></div>
       <div class="grid g2" style="align-items:start">
         <div class="card">
           <div class="card-h"><h2>Categorias</h2><button class="btn btn-s" type="button" onclick="novoRegistroAuxiliar('categoria')">+ Nova</button></div>
@@ -908,6 +917,10 @@
           <div class="card-h"><h2>Centros de custo</h2><button class="btn btn-s" type="button" onclick="novoRegistroAuxiliar('centro')">+ Novo</button></div>
           <div class="card-b" id="outros-centros-list"><div class="empty-state">Nenhum centro de custo cadastrado.</div></div>
         </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-h"><div><h2>Padrões de recorrência</h2><p>Dia e horário da emissão + dia do vencimento, prontos pra escolher ao criar um contrato recorrente.</p></div><button class="btn btn-s" type="button" onclick="novoPresetRecorrencia()">+ Novo padrão</button></div>
+        <div class="card-b" id="outros-presets-list"><div class="empty-state">Nenhum padrão cadastrado.</div></div>
       </div>
     </section>
 
@@ -1811,7 +1824,7 @@ function go(v,el,limpar){
   if(v==='logs')carregarLogsApi();
 }
 
-let recebimentos=[];
+let recebimentos=[],presetsRecorrencia=[];
 function clientePorNomeRecebimento(name){const value=(name||'').trim().toLocaleLowerCase('pt-BR');return clientesCadastro.find(c=>(c.legal_name||'').trim().toLocaleLowerCase('pt-BR')===value||(c.trade_name||'').trim().toLocaleLowerCase('pt-BR')===value)}
 async function popularClientesRecebimento(){try{if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');const dl=qs('#rec-client-list');if(dl)dl.innerHTML=clientesCadastro.map(c=>`<option value="${esc(c.legal_name)}">${esc(c.tax_id||'')}</option>`).join('')}catch{}}
 
@@ -1821,9 +1834,19 @@ async function popularClientesRecebimento(){try{if(!clientesCadastro.length)clie
 // "operacional"). Backend continua guardando texto simples (sem FK); isto só
 // padroniza o que a pessoa ESCOLHE, com opção de cadastrar um novo direto ali.
 let categoriasCadastro=[],centrosCustoCadastro=[];
+// Com o 3º cadastro (padrões de recorrência, 19/08/2026) o ternário
+// categoria/centro em cada função virou mapa: um lugar só pra rota, rótulo e
+// texto de cada tipo.
+const REGISTROS_AUXILIARES={
+  categoria:{rota:'/api/categories',titulo:'Nova categoria',campo:'Nome da categoria'},
+  centro:{rota:'/api/cost-centers',titulo:'Novo centro de custo',campo:'Nome do centro de custo'}
+};
 async function carregarRegistrosAuxiliares(){
-  try{[categoriasCadastro,centrosCustoCadastro]=await Promise.all([api('/api/categories'),api('/api/cost-centers')]);}
-  catch{categoriasCadastro=[];centrosCustoCadastro=[];}
+  // Falha aqui nunca pode derrubar a tela que chamou — os cadastros
+  // auxiliares são conveniência, não requisito (mesmo motivo de antes; o
+  // preset entra na mesma regra: sem ele, o seletor simplesmente não aparece).
+  try{[categoriasCadastro,centrosCustoCadastro,presetsRecorrencia]=await Promise.all([api('/api/categories'),api('/api/cost-centers'),api('/api/recurrence-presets')]);}
+  catch{categoriasCadastro=[];centrosCustoCadastro=[];presetsRecorrencia=[];}
 }
 function opcoesRegistroAuxiliar(lista,valorAtual,rotuloNovo){
   return '<option value="">Selecione...</option>'
@@ -1837,10 +1860,11 @@ function popularSelectsRegistros(){
 async function aoTrocarRegistroAuxiliar(select,tipo){
   if(select.value!=='__novo__')return;
   select.value='';
-  const nome=await titanPrompt(tipo==='categoria'?'Nome da categoria':'Nome do centro de custo','',tipo==='categoria'?'Nova categoria':'Novo centro de custo');
+  const cfg=REGISTROS_AUXILIARES[tipo];
+  const nome=await titanPrompt(cfg.campo,'',cfg.titulo);
   if(!nome)return;
   try{
-    const criado=await api(tipo==='categoria'?'/api/categories':'/api/cost-centers',{method:'POST',body:JSON.stringify({name:nome})});
+    const criado=await api(cfg.rota,{method:'POST',body:JSON.stringify({name:nome})});
     await carregarRegistrosAuxiliares();
     popularSelectsRegistros();
     select.value=criado.name;
@@ -1854,15 +1878,59 @@ async function carregarOutros(){
   await carregarRegistrosAuxiliares();
   renderListaRegistroAuxiliar('outros-categorias-list',categoriasCadastro,'categoria');
   renderListaRegistroAuxiliar('outros-centros-list',centrosCustoCadastro,'centro');
+  renderListaPresetsRecorrencia();
 }
 async function novoRegistroAuxiliar(tipo){
-  const nome=await titanPrompt(tipo==='categoria'?'Nome da categoria':'Nome do centro de custo','',tipo==='categoria'?'Nova categoria':'Novo centro de custo');
+  const cfg=REGISTROS_AUXILIARES[tipo];
+  const nome=await titanPrompt(cfg.campo,'',cfg.titulo);
   if(!nome)return;
-  try{await api(tipo==='categoria'?'/api/categories':'/api/cost-centers',{method:'POST',body:JSON.stringify({name:nome})});await carregarOutros();}catch(error){alert(error.message)}
+  try{await api(cfg.rota,{method:'POST',body:JSON.stringify({name:nome})});await carregarOutros();}catch(error){alert(error.message)}
 }
 async function excluirRegistroAuxiliar(tipo,id){
   if(!await titanConfirm('Excluir este cadastro?','Excluir','err'))return;
-  try{await api((tipo==='categoria'?'/api/categories/':'/api/cost-centers/')+id,{method:'DELETE'});await carregarOutros();}catch(error){alert(error.message)}
+  try{await api(REGISTROS_AUXILIARES[tipo].rota+'/'+id,{method:'DELETE'});await carregarOutros();}catch(error){alert(error.message)}
+}
+/* ---------- padrões de recorrência (dia/hora de emissão + vencimento) ---------- */
+function rotuloPresetRecorrencia(p){
+  return `emite dia ${p.day_of_month} às ${(p.run_time||'09:00:00').slice(0,5)} · vence dia ${p.due_day_of_month}`;
+}
+function renderListaPresetsRecorrencia(){
+  const el=qs('#outros-presets-list');if(!el)return;
+  el.innerHTML=presetsRecorrencia.length
+    ?presetsRecorrencia.map(p=>`<div class="dest" style="margin-bottom:6px"><div style="flex:1;min-width:0"><b>${esc(p.name)}</b><div class="hint">${esc(rotuloPresetRecorrencia(p))}</div></div><button class="ico-btn danger" title="Excluir" onclick="excluirPresetRecorrencia('${p.id}')">×</button></div>`).join('')
+    :'<div class="empty-state">Nenhum padrão cadastrado. Crie um pra não redigitar dia e horário a cada contrato.</div>';
+}
+async function novoPresetRecorrencia(){
+  const nome=await titanPrompt('Nome do padrão (ex.: Mensal dia 1)','','Novo padrão de recorrência');
+  if(!nome)return;
+  const dia=Number(await titanPrompt('Dia do mês em que a nota é emitida (1 a 28)','1','Dia de emissão'));
+  if(!dia||dia<1||dia>28){alert('Informe um dia de emissão entre 1 e 28.');return}
+  const hora=(await titanPrompt('Horário da emissão (HH:MM)','09:00','Horário'))||'09:00';
+  if(!/^([01]?\d|2[0-3]):[0-5]\d$/.test(hora.trim())){alert('Informe um horário no formato HH:MM.');return}
+  const venc=Number(await titanPrompt('Dia do vencimento (1 a 28)','10','Dia de vencimento'));
+  if(!venc||venc<1||venc>28){alert('Informe um dia de vencimento entre 1 e 28.');return}
+  try{await api('/api/recurrence-presets',{method:'POST',body:JSON.stringify({name:nome,dayOfMonth:dia,runTime:hora.trim().padStart(5,'0'),dueDayOfMonth:venc})});await carregarOutros();}
+  catch(error){alert(error.message)}
+}
+async function excluirPresetRecorrencia(id){
+  if(!await titanConfirm('Excluir este padrão? Os contratos já criados com ele não mudam.','Excluir padrão','err'))return;
+  try{await api('/api/recurrence-presets/'+id,{method:'DELETE'});await carregarOutros();}catch(error){alert(error.message)}
+}
+function popularPresetsRecorrencia(){
+  const sel=qs('#rc-preset');if(!sel)return;
+  // Sem padrão cadastrado o seletor some — campo vazio que não faz nada só
+  // ocupa espaço no formulário.
+  const wrap=qs('#rc-preset-wrap');
+  if(wrap)wrap.style.display=presetsRecorrencia.length?'':'none';
+  sel.innerHTML='<option value="">Preencher na mão</option>'+presetsRecorrencia.map(p=>`<option value="${p.id}">${esc(p.name)} — ${esc(rotuloPresetRecorrencia(p))}</option>`).join('');
+}
+function aplicarPresetRecorrencia(){
+  const p=presetsRecorrencia.find(x=>x.id===qs('#rc-preset').value);
+  if(!p)return;
+  qs('#rc-day').value=p.day_of_month;
+  qs('#rc-time').value=(p.run_time||'09:00:00').slice(0,5);
+  qs('#rc-due-day').value=p.due_day_of_month;
+  verificarVencimentoRecorrencia();
 }
 async function carregarRecebimentos(){
   await popularClientesRecebimento();
@@ -3788,9 +3856,15 @@ async function carregarAgenda(){
   box.innerHTML='<div class="empty-state">Carregando...</div>';
   try{
     const data=await api('/api/workspace/agenda');
+    // A data que posiciona o item no calendário é SEMPRE o vencimento
+    // (pedido do usuário, 19/08/2026: a Agenda é a projeção do financeiro).
+    // Pra recorrência ainda não emitida, o backend manda também a data de
+    // emissão prevista — vira linha secundária no detalhe do dia, porque
+    // "vence dia 10, a nota sai dia 1" é informação que não existia em
+    // lugar nenhum da tela.
     agendaItens=[
-      ...(data.receivables||[]).map(r=>({data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'recebimento',status:r.status})),
-      ...(data.recurring||[]).map(r=>({data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'previsto',status:null}))
+      ...(data.receivables||[]).map(r=>({data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'recebimento',status:r.status,emissao:null})),
+      ...(data.recurring||[]).map(r=>({data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'previsto',status:null,emissao:r.emission_date||null}))
     ];
     renderCalendarioAgenda();
   }catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
@@ -3862,7 +3936,8 @@ function mostrarDiaAgenda(dia){
   }).join('');
   const lista=visiveis.length?visiveis.map(item=>{
     const tipoPill=item.tipo==='previsto'?'<span class="pill p-off" title="Nota recorrente ainda não emitida — vira recebimento quando disparar">Nota recorrente prevista</span>':(()=>{const [c,l]=AGENDA_STATUS_LABEL[item.status]||['p-off',item.status];return `<span class="pill ${c}">${l}</span>`})();
-    return `<div class="draft-item"><div><b>${esc(item.titulo)}</b><span>${esc(item.cliente)} · R$ ${brl(Number(item.valor||0))}</span></div><div class="acts" style="margin-top:8px">${tipoPill}</div></div>`;
+    const emissao=item.emissao?`<div class="hint">Nota prevista para ${new Date(item.emissao+'T00:00:00').toLocaleDateString('pt-BR')}</div>`:'';
+    return `<div class="draft-item"><div><b>${esc(item.titulo)}</b><span>${esc(item.cliente)} · R$ ${brl(Number(item.valor||0))}</span>${emissao}</div><div class="acts" style="margin-top:8px">${tipoPill}</div></div>`;
   }).join(''):'<div class="empty-state">Nenhum lançamento neste filtro.</div>';
   box.innerHTML=`<h3>${dia} de ${AGENDA_MESES[mes]} <span style="font-weight:400;color:var(--ink-3);font-size:12.5px">· R$ ${brl(total)} em ${AGENDA_FILTROS.find(([id])=>id===agendaFiltro)[1].toLowerCase()}</span></h3><div class="agenda-day-filters">${filtros}</div>${lista}`;
 }
@@ -3870,6 +3945,8 @@ async function carregarRecorrencias(){
   try{
     if(!clientesCadastro.length)clientesCadastro=await api('/api/customers?search=');
     await carregarPerfisServico();
+    await carregarRegistrosAuxiliares();
+    popularPresetsRecorrencia();
     if(qs('#rc-customer-list'))qs('#rc-customer-list').innerHTML=clientesCadastro.map(c=>`<option value="${esc(c.legal_name)}">${esc(formatarCnpj(c.tax_id||''))}</option>`).join('');
     popularServicosRecorrencia();
     recorrencias=await api('/api/invoice-recurrences');
@@ -3879,13 +3956,15 @@ async function carregarRecorrencias(){
 const RECORRENCIA_FREQUENCIA_LABEL={1:'mensal',3:'trimestral',6:'semestral',12:'anual'};
 function renderRecorrencias(){
   const box=qs('#recurrence-list');if(!box)return;
-  if(!recorrencias.length){box.innerHTML='<tr><td colspan="6"><div class="empty-state">Nenhuma recorrência cadastrada — configure uma nota que se repete todo mês e o TITAN emite sozinho.</div></td></tr>';return}
+  if(!recorrencias.length){box.innerHTML='<tr><td colspan="6"><div class="empty-state">Nenhum contrato cadastrado — configure uma nota que se repete todo mês e o TITAN emite sozinho.</div></td></tr>';return}
   box.innerHTML=recorrencias.map(item=>{
     const hora=(item.run_time||'09:00:00').slice(0,5);
     const proxima=`${new Date(item.next_run_date+'T00:00:00').toLocaleDateString('pt-BR')} às ${hora}`;
     const status=!item.active?'<span class="pill p-off">Pausada</span>':item.last_error?'<span class="pill p-err">Falhou</span>':'<span class="pill p-ok">Ativa</span>';
     const freq=RECORRENCIA_FREQUENCIA_LABEL[item.frequency_months||1]||'mensal';
-    const fim=item.end_date?` · encerra em ${new Date(item.end_date+'T00:00:00').toLocaleDateString('pt-BR')}`:'';
+    const fim=item.total_occurrences
+      ?` · parcela ${Math.min((item.occurrences_done||0)+1,item.total_occurrences)} de ${item.total_occurrences}`
+      :(item.end_date?` · encerra em ${new Date(item.end_date+'T00:00:00').toLocaleDateString('pt-BR')}`:'');
     return `<tr>
       <td data-th="Cliente / serviço"><b>${esc(item.customer_name)}</b><br><span style="color:var(--ink-3);font-size:11.5px">${esc(item.service_name)}</span></td>
       <td class="r" data-th="Valor">R$ ${brl(Number(item.amount))}</td>
@@ -3909,7 +3988,13 @@ async function salvarRecorrencia(){
   if(!amount||amount<=0){alert('Informe um valor maior que zero.');return}
   if(!dayOfMonth||dayOfMonth<1||dayOfMonth>28){alert('Informe um dia do mês entre 1 e 28.');return}
   if(!dueDayTexto||Number(dueDayTexto)<1||Number(dueDayTexto)>28){alert('Informe o dia de vencimento (1 a 28). É ele que define o vencimento do recebimento na Agenda.');return}
-  const payload={customerId:cliente.id,serviceProfileId,amount,dayOfMonth,runTime:qs('#rc-time').value||'09:00',dueDayOfMonth:Number(dueDayTexto),frequencyMonths:Number(qs('#rc-frequency').value)||1,endDate:qs('#rc-end-date').value||undefined,description:qs('#rc-description').value.trim()||undefined};
+  const termino=qs('#rc-termino').value,vezes=Number(qs('#rc-parcelas').value)||0;
+  if(termino==='parcelas'&&(!vezes||vezes<1||vezes>120)){alert('Informe quantas parcelas (1 a 120).');return}
+  // No modo "o valor informado é o total", o que vai pro backend é o valor de
+  // CADA nota — o total só existe na tela, como forma de digitar.
+  const valorDaNota=termino==='parcelas'?valorDaParcelaRecorrencia():amount;
+  if(!valorDaNota||valorDaNota<=0){alert('O valor de cada parcela ficou zerado. Revise o valor ou o número de parcelas.');return}
+  const payload={customerId:cliente.id,serviceProfileId,amount:valorDaNota,dayOfMonth,runTime:qs('#rc-time').value||'09:00',dueDayOfMonth:Number(dueDayTexto),frequencyMonths:Number(qs('#rc-frequency').value)||1,endDate:termino==='data'?(qs('#rc-end-date').value||undefined):undefined,totalOccurrences:termino==='parcelas'?vezes:undefined,description:qs('#rc-description').value.trim()||undefined};
   try{
     if(recorrenciaEditando)await api('/api/invoice-recurrences/'+recorrenciaEditando,{method:'PUT',body:JSON.stringify(payload)});
     else await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify(payload)});
@@ -3929,7 +4014,15 @@ function editarRecorrencia(id){
   qs('#rc-frequency').value=String(item.frequency_months||1);
   qs('#rc-end-date').value=item.end_date||'';
   qs('#rc-description').value=item.description||'';
-  qs('#rc-form-title').textContent='Editar recorrência';
+  // Ao editar, o valor guardado é sempre o de CADA nota — então o modo volta
+  // como "valor da parcela", nunca "total": remontar o total dividido daria
+  // um número que talvez nem seja o que a pessoa digitou (o centavo perdido
+  // na divisão não tem volta).
+  qs('#rc-termino').value=item.total_occurrences?'parcelas':(item.end_date?'data':'aberto');
+  qs('#rc-parcelas').value=item.total_occurrences||'';
+  qs('#rc-parcelas-modo').value='parcela';
+  alternarTerminoRecorrencia();
+  qs('#rc-form-title').textContent='Editar contrato recorrente';
   abrirModalRecorrencia();
   verificarVencimentoRecorrencia();
 }
@@ -3941,6 +4034,48 @@ function fecharModalRecorrencia(){qs('#recorrencia-modal').classList.remove('on'
 // #vencimento só é substituído quando a recorrência tem dia de vencimento
 // configurado — aviso não-bloqueante evita a variável vazar como texto
 // literal pra uma nota real.
+/**
+ * Parcelamento (pedido do usuário, 19/08/2026). Duas formas, porque ele
+ * descreveu as duas: "vou parcelar o valor total em tantas vezes OU vou
+ * fazer tantas vezes desse valor".
+ *
+ * O backend guarda só quantas vezes emitir (total_occurrences) e o valor de
+ * CADA nota (amount) — dividir um total é conta daqui. Por isso a prévia
+ * mostra o total que vai sair de verdade: R$ 1.000 em 3x dá 3 × R$ 333,33 =
+ * R$ 999,99, e esconder esse centavo seria mentir sobre o que será emitido.
+ */
+function alternarTerminoRecorrencia(){
+  const modo=qs('#rc-termino').value;
+  qs('#rc-end-date-wrap').style.display=modo==='data'?'':'none';
+  qs('#rc-parcelas-wrap').style.display=modo==='parcelas'?'':'none';
+  if(modo!=='data')qs('#rc-end-date').value='';
+  if(modo!=='parcelas'){qs('#rc-parcelas').value='';qs('#rc-parcelas-previa').textContent='';}
+  else renderPreviaParcelas();
+  atualizarRotuloValorRecorrencia();
+}
+function atualizarRotuloValorRecorrencia(){
+  const total=qs('#rc-termino').value==='parcelas'&&qs('#rc-parcelas-modo').value==='total';
+  qs('#rc-amount-label').textContent=total?'Valor total do contrato (R$)':'Valor (R$)';
+}
+function valorDaParcelaRecorrencia(){
+  const informado=dinheiro(qs('#rc-amount').value),vezes=Number(qs('#rc-parcelas').value)||0;
+  if(qs('#rc-termino').value!=='parcelas'||!vezes)return informado;
+  if(qs('#rc-parcelas-modo').value!=='total')return informado;
+  // Trunca em 2 casas em vez de arredondar: arredondar pra cima faria a soma
+  // das parcelas passar do total contratado, que é pior que faltar centavo.
+  return Math.floor((informado/vezes)*100)/100;
+}
+function renderPreviaParcelas(){
+  atualizarRotuloValorRecorrencia();
+  const box=qs('#rc-parcelas-previa');if(!box)return;
+  const vezes=Number(qs('#rc-parcelas').value)||0,informado=dinheiro(qs('#rc-amount').value);
+  if(!vezes||!informado){box.textContent='Informe o valor e quantas vezes pra ver o resumo.';return}
+  const parcela=valorDaParcelaRecorrencia(),somaReal=Math.round(parcela*vezes*100)/100;
+  const modoTotal=qs('#rc-parcelas-modo').value==='total';
+  const diferenca=modoTotal?Math.round((informado-somaReal)*100)/100:0;
+  box.innerHTML=`${vezes}x de <b>R$ ${brl(parcela)}</b> · total emitido <b>R$ ${brl(somaReal)}</b>`
+    +(diferenca>0?` <span style="color:var(--warn)">· R$ ${brl(diferenca)} não cabem na divisão exata — ajuste o valor ou o número de parcelas se precisar fechar certinho</span>`:'');
+}
 function verificarVencimentoRecorrencia(){
   const hint=qs('#rc-due-day-hint');if(!hint)return;
   const servico=perfisServico.find(p=>p.id===qs('#rc-service')?.value);
@@ -3988,7 +4123,7 @@ function numeroValorCsv(valorTexto,delimitador){
   return delimitador===','?(Number(String(valorTexto||'0').replace(/[^0-9.-]/g,''))||0):dinheiro(valorTexto);
 }
 function validarLinhaRecorrencia(partes,delimitador){
-  const [doc,servicoCampo,valorTexto,diaTexto,vencTexto,horaTexto,freqTexto,fimTexto]=partes;
+  const [doc,servicoCampo,valorTexto,diaTexto,vencTexto,horaTexto,freqTexto,fimTexto,parcelasTexto]=partes;
   const docNormalizado=(doc||'').replace(/\D/g,'');
   const cliente=clientesCadastro.find(c=>(c.tax_id||'').replace(/\D/g,'')===docNormalizado);
   const servicoCampoLimpo=(servicoCampo||'').trim();
@@ -4002,7 +4137,13 @@ function validarLinhaRecorrencia(partes,delimitador){
   const runTime=/^([01]?\d|2[0-3]):[0-5]\d$/.test(horaLimpa)?horaLimpa.padStart(5,'0'):null;
   const frequencyMonths=Number(freqTexto)||1;
   const endDate=(fimTexto||'').trim()||undefined;
+  // Parcelas em branco = contrato sem fim (o padrão). Na planilha o valor é
+  // sempre o de CADA nota — dividir um total é escolha da tela, não faz
+  // sentido aqui, onde cada linha já traz o valor final.
+  const parcelasLimpo=(parcelasTexto||'').trim();
+  const totalOccurrences=parcelasLimpo?Number(parcelasLimpo):undefined;
   const erros=[];
+  if(parcelasLimpo&&(!Number.isInteger(totalOccurrences)||totalOccurrences<1||totalOccurrences>120))erros.push('parcelas inválidas (1 a 120, ou deixe em branco)');
   if(!cliente)erros.push(`cliente "${doc||''}" não encontrado`);
   if(!servico)erros.push(`serviço "${servicoCampoLimpo}" não encontrado`);
   if(!amount||amount<=0)erros.push('valor inválido');
@@ -4010,12 +4151,12 @@ function validarLinhaRecorrencia(partes,delimitador){
   if(!dueDayOfMonth||dueDayOfMonth<1||dueDayOfMonth>28)erros.push('dia de vencimento inválido (1 a 28)');
   if(!runTime)erros.push('horário inválido (use HH:MM)');
   if(![1,3,6,12].includes(frequencyMonths))erros.push('frequência precisa ser 1, 3, 6 ou 12');
-  return {cliente,servico,amount,dayOfMonth,dueDayOfMonth,runTime:runTime||'09:00',frequencyMonths,endDate,erros,doc,servicoCampoLimpo};
+  return {cliente,servico,amount,dayOfMonth,dueDayOfMonth,runTime:runTime||'09:00',frequencyMonths,endDate,totalOccurrences,erros,doc,servicoCampoLimpo};
 }
 function baixarModeloRecorrenciaCsv(){
   const linhas=[
-    'CPF/CNPJ do cliente;Servico (numero ou nome);Valor;Dia do mes;Dia de vencimento;Horario (HH:MM);Frequencia (1/3/6/12);Data fim (opcional, AAAA-MM-DD)',
-    '12345678000195;Honorarios contabeis;500,00;5;10;09:00;1;'
+    'CPF/CNPJ do cliente;Servico (numero ou nome);Valor;Dia do mes;Dia de vencimento;Horario (HH:MM);Frequencia (1/3/6/12);Data fim (opcional, AAAA-MM-DD);Parcelas (opcional)',
+    '12345678000195;Honorarios contabeis;500,00;5;10;09:00;1;;12'
   ];
   const blob=new Blob(['﻿'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
@@ -4068,7 +4209,7 @@ async function confirmarImportacaoRecorrenciaCsv(){
   for(const r of recorrenciasCsvParseadas){
     if(r.erros.length)continue;
     try{
-      await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify({customerId:r.cliente.id,serviceProfileId:r.servico.id,amount:r.amount,dayOfMonth:r.dayOfMonth,dueDayOfMonth:r.dueDayOfMonth,runTime:r.runTime,frequencyMonths:r.frequencyMonths,endDate:r.endDate})});
+      await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify({customerId:r.cliente.id,serviceProfileId:r.servico.id,amount:r.amount,dayOfMonth:r.dayOfMonth,dueDayOfMonth:r.dueDayOfMonth,runTime:r.runTime,frequencyMonths:r.frequencyMonths,endDate:r.endDate,totalOccurrences:r.totalOccurrences})});
       ok++;
     }catch(error){falhas.push(`Linha ${r.numero}: ${error.message}`)}
   }
@@ -4080,7 +4221,10 @@ async function confirmarImportacaoRecorrenciaCsv(){
 function cancelarEdicaoRecorrencia(){
   recorrenciaEditando=null;
   qs('#rc-customer').value='';qs('#rc-service').value='';qs('#rc-amount').value='0,00';qs('#rc-day').value='';qs('#rc-time').value='09:00';qs('#rc-due-day').value='';qs('#rc-frequency').value='1';qs('#rc-end-date').value='';qs('#rc-description').value='';
-  qs('#rc-form-title').textContent='Nova recorrência';
+  qs('#rc-termino').value='aberto';qs('#rc-parcelas').value='';qs('#rc-parcelas-modo').value='parcela';
+  if(qs('#rc-preset'))qs('#rc-preset').value='';
+  alternarTerminoRecorrencia();
+  qs('#rc-form-title').textContent='Novo contrato recorrente';
   qs('#rc-due-day-hint').style.display='none';
   fecharModalRecorrencia();
 }
@@ -5696,13 +5840,14 @@ const supGuias=[
    'Já emitia pelo Emissor Nacional antes do TITAN? Clique em <b>Buscar dados do Portal Nacional</b> — a busca roda em segundo plano (dá pra sair da tela) e cadastra os clientes encontrados nas notas, completando os dados pela Receita automaticamente.',
    'Em <b>Meu plano</b>, acompanhe o consumo do mês e peça mudança de plano quando precisar.'
   ], act:[['Abrir Configurações','emitente']]},
- {id:'g-recorrentes',chip:'Criar notas recorrentes',resumo:'Configura uma vez e o TITAN emite sozinho todo mês, no dia escolhido.',
+ {id:'g-recorrentes',chip:'Criar um contrato recorrente',resumo:'Configura uma vez e o TITAN emite a nota sozinho, no dia escolhido, já gerando o recebimento.',
   passos:[
-   'Em <b>Notas recorrentes</b>, clique em <b>+ Nova recorrência</b> e escolha o cliente e o serviço, ambos já cadastrados.',
-   'Defina valor, dia do mês, horário e frequência — a emissão sai sozinha, sem precisar abrir o portal naquele dia.',
-   'Cada emissão automática já cria o recebimento correspondente em Financeiro, e aparece na Agenda no dia certo.',
-   'Pausar, editar ou excluir fica nos ícones da própria lista. Várias recorrências de uma vez? Use a importação por planilha (CSV) no fim da tela.'
-  ], act:[['Abrir Notas recorrentes','recorrentes']]},
+   'Em <b>Contratos recorrentes</b>, clique em <b>+ Novo contrato</b> e escolha o cliente e o serviço, ambos já cadastrados.',
+   'Defina o valor, o <b>dia de emissão</b> da nota (com horário) e o <b>dia de vencimento</b> — são coisas diferentes: a nota sai numa data, o dinheiro vence noutra. Se você usa sempre as mesmas datas, cadastre um padrão em Cadastros → Outros e escolha em "Usar um padrão".',
+   'Escolha como o contrato termina: sem data (repete até você pausar), numa data específica, ou por <b>número de parcelas</b> — neste caso dá pra informar o valor de cada parcela ou o valor total a dividir.',
+   'Cada emissão automática já cria o recebimento correspondente, que aparece na <b>Agenda</b> no dia do vencimento.',
+   'Pausar, editar ou excluir fica nos ícones da própria lista. Vários contratos de uma vez? Use a importação por planilha (CSV) no fim da tela.'
+  ], act:[['Abrir Contratos recorrentes','recorrentes']]},
  {id:'g-comercial',chip:'Orçamento ou Ordem de Serviço → virar nota',resumo:'Monta a proposta primeiro, converte em NFS-e só quando o cliente aprovar.',
   passos:[
    'No menu, clique em <b>Orçamentos</b> ou <b>Ordens de serviço</b> — já abre o formulário de um novo documento.',
