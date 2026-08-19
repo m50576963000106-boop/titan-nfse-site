@@ -69,7 +69,7 @@
     <section class="hero" id="inicio">
       <div class="hero-grid">
         <div>
-          <div class="badge"><i data-lucide="sparkles"></i> Pronto para a obrigatoriedade nacional de 01/09</div>
+          <div class="badge"><i data-lucide="sparkles"></i> Pronto para a obrigatoriedade nacional de 01/09/2026, quando ME/EPP do Simples Nacional passam a emitir só pelo Emissor Nacional (Resolução CGSN nº 189/2026) — <a href="/faq" style="color:inherit;text-decoration:underline">entenda</a></div>
           <h1>Agilize a emissão da sua nota fiscal <span>com o TITAN NFS-e.</span></h1>
           <p class="hero-text">Cadastre uma vez, emita em segundos, no sistema ou mandando um áudio pro Martyn no WhatsApp. Menos telas, menos retrabalho, menos "deixa eu conferir de novo". O TITAN cuida da parte chata pra você cuidar do resto do seu dia.</p>
           <div class="hero-actions"><a class="btn btn-gold" href="#planos" onclick="abrirPlanosModal();return false;">Quero emitir mais rápido</a><a class="btn" href="#funcionamento">Ver como funciona <i data-lucide="arrow-down"></i></a></div>
@@ -133,11 +133,45 @@
       </div>
     </section>
 
+    <section class="content-section section-dark" id="problema">
+      <div class="section-head center">
+        <div class="eyebrow">O problema</div>
+        <h2>Emitir direto no Portal Nacional custa mais do que parece</h2>
+        <p>O Emissor Nacional (Gerador de DPS) é oficial e funciona — mas foi feito pra cumprir o leiaute, não pra ser rápido. Toda nota, do zero, passa por isto:</p>
+      </div>
+      <div class="comparison reveal" style="grid-template-columns:repeat(3,1fr)">
+        <article class="comparison-card">
+          <h3>Campos</h3>
+          <div class="comparison-list">
+            <div class="comparison-item"><span class="status"></span><span>Mais de 20 campos obrigatórios pra uma nota com retenção</span></div>
+            <div class="comparison-item"><span class="status"></span><span>Espalhados em pelo menos 5 blocos: prestador, tomador, serviço, tributação e (agora) IBS/CBS</span></div>
+            <div class="comparison-item"><span class="status"></span><span>Tomador refeito do zero toda vez — o Portal não guarda cadastro</span></div>
+          </div>
+        </article>
+        <article class="comparison-card">
+          <h3>Telas e cliques</h3>
+          <div class="comparison-list">
+            <div class="comparison-item"><span class="status"></span><span>Uma tela por bloco, ida e volta o tempo todo</span></div>
+            <div class="comparison-item"><span class="status"></span><span>Buscar o código de tributação nacional (Anexo B, +800 opções) a cada serviço novo</span></div>
+            <div class="comparison-item"><span class="status"></span><span>Calcular e lançar ISS, PIS/COFINS, CSLL e IRRF campo a campo, na mão</span></div>
+          </div>
+        </article>
+        <article class="comparison-card featured">
+          <h3>Tempo</h3>
+          <div class="comparison-list">
+            <div class="comparison-item"><span class="status on"></span><span><b>~40s</b> por nota — só pra quem já decorou o fluxo inteiro</span></div>
+            <div class="comparison-item"><span class="status on"></span><span>Rejeitou na Sefin? Recomeça do campo 1</span></div>
+            <div class="comparison-item"><span class="status on"></span><span>Multiplique isso por cliente novo, por mês, pro ano inteiro</span></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <section class="content-section section-light" id="beneficios">
       <div class="section-head center">
-        <div class="eyebrow">Benefícios</div>
-        <h2>Muito mais que uma tela para emitir notas</h2>
-        <p>Cada recurso do TITAN existe pra tirar um pedaço do trabalho manual das suas costas — não só pra "ter mais uma função", mas sim pra economizar o seu tempo.</p>
+        <div class="eyebrow">A solução</div>
+        <h2>O TITAN faz o mesmo Portal Nacional lembrar o que você já digitou</h2>
+        <p>Mesma infraestrutura oficial, sem gambiarra — só que o cadastro reaproveita, o código certo já vem sugerido e a validação acontece antes de enviar, não depois que a nota já foi rejeitada.</p>
       </div>
       <div class="benefits reveal">
         <article class="benefit"><div class="benefit-number">01</div><h3>Emissão inteligente</h3><p>Preencha uma vez, reaproveite sempre. Menos campo pra digitar, menos chance de errar, nota pronta em minutos.</p></article>
@@ -150,60 +184,6 @@
         <article class="benefit"><div class="benefit-number">08</div><h3>Cancelamento simplificado</h3><p>Pelo portal ou no WhatsApp: o Martyn cuida do PDF e do XML atualizados assim que você confirmar.</p></article>
       </div>
     </section>
-
-    <section class="content-section section-dark" id="comparacao">
-      <div class="section-head">
-        <div class="eyebrow">Portal Nacional e TITAN</div>
-        <h2>O Portal Nacional emite a nota. O TITAN te devolve o seu tempo.</h2>
-        <p>A mesma infraestrutura oficial, sem nada de gambiarra, só com tudo que faltava pra emitir sem perder a tarde inteira nisso.</p>
-      </div>
-      <div class="time-stat reveal">
-        <div class="time-stat-item"><strong>~40s</strong><span>por nota, só no Portal Nacional</span></div>
-        <div class="time-stat-arrow"><i data-lucide="arrow-right"></i></div>
-        <div class="time-stat-item featured"><strong>~15s</strong><span>por nota, com o TITAN</span></div>
-      </div>
-      <div class="comparison reveal">
-        <article class="comparison-card">
-          <h3>Portal Nacional</h3>
-          <div class="comparison-list">
-            <div class="comparison-item"><span class="status on"></span><span>Emissão oficial da NFS-e</span></div>
-            <div class="comparison-item"><span class="status"></span><span>Fluxo predominantemente manual</span></div>
-            <div class="comparison-item"><span class="status"></span><span>Sem assistente especializado integrado</span></div>
-            <div class="comparison-item"><span class="status"></span><span>Sem gestão operacional completa</span></div>
-            <div class="comparison-item"><span class="status"></span><span>Sem painel gerencial avançado</span></div>
-          </div>
-        </article>
-
-        <article class="comparison-card featured">
-          <h3>TITAN NFS-e</h3>
-          <div class="comparison-list">
-            <div class="comparison-item"><span class="status on"></span><span>Integração com o Portal Nacional</span></div>
-            <div class="comparison-item"><span class="status on"></span><span>Martyn no WhatsApp e no sistema, para emitir e cancelar notas</span></div>
-            <div class="comparison-item"><span class="status on"></span><span>Gestão de clientes e serviços</span></div>
-            <div class="comparison-item"><span class="status on"></span><span>Automação de processos e documentos</span></div>
-            <div class="comparison-item"><span class="status on"></span><span>Dashboard com indicadores da operação</span></div>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section class="content-section section-light" id="planos">
-      <div class="section-head center">
-        <div class="eyebrow">Planos sob medida</div>
-        <h2>Um plano para cada fase do seu negócio</h2>
-        <p>Os limites consideram NFS-e autorizadas e canceladas no mês. A contratação libera seu acesso — contrate e libere o seu acesso agora mesmo.</p>
-      </div>
-      <div class="pricing-cta"><button class="btn btn-gold" type="button" id="pricing-toggle">Consultar planos</button></div>
-    </section>
-
-    <div class="planos-modal-backdrop" id="planos-modal-backdrop">
-      <div class="planos-modal" role="dialog" aria-modal="true" aria-labelledby="planos-modal-title">
-        <div class="drawer-head"><div><h2 id="planos-modal-title">Nossos planos</h2><p>Escolha pelo seu volume de notas — a contratação libera seu acesso na hora.</p></div><button class="drawer-close" type="button" aria-label="Fechar planos" id="planos-modal-close"><i data-lucide="x"></i></button></div>
-        <div class="pricing-grid" id="pricing-grid"><p class="pricing-note">Carregando planos...</p></div>
-        <p class="pricing-note"><b>Cobrança recorrente a cada 30 dias</b>, com pagamento via Pix ou cartão de crédito.</p>
-        <p class="pricing-note">A cobrança automática via instituição financeira e os relatórios contábeis serão habilitados somente após a configuração segura das credenciais e do consentimento da empresa.</p>
-      </div>
-    </div>
 
     <section class="content-section section-light" id="martyn">
       <div class="martyn-layout reveal">
@@ -246,15 +226,45 @@
           <svg viewBox="0 0 38 28" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="36" height="26" rx="3"></rect><path d="M2 3l17 13L36 3"></path></svg>
           <div class="payoff-note"></div>
         </div>
-        <span>Nota enviada por e-mail — o mesmo que o Portal Nacional levaria ~40s pra fazer, o TITAN faz em ~15s</span>
+        <span>Nota enviada por e-mail — sem digitar os dados do cliente de novo, sem reabrir o Portal Nacional pra conferir, sem juntar XML espalhado no fim do mês pro contador</span>
       </div>
+      <p class="funcionamento-nota" style="text-align:center;color:var(--ink-2,#8b8f99);font-size:12.5px;margin-top:8px">O Portal Nacional emite a nota; o tempo que o TITAN devolve pra você é o que não vai mais em reabrir tela, procurar cadastro repetido e corrigir rejeição.</p>
     </section>
+
+    <section class="content-section section-light" id="planos">
+      <div class="section-head center">
+        <div class="eyebrow">Planos sob medida</div>
+        <h2>Um plano para cada fase do seu negócio</h2>
+        <p>Os limites consideram NFS-e autorizadas e canceladas no mês. A contratação libera seu acesso — contrate e libere o seu acesso agora mesmo.</p>
+      </div>
+      <div class="pricing-cta"><button class="btn btn-gold" type="button" id="pricing-toggle">Consultar planos</button></div>
+    </section>
+
+    <div class="planos-modal-backdrop" id="planos-modal-backdrop">
+      <div class="planos-modal" role="dialog" aria-modal="true" aria-labelledby="planos-modal-title">
+        <div class="drawer-head"><div><h2 id="planos-modal-title">Nossos planos</h2><p>Escolha pelo seu volume de notas — a contratação libera seu acesso na hora.</p></div><button class="drawer-close" type="button" aria-label="Fechar planos" id="planos-modal-close"><i data-lucide="x"></i></button></div>
+        <div class="pricing-grid" id="pricing-grid"><p class="pricing-note">Carregando planos...</p></div>
+        <p class="pricing-note"><b>Cobrança recorrente a cada 30 dias</b>, com pagamento via Pix ou cartão de crédito.</p>
+        <p class="pricing-note">A cobrança automática via instituição financeira e os relatórios contábeis serão habilitados somente após a configuração segura das credenciais e do consentimento da empresa.</p>
+      </div>
+    </div>
 
     <section class="contact" id="contratar">
       <div class="contact-shell reveal"><div class="contact-copy"><span class="tag">Fale com a TITAN</span><h2>Chega de perder tempo com nota fiscal</h2><p>Conte um pouco sobre a sua empresa. Nossa equipe cuida do cadastro e da implantação com você: rápido, sem burocracia, sem enrolação.</p></div>
-      <form class="contact-form" id="contact-form"><input class="full" name="federalTaxId" id="contact-cnpj" required placeholder="CNPJ" maxlength="18" inputmode="text" autocomplete="off"><div class="form-hint full" id="contact-cnpj-hint">Preencha o CNPJ primeiro — a gente busca razão social, sócio responsável, e-mail e telefone públicos automaticamente pra agilizar o resto do formulário.</div><input class="full" name="name" id="contact-name" required placeholder="Seu nome"><input class="full" name="company" id="contact-company" required placeholder="Empresa (preenchida automaticamente pelo CNPJ)"><input name="email" type="email" required placeholder="E-mail" id="contact-email"><input name="phone" required placeholder="Telefone / WhatsApp" id="contact-phone"><div class="form-hint full" id="contact-contact-hint">Confira o e-mail e o telefone: são eles que garantem seu acesso ao portal depois.</div><select class="full" name="planCode" id="contact-plan"><option value="">Ainda não decidi / quero conversar</option></select><textarea class="full" name="message" placeholder="Conte brevemente o que precisa"></textarea><button class="btn btn-gold full" type="submit">Enviar solicitação</button><div class="form-status full" id="contact-status" role="status"></div></form></div>
+      <form class="contact-form" id="contact-form"><input class="full" name="federalTaxId" id="contact-cnpj" required placeholder="CNPJ" maxlength="18" inputmode="text" autocomplete="off"><div class="form-hint full" id="contact-cnpj-hint">Preencha o CNPJ primeiro — buscamos razão social, sócio responsável, e-mail e telefone <b>já públicos na Receita Federal</b> (via BrasilAPI) só pra agilizar o preenchimento. Nada é enviado a terceiros; você revê e corrige qualquer campo antes de enviar. Veja a <a href="/politica-de-privacidade" style="color:inherit;text-decoration:underline">política de privacidade</a>.</div><input class="full" name="name" id="contact-name" required placeholder="Seu nome"><input class="full" name="company" id="contact-company" required placeholder="Empresa (preenchida automaticamente pelo CNPJ)"><input name="email" type="email" required placeholder="E-mail" id="contact-email"><input name="phone" required placeholder="Telefone / WhatsApp" id="contact-phone"><div class="form-hint full" id="contact-contact-hint">Confira o e-mail e o telefone: são eles que garantem seu acesso ao portal depois.</div><select class="full" name="planCode" id="contact-plan"><option value="">Ainda não decidi / quero conversar</option></select><textarea class="full" name="message" placeholder="Conte brevemente o que precisa"></textarea><button class="btn btn-gold full" type="submit">Enviar solicitação</button><div class="form-status full" id="contact-status" role="status"></div></form></div>
     </section>
   </main>
+  <div class="mobile-sticky-cta">
+    <button class="btn btn-gold" type="button" onclick="abrirPlanosModal()">Contratar plano</button>
+  </div>
+  <style>
+    .mobile-sticky-cta{display:none}
+    @media(max-width:680px){
+      .mobile-sticky-cta{display:block;position:fixed;left:0;right:0;bottom:0;z-index:40;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(11,22,41,.92);backdrop-filter:blur(6px);border-top:1px solid rgba(255,255,255,.08)}
+      .mobile-sticky-cta .btn{width:100%}
+      .contact{padding-bottom:88px}
+    }
+  </style>
   <footer>
     <div class="footer-inner">
       <a class="footer-brand" href="/" aria-label="TITAN NFS-e"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a>
@@ -264,7 +274,7 @@
         <a href="#martyn">Martyn</a>
         <a href="/faq">Dúvidas</a>
         <a href="/termos-de-uso">Termos de Uso</a>
-        <a href="/contrato-de-uso">Contrato de Sessão de Uso</a>
+        <a href="/contrato-de-uso">Contrato de Cessão de Uso</a>
         <a href="/politica-de-privacidade">Privacidade</a>
         <a href="/exclusao-de-dados">Exclusão de Dados</a>
       </nav>
@@ -423,7 +433,7 @@
       if(d.length>12)out+='-'+d.slice(12,14);
       event.target.value=out;
     }
-    function openLoginDrawer(focusTarget='client'){loginBackdrop.classList.add('open');loginButton.setAttribute('aria-expanded','true');setTimeout(()=>document.querySelector(focusTarget==='admin'?'#admin-email':'#client-cnpj')?.focus(),80)}
+    function openLoginDrawer(focusTarget='client'){loginBackdrop.classList.add('open');loginButton.setAttribute('aria-expanded','true');window.__DEBUG_OPEN_CALLED={immediateClass:loginBackdrop.className,loginBackdropIsSameNode:loginBackdrop===document.querySelector('#login-drawer-backdrop')};setTimeout(()=>document.querySelector(focusTarget==='admin'?'#admin-email':'#client-cnpj')?.focus(),80)}
     function closeLoginDrawer(){loginBackdrop.classList.remove('open');loginButton.setAttribute('aria-expanded','false');fecharPainelVerificacao()}
     // X-Device-Trust vale pra login de empresa (CNPJ) e de Parceiro (o
     // backend decide se confere, auth.ts) — sempre manda quando existe um
@@ -490,7 +500,11 @@
       finalizarLoginAdmin(access)
     }catch(error){status.textContent=error.message}});
     function aplicarIntencaoLogin(){const routeIntent=location.pathname==='/entrar'?'client':'';const intent=(PAGE_QUERY.get('login')||routeIntent).toLowerCase(),tenant=normalizeTaxId(PAGE_QUERY.get('tenant'));if(/^[A-Z0-9]{12}[0-9]{2}$/.test(tenant)){const input=document.querySelector('#client-cnpj');input.value=tenant;maskCnpjInput({target:input});}if(intent==='admin'||intent==='client'||tenant.length===14)openLoginDrawer(intent==='admin'?'admin':'client')}
-    aplicarIntencaoLogin();
+    // Achado 19/08/2026: chamar isto no fluxo síncrono de carregamento não
+    // bastava — o drawer abria e fechava sozinho antes da página terminar de
+    // assentar (efeito colateral de algo mais tarde no load). Rodar depois do
+    // 'load' da janela garante que a intenção de login vença por último.
+    if(document.readyState==='complete')aplicarIntencaoLogin();else window.addEventListener('load',aplicarIntencaoLogin);
     document.querySelector('#contact-form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget,status=document.querySelector('#contact-status'),data=Object.fromEntries(new FormData(form));if(!/^[A-Z0-9]{12}[0-9]{2}$/.test(normalizeTaxId(data.federalTaxId||''))){status.textContent='Informe um CNPJ válido para consultarmos o regime tributário e agilizar a pré-inscrição.';return}status.textContent='Enviando...';try{const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const out=await response.json();if(!response.ok)throw new Error(out.error||'Não foi possível enviar.');form.reset();status.textContent='Recebemos sua pré-inscrição. Consultamos seu regime tributário automaticamente. Em breve nossa equipe entra em contato.'}catch(error){status.textContent=error.message}});
   </script>
 </body>
