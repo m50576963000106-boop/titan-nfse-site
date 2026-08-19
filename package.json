@@ -18,6 +18,10 @@
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "1.0.1",
+    "@rolldown/binding-win32-x64-msvc": "1.0.1"
+  },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
     "@cloudflare/workers-types": "^4.20260702.1",
