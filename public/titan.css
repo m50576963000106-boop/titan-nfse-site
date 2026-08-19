@@ -238,7 +238,7 @@ main{margin-left:230px;padding:58px 0 0}
 }
 .card-h{
   padding:13px 16px;border-bottom:1px solid var(--line);
-  display:flex;align-items:center;gap:10px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
 }
 .card-h h2{font-size:13px;font-weight:650;letter-spacing:-.01em}
 .card-b{padding:16px}
@@ -253,6 +253,9 @@ main{margin-left:230px;padding:58px 0 0}
 .agenda-cal-cell.hoje{background:rgba(201,168,76,.09)}
 .agenda-cal-cell.hoje .agenda-cal-dia{color:var(--gold);font-weight:800}
 .agenda-cal-dia{font-size:11.5px;font-weight:650;color:var(--ink-2)}
+.agenda-cal-valor{font-size:11px;font-weight:800;color:var(--ink);line-height:1.25}
+.agenda-cal-valor.previsto{color:var(--warn)}
+.agenda-cal-count{font-size:9px;color:var(--ink-3)}
 .agenda-pill{font-size:9.5px;padding:2px 5px;border-radius:5px;background:var(--ok-bg);color:var(--ok);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .agenda-pill.previsto{background:var(--warn-bg);color:var(--warn)}
 .agenda-pill-mais{font-size:9.5px;color:var(--ink-3);font-weight:650}
@@ -566,7 +569,9 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .doc-number{font-family:var(--mono);font-size:10.5px;font-weight:700;background:#eceae3;padding:2px 6px;border-radius:4px;color:var(--ink-2)}
 .master-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .master-panel{display:none}.master-panel.active{display:block}
-.comm-tab-btn.on,.client-subtab-btn.on{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+.comm-tab-btn.on,.client-subtab-btn.on,.help-tab-btn.on{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+.help-steps{margin:0;padding-left:18px;display:grid;gap:7px;font-size:12.5px;line-height:1.55;color:var(--ink-2)}
+.help-steps li::marker{color:var(--gold-dim,var(--gold));font-weight:700}
 .client-subtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .client-subtab-btn .pill{margin-left:6px;font-size:10px;vertical-align:middle}
 @media print{body.printing-master *{visibility:hidden!important}body.printing-master #v-master,body.printing-master #v-master #master-panel-clientes,body.printing-master #v-master #master-panel-clientes *{visibility:visible!important}body.printing-master #v-master{position:absolute;inset:0;margin:0;padding:20px}body.printing-master .sidebar,body.printing-master .topbar{display:none!important}body.printing-master #master-panel-clientes{display:block!important}.printing-master .card-h button,.printing-master .card-h .flex{display:none!important}}
@@ -710,7 +715,7 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
 .dash-stat-copy strong{display:block;margin-top:6px;font-size:21px;line-height:1;font-weight:780;letter-spacing:-.035em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .dash-stat-copy small{display:block;margin-top:6px;color:var(--ink-3);font-size:10.5px}
 .dash-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,.85fr);gap:16px;margin-bottom:16px}
-.dash-card-h{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.dash-card-h{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
 .dash-card-h h2{font-size:13px;font-weight:700}.dash-card-h p{font-size:10.5px;color:var(--ink-3);margin-top:2px}
 .dash-chart{height:205px;display:flex;align-items:flex-end;gap:12px;padding:32px 18px 15px;background:linear-gradient(180deg,#fff,#fdfcf9)}
 .dash-chart .bar-wrap{min-width:0}.dash-chart .bar{background:linear-gradient(180deg,#243c63,var(--navy));border-radius:5px 5px 2px 2px}

@@ -627,9 +627,9 @@
 
     <!-- ---------- NOTAS ---------- -->
     <section class="view" id="v-notas">
-      <div class="page-h">
-        <h1>Notas emitidas</h1>
-        <p>Histórico completo com XML de distribuição e DANFSe guardados no servidor.</p>
+      <div class="page-h master-head">
+        <div><h1>Notas emitidas</h1><p>Histórico completo com XML de distribuição e DANFSe guardados no servidor.</p></div>
+        <button class="btn btn-p" type="button" onclick="go('emitir',qs('#sb-emitir'),true)">+ Emitir NFSe</button>
       </div>
 
       <div class="card" id="nt-filtro-card" style="margin-bottom:14px">
@@ -940,8 +940,8 @@
           </div>
         </aside>
         <section class="card help-faq-card">
-          <div class="card-h"><div><h2>Perguntas frequentes</h2><p>Respostas oficiais e orientações do TITAN para sua operação.</p></div><span class="pill p-ok">Martyn online</span></div>
-          <div class="card-b"><div id="help-faq-list" class="help-faq-list"></div></div>
+          <div class="card-h"><div class="flex" style="gap:6px"><button class="btn btn-s help-tab-btn on" type="button" onclick="helpMudarAba('faq',this)">Perguntas frequentes</button><button class="btn btn-s help-tab-btn" type="button" onclick="helpMudarAba('como-usar',this)">Como usar</button></div><span class="pill p-ok">Martyn online</span></div>
+          <div class="card-b"><p class="hint" id="help-aba-desc" style="margin-bottom:10px">Respostas oficiais e orientações do TITAN para sua operação.</p><div id="help-faq-list" class="help-faq-list"></div></div>
         </section>
       </div>
       <div class="help-action-note"><b>Quer cancelar uma nota?</b> Diga “cancelar a nota 22”. Martyn localizará a NFS-e autorizada e abrirá a tela oficial; o motivo e a confirmação continuam obrigatórios antes do envio à Sefin.</div>
@@ -3855,9 +3855,14 @@ function renderCalendarioAgenda(){
   for(let dia=1;dia<=diasNoMes;dia++){
     const itensDoDia=porDia[dia]||[];
     const ehHoje=hoje.getFullYear()===ano&&hoje.getMonth()===mes&&hoje.getDate()===dia;
-    const pills=itensDoDia.slice(0,2).map(item=>`<span class="agenda-pill${item.tipo==='previsto'?' previsto':''}" title="${esc(item.cliente)} · R$ ${brl(Number(item.valor||0))}">${esc(item.cliente)}</span>`).join('');
-    const mais=itensDoDia.length>2?`<span class="agenda-pill-mais">+${itensDoDia.length-2}</span>`:'';
-    celulas+=`<div class="agenda-cal-cell${ehHoje?' hoje':''}${itensDoDia.length?' tem-item':''}" onclick="mostrarDiaAgenda(${dia})"><span class="agenda-cal-dia">${dia}</span>${pills}${mais}</div>`;
+    let valorHtml='',countHtml='';
+    if(itensDoDia.length){
+      const totalDia=itensDoDia.reduce((soma,item)=>soma+Number(item.valor||0),0);
+      const todosPrevistos=itensDoDia.every(item=>item.tipo==='previsto');
+      valorHtml=`<span class="agenda-cal-valor${todosPrevistos?' previsto':''}">R$ ${brl(totalDia)}</span>`;
+      countHtml=itensDoDia.length>1?`<span class="agenda-cal-count">${itensDoDia.length} lanç.</span>`:'';
+    }
+    celulas+=`<div class="agenda-cal-cell${ehHoje?' hoje':''}${itensDoDia.length?' tem-item':''}" onclick="mostrarDiaAgenda(${dia})"><span class="agenda-cal-dia">${dia}</span>${valorHtml}${countHtml}</div>`;
   }
   box.innerHTML=celulas;
   qs('#agenda-day-detail').style.display='none';
@@ -5671,14 +5676,104 @@ const supTopics=[
    a:()=>`Para orientação oficial, consulte a FAQ, os guias atuais e os canais de atendimento da NFS-e. Para MEI, o portal recomenda também o suporte do Sebrae.${supFonte(SUP_OFICIAL.canais,'Canais oficiais de atendimento')}`}
 ];
 
+/**
+ * "Como usar?" (pedido do usuário, 19/08/2026): a Central de Ajuda já tinha
+ * FAQ regulatório (o que é, quando é obrigatório...) mas nada de passo a
+ * passo operacional das telas do próprio TITAN. supGuias reaproveita a
+ * mesma estrutura/UI de supTopics (lista + acordeão + atalho de navegação
+ * via supActs/supDo) só trocando o conteúdo por fluxo numerado.
+ */
+const supGuias=[
+ {id:'g-emitir',chip:'Emitir uma nota (NFS-e)',resumo:'Do zero até a nota autorizada, nos mesmos 7 passos numerados da tela de emissão.',
+  passos:[
+   'Em <b>Tomador do serviço</b> (passo 1): informe o CNPJ/CPF e clique em <b>Buscar CNPJ</b>, ou digite o nome pra achar um cliente já cadastrado ou já visto no Portal Nacional.',
+   'Em <b>Serviço prestado</b> (passo 2): escolha um item de <b>Meus Serviços</b> — preenche tudo sozinho — ou selecione o código de tributação e o NBS na mão, e informe o valor.',
+   'Vai lançar mais de um serviço na mesma nota? Use <b>Adicionar outro serviço cadastrado</b> no passo 3 — o total é recalculado na hora, sem abrir outra tela.',
+   'Confira <b>Retenções</b> (passo 5) e, quando aparecer, o bloco <b>IBS/CBS</b> (passo 6, Reforma Tributária). O passo 7 é só o resumo fiscal — não precisa preencher nada nele.',
+   'No resumo à direita: <b>Conferir com o Martyn</b> revisa a nota antes de mandar; <b>Emitir direto</b> já envia à Sefin; <b>Salvar rascunho</b> guarda pra continuar depois, em Rascunhos.'
+  ], act:[['Abrir Emitir NFS-e','emitir']]},
+ {id:'g-clientes',chip:'Cadastrar e reaproveitar clientes',resumo:'Cadastro manual, por CNPJ ou em lote — pra não digitar o mesmo tomador duas vezes.',
+  passos:[
+   'Em <b>Clientes</b>, clique em <b>+ Cliente</b> e informe o CNPJ/CPF — o TITAN busca razão social e endereço na Receita automaticamente.',
+   'Cadastro desatualizado? <b>Atualizar todos (CNPJ)</b> reconsulta todos os clientes de uma vez, respeitando o limite de consultas por minuto.',
+   'Tem uma planilha de clientes? Use <b>Importar clientes por planilha (CSV)</b> — baixe o modelo, preencha CNPJ e e-mail (o resto a API completa sozinha) e envie de volta.',
+   'Na hora de emitir, o cliente cadastrado aparece na busca do passo 1 — ou clique em <b>Usar na emissão</b> direto na lista de Clientes.'
+  ], act:[['Abrir Clientes','clientes']]},
+ {id:'g-config',chip:'Configurar empresa, certificado e Portal Nacional',resumo:'O que fazer antes da primeira emissão, e como trazer o histórico de quem já emitia pelo Portal Nacional.',
+  passos:[
+   'Em <b>Configurações</b>, preencha <b>Identificação</b> (o CNPJ busca os dados sozinho) e <b>Configuração da DPS Nacional</b>, depois <b>Salvar cadastro inicial</b>.',
+   'Envie o certificado A1 (.pfx/.p12) em <b>Adicionar certificado</b> — sem ele, o TITAN não assina nem emite nada.',
+   'Já emitia pelo Emissor Nacional antes do TITAN? Clique em <b>Buscar dados do Portal Nacional</b> — a busca roda em segundo plano (dá pra sair da tela) e cadastra os clientes encontrados nas notas, completando os dados pela Receita automaticamente.',
+   'Em <b>Meu plano</b>, acompanhe o consumo do mês e peça mudança de plano quando precisar.'
+  ], act:[['Abrir Configurações','emitente']]},
+ {id:'g-recorrentes',chip:'Criar notas recorrentes',resumo:'Configura uma vez e o TITAN emite sozinho todo mês, no dia escolhido.',
+  passos:[
+   'Em <b>Notas recorrentes</b>, clique em <b>+ Nova recorrência</b> e escolha o cliente e o serviço, ambos já cadastrados.',
+   'Defina valor, dia do mês, horário e frequência — a emissão sai sozinha, sem precisar abrir o portal naquele dia.',
+   'Cada emissão automática já cria o recebimento correspondente em Financeiro, e aparece na Agenda no dia certo.',
+   'Pausar, editar ou excluir fica nos ícones da própria lista. Várias recorrências de uma vez? Use a importação por planilha (CSV) no fim da tela.'
+  ], act:[['Abrir Notas recorrentes','recorrentes']]},
+ {id:'g-comercial',chip:'Orçamento ou Ordem de Serviço → virar nota',resumo:'Monta a proposta primeiro, converte em NFS-e só quando o cliente aprovar.',
+  passos:[
+   'No menu, clique em <b>Orçamentos</b> ou <b>Ordens de serviço</b> — já abre o formulário de um novo documento.',
+   'Escolha o cliente e adicione um ou mais itens de <b>Meus Serviços</b>; salve como rascunho enquanto negocia.',
+   'Aprovado pelo cliente, use <b>Converter em NFS-e</b> na lista — tomador, descrição, códigos e retenções já chegam prontos na tela de emissão pra revisão final.',
+   'Precisa mandar a proposta antes? <b>Abrir PDF</b> ou <b>Enviar e-mail</b> direto da lista.'
+  ], act:[['Abrir Orçamentos e O.S.','comercial']]},
+ {id:'g-recebimentos',chip:'Agendar recebimentos e acompanhar vencimentos',resumo:'Honorários e mensalidades num calendário só, com o valor de cada dia à vista.',
+  passos:[
+   'Em <b>Recebimentos</b>, clique em <b>+ Agendar recebimento</b> — dá pra marcar um recebimento único ou já criar uma recorrência.',
+   'Quando o cliente pagar, marque <b>Marcar recebido</b>; se ainda não existe nota pra esse recebimento, use <b>Preparar NFS-e</b> pra ir direto pra emissão com os dados preenchidos.',
+   'Em <b>Agenda e vencimentos</b>, o calendário mostra o valor total de cada dia — clique num dia pra ver, embaixo, a lista completa do que compõe aquele valor.'
+  ], act:[['Abrir Recebimentos','recebimentos'],['Abrir Agenda','agenda']]},
+ {id:'g-servicos',chip:'Cadastrar Meus Serviços',resumo:'O catálogo que alimenta emissão, orçamentos e recorrências sem redigitar nada.',
+  passos:[
+   'Em <b>Meus serviços</b>, clique em <b>Cadastrar novo</b> e busque o código de tributação nacional (Anexo B) ou o NBS pelo nome do serviço.',
+   'Confirme ISSQN, retenções de PIS/COFINS/CSLL e demais tributos — esse cadastro é reaproveitado toda vez que o serviço for usado.',
+   'O mesmo item aparece pronto pra escolher na emissão (passo 2), em orçamentos/O.S. e em recorrências — editar aqui atualiza todo mundo de uma vez.'
+  ], act:[['Abrir Meus serviços','servicos']]},
+ {id:'g-notas',chip:'Consultar, baixar e cancelar notas emitidas',resumo:'Histórico completo com XML, DANFSe e as ações fiscais de cada nota.',
+  passos:[
+   'Em <b>Notas emitidas</b>, use a busca por tomador/chave/número, o filtro de situação, ou <b>Filtros</b> pra refinar por competência e período.',
+   'Nos ícones de cada linha: baixar o <b>XML</b> autorizado, abrir o <b>DANFSe</b> em PDF, <b>sincronizar</b> a situação com a Sefin, ou reenviar por e-mail pro cliente.',
+   'Pra cancelar, use o ícone de cancelamento e informe o motivo — a nota só é cancelada depois da autorização da Sefin.',
+   'Precisa de várias notas de uma vez? <b>Exportar PDF</b> ou <b>Exportar XMLs</b> no topo da tela.'
+  ], act:[['Abrir Notas emitidas','notas']]}
+];
+
+let helpAbaAtual='faq';
+function helpMudarAba(aba,btn){
+  helpAbaAtual=aba;
+  qsa('.help-tab-btn').forEach(el=>el.classList.remove('on'));
+  btn.classList.add('on');
+  qs('#help-aba-desc').textContent=aba==='como-usar'?'Passo a passo das funções do TITAN, na mesma ordem que aparece na tela.':'Respostas oficiais e orientações do TITAN para sua operação.';
+  helpRenderTopics();
+  helpRenderFaq();
+}
+function helpFocarGuia(id){
+  const item=document.querySelector(`.help-faq-item[data-guia="${id}"]`);
+  if(!item)return;
+  qsa('.help-faq-item').forEach(el=>el.classList.remove('on'));
+  item.classList.add('on');
+  item.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function helpRenderTopics(){
   const box=qs('#help-topic-list');if(!box)return;
+  if(helpAbaAtual==='como-usar'){
+    box.innerHTML=supGuias.map(g=>`<button class="help-topic" type="button" onclick="helpFocarGuia('${g.id}')"><span>${esc(g.chip)}</span><small>›</small></button>`).join('');
+    return;
+  }
   const topics=[['diag','Analisar minha conta'],...supTopics.map(t=>[t.id,t.chip])];
   box.innerHTML=topics.map(([id,label])=>`<button class="help-topic" type="button" onclick="helpOpenTopic('${id}')"><span>${esc(label)}</span><small>›</small></button>`).join('');
 }
 function helpRenderFaq(){
   const box=qs('#help-faq-list');if(!box)return;
   const term=supNorm(qs('#help-search')?.value||'');
+  if(helpAbaAtual==='como-usar'){
+    const guias=supGuias.filter(g=>!term||supNorm(`${g.chip} ${g.resumo}`).includes(term));
+    box.innerHTML=guias.length?guias.map(g=>`<article class="help-faq-item" data-guia="${g.id}"><button class="help-faq-q" type="button" onclick="this.parentElement.classList.toggle('on')"><span>${esc(g.chip)}</span><span>⌄</span></button><div class="help-faq-a"><p class="hint" style="margin-bottom:8px">${esc(g.resumo)}</p><ol class="help-steps">${g.passos.map(p=>`<li>${p}</li>`).join('')}</ol>${supActs(g.act)}</div></article>`).join(''):'<div class="empty-state">Nenhum guia encontrado.</div>';
+    return;
+  }
   const topics=supTopics.filter(t=>!term||supNorm(`${t.chip} ${t.kw.join(' ')}`).includes(term));
   box.innerHTML=topics.length?topics.map(t=>`<article class="help-faq-item"><button class="help-faq-q" type="button" onclick="this.parentElement.classList.toggle('on')"><span>${esc(t.chip)}</span><span>⌄</span></button><div class="help-faq-a">${t.a()}</div></article>`).join(''):'<div class="empty-state">Nenhuma resposta encontrada. Abra o Martyn para reformular sua pergunta.</div>';
 }
