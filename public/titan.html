@@ -881,7 +881,7 @@
 
     <!-- ---------- RECEBIMENTOS ---------- -->
     <section class="view" id="v-recebimentos">
-      <div class="page-h"><h1>Recebimentos</h1><p>Agende honorários, acompanhe vencimentos, prepare cobranças e sinalize quando a NFS-e deve ser emitida.</p></div>
+      <div class="page-h master-head"><div><h1>Recebimentos</h1><p>Agende honorários, acompanhe vencimentos, prepare cobranças e sinalize quando a NFS-e deve ser emitida.</p></div><button class="btn btn-p" type="button" onclick="abrirModalRecebimento()">+ Agendar recebimento</button></div>
       <div class="alert a-info">Recebíveis de honorários, recorrências, cobrança revisada e pré-NFS-e já estão disponíveis. Boletos, conciliação bancária, contas a pagar e automações adicionais estão em desenvolvimento.</div>
       <div class="grid g4">
         <div class="metric"><small>Em aberto</small><b id="rec-open">R$ 0,00</b></div>
@@ -889,34 +889,32 @@
         <div class="metric"><small>Recebido no mês</small><b id="rec-month">R$ 0,00</b></div>
         <div class="metric"><small>NFS-e pendente</small><b id="rec-nfse">0</b></div>
       </div>
-      <div class="grid" style="margin-top:16px">
-        <!-- Pedido do usuário (18/08/2026): "Agendar recebimento" e "Recorrência
-             de honorários" eram dois cards separados pro mesmo assunto — agora é
-             UM formulário só, com um checkbox "é recorrente?" que troca os campos.
-             Recorrente usa cliente/serviço CADASTRADOS (não texto livre) porque
-             vira de verdade uma nota recorrente (POST /invoice-recurrences, o
-             mesmo motor de "Notas recorrentes") — não o registro antigo e
-             desconectado que só controlava financeiro sem emitir nada. -->
-        <div class="card"><div class="card-h"><h2>Agendar recebimento</h2></div><div class="card-b">
-          <div class="row r2"><div class="field"><label for="rec-title">Descrição</label><input id="rec-title" class="inp" placeholder="Honorários mensais"></div><div class="field"><label for="rec-client">Cliente</label><input id="rec-client" class="inp" list="rec-client-list" placeholder="Razão social ou nome"><datalist id="rec-client-list"></datalist></div></div>
-          <label style="display:flex;align-items:center;gap:8px;margin:4px 0 14px;cursor:pointer"><input type="checkbox" id="rec-recorrente" onchange="alternarRecebimentoRecorrente()"> <span>É recorrente — repete todo mês, gera nota fiscal e recebimento sozinho</span></label>
-          <div id="rec-oneoff-fields">
-            <div class="row r2"><div class="field"><label for="rec-value">Valor (R$)</label><input id="rec-value" class="inp num" inputmode="decimal" placeholder="0,00"></div><div class="field"><label for="rec-due">Vencimento</label><input id="rec-due" class="inp" type="date"></div></div>
-            <div class="row r2"><div class="field"><label for="rec-competence">Competência</label><input id="rec-competence" class="inp" placeholder="2026-07"></div><div class="field"><label for="rec-category">Categoria</label><select id="rec-category" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'categoria')"><option value="">Selecione...</option></select></div></div>
-            <div class="row r2"><div class="field"><label for="rec-cost-center">Centro de custo</label><select id="rec-cost-center" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'centro')"><option value="">Selecione...</option></select></div><div class="field"><label for="rec-channel">Cobrança</label><select id="rec-channel" class="inp"><option value="none">Sem cobrança agora</option><option value="whatsapp">WhatsApp/API zap — revisar antes</option><option value="manual">Manual</option></select></div></div>
-            <div class="field"><label for="rec-issue">NFS-e</label><select id="rec-issue" class="inp"><option value="false">Somente controle financeiro</option><option value="true">Gerar pré-NFS-e pendente de revisão</option></select></div>
-            <div class="field"><label for="rec-notes">Observações</label><textarea id="rec-notes" class="inp" rows="3" placeholder="Parâmetros, contrato, competência ou instruções de cobrança"></textarea></div>
+      <!-- Pedido do usuário (18/08/2026): "Agendar recebimento" precisa ser um
+           botão que abre modal — mesmo padrão de "+ Nova recorrência"
+           (#recorrencia-modal) — não um formulário sempre visível na tela. -->
+      <div class="modal-backdrop" id="recebimento-modal" role="dialog" aria-modal="true" aria-labelledby="rec-form-title">
+        <div class="modal-card"><div class="modal-head"><div><h2 id="rec-form-title">Agendar recebimento</h2></div></div>
+          <div class="modal-body">
+            <div class="row r2"><div class="field"><label for="rec-title">Descrição</label><input id="rec-title" class="inp" placeholder="Honorários mensais"></div><div class="field"><label for="rec-client">Cliente</label><input id="rec-client" class="inp" list="rec-client-list" placeholder="Razão social ou nome"><datalist id="rec-client-list"></datalist></div></div>
+            <label style="display:flex;align-items:center;gap:8px;margin:4px 0 14px;cursor:pointer"><input type="checkbox" id="rec-recorrente" onchange="alternarRecebimentoRecorrente()"> <span>É recorrente — repete todo mês, gera nota fiscal e recebimento sozinho</span></label>
+            <div id="rec-oneoff-fields">
+              <div class="row r2"><div class="field"><label for="rec-value">Valor (R$)</label><input id="rec-value" class="inp num" inputmode="decimal" placeholder="0,00"></div><div class="field"><label for="rec-due">Vencimento</label><input id="rec-due" class="inp" type="date"></div></div>
+              <div class="row r2"><div class="field"><label for="rec-competence">Competência</label><input id="rec-competence" class="inp" placeholder="2026-07"></div><div class="field"><label for="rec-category">Categoria</label><select id="rec-category" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'categoria')"><option value="">Selecione...</option></select></div></div>
+              <div class="row r2"><div class="field"><label for="rec-cost-center">Centro de custo</label><select id="rec-cost-center" class="inp" onchange="aoTrocarRegistroAuxiliar(this,'centro')"><option value="">Selecione...</option></select></div><div class="field"><label for="rec-channel">Cobrança</label><select id="rec-channel" class="inp"><option value="none">Sem cobrança agora</option><option value="whatsapp">WhatsApp/API zap — revisar antes</option><option value="manual">Manual</option></select></div></div>
+              <div class="field"><label for="rec-issue">NFS-e</label><select id="rec-issue" class="inp"><option value="false">Somente controle financeiro</option><option value="true">Gerar pré-NFS-e pendente de revisão</option></select></div>
+              <div class="field"><label for="rec-notes">Observações</label><textarea id="rec-notes" class="inp" rows="3" placeholder="Parâmetros, contrato, competência ou instruções de cobrança"></textarea></div>
+            </div>
+            <div id="rec-recurring-fields" style="display:none">
+              <div class="row r2"><div class="field"><label for="rec-service">Meu serviço</label><select id="rec-service" class="inp"><option value="">Selecione um serviço cadastrado</option></select><div class="hint">O cliente também precisa ser um cadastro existente — a nota recorrente automática exige os dois.</div></div><div class="field"><label for="rec-value-r">Valor (R$)</label><input id="rec-value-r" class="inp num" inputmode="decimal" placeholder="0,00"></div></div>
+              <div class="row r2"><div class="field"><label for="rec-day">Dia do mês</label><input id="rec-day" class="inp" inputmode="numeric" placeholder="1 a 28"></div><div class="field"><label for="rec-due-day">Dia de vencimento <span class="info-tip" title="Opcional — só preenche a variável #vencimento na descrição do serviço.">?</span></label><input id="rec-due-day" class="inp" inputmode="numeric" placeholder="Opcional"></div></div>
+              <div class="row r2"><div class="field"><label for="rec-frequency">Frequência</label><select id="rec-frequency" class="inp"><option value="1">Mensal</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></div><div class="field"><label for="rec-end-date">Termina em <span class="info-tip" title="Opcional — deixe em branco pra continuar até você pausar.">?</span></label><input id="rec-end-date" class="inp" type="date"></div></div>
+              <div class="hint">Todo disparo emite a NFS-e sozinho e já cria o recebimento correspondente aqui em Recebimentos, com vencimento certinho na Agenda.</div>
+            </div>
           </div>
-          <div id="rec-recurring-fields" style="display:none">
-            <div class="row r2"><div class="field"><label for="rec-service">Meu serviço</label><select id="rec-service" class="inp"><option value="">Selecione um serviço cadastrado</option></select><div class="hint">O cliente também precisa ser um cadastro existente — a nota recorrente automática exige os dois.</div></div><div class="field"><label for="rec-value-r">Valor (R$)</label><input id="rec-value-r" class="inp num" inputmode="decimal" placeholder="0,00"></div></div>
-            <div class="row r2"><div class="field"><label for="rec-day">Dia do mês</label><input id="rec-day" class="inp" inputmode="numeric" placeholder="1 a 28"></div><div class="field"><label for="rec-due-day">Dia de vencimento <span class="info-tip" title="Opcional — só preenche a variável #vencimento na descrição do serviço.">?</span></label><input id="rec-due-day" class="inp" inputmode="numeric" placeholder="Opcional"></div></div>
-            <div class="row r2"><div class="field"><label for="rec-frequency">Frequência</label><select id="rec-frequency" class="inp"><option value="1">Mensal</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></div><div class="field"><label for="rec-end-date">Termina em <span class="info-tip" title="Opcional — deixe em branco pra continuar até você pausar.">?</span></label><input id="rec-end-date" class="inp" type="date"></div></div>
-            <div class="hint">Todo disparo emite a NFS-e sozinho e já cria o recebimento correspondente aqui em Recebimentos, com vencimento certinho na Agenda.</div>
-          </div>
-          <div class="flex wrap" style="margin-top:14px"><button class="btn btn-p" type="button" id="rec-save-btn" onclick="salvarRecebimentoOuRecorrente()">Agendar recebimento</button><button class="btn btn-s" type="button" onclick="carregarRecebimentos()">Atualizar</button></div>
-        </div></div>
+          <div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharModalRecebimento()">Cancelar</button><button class="btn btn-p" type="button" id="rec-save-btn" onclick="salvarRecebimentoOuRecorrente()">Agendar recebimento</button></div>
+        </div>
       </div>
-      <div class="card" style="margin-top:16px"><div class="card-h"><div><h2>Agenda e cobrança</h2><p>Fluxo similar ao Nibo: receber, revisar cobrança, marcar recebido e acompanhar pré-NFS-e.</p></div><div class="flex wrap" style="gap:8px;align-items:center"><select id="rec-filter" class="inp" style="max-width:180px" onchange="carregarRecebimentos()"><option value="all">Todos</option><option value="scheduled">Agendados</option><option value="to_charge">A cobrar</option><option value="charged">Cobrados</option><option value="received">Recebidos</option><option value="overdue">Vencidos</option></select><input id="rec-filter-from" class="inp" type="date" style="max-width:150px" title="Vencimento de"><span class="hint">até</span><input id="rec-filter-to" class="inp" type="date" style="max-width:150px" title="Vencimento até"><button class="btn btn-p" type="button" onclick="carregarRecebimentos()">Buscar</button></div></div><div class="card-b" id="rec-list"><div class="empty-state">Nenhum recebimento carregado.</div></div></div>
+      <div class="card" style="margin-top:16px"><div class="card-h"><div><h2>Agenda e cobrança</h2><p>Receber, revisar cobrança, marcar recebido e acompanhar a pré-NFS-e.</p></div><div class="flex wrap" style="gap:8px;align-items:center"><input id="rec-filter-client" class="inp" style="max-width:180px" placeholder="Filtrar por cliente"><select id="rec-filter" class="inp" style="max-width:170px"><option value="all">Todos</option><option value="scheduled">Agendados</option><option value="to_charge">A cobrar</option><option value="charged">Cobrados</option><option value="received">Recebidos</option><option value="overdue">Vencidos</option></select><input id="rec-filter-from" class="inp" type="date" style="max-width:150px" title="Vencimento de"><span class="hint">até</span><input id="rec-filter-to" class="inp" type="date" style="max-width:150px" title="Vencimento até"><button class="btn btn-p" type="button" onclick="carregarRecebimentos()">Buscar</button></div></div><div class="card-b" id="rec-list"><div class="empty-state">Nenhum recebimento carregado.</div></div></div>
       <div class="grid g2" style="align-items:start;margin-top:16px" data-permission="financial_drafts">
         <div class="card"><div class="card-h"><h2>Rascunhos financeiros</h2><span class="pill p-off">não aprovado para MVP</span></div><div class="card-b"><div class="draft-item"><b>Boletos e Pix por provedor</b><span>Depende de provedor homologado, idempotência e conciliação.</span></div><div class="draft-item"><b>Fluxo de caixa completo</b><span>Entradas futuras estão previstas; saídas e contas a pagar ficam para fase posterior.</span></div></div></div>
         <div class="card"><div class="card-h"><h2>Automação futura</h2><span class="pill p-off">rascunho</span></div><div class="card-b"><div class="draft-item"><b>Cobrança automática em lote</b><span>Bloqueada até existir opt-in, fila, rate limit e confirmação final.</span></div><div class="draft-item"><b>Emissão automática irrestrita</b><span>Permitida futuramente só para contratos fiscalmente validados.</span></div></div></div>
@@ -1950,9 +1948,11 @@ async function carregarRecebimentos(){
   popularSelectsRegistros();
   const filter=qs('#rec-filter')?.value||'all';
   const dueFrom=qs('#rec-filter-from')?.value||'',dueTo=qs('#rec-filter-to')?.value||'';
+  const clientFilter=qs('#rec-filter-client')?.value.trim()||'';
   let query='?status='+encodeURIComponent(filter);
   if(dueFrom)query+='&dueFrom='+encodeURIComponent(dueFrom);
   if(dueTo)query+='&dueTo='+encodeURIComponent(dueTo);
+  if(clientFilter)query+='&search='+encodeURIComponent(clientFilter);
   try{
     const [summary,items,recs]=await Promise.all([api('/api/workspace/receivables/summary'),api('/api/workspace/receivables'+query),api('/api/workspace/recurrences')]);
     recebimentos=items||[];recorrenciasRecebimento=recs||[];
@@ -1982,6 +1982,11 @@ function renderRecebimento(item){
 // nem aparecia listado em lugar nenhum) — vira de verdade uma nota
 // recorrente via /api/invoice-recurrences, que já gera nota fiscal E
 // recebimento sozinha a cada disparo.
+// Pedido do usuário (18/08/2026): "Agendar recebimento" precisa ser um botão
+// que abre modal, igual "+ Nova recorrência" (abrirModalRecorrencia) — mesmo
+// padrão de .modal-backdrop.on usado em todo o resto do portal.
+function abrirModalRecebimento(){qs('#recebimento-modal').classList.add('on')}
+function fecharModalRecebimento(){qs('#recebimento-modal').classList.remove('on')}
 async function alternarRecebimentoRecorrente(){
   const recorrente=qs('#rec-recorrente').checked;
   qs('#rec-oneoff-fields').style.display=recorrente?'none':'';
@@ -2005,7 +2010,7 @@ async function salvarRecebimento(){
   if(!body.title||!body.customerName||!body.dueDate||!(amount>0)){alert('Informe descrição, cliente, valor maior que zero e vencimento.');return}
   if(salvandoRecebimento)return;
   salvandoRecebimento=true;qs('#rec-save-btn').disabled=true;
-  try{await api('/api/workspace/receivables',{method:'POST',body:JSON.stringify(body)});['#rec-title','#rec-client','#rec-value','#rec-due','#rec-competence','#rec-category','#rec-cost-center','#rec-notes'].forEach(id=>qs(id).value='');await carregarRecebimentos();alert('Recebimento agendado.')}catch(error){alert(error.message)}finally{salvandoRecebimento=false;qs('#rec-save-btn').disabled=false}
+  try{await api('/api/workspace/receivables',{method:'POST',body:JSON.stringify(body)});['#rec-title','#rec-client','#rec-value','#rec-due','#rec-competence','#rec-category','#rec-cost-center','#rec-notes'].forEach(id=>qs(id).value='');fecharModalRecebimento();await carregarRecebimentos();alert('Recebimento agendado.')}catch(error){alert(error.message)}finally{salvandoRecebimento=false;qs('#rec-save-btn').disabled=false}
 }
 async function salvarRecebimentoRecorrente(){
   const customerName=qs('#rec-client').value.trim(),cliente=clientePorNomeRecebimento(customerName);
@@ -2023,6 +2028,7 @@ async function salvarRecebimentoRecorrente(){
     await api('/api/invoice-recurrences',{method:'POST',body:JSON.stringify(body)});
     ['#rec-title','#rec-client','#rec-value-r','#rec-day','#rec-due-day','#rec-end-date'].forEach(id=>qs(id).value='');
     qs('#rec-service').value='';qs('#rec-frequency').value='1';
+    fecharModalRecebimento();
     await carregarRecebimentos();
     alert('Contrato recorrente criado — a partir de agora ele emite a nota e gera o recebimento sozinho, todo mês.');
   }catch(error){alert(error.message)}finally{salvandoRecebimento=false;qs('#rec-save-btn').disabled=false}
@@ -3839,7 +3845,8 @@ function mostrarDiaAgenda(dia){
   const box=qs('#agenda-day-detail');
   if(!itensDoDia.length){box.style.display='none';return}
   box.style.display='block';
-  box.innerHTML=`<h3>${dia} de ${AGENDA_MESES[mes]}</h3>`+itensDoDia.map(item=>{
+  const total=itensDoDia.reduce((soma,item)=>soma+Number(item.valor||0),0);
+  box.innerHTML=`<h3>${dia} de ${AGENDA_MESES[mes]} <span style="font-weight:400;color:var(--ink-3);font-size:12.5px">· total do dia R$ ${brl(total)}</span></h3>`+itensDoDia.map(item=>{
     const tipoPill=item.tipo==='previsto'?'<span class="pill p-off" title="Nota recorrente ainda não emitida — vira recebimento quando disparar">Nota recorrente prevista</span>':(()=>{const [c,l]=AGENDA_STATUS_LABEL[item.status]||['p-off',item.status];return `<span class="pill ${c}">${l}</span>`})();
     return `<div class="draft-item"><div><b>${esc(item.titulo)}</b><span>${esc(item.cliente)} · R$ ${brl(Number(item.valor||0))}</span></div><div class="acts" style="margin-top:8px">${tipoPill}</div></div>`;
   }).join('');
