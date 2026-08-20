@@ -3877,6 +3877,13 @@ async function carregarConfiguracoesMaster(){
     qs('#set-nubank-secret').value='';qs('#set-nubank-webhook').value='';
     // Segredos nunca voltam do servidor — só o "tem ou não tem". Os campos de
     // arquivo ficam vazios de propósito: reenviar é opcional.
+    qs('#set-sicredi-ambiente').value=data.sicrediAmbiente||'sandbox';
+    qs('#set-sicredi-user').value=data.sicrediUsername||'';qs('#set-sicredi-coop').value=data.sicrediCooperativa||'';
+    qs('#set-sicredi-posto').value=data.sicrediPosto||'';qs('#set-sicredi-benef').value=data.sicrediCodigoBeneficiario||'';
+    const ss=qs('#master-sicredi-state');
+    if(ss){const pronto=data.hasSicrediApiKey&&data.hasSicrediPassword&&data.sicrediUsername;
+      ss.textContent=pronto?`Configurado (${data.sicrediAmbiente==='producao'?'produção':'sandbox'})`:'Não configurado';
+      ss.className='pill '+(pronto?(data.sicrediAmbiente==='producao'?'p-ok':'p-gold'):'p-off')}
     qs('#set-pix-chave').value=data.pixChaveRecebedor||'';qs('#set-pix-escopos').value=data.pixEscopos||'';
     qs('#set-nubank-cert-pass').value='';qs('#set-nubank-cert-data').value='';qs('#set-nubank-cert-key-data').value='';
     const certEstado=qs('#set-nubank-cert-estado');
@@ -3948,6 +3955,9 @@ async function salvarConfiguracoesMaster(){
   return enviarConfiguracoesMaster({
     nubankEnabled:qs('#set-nubank-enabled').value==='true',nubankApiBaseUrl:qs('#set-nubank-api').value.trim(),nubankOauthUrl:qs('#set-nubank-oauth').value.trim(),nubankClientId:qs('#set-nubank-id').value.trim(),nubankClientSecret:qs('#set-nubank-secret').value,nubankWebhookSecret:qs('#set-nubank-webhook').value,
     accountantCronEnabled:qs('#set-accountant-enabled').value==='true',
+    sicrediAmbiente:qs('#set-sicredi-ambiente').value,sicrediApiKey:qs('#set-sicredi-key').value,
+    sicrediUsername:qs('#set-sicredi-user').value.trim(),sicrediPassword:qs('#set-sicredi-pass').value,
+    sicrediCooperativa:qs('#set-sicredi-coop').value.trim(),sicrediPosto:qs('#set-sicredi-posto').value.trim(),sicrediCodigoBeneficiario:qs('#set-sicredi-benef').value.trim(),
     pixChaveRecebedor:qs('#set-pix-chave').value.trim(),pixEscopos:qs('#set-pix-escopos').value.trim(),
     nubankCertificateBase64:qs('#set-nubank-cert-data').value,nubankCertificateKeyBase64:qs('#set-nubank-cert-key-data').value,nubankCertificatePassphrase:qs('#set-nubank-cert-pass').value,
     portalLogoDataUrl:qs('#set-portal-logo-data').value
@@ -5134,4 +5144,33 @@ function conferirMenuDoCliente(user){
     console.error('titan: menu do cliente ficou vazio — a sessão não trouxe empresa/permissões.',
       {linksComRegra:comRegra.length, isMaster:Boolean(user?.isMaster)});
   }
+}
+
+/**
+ * Testa a autenticação no Sicredi sem gerar cobrança (20/08/2026).
+ *
+ * Mesma lição do botão do contador e do teste de conexão do banco: sem um teste
+ * explícito, o primeiro sinal de credencial errada seria o pagamento de um
+ * cliente falhando.
+ */
+async function testarConexaoSicredi(){
+  return emVoo('teste-sicredi', async () => {
+    const box=qs('#set-sicredi-teste'), btn=qs('#btn-testar-sicredi');
+    box.style.display='block'; box.className='alert a-info';
+    box.textContent='Autenticando no Sicredi...';
+    if(btn)btn.disabled=true;
+    try{
+      const r=await api('/api/master/sicredi/test',{method:'POST'});
+      if(r.ok){
+        box.className='alert a-ok';
+        box.innerHTML=`<b>Conexão OK — ambiente ${esc(r.ambiente||'?')}.</b><br>O Sicredi autenticou e devolveu o token. Já dá para cadastrar cobrança.`;
+      }else{
+        box.className='alert a-warn';
+        box.innerHTML=`<b>Não conectou.</b><br>${esc(r.erro||'Falha desconhecida.')}`;
+      }
+    }catch(error){
+      box.className='alert a-warn';
+      box.innerHTML=`<b>Não conectou.</b><br>${esc(error.message||String(error))}`;
+    }finally{ if(btn)btn.disabled=false; }
+  });
 }
