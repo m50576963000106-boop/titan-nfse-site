@@ -766,10 +766,21 @@ function renderRecebimento(item){
   const collection={not_sent:'cobrança não enviada',review_pending:'cobrança para revisar',queued:'cobrança na fila',sent:'cobrança registrada',failed:'cobrança falhou',answered:'cliente respondeu',waived:'cobrança dispensada'}[item.collection_status]||'cobrança não informada';
   const cobrar=(item.status==='scheduled'||item.status==='to_charge')&&item.collection_status!=='sent'?`<button class="btn btn-s" type="button" onclick="revisarCobrancaRecebimento('${item.id}')">Revisar cobrança</button>`:'';
   const receber=item.status!=='received'&&item.status!=='cancelled'?`<button class="btn btn-s" type="button" onclick="mudarStatusRecebimento('${item.id}','received')">Marcar recebido</button>`:'';
-  const emitir=item.fiscal_status==='pending_issue'&&!item.invoice_id?`<button class="btn btn-s" type="button" onclick="prepararNotaRecebimento('${item.id}')">Preparar NFS-e</button>`:'';
+  // Previsto de contrato recorrente (20/08/2026): a linha existe desde o
+  // cadastro do contrato, para o valor entrar em "a receber" antes da nota.
+  const previsto=Boolean(item.invoice_recurrence_id)&&!item.invoice_id;
+  // "Preparar NFS-e" fica FORA do previsto de propósito: o worker vai emitir
+  // essa nota na data do contrato. Um botão aqui convidaria a emitir a mesma
+  // competência duas vezes — duas notas fiscais reais para um mês só.
+  const emitir=item.fiscal_status==='pending_issue'&&!item.invoice_id&&!previsto?`<button class="btn btn-s" type="button" onclick="prepararNotaRecebimento('${item.id}')">Preparar NFS-e</button>`:'';
   const meta=[item.competence?`Competência ${item.competence}`:'',item.category,item.cost_center].filter(Boolean).join(' · ');
-  const gerado=item.invoice_recurrence_id?'<span class="pill p-off" title="Criado automaticamente quando a nota recorrente foi emitida">Gerado por recorrência</span>':'';
-  return `<div class="draft-item"><div><b>${esc(item.title)}</b><span>${esc(item.customer_name)} · vence ${due} · <b>${amount}</b></span><div class="hint">${esc(meta||'Sem classificação')} · ${esc(collection)} · ${esc(fiscal)}${item.notes?' · '+esc(item.notes):''}</div></div><div class="acts" style="margin-top:8px"><span class="pill ${status[0]}">${status[1]}</span>${gerado}${cobrar}${receber}${emitir}</div></div>`;
+  const gerado=!item.invoice_recurrence_id?''
+    :previsto?'<span class="pill p-gold" title="Projeção do contrato recorrente. A NFS-e sai sozinha na data programada e esta linha vira o recebimento real.">Previsto do contrato</span>'
+    :'<span class="pill p-off" title="Criado automaticamente quando a nota recorrente foi emitida">Gerado por recorrência</span>';
+  // "pré-NFS-e pendente" sugere que falta o usuário fazer algo. No previsto do
+  // contrato não falta: a nota sai sozinha na data.
+  const fiscalTexto=previsto?'NFS-e programada pelo contrato':fiscal;
+  return `<div class="draft-item"><div><b>${esc(item.title)}</b><span>${esc(item.customer_name)} · vence ${due} · <b>${amount}</b></span><div class="hint">${esc(meta||'Sem classificação')} · ${esc(collection)} · ${esc(fiscalTexto)}${item.notes?' · '+esc(item.notes):''}</div></div><div class="acts" style="margin-top:8px"><span class="pill ${status[0]}">${status[1]}</span>${gerado}${cobrar}${receber}${emitir}</div></div>`;
 }
 // Pedido do usuário (18/08/2026): "Agendar recebimento" precisa ser um botão
 // que abre modal, igual "+ Nova recorrência" (abrirModalRecorrencia) — mesmo
