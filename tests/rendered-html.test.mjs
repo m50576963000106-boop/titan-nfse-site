@@ -1512,3 +1512,54 @@ test("pedido do usuário (12/08/2026): destaque do imposto mesmo sem retenção 
   // campos de retenção de verdade (s-ret-csll/s-ret-irrf).
   assert.doesNotMatch(html,/destaque\.value=/);
 });
+
+/**
+ * Trava lateral no celular (20/08/2026).
+ *
+ * O que aconteceu: `nfs.html` tinha `style="grid-template-columns:repeat(3,1fr)"`
+ * direto no elemento. Style inline vence QUALQUER @media — os três breakpoints
+ * responsivos que existiam para `.comparison` (800px, 560px) simplesmente não
+ * tinham efeito. Num iPhone de 375px a página ficava com 532px de largura: dava
+ * pra arrastar a tela de lado, o terceiro card ficava inteiro fora da vista e a
+ * barra fixa "Contratar plano" esticava junto.
+ *
+ * O teste não olha o sintoma (largura), olha a CAUSA: layout em style inline.
+ * É o único jeito de pegar isso antes do celular do cliente — no desktop, onde
+ * a gente desenvolve, três colunas cabem e nada parece errado.
+ */
+test("nenhum layout em style inline: media query não vence style inline, e o celular paga a conta", async()=>{
+  for(const arquivo of ["public/nfs.html","public/parceiro.html","public/index.html","public/titan.html"]){
+    const html=await readFile(resolve(root,arquivo),"utf8");
+    const inlines=[...html.matchAll(/style="([^"]*)"/g)].map(m=>m[1]);
+    const proibidos=inlines.filter(v=>{
+      // Grade em style inline é sempre erro: vence todo @media, e o número de
+      // colunas é justamente o que precisa mudar por largura de tela.
+      if(/grid-template-columns/.test(v))return true;
+      // Largura FIXA em três dígitos não cabe em tela estreita e não encolhe.
+      if(/(^|;)\s*width\s*:\s*\d{3,}px/.test(v))return true;
+      // min-width só é problema a partir de 320px, a menor tela que atendemos.
+      // Abaixo disso é item flex que quebra linha, e cabe — os 140/160/200px
+      // de titan.html foram medidos a 320px e não estouram nada.
+      const m=v.match(/(^|;)\s*min-width\s*:\s*(\d+)px/);
+      return m ? Number(m[2])>=320 : false;
+    });
+    assert.deepEqual(proibidos,[],
+      `${arquivo}: largura/grade fixados em style inline vencem os @media e quebram o mobile — mover para classe no CSS`);
+  }
+});
+
+test("a trava lateral está no html, não só no body — body sozinho não segura no Safari do iPhone", async()=>{
+  for(const folha of ["public/nfs.css","public/titan.css"]){
+    const css=await readFile(resolve(root,folha),"utf8");
+    assert.match(css,/html\{[^}]*overflow-x:hidden/,`${folha}: falta a trava base no html`);
+    assert.match(css,/@supports\(overflow:clip\)\{html\{overflow-x:clip\}\}/,
+      `${folha}: falta o clip — 'hidden' cria contexto de rolagem e quebra position:sticky`);
+  }
+});
+
+test("as 3 colunas da comparação viram 1 no celular", async()=>{
+  const css=await readFile(resolve(root,"public/nfs.css"),"utf8");
+  assert.match(css,/\.comparison-3\{grid-template-columns:repeat\(3,1fr\)\}/);
+  assert.match(css,/max-width:800px\)\{[^@]*\.comparison,\.comparison-3\{grid-template-columns:1fr 1fr\}/);
+  assert.match(css,/max-width:560px\)\{[^@]*\.comparison,\.comparison-3,[^@]*grid-template-columns:1fr\}/);
+});

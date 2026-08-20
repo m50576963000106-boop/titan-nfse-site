@@ -22,7 +22,15 @@
   --r:6px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;overflow-x:hidden}
+/* Trava lateral no celular (pedido do dono do produto, 20/08/2026), mesma
+   rede aplicada em nfs.css. Aqui o portal já não arrastava — mas um campo ou
+   uma tabela nova estourando a largura passaria a arrastar a tela inteira em
+   vez de rolar dentro do próprio bloco, e ninguém repara nisso até um cliente
+   reclamar. 'clip' não cria contexto de rolagem, então os .table-wrap
+   continuam rolando por dentro normalmente, que é o comportamento certo pra
+   tabela larga. */
+@supports(overflow:clip){html{overflow-x:clip}}
 body{
   font-family:var(--sans);
   background:var(--cream);

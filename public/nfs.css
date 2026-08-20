@@ -2,7 +2,18 @@
        titan.css (--gold/--gold-dim) — não o laranja que estava aqui antes,
        que não batia com a identidade visual do resto do produto. */
     :root{--navy:#0b1629;--navy-2:#16233d;--gold:#c9a84c;--gold-dark:#8f7833;--gold-soft:#f6f0dd;--cream:#f5f4ef;--paper:#fff;--line:#e2e0d6;--line-dark:rgba(255,255,255,.12);--text:#344054;--muted:#697386;--muted-dark:#aeb9c9;--ok:#1f7a4c;--shadow:0 20px 48px rgba(11,22,41,.12)}
-    *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--cream);color:var(--text);overflow-x:hidden}button,input,textarea{font:inherit}a{color:inherit}
+    *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;overflow-x:hidden}
+    /* Trava lateral no celular (pedido do dono do produto, 20/08/2026).
+       O overflow-x:hidden que já existia no body NÃO segurava: quando o html
+       não clipa junto, o overflow do body sobe pro viewport e o Safari do
+       iPhone deixa arrastar a página de lado assim mesmo — foi o que apareceu
+       no print, com a tela a 532px num aparelho de 375px.
+       'clip' em vez de 'hidden' porque hidden cria um contexto de rolagem e
+       quebra o position:sticky do cabeçalho; clip só corta e não mexe nisso.
+       Isto é REDE, não conserto: a causa era um style inline de 3 colunas em
+       nfs.html:142 que vencia todos os @media (style inline ganha de tudo).
+       Consertada a raiz, isto fica de guarda pro próximo caso. */
+    @supports(overflow:clip){html{overflow-x:clip}}body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--cream);color:var(--text);overflow-x:hidden}button,input,textarea{font:inherit}a{color:inherit}
     .site-header{position:sticky;top:0;z-index:100;background:rgba(11,22,41,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--line-dark)}
     .nav{max-width:1180px;min-height:82px;margin:auto;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:24px}.brand{display:block;width:194px;height:60px;overflow:hidden;border:0;border-radius:10px;background:transparent}.brand img{display:block;width:100%;height:100%;object-fit:contain;object-position:center 50%}
     .nav-links{display:flex;align-items:center;gap:26px;color:var(--muted-dark);font-size:14px;font-weight:600}.nav-links a:hover,.nav-links a:focus-visible{color:#fff}
@@ -73,7 +84,7 @@
     .time-stat-item.featured strong{color:var(--gold)}
     .time-stat-arrow{color:var(--gold)}.time-stat-arrow svg{width:26px;height:26px}
     @media(max-width:560px){.time-stat{gap:12px}.time-stat-item strong{font-size:26px}}
-    .comparison{max-width:1120px;margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:18px}.comparison-card{border:1px solid var(--line-dark);border-radius:14px;padding:28px;background:rgba(255,255,255,.035)}.comparison-card.featured{border-color:rgba(201,168,76,.42);background:rgba(201,168,76,.075)}.comparison-card h3{font-size:21px;margin-bottom:18px;color:#fff}
+    .comparison{max-width:1120px;margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:18px}.comparison-3{grid-template-columns:repeat(3,1fr)}.comparison-card{border:1px solid var(--line-dark);border-radius:14px;padding:28px;background:rgba(255,255,255,.035)}.comparison-card.featured{border-color:rgba(201,168,76,.42);background:rgba(201,168,76,.075)}.comparison-card h3{font-size:21px;margin-bottom:18px;color:#fff}
     .comparison-list{display:grid;gap:12px;color:#d6deea;font-size:14.5px}.comparison-item{display:grid;grid-template-columns:16px 1fr;gap:10px;align-items:start}.status{width:12px;height:12px;margin-top:5px;border-radius:50%;border:2px solid #758298}.status.on{border-color:#79a88b;background:rgba(121,168,139,.25)}
     .pricing-cta{text-align:center}.pricing-cta .btn{padding:14px 30px}
     /* Pedido do usuário (18/08/2026): "Consultar planos" abre uma TELA
@@ -156,6 +167,6 @@
     footer{padding:34px 24px;background:var(--navy);color:#8fa0ba;font-size:13px}.footer-inner{max-width:1120px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}.footer-brand{display:flex;align-items:center}.footer-brand img{display:block;height:34px;width:auto}.footer-links{display:flex;align-items:center;flex-wrap:wrap;gap:0}.footer-links a{color:#aebbd0;font-size:12.5px;text-decoration:none;transition:color .18s ease}.footer-links a:hover,.footer-links a:focus-visible{color:var(--gold)}.footer-links a+a::before{content:"·";margin:0 10px;color:#55647c}.footer-tagline{color:#6d7d97;font-size:12.5px}
     @media(max-width:1180px){.hero-grid{grid-template-columns:1fr}}
     @media(max-width:980px){.martyn-layout{grid-template-columns:1fr}.benefits,.steps{grid-template-columns:repeat(2,1fr)}.nav-links{display:none}.steps-track{display:none}.step{animation:none}.steps-payoff{animation:none;opacity:1;transform:none;margin-top:22px}.payoff-note{animation:none;opacity:0}}
-    @media(max-width:800px){.nav{min-height:70px;padding:8px 15px}.brand{width:150px;height:48px}.nav-actions .btn-gold{display:none}.hero{padding-top:56px}.pricing-grid,.comparison{grid-template-columns:1fr 1fr}.contact-shell{grid-template-columns:1fr}.footer-inner{flex-direction:column;text-align:center}.footer-links{justify-content:center;flex-wrap:wrap}}
+    @media(max-width:800px){.nav{min-height:70px;padding:8px 15px}.brand{width:150px;height:48px}.nav-actions .btn-gold{display:none}.hero{padding-top:56px}.pricing-grid,.comparison,.comparison-3{grid-template-columns:1fr 1fr}.contact-shell{grid-template-columns:1fr}.footer-inner{flex-direction:column;text-align:center}.footer-links{justify-content:center;flex-wrap:wrap}}
     @media(max-width:680px){.system-content{grid-template-columns:1fr}.system-sidebar{display:none}.system-kpis{grid-template-columns:repeat(2,1fr)}.system-company{display:none}}
-    @media(max-width:560px){.btn{padding:9px 13px;font-size:13px}.hero-actions{flex-direction:column}.hero-actions .btn{width:100%}.hero-points,.benefits,.comparison,.steps,.pricing-grid,.system-kpis{grid-template-columns:1fr}.contact-form{grid-template-columns:1fr}.contact-form textarea,.contact-form .full{grid-column:auto}section.content-section,.contact{padding-left:15px;padding-right:15px}.section-head h2{font-size:27px}.contact-copy,.contact-form{padding:28px 22px}}
+    @media(max-width:560px){.btn{padding:9px 13px;font-size:13px}.hero-actions{flex-direction:column}.hero-actions .btn{width:100%}.hero-points,.benefits,.comparison,.comparison-3,.steps,.pricing-grid,.system-kpis{grid-template-columns:1fr}.contact-form{grid-template-columns:1fr}.contact-form textarea,.contact-form .full{grid-column:auto}section.content-section,.contact{padding-left:15px;padding-right:15px}.section-head h2{font-size:27px}.contact-copy,.contact-form{padding:28px 22px}}
