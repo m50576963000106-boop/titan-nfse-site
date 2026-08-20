@@ -490,6 +490,21 @@
           <input id="cl-search" aria-label="Buscar cliente" class="inp" placeholder="Buscar por nome ou CPF/CNPJ" style="flex:1;min-width:160px" oninput="filtrarClientesCadastro()">
           <button class="btn btn-s" type="button" onclick="dispararAtualizacaoEmLoteClientes()" id="cl-bulk-btn" title="Reconsulta a Receita Federal pra cada cliente com CNPJ, atualizando nome/endereço/e-mail">Atualizar todos (CNPJ)</button>
         </div>
+        <!-- Pedido do usuário (20/08/2026): "contagem de cadastros, com
+             quantidade visual por tela e ver todos". Antes a lista vinha
+             cortada em 20 sem dizer que estava cortada — quem tinha 137
+             clientes via 20 e concluía que os outros não tinham sido salvos. -->
+        <div class="flex wrap" style="gap:8px;align-items:center;margin-bottom:10px">
+          <span id="cl-count" class="hint" style="flex:1;min-width:160px"></span>
+          <select id="cl-page-size" aria-label="Clientes por tela" class="inp" style="max-width:150px" onchange="trocarQuantidadeClientes(this.value)">
+            <option value="20">20 por tela</option>
+            <option value="50" selected>50 por tela</option>
+            <option value="100">100 por tela</option>
+            <option value="200">200 por tela</option>
+            <option value="all">Todos</option>
+          </select>
+          <button class="btn btn-s" type="button" id="cl-see-all" style="display:none" onclick="verTodosClientes()">Ver todos</button>
+        </div>
         <div id="cl-bulk-status" class="hint" style="display:none"></div>
         <div id="client-list" class="draft-list"></div></div></div>
       <div class="card" style="margin-top:14px"><div class="card-h"><h2>Importar clientes por planilha (CSV)</h2></div><div class="card-b">

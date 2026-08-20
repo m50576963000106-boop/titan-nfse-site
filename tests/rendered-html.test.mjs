@@ -1427,7 +1427,9 @@ test("pedido do usuário (12/08/2026): Clientes ganha busca, botão + Cliente e 
   const html=await lerPortal();
   assert.match(html,/id="cl-search"[^>]*oninput="filtrarClientesCadastro\(\)"/);
   assert.match(html,/function filtrarClientesCadastro\(\)\{/);
-  assert.match(html,/api\('\/api\/customers\?search='\+encodeURIComponent\(busca\)\)/);
+  // O &limit entrou em 20/08/2026 (contagem + quantidade por tela); a busca
+  // continua sendo o que esta linha protege.
+  assert.match(html,/api\('\/api\/customers\?search='\+encodeURIComponent\(busca\)\+'&limit='/);
   assert.match(html,/onclick="novoClienteCadastro\(\)">\+ Cliente</);
   assert.match(html,/function novoClienteCadastro\(\)\{/);
   // fila em segundo plano (backend já publicado) — dispara e faz poll do
@@ -1438,6 +1440,29 @@ test("pedido do usuário (12/08/2026): Clientes ganha busca, botão + Cliente e 
   assert.match(html,/async function consultarProgressoAtualizacaoLote\(\)\{/);
   assert.match(html,/api\('\/api\/customers\/bulk-refresh\/'\+clienteBulkJobId\)/);
   assert.match(html,/job\.status==='completed'\|\|job\.status==='failed'/);
+});
+
+test("pedido do usuário (20/08/2026): Clientes mostra a contagem de cadastros, quantidade por tela e 'ver todos'", async()=>{
+  const html=await lerPortal();
+  // O problema não era estético: a rota devolvia 20 linhas fixas e a tela não
+  // dizia que havia mais. Quem cadastrou 137 clientes via 20 e concluía que os
+  // outros não tinham sido salvos.
+  assert.match(html,/id="cl-count"/);
+  assert.match(html,/id="cl-page-size"[^>]*onchange="trocarQuantidadeClientes\(this\.value\)"/);
+  assert.match(html,/<option value="all">Todos<\/option>/);
+  assert.match(html,/id="cl-see-all"[^>]*style="display:none"[^>]*onclick="verTodosClientes\(\)"/);
+  assert.match(html,/function trocarQuantidadeClientes\(valor\)\{/);
+  assert.match(html,/function verTodosClientes\(\)\{/);
+
+  // A contagem sai do total do filtro inteiro (COUNT(*) OVER() na rota), não do
+  // tamanho da página — senão o contador repetiria o próprio corte.
+  assert.match(html,/clientesCadastro\[0\]\?\.total_registros\?\?clientesCadastro\.length/);
+  assert.match(html,/Mostrando \$\{mostrados\.toLocaleString\('pt-BR'\)\} de \$\{total\.toLocaleString\('pt-BR'\)\}/);
+  // Botão que não muda nada ensina o usuário a ignorar o botão.
+  assert.match(html,/verTodos\.style\.display=mostrados<total\?'':'none'/);
+  // Sem a quantidade na chave, trocar de 50 para "todos" com a consulta ainda
+  // no ar reaproveitaria a resposta curta.
+  assert.match(html,/emVoo\('customers\?'\+busca\+'\|'\+clientesPorTela/);
 });
 
 test("pedido do usuário (12/08/2026, atualizado 14-15/08/2026): notas recorrentes ganham frequência configurável, data-fim, horário exato, dia de vencimento e importação por CSV", async()=>{

@@ -2513,9 +2513,33 @@ async function consultarClienteCadastro(){const cnpj=normalizarDocumento(qs('#cl
 async function salvarCliente(){const taxId=normalizarDocumento(qs('#cl-doc').value),legalName=qs('#cl-nome').value.trim();if(!taxId||!legalName){alert('Informe nome e CPF/CNPJ do cliente.');return}if(salvandoCliente)return;salvandoCliente=true;qs('#cli-save-btn').disabled=true;try{await api('/api/customers',{method:'POST',body:JSON.stringify({taxId,legalName,email:qs('#cl-mail').value.trim()||undefined,emailAlt:qs('#cl-mail-alt').value.trim()||undefined,phone:qs('#cl-fone').value.trim()||undefined,address:qs('#cl-end').value.trim()||undefined,city:qs('#cl-cidade').value.trim()||undefined,state:qs('#cl-uf').value.trim().toUpperCase()||undefined,postalCode:qs('#cl-cep').value.replace(/\D/g,'')||undefined,municipalityCode:qs('#cl-mun').value.replace(/\D/g,'')||undefined})});fecharModalCliente();await carregarClientesCadastro();alert('Cliente salvo.') }catch(error){alert(error.message)}finally{salvandoCliente=false;qs('#cli-save-btn').disabled=false}}
 let clienteBuscaTimer;
 function filtrarClientesCadastro(){clearTimeout(clienteBuscaTimer);clienteBuscaTimer=setTimeout(carregarClientesCadastro,250);}
+// Pedido do usuário (20/08/2026): contagem de cadastros, quantidade por tela e
+// "ver todos". O contador não é enfeite — a rota devolvia 20 linhas fixas e
+// nada na tela dizia que havia mais, então cliente cadastrado sumia da lista e
+// parecia não ter sido salvo.
+let clientesPorTela='50';
+function trocarQuantidadeClientes(valor){clientesPorTela=valor;carregarClientesCadastro();}
+function verTodosClientes(){clientesPorTela='all';const sel=qs('#cl-page-size');if(sel)sel.value='all';carregarClientesCadastro();}
+function atualizarContagemClientes(mostrados,total,busca){
+  // "1 cliente cadastrados" apareceu na conferência ao vivo: o rótulo também
+  // concorda com o total, não só a palavra "cliente".
+  const rotulo=busca?' nesta busca':(total===1?' cadastrado':' cadastrados'),contador=qs('#cl-count'),verTodos=qs('#cl-see-all');
+  if(contador)contador.textContent=!total?(busca?'Nenhum cliente para esta busca.':'Nenhum cliente cadastrado ainda.')
+    :mostrados>=total?`${total.toLocaleString('pt-BR')} ${total===1?'cliente':'clientes'}${rotulo}.`
+    :`Mostrando ${mostrados.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')}${rotulo}.`;
+  // O botão só aparece quando há algo a mais para ver — botão que não muda nada
+  // ensina o usuário a ignorar o botão.
+  if(verTodos)verTodos.style.display=mostrados<total?'':'none';
+}
 async function carregarClientesCadastro(){
   const busca=qs('#cl-search')?.value.trim()||'';
-  try{clientesCadastro=await emVoo('customers?'+busca,()=>api('/api/customers?search='+encodeURIComponent(busca)));qs('#client-list').innerHTML=clientesCadastro.length?clientesCadastro.map((item,index)=>`<div class="draft-item"><b>${esc(item.legal_name)}</b><span>${esc(item.tax_id)} · ${esc(item.address||'sem endereço')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="editarClienteCadastro(${index})">Editar</button><button class="btn btn-s" onclick="usarClienteNaEmissao(${index})">Usar na emissão</button></div></div>`).join(''):'<div class="empty-state">Nenhum cliente encontrado.</div>'}catch(error){qs('#client-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+  // A quantidade entra na chave: sem isso, trocar de 50 para "todos" enquanto a
+  // primeira consulta ainda está no ar reaproveitaria a resposta antiga.
+  try{clientesCadastro=await emVoo('customers?'+busca+'|'+clientesPorTela,()=>api('/api/customers?search='+encodeURIComponent(busca)+'&limit='+encodeURIComponent(clientesPorTela)));
+    // total_registros vem em cada linha (COUNT(*) OVER() na rota): é o total do
+    // filtro inteiro, ANTES do LIMIT. Sem linha nenhuma, o total é zero.
+    atualizarContagemClientes(clientesCadastro.length,clientesCadastro[0]?.total_registros??clientesCadastro.length,busca);
+    qs('#client-list').innerHTML=clientesCadastro.length?clientesCadastro.map((item,index)=>`<div class="draft-item"><b>${esc(item.legal_name)}</b><span>${esc(item.tax_id)} · ${esc(item.address||'sem endereço')}</span><div class="acts" style="margin-top:8px"><button class="btn btn-s" onclick="editarClienteCadastro(${index})">Editar</button><button class="btn btn-s" onclick="usarClienteNaEmissao(${index})">Usar na emissão</button></div></div>`).join(''):'<div class="empty-state">Nenhum cliente encontrado.</div>'}catch(error){atualizarContagemClientes(0,0,busca);qs('#client-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
 }
 function novoClienteCadastro(){
   ['cl-doc','cl-nome','cl-mail','cl-mail-alt','cl-fone','cl-end','cl-cidade','cl-uf','cl-mun','cl-cep'].forEach(id=>{const el=qs('#'+id);if(el)el.value=''});
