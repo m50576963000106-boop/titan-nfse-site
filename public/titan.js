@@ -2953,17 +2953,11 @@ function renderCalendarioAgenda(){
       // A contagem saiu daqui: os próprios lançamentos aparecem no quadro
       // agora, e o "+N" abaixo cobre o que não coube.
     }
-    // Quadro de calendário de verdade (pedido do usuário, 20/08/2026: "um
-    // calendário mais com quadros, mais normal"): os lançamentos aparecem
-    // DENTRO do dia, como em qualquer agenda, em vez de só um total que não
-    // diz de quem é. Três cabem sem esticar a célula; o resto vira "+N".
-    const chips=itensDoDia.slice(0,3).map(item=>{
-      const previsto=ehItemPrevisto(item),recebido=item.status==='received';
-      const cor=recebido?'var(--ok,#15803d)':previsto?'var(--gold,#a16207)':'var(--ink-2,#334155)';
-      return `<span class="agenda-cal-chip" title="${esc(item.titulo)} · ${esc(item.cliente)} · R$ ${brl(Number(item.valor||0))}" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;line-height:1.5;border-left:3px solid ${cor};padding-left:4px;margin-top:2px">${esc(item.cliente||item.titulo)}</span>`;
-    }).join('');
-    const mais=itensDoDia.length>3?`<span class="agenda-cal-chip" style="display:block;font-size:10px;color:var(--ink-3);margin-top:2px">+${itensDoDia.length-3} lanç.</span>`:'';
-    celulas+=`<div class="agenda-cal-cell${ehHoje?' hoje':''}${itensDoDia.length?' tem-item':''}" style="min-height:92px;align-items:stretch;text-align:left" onclick="mostrarDiaAgenda(${dia})"><span class="agenda-cal-dia">${dia}</span>${valorHtml}${chips}${mais}</div>`;
+    // Dentro do quadro, SÓ o valor que falta receber (pedido do usuário,
+    // 20/08/2026, depois de ver os nomes na tela). Nome de cliente dentro da
+    // célula competia com o número — e o número é o que se lê varrendo o mês.
+    // Quem é cada lançamento continua a um clique, no detalhe do dia.
+    celulas+=`<div class="agenda-cal-cell${ehHoje?' hoje':''}${itensDoDia.length?' tem-item':''}" onclick="mostrarDiaAgenda(${dia})"><span class="agenda-cal-dia">${dia}</span>${valorHtml}</div>`;
   }
   box.innerHTML=celulas;
   qs('#agenda-day-detail').style.display='none';

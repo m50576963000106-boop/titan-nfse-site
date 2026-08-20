@@ -1458,13 +1458,15 @@ test("pedido do usuário (20/08/2026): seleção em bloco nos contratos recorren
   assert.match(html,/Campo em branco mantém o que já está gravado/);
 });
 
-test("pedido do usuário (20/08/2026): calendário com quadros mostra os lançamentos dentro do dia", async()=>{
+test("pedido do usuário (20/08/2026, revisado na tela): dentro do dia, SÓ o valor a receber", async()=>{
   const html=await lerPortal();
-  assert.match(html,/const chips=itensDoDia\.slice\(0,3\)\.map\(item=>\{/);
-  assert.match(html,/\+\$\{itensDoDia\.length-3\} lanç\./);
-  assert.match(html,/min-height:92px/);
-  // O contador solto some: quem conta agora são os próprios lançamentos.
+  // Nome de cliente dentro da célula competia com o número, e o número é o
+  // que se lê varrendo o mês. Quem é cada lançamento fica no detalhe do dia.
+  assert.doesNotMatch(html,/agenda-cal-chip/);
   assert.doesNotMatch(html,/agenda-cal-count">\$\{itensDoDia\.length\}/);
+  assert.match(html,/<span class="agenda-cal-dia">\$\{dia\}<\/span>\$\{valorHtml\}<\/div>/);
+  // O valor do dia continua sendo o que FALTA receber — recebido não entra.
+  assert.match(html,/const pendentes=itensDoDia\.filter\(item=>item\.status!=='received'\)/);
 });
 
 test("REGRA 20/08/2026: data de vencimento sobrevive ao formato que o Postgres devolve", async()=>{
