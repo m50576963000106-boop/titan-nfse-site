@@ -1442,6 +1442,20 @@ test("pedido do usuário (12/08/2026): Clientes ganha busca, botão + Cliente e 
   assert.match(html,/job\.status==='completed'\|\|job\.status==='failed'/);
 });
 
+test("regressão 20/08/2026: os filtros do calendário não podem depender da ORIGEM do lançamento", async()=>{
+  const html=await lerPortal();
+  // Quando o contrato recorrente passou a gravar a previsão de verdade em
+  // receivable_schedules, ela deixou de vir como tipo 'previsto' e passou a
+  // chegar como 'recebimento'. Os filtros testavam só o tipo: "Previsto"
+  // zerou e tudo caiu em "A receber".
+  assert.match(html,/function ehItemPrevisto\(item\)\{return item\.tipo==='previsto'\|\|item\.previsto===true\}/);
+  assert.match(html,/if\(filtro==='previsto'\)return ehItemPrevisto\(item\)/);
+  // Os três baldes precisam ser disjuntos, ou o mesmo lançamento aparece em
+  // dois filtros e a soma do dia deixa de bater com a lista.
+  assert.match(html,/if\(filtro==='receber'\)return !ehItemPrevisto\(item\)&&item\.status!=='received'/);
+  assert.doesNotMatch(html,/pendentes\.every\(item=>item\.tipo==='previsto'\)/);
+});
+
 test("pedido do usuário (20/08/2026): Clientes mostra a contagem de cadastros, quantidade por tela e 'ver todos'", async()=>{
   const html=await lerPortal();
   // O problema não era estético: a rota devolvia 20 linhas fixas e a tela não

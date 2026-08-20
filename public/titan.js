@@ -2890,7 +2890,9 @@ function renderCalendarioAgenda(){
       // havia nada previsto aqui".
       const pendentes=itensDoDia.filter(item=>item.status!=='received');
       const totalPendente=pendentes.reduce((soma,item)=>soma+Number(item.valor||0),0);
-      const todosPrevistos=pendentes.length&&pendentes.every(item=>item.tipo==='previsto');
+      // Mesma correção de 20/08/2026: o dia inteiramente previsto perdia o
+      // destaque visual porque a previsão passou a chegar como 'recebimento'.
+      const todosPrevistos=pendentes.length&&pendentes.every(ehItemPrevisto);
       valorHtml=pendentes.length
         ?`<span class="agenda-cal-valor${todosPrevistos?' previsto':''}">R$ ${brl(totalPendente)}</span>`
         :'<span class="agenda-cal-valor recebido">Recebido</span>';
@@ -2908,10 +2910,27 @@ function itensDoDiaAgenda(dia){
   const ano=agendaMesAtual.getFullYear(),mes=agendaMesAtual.getMonth();
   return agendaItens.filter(item=>{const [ai,mi,di]=item.data.split('-').map(Number);return ai===ano&&mi-1===mes&&di===dia});
 }
+/**
+ * O que ainda é PREVISÃO do contrato, e não recebimento firmado.
+ *
+ * Até 20/08/2026 dava para saber isso só pela origem: previsão vinha em
+ * `recurring` (tipo 'previsto') e recebimento em `receivables`. Quando o
+ * contrato passou a gravar a previsão de verdade em receivable_schedules, ela
+ * passou a chegar como tipo 'recebimento' — e os filtros do calendário, que
+ * testavam só o tipo, zeraram "Previsto" e jogaram tudo em "A receber".
+ *
+ * Agora quem decide é o dado: tem contrato e ainda não tem nota fiscal.
+ * Declarada como function (não const) porque renderCalendarioAgenda, acima,
+ * também usa — e precisa do hoisting.
+ */
+function ehItemPrevisto(item){return item.tipo==='previsto'||item.previsto===true}
 function agendaItemNoFiltro(item,filtro){
-  if(filtro==='receber')return item.tipo==='recebimento'&&item.status!=='received';
-  if(filtro==='recebido')return item.tipo==='recebimento'&&item.status==='received';
-  if(filtro==='previsto')return item.tipo==='previsto';
+  // Os três baldes são disjuntos: uma previsão não conta como "a receber",
+  // senão o mesmo lançamento apareceria em dois filtros e a soma do dia
+  // deixaria de bater com a lista.
+  if(filtro==='receber')return !ehItemPrevisto(item)&&item.status!=='received';
+  if(filtro==='recebido')return item.status==='received';
+  if(filtro==='previsto')return ehItemPrevisto(item);
   return true;
 }
 function filtrarDiaAgenda(filtro){agendaFiltro=filtro;mostrarDiaAgenda(agendaDiaAberto)}
@@ -2933,7 +2952,7 @@ function mostrarDiaAgenda(dia){
   // linhas empurrava um dia com 5 vencimentos para fora da tela; aqui o que
   // importa é varrer a lista, não ler cada item em detalhe.
   const lista=visiveis.length?visiveis.map(item=>{
-    const tipoPill=item.tipo==='previsto'||item.previsto
+    const tipoPill=ehItemPrevisto(item)
       ?'<span class="pill p-gold" title="Nota recorrente ainda não emitida — vira recebimento quando o contrato disparar">Previsto</span>'
       :(()=>{const [c,l]=AGENDA_STATUS_LABEL[item.status]||['p-off',item.status];return `<span class="pill ${c}">${l}</span>`})();
     const emissao=item.emissao?` · nota em ${new Date(item.emissao+'T00:00:00').toLocaleDateString('pt-BR')}`:'';
