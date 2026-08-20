@@ -2936,7 +2936,7 @@ function renderCalendarioAgenda(){
   for(let dia=1;dia<=diasNoMes;dia++){
     const itensDoDia=porDia[dia]||[];
     const ehHoje=hoje.getFullYear()===ano&&hoje.getMonth()===mes&&hoje.getDate()===dia;
-    let valorHtml='',countHtml='';
+    let valorHtml='';
     if(itensDoDia.length){
       // Valor do dia = o que ainda FALTA receber (pedido do usuário,
       // 19/08/2026): recebido já não entra na conta. Um dia inteiramente
@@ -2950,9 +2950,20 @@ function renderCalendarioAgenda(){
       valorHtml=pendentes.length
         ?`<span class="agenda-cal-valor${todosPrevistos?' previsto':''}">R$ ${brl(totalPendente)}</span>`
         :'<span class="agenda-cal-valor recebido">Recebido</span>';
-      countHtml=itensDoDia.length>1?`<span class="agenda-cal-count">${itensDoDia.length} lanç.</span>`:'';
+      // A contagem saiu daqui: os próprios lançamentos aparecem no quadro
+      // agora, e o "+N" abaixo cobre o que não coube.
     }
-    celulas+=`<div class="agenda-cal-cell${ehHoje?' hoje':''}${itensDoDia.length?' tem-item':''}" onclick="mostrarDiaAgenda(${dia})"><span class="agenda-cal-dia">${dia}</span>${valorHtml}${countHtml}</div>`;
+    // Quadro de calendário de verdade (pedido do usuário, 20/08/2026: "um
+    // calendário mais com quadros, mais normal"): os lançamentos aparecem
+    // DENTRO do dia, como em qualquer agenda, em vez de só um total que não
+    // diz de quem é. Três cabem sem esticar a célula; o resto vira "+N".
+    const chips=itensDoDia.slice(0,3).map(item=>{
+      const previsto=ehItemPrevisto(item),recebido=item.status==='received';
+      const cor=recebido?'var(--ok,#15803d)':previsto?'var(--gold,#a16207)':'var(--ink-2,#334155)';
+      return `<span class="agenda-cal-chip" title="${esc(item.titulo)} · ${esc(item.cliente)} · R$ ${brl(Number(item.valor||0))}" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;line-height:1.5;border-left:3px solid ${cor};padding-left:4px;margin-top:2px">${esc(item.cliente||item.titulo)}</span>`;
+    }).join('');
+    const mais=itensDoDia.length>3?`<span class="agenda-cal-chip" style="display:block;font-size:10px;color:var(--ink-3);margin-top:2px">+${itensDoDia.length-3} lanç.</span>`:'';
+    celulas+=`<div class="agenda-cal-cell${ehHoje?' hoje':''}${itensDoDia.length?' tem-item':''}" style="min-height:92px;align-items:stretch;text-align:left" onclick="mostrarDiaAgenda(${dia})"><span class="agenda-cal-dia">${dia}</span>${valorHtml}${chips}${mais}</div>`;
   }
   box.innerHTML=celulas;
   qs('#agenda-day-detail').style.display='none';
@@ -3048,9 +3059,85 @@ async function carregarRecorrencias(){
   }catch(error){const box=qs('#recurrence-list');if(box)box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
 }
 const RECORRENCIA_FREQUENCIA_LABEL={1:'mensal',3:'trimestral',6:'semestral',12:'anual'};
+/* ---------- seleção em bloco (pedido do usuário, 20/08/2026) ------------- */
+// "Uma seleção pra eu fazer uma ação com todos: editar em bloco, pausar,
+// emitir agora e excluir." Guardado por id, não por índice: a lista recarrega
+// depois de cada ação e índice apontaria para outro contrato.
+let recorrenciasSelecionadas=new Set();
+function alternarSelecaoRecorrencia(id,marcado){marcado?recorrenciasSelecionadas.add(id):recorrenciasSelecionadas.delete(id);atualizarBarraDeBloco()}
+function selecionarTodasRecorrencias(marcado){
+  recorrenciasSelecionadas=marcado?new Set(recorrencias.map(r=>r.id)):new Set();
+  qsa('#recurrence-list input[type=checkbox]').forEach(el=>{el.checked=marcado});
+  atualizarBarraDeBloco();
+}
+function atualizarBarraDeBloco(){
+  const barra=qs('#rc-bulk-bar'),n=recorrenciasSelecionadas.size;
+  if(!barra)return;
+  barra.style.display=n?'':'none';
+  const rotulo=qs('#rc-bulk-count');if(rotulo)rotulo.textContent=`${n} contrato(s) selecionado(s)`;
+  const todos=qs('#rc-check-all');if(todos)todos.checked=n>0&&n===recorrencias.length;
+}
+async function acaoEmBloco(acao){
+  const ids=[...recorrenciasSelecionadas];
+  if(!ids.length){alert('Selecione ao menos um contrato.');return}
+  // Cada ação com o aviso do seu tamanho. "Emitir" é a única que cria
+  // documento fiscal — o texto diz isso com todas as letras.
+  const perguntas={
+    pausar:[`Pausar ${ids.length} contrato(s)?\n\nEles param de emitir e as previsões de recebimento saem da Agenda. Dá pra retomar depois.`,'Pausar contratos','warn'],
+    retomar:[`Retomar ${ids.length} contrato(s)?\n\nVoltam a emitir na próxima data programada.`,'Retomar contratos','warn'],
+    excluir:[`Excluir ${ids.length} contrato(s)?\n\nSai o contrato e as previsões de recebimento dele. NÃO dá pra desfazer.\n\nNota fiscal já emitida e recebimento já cobrado continuam onde estão.`,'Excluir contratos','err'],
+    emitir:[`EMITIR NFS-e AGORA para ${ids.length} contrato(s)?\n\nIsto gera ${ids.length} nota(s) fiscal(is) DE VERDADE, uma por contrato. Cancelar nota depois exige motivo oficial na Sefin.`,'Emitir notas fiscais','err']
+  };
+  const [mensagem,titulo,variante]=perguntas[acao];
+  if(!await titanConfirm(mensagem,titulo,variante))return;
+  const botoes=qsa('#rc-bulk-bar button');botoes.forEach(b=>{b.disabled=true});
+  try{
+    const r=await api('/api/invoice-recurrences/bulk',{method:'POST',body:JSON.stringify({ids,acao})});
+    if(acao==='emitir'){
+      const falhas=(r.falhas||[]).map(f=>'• '+f.erro).join('\n');
+      alert(`${r.emitidas} nota(s) emitida(s).${falhas?`\n\n${r.falhas.length} não saíram:\n${falhas}`:''}`);
+    }else{
+      alert(`${r.afetados} contrato(s) ${acao==='excluir'?'excluído(s)':acao==='pausar'?'pausado(s)':'atualizado(s)'}.${r.previstosRemovidos?`\n${r.previstosRemovidos} previsão(ões) de recebimento removida(s).`:''}`);
+    }
+    recorrenciasSelecionadas=new Set();
+    await carregarRecorrencias();
+  }catch(error){alert(error.message)}
+  finally{botoes.forEach(b=>{b.disabled=false})}
+}
+async function editarEmBloco(){
+  const ids=[...recorrenciasSelecionadas];
+  if(!ids.length){alert('Selecione ao menos um contrato.');return}
+  const campos={};
+  const valor=qs('#rc-bulk-amount')?.value.trim();if(valor)campos.amount=dinheiro(valor);
+  const dia=qs('#rc-bulk-day')?.value.trim();if(dia)campos.dayOfMonth=Number(dia);
+  const venc=qs('#rc-bulk-due')?.value.trim();if(venc)campos.dueDayOfMonth=Number(venc);
+  const hora=qs('#rc-bulk-time')?.value.trim();if(hora)campos.runTime=hora;
+  const freq=qs('#rc-bulk-freq')?.value;if(freq)campos.frequencyMonths=Number(freq);
+  // Campo em branco PRESERVA o que está gravado — em bloco, o risco é zerar
+  // sem querer o que não se quis mexer.
+  if(!Object.keys(campos).length){alert('Preencha ao menos um campo para alterar. Campo em branco mantém o valor atual.');return}
+  const resumo=Object.entries(campos).map(([k,v])=>`${k}: ${v}`).join('\n');
+  if(!await titanConfirm(`Aplicar em ${ids.length} contrato(s)?\n\n${resumo}\n\nOs campos em branco não mudam.`,'Editar em bloco'))return;
+  try{
+    const r=await api('/api/invoice-recurrences/bulk',{method:'POST',body:JSON.stringify({ids,acao:'editar',campos})});
+    alert(`${r.afetados} contrato(s) atualizado(s).`);
+    fecharModalBlocoRecorrencia();recorrenciasSelecionadas=new Set();await carregarRecorrencias();
+  }catch(error){alert(error.message)}
+}
+function abrirModalBlocoRecorrencia(){
+  if(!recorrenciasSelecionadas.size){alert('Selecione ao menos um contrato.');return}
+  ['#rc-bulk-amount','#rc-bulk-day','#rc-bulk-due','#rc-bulk-time'].forEach(s=>{const el=qs(s);if(el)el.value=''});
+  const freq=qs('#rc-bulk-freq');if(freq)freq.value='';
+  const alvo=qs('#rc-bulk-alvo');if(alvo)alvo.textContent=`${recorrenciasSelecionadas.size} contrato(s) selecionado(s)`;
+  qs('#recorrencia-bloco-modal').classList.add('on');
+}
+function fecharModalBlocoRecorrencia(){qs('#recorrencia-bloco-modal').classList.remove('on')}
 function renderRecorrencias(){
   const box=qs('#recurrence-list');if(!box)return;
-  if(!recorrencias.length){box.innerHTML='<tr><td colspan="6"><div class="empty-state">Nenhum contrato cadastrado — configure uma nota que se repete todo mês e o TITAN emite sozinho.</div></td></tr>';return}
+  // Seleção some junto com o contrato que saiu da lista.
+  recorrenciasSelecionadas=new Set([...recorrenciasSelecionadas].filter(id=>recorrencias.some(r=>r.id===id)));
+  atualizarBarraDeBloco();
+  if(!recorrencias.length){box.innerHTML='<tr><td colspan="7"><div class="empty-state">Nenhum contrato cadastrado — configure uma nota que se repete todo mês e o TITAN emite sozinho.</div></td></tr>';return}
   box.innerHTML=recorrencias.map(item=>{
     const hora=(item.run_time||'09:00:00').slice(0,5);
     const proxima=`${new Date(item.next_run_date+'T00:00:00').toLocaleDateString('pt-BR')} às ${hora}`;
@@ -3060,6 +3147,7 @@ function renderRecorrencias(){
       ?` · parcela ${Math.min((item.occurrences_done||0)+1,item.total_occurrences)} de ${item.total_occurrences}`
       :(item.end_date?` · encerra em ${new Date(item.end_date+'T00:00:00').toLocaleDateString('pt-BR')}`:'');
     return `<tr>
+      <td data-th="Selecionar" style="width:34px"><input type="checkbox" aria-label="Selecionar contrato de ${esc(item.customer_name)}" ${recorrenciasSelecionadas.has(item.id)?'checked':''} onchange="alternarSelecaoRecorrencia('${item.id}',this.checked)"></td>
       <td data-th="Cliente / serviço"><b>${esc(item.customer_name)}</b><br><span style="color:var(--ink-3);font-size:11.5px">${esc(item.service_name)}</span></td>
       <td class="r" data-th="Valor">R$ ${brl(Number(item.amount))}</td>
       <td data-th="Agenda">Todo dia ${item.day_of_month}, ${freq}${fim}</td>

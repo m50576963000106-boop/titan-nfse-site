@@ -540,10 +540,34 @@
       <div class="page-h"><h1>Contratos recorrentes</h1><p>Configure uma vez e o TITAN emite a nota sozinho, no dia e horário escolhidos — sem precisar abrir o portal. Cada emissão já gera o recebimento correspondente, com o vencimento certinho na Agenda.</p></div>
       <div class="card"><div class="card-h"><h2>Contratos cadastrados</h2><div class="flex" style="gap:6px"><button class="btn btn-p" type="button" onclick="novaRecorrencia()">+ Novo contrato</button><button class="btn btn-s" onclick="carregarRecorrencias()">Atualizar</button></div></div><div class="card-b">
         <div class="tbl-scroll"><table class="tbl-cards-mobile">
-          <thead><tr><th>Cliente / serviço</th><th style="text-align:right">Valor</th><th>Agenda</th><th>Próxima emissão</th><th>Situação</th><th style="text-align:right">Ações</th></tr></thead>
+          <thead><tr><th style="width:34px"><input type="checkbox" id="rc-check-all" aria-label="Selecionar todos os contratos" onchange="selecionarTodasRecorrencias(this.checked)"></th><th>Cliente / serviço</th><th style="text-align:right">Valor</th><th>Agenda</th><th>Próxima emissão</th><th>Situação</th><th style="text-align:right">Ações</th></tr></thead>
           <tbody id="recurrence-list"></tbody>
         </table></div>
+        <!-- Pedido do usuário (20/08/2026): "uma seleção pra eu fazer uma ação
+             com todos". A barra só aparece com algo selecionado — botão que não
+             faz nada ensina a ignorar o botão. -->
+        <div id="rc-bulk-bar" class="flex wrap" style="display:none;gap:8px;align-items:center;margin-top:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px">
+          <b id="rc-bulk-count" style="flex:1;min-width:170px">0 contrato(s) selecionado(s)</b>
+          <button class="btn btn-s" type="button" onclick="abrirModalBlocoRecorrencia()">Editar em bloco</button>
+          <button class="btn btn-s" type="button" onclick="acaoEmBloco('pausar')">Pausar</button>
+          <button class="btn btn-s" type="button" onclick="acaoEmBloco('retomar')">Retomar</button>
+          <button class="btn btn-s" type="button" onclick="acaoEmBloco('emitir')" title="Gera NFS-e de verdade, uma por contrato">Emitir agora</button>
+          <button class="btn btn-s danger" type="button" onclick="acaoEmBloco('excluir')">Excluir</button>
+        </div>
       </div></div>
+
+      <div class="modal-backdrop" id="recorrencia-bloco-modal" role="dialog" aria-modal="true" aria-labelledby="rc-bulk-title">
+        <div class="modal-card"><div class="modal-head"><div><h2 id="rc-bulk-title">Editar em bloco</h2><p id="rc-bulk-alvo" class="hint">—</p></div></div>
+          <div class="modal-body">
+            <div class="hint">Só os campos preenchidos mudam. <b>Campo em branco mantém o que já está gravado</b> em cada contrato. Cliente e serviço não entram aqui de propósito — trocar o tomador de vários contratos de uma vez não é edição em bloco.</div>
+            <div class="row r2"><div class="field"><label for="rc-bulk-amount">Valor (R$)</label><input id="rc-bulk-amount" class="inp num" inputmode="decimal" placeholder="manter"></div><div class="field"><label for="rc-bulk-day">Dia da emissão</label><input id="rc-bulk-day" class="inp" inputmode="numeric" maxlength="2" placeholder="manter"></div></div>
+            <div class="row r2"><div class="field"><label for="rc-bulk-due">Dia do vencimento</label><input id="rc-bulk-due" class="inp" inputmode="numeric" maxlength="2" placeholder="manter"></div><div class="field"><label for="rc-bulk-time">Horário</label><input id="rc-bulk-time" class="inp" type="time" placeholder="manter"></div></div>
+            <div class="field"><label for="rc-bulk-freq">Frequência</label><select id="rc-bulk-freq" class="inp"><option value="">Manter a de cada contrato</option><option value="1">Mensal</option><option value="3">Trimestral</option><option value="6">Semestral</option><option value="12">Anual</option></select></div>
+            <div class="hint">Trocar o dia da emissão reagenda a próxima emissão de todos os selecionados.</div>
+          </div>
+          <div class="modal-actions"><button class="btn btn-s" type="button" onclick="fecharModalBlocoRecorrencia()">Cancelar</button><button class="btn btn-p" type="button" onclick="editarEmBloco()">Aplicar aos selecionados</button></div>
+        </div>
+      </div>
 
       <!-- Pedido do usuário (20/08/2026): "dupliquei a importação, gostaria
            que analisasse e removesse os duplicados". A análise é só leitura e

@@ -1442,6 +1442,31 @@ test("pedido do usuário (12/08/2026): Clientes ganha busca, botão + Cliente e 
   assert.match(html,/job\.status==='completed'\|\|job\.status==='failed'/);
 });
 
+test("pedido do usuário (20/08/2026): seleção em bloco nos contratos recorrentes", async()=>{
+  const html=await lerPortal();
+  assert.match(html,/id="rc-check-all"[^>]*onchange="selecionarTodasRecorrencias\(this\.checked\)"/);
+  assert.match(html,/id="rc-bulk-bar"[^>]*style="display:none/);
+  for(const acao of ["pausar","retomar","emitir","excluir"]) assert.match(html,new RegExp(`acaoEmBloco\\('${acao}'\\)`));
+  assert.match(html,/onclick="abrirModalBlocoRecorrencia\(\)"/);
+  // A seleção é por id, não por índice: a lista recarrega depois de cada ação
+  // e um índice apontaria para outro contrato.
+  assert.match(html,/let recorrenciasSelecionadas=new Set\(\)/);
+  assert.match(html,/recorrenciasSelecionadas=new Set\(\[\.\.\.recorrenciasSelecionadas\]\.filter\(id=>recorrencias\.some\(r=>r\.id===id\)\)\)/);
+  // Emitir em bloco cria documento fiscal — o aviso precisa dizer isso.
+  assert.match(html,/nota\(s\) fiscal\(is\) DE VERDADE/);
+  // Em bloco, campo em branco PRESERVA — o risco é zerar o que não se quis mexer.
+  assert.match(html,/Campo em branco mantém o que já está gravado/);
+});
+
+test("pedido do usuário (20/08/2026): calendário com quadros mostra os lançamentos dentro do dia", async()=>{
+  const html=await lerPortal();
+  assert.match(html,/const chips=itensDoDia\.slice\(0,3\)\.map\(item=>\{/);
+  assert.match(html,/\+\$\{itensDoDia\.length-3\} lanç\./);
+  assert.match(html,/min-height:92px/);
+  // O contador solto some: quem conta agora são os próprios lançamentos.
+  assert.doesNotMatch(html,/agenda-cal-count">\$\{itensDoDia\.length\}/);
+});
+
 test("REGRA 20/08/2026: data de vencimento sobrevive ao formato que o Postgres devolve", async()=>{
   const html=await lerPortal();
   // O driver converte coluna `date` num Date, e o res.json() manda
