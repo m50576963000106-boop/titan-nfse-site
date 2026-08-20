@@ -5,8 +5,28 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 
+/**
+ * O portal era UM arquivo só: os 382 KB de JavaScript moravam dentro de
+ * titan.html. Em 19/08/2026 o código saiu para public/titan.js (para o
+ * navegador poder guardar o código separado do conteúdo — antes, mudar uma
+ * vírgula no JS invalidava os 543 KB inteiros para todos os clientes).
+ *
+ * As asserções deste arquivo foram escritas contra o conteúdo somado, e é
+ * isso que continuam recebendo: juntar os dois aqui preserva exatamente a
+ * semântica anterior — inclusive a das asserções de AUSÊNCIA, que sempre
+ * valeram sobre HTML e JS ao mesmo tempo.
+ */
+async function lerPortal() {
+  const [html, js] = await Promise.all([
+    readFile(resolve(root, "public/titan.html"), "utf8"),
+    readFile(resolve(root, "public/titan.js"), "utf8")
+  ]);
+  return `${html}
+${js}`;
+}
+
 test("carrega a configuração externa do backend", async () => {
-  const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  const html = await lerPortal();
   const config = await readFile(resolve(root, "public/config.js"), "utf8");
   assert.match(html, /<script src="\/config\.js"><\/script>/);
   // Trava o backend do emissor. Trocar esta URL troca o banco inteiro (cada
@@ -24,14 +44,14 @@ test("mantém a logo principal com transparência", async () => {
 });
 
 test("mantém emissão real restrita sem sucesso simulado", async () => {
-  const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  const html = await lerPortal();
   assert.match(html, /Produção Restrita/);
   assert.doesNotMatch(html, /Simulação concluída/);
   assert.match(html, /Documento sem validade fiscal, emitido no ambiente oficial de testes/);
 });
 
 test("oferece documentos e cancelamento oficial sem identidade visual", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/\/api\/invoices\/'\+id\+'\/xml/);
   assert.match(html,/\/api\/invoices\/'\+id\+'\/danfse/);
   assert.match(html,/Gerando DANFSe com dados reais/);
@@ -41,7 +61,7 @@ test("oferece documentos e cancelamento oficial sem identidade visual", async()=
 });
 
 test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma origem do portal", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const fn=html.slice(html.indexOf("async function abrirDanfse"),html.indexOf("async function reenviarEmailNota"));
   // o HTML do DANFSe (dado que passou pelo cliente) nunca é escrito direto no
   // document da aba/janela — sempre por dentro de um iframe sandbox sem
@@ -103,7 +123,7 @@ test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma orig
 });
 
 test("isola as rotas do master e de cada CNPJ",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");
   const route=await readFile(resolve(root,"app/[[...tenant]]/page.tsx"),"utf8");
   assert.match(html,/PORTAL_ADMIN/);
@@ -151,7 +171,7 @@ test("isola as rotas do master e de cada CNPJ",async()=>{
 });
 
 test("consulta CNPJ preenche emitente e endereço do tomador", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/consultarCnpjEmitente\(\)/);
   assert.match(html,/\/api\/company\/lookup\/cnpj\//);
   assert.match(html,/id="t-cidade"/);
@@ -168,7 +188,7 @@ test("consulta CNPJ preenche emitente e endereço do tomador", async()=>{
 });
 
 test("oferece municípios pesquisáveis, rascunhos, clientes e documentos comerciais", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/Pesquise o município pelo nome/);
   assert.match(html,/\/api\/locations\/municipalities/);
   assert.match(html,/id="v-rascunhos"/);
@@ -180,7 +200,7 @@ test("oferece municípios pesquisáveis, rascunhos, clientes e documentos comerc
 test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async()=>{
   const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
   const landingCss=await readFile(resolve(root,"public/nfs.css"),"utf8");
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   // A landing foi redesenhada (headline, benefícios e comparação com o Portal
   // Nacional) — as asserções abaixo casam com o conteúdo real de hoje, não
   // com headlines antigos já substituídos em rodadas anteriores.
@@ -220,7 +240,7 @@ test("tem landing TITAN NFS-e, formulário comercial e trajeto compacto", async(
 test("raiz limpa (sem /nfs) separa os acessos de cliente e administrador",async()=>{
   const index=await readFile(resolve(root,"public/index.html"),"utf8");
   const route=await readFile(resolve(root,"app/[[...tenant]]/page.tsx"),"utf8");
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(index,/<iframe class="prototype-frame" src="\/nfs\.html" title="TITAN NFS-e">/);
   assert.doesNotMatch(index,/location\.replace\('\/'/);
   assert.match(index,/if\(location\.hostname!=='nfse\.titanbackoffice\.com\.br'\)window\.top\.location\.replace\('https:\/\/nfse\.titanbackoffice\.com\.br'/);
@@ -254,7 +274,7 @@ test("raiz limpa (sem /nfs) separa os acessos de cliente e administrador",async(
 });
 
 test("integra documentos comerciais, clientes e gestão exclusiva do master",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/Número de controle \(automático\)/);
   assert.match(html,/co-customer-list/);
   assert.match(html,/selecionarClienteComercial/);
@@ -265,7 +285,7 @@ test("integra documentos comerciais, clientes e gestão exclusiva do master",asy
 });
 
 test("usa login por CNPJ e expõe NBS e retenções condicionais",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/federalTaxId/);
   assert.match(html,/Entre com o CNPJ da empresa e sua senha individual exclusiva/);
   assert.match(html,/id="s-nbs"/);
@@ -277,7 +297,7 @@ test("usa login por CNPJ e expõe NBS e retenções condicionais",async()=>{
 
 test("aceita CNPJ alfanumérico em todos os fluxos do portal",async()=>{
   const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(landing,/function normalizeTaxId/);
   assert.match(landing,/\^\[A-Z0-9\]\{12\}\[0-9\]\{2\}\$/);
   assert.match(landing,/AA\.AAA\.AAA\/AAAA-99/);
@@ -290,7 +310,7 @@ test("aceita CNPJ alfanumérico em todos os fluxos do portal",async()=>{
 });
 
 test("centraliza serviços, alimenta orçamentos e oferece assistente com ações",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.doesNotMatch(html,/>Pendências<\/button>/);
   assert.doesNotMatch(html,/>Retenções tributárias<\/button>/);
   assert.match(html,/>Meus serviços<\/button>/);
@@ -305,7 +325,7 @@ test("centraliza serviços, alimenta orçamentos e oferece assistente com açõe
 });
 
 test("aciona Martyn IA no widget dedicado de erro de emissão", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/id="martyn-widget"/);
   assert.match(html,/id="martyn-corpo"/);
   assert.match(html,/function fecharMartyn/);
@@ -324,7 +344,7 @@ test("aciona Martyn IA no widget dedicado de erro de emissão", async()=>{
 });
 
 test("chat interno do Martyn (sup-panel) manda texto livre pra IA de verdade, com memória de conversa", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/async function supPerguntarIA\(texto\)/);
   assert.match(html,/api\('\/api\/martyn',\{method:'POST',body:JSON\.stringify\(\{mensagem:texto,historico:supHistoricoIA\}\)\}\)/);
   assert.match(html,/supHistoricoIA\.push\(\{role:'user',content:texto\},\{role:'assistant',content:dados\.resposta\}\)/);
@@ -342,7 +362,7 @@ test("chat interno do Martyn (sup-panel) manda texto livre pra IA de verdade, co
 });
 
 test("preflight fiscal do Martyn confere a nota interativamente antes de emitir",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");
   // botão e painel na tela de emissão
   assert.match(html,/onclick="abrirPreflight\(\)"[^>]*id="btn-preflight"/);
@@ -367,7 +387,7 @@ test("preflight fiscal do Martyn confere a nota interativamente antes de emitir"
 });
 
 test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");
   assert.match(html,/\/api\/services\/nbs\/catalog/);
   assert.match(html,/id="s-nbs-search"/);
@@ -413,7 +433,7 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
 });
 
 test("replica logica de recebimentos com agendamento recorrencia cobranca e NFS-e",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/>Recebimentos<\/button>/);
   assert.match(html,/data-permission="financial"/);
   assert.match(html,/\/api\/workspace\/receivables\/summary/);
@@ -444,7 +464,7 @@ test("replica logica de recebimentos com agendamento recorrencia cobranca e NFS-
 });
 
 test("protege e otimiza login e redefinicao de senha no front",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/function definirCarregandoLogin/);
   assert.match(html,/function mostrarErroLogin/);
   assert.match(html,/function removerParametroSensivel\(name\)/);
@@ -482,7 +502,7 @@ test("protege e otimiza login e redefinicao de senha no front",async()=>{
 });
 
 test("convite operacional cria apenas senha e confirmação",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const inviteFlow=html.slice(html.indexOf("async function prepararConvite"),html.indexOf("async function prepararRedefinicao"));
   assert.match(inviteFlow,/Criar sua senha/);
   assert.match(inviteFlow,/label\[for="li-pw"\][\s\S]{0,80}Crie sua senha/);
@@ -524,7 +544,7 @@ test("FAQ sobre a migração de 01\\/09 vive em rota própria (\\/faq), linkada 
 });
 
 test("não expõe mais configuração de e-mail dos clientes nem o arquivamento fiscal no Google Drive",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/Envio de NFS-e ao tomador/);
   assert.match(html,/Identidade visual do portal/);
   assert.match(html,/id="set-portal-logo"/);
@@ -570,7 +590,7 @@ test("não expõe mais configuração de e-mail dos clientes nem o arquivamento 
 });
 
 test("envia NFS-e por e-mail com copia cadastrada e reenvio manual",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const logo=await readFile(resolve(root,"public/assets/logo-email-titan-nfse.png"));
   assert.ok(logo.length>1000);
   assert.match(html,/id="cl-mail-alt"/);
@@ -588,7 +608,7 @@ test("envia NFS-e por e-mail com copia cadastrada e reenvio manual",async()=>{
 });
 
 test("Master lista empresas suspensas em subtela propria com reativacao",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");
   // Suspender uma empresa nao pode mais fazer ela sumir da Gestao por CNPJ.
   assert.match(html,/id="master-count-ativas"/);
@@ -610,7 +630,7 @@ test("Master lista empresas suspensas em subtela propria com reativacao",async()
 test("sessão administrativa do Master exibe faixa persistente de impersonação",async()=>{
   // POST /master/companies/:id/session emite token de 20min com impersonatedBy
   // — nada avisava na tela que o operador estava atuando como a empresa X.
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");
   assert.match(html,/const STORAGE_IMPERSONATING='titan_nfse_impersonating_v1'/);
   assert.match(html,/function faixaImpersonacao\(\)\{/);
@@ -637,7 +657,7 @@ test("sessão administrativa do Master exibe faixa persistente de impersonação
 });
 
 test("logs de auditoria do Master filtram por ator (e-mail) e por ação",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/id="master-log-actor"/);
   assert.match(html,/id="master-log-action"/);
   assert.match(html,/function limparFiltrosLogsMaster\(\)/);
@@ -646,7 +666,7 @@ test("logs de auditoria do Master filtram por ator (e-mail) e por ação",async(
 
 test("Master aplica verificação de inadimplência sob demanda e vê o total de notas do mês",async()=>{
   // POST /api/billing/enforce já existia mas não estava ligado a nada na tela.
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/onclick="aplicarBloqueioInadimplenciaMaster\(\)"/);
   assert.match(html,/async function aplicarBloqueioInadimplenciaMaster\(\)\{/);
   assert.match(html,/await api\('\/api\/billing\/enforce',\{method:'POST'\}\)/);
@@ -658,7 +678,7 @@ test("Master aplica verificação de inadimplência sob demanda e vê o total de
 });
 
 test("busca de empresas no painel Master vai pro servidor, não filtra mais a lista inteira no cliente",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/oninput="buscarClientesMaster\(\)"/);
   assert.match(html,/function buscarClientesMaster\(\)\{/);
   assert.match(html,/masterClientSearchDebounce=setTimeout\(\(\)=>carregarMaster\(\),320\)/);
@@ -675,7 +695,7 @@ test("suspender/liberar acesso de usuário e reativar empresa atualizam a tabela
   // carregarMaster() refaz GET /master/overview inteiro (empresas+usuários+
   // perfis+convites+parceiros+planos) — os dois fluxos mais comuns do dia a
   // dia trocaram isso por atualização local + re-render só da tabela afetada.
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const salvarAcesso=html.slice(html.indexOf("async function salvarAcesso(userId,companyId,active){"),html.indexOf("async function gerarRedefinicaoSenha"));
   assert.match(salvarAcesso,/const alvo=masterData\?\.users\.find\(item=>item\.id===userId&&item\.company_id===companyId\)/);
   assert.match(salvarAcesso,/if\(alvo\)alvo\.access_active=data\.active;/);
@@ -690,7 +710,7 @@ test("suspender/liberar acesso de usuário e reativar empresa atualizam a tabela
 });
 
 test("menu lateral no mobile fecha ao tocar fora, no Escape e ao escolher item",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");
   // O fundo escuro precisa ser um elemento de verdade: antes era um box-shadow
   // de 100vmax, que pinta a tela mas nao recebe clique nenhum.
@@ -822,7 +842,7 @@ test("worker manda Content-Security-Policy restrita, cobrindo só as origens de 
 });
 
 test("painel Master mostra a prontidão real do WhatsApp e do Martyn",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/id="set-wa-webhook-url"/);
   assert.match(html,/https:\/\/titan-nfse-api\.onrender\.com\/api\/whatsapp\/webhook/);
   assert.doesNotMatch(html,/endpoint de webhook[^<]*ainda não está publicado/i);
@@ -832,7 +852,7 @@ test("painel Master mostra a prontidão real do WhatsApp e do Martyn",async()=>{
 });
 
 test("escapa consistentemente com o mesmo esc() em todo o portal — nada de escape parcial reinventado",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/const esc=value=>String\(value\?\?''\)\.replaceAll\('&','&amp;'\)\.replaceAll\('<','&lt;'\)\.replaceAll\('>','&gt;'\)\.replaceAll\('"','&quot;'\);/);
   // cert.subject (X.509) e error.message iam pro innerHTML só com um
   // replaceAll('<','&lt;') solto — escapava a tag mas não '&'/'>'/'"', diferente
@@ -842,7 +862,7 @@ test("escapa consistentemente com o mesmo esc() em todo o portal — nada de esc
 });
 
 test("tela de detalhes do cliente edita o parceiro comercial da empresa (diferente de quem opera o CNPJ)",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/<select id="master-detail-partner" class="inp"><option value="">Cliente direto<\/option><\/select>/);
   const abrir=html.slice(html.indexOf("async function abrirDetalhesCliente"),html.indexOf("function fecharDetalhesCliente"));
   assert.match(abrir,/partnerSelect\.innerHTML='<option value="">Cliente direto<\/option>'\+\(masterData\?\.partners\|\|\[\]\)\.map\(p=>`<option value="\$\{p\.id\}">\$\{esc\(p\.nickname\)\}<\/option>`\)\.join\(''\);/);
@@ -854,7 +874,7 @@ test("tela de detalhes do cliente edita o parceiro comercial da empresa (diferen
 // ── Item 4: filtro por parceiro na lista de empresas do Master ─────────────
 
 test("Gestão por CNPJ tem select de parceiro ao lado da busca, mandando partnerId pro servidor",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/<select id="master-client-partner" class="inp" onchange="filtrarParceiroClientesMaster\(\)"><option value="">Todos os parceiros<\/option><\/select>/);
   // Recorta até a próxima função, não uma janela fixa de caracteres: qualquer
   // linha nova no começo de carregarMaster (foi o que aconteceu ao adicionar
@@ -872,7 +892,7 @@ test("Gestão por CNPJ tem select de parceiro ao lado da busca, mandando partner
 });
 
 test("exportarMasterLogs neutraliza injeção de fórmula no CSV (campo iniciado por =,+,-,@)",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const fn=html.slice(html.indexOf("function exportarMasterLogs"),html.indexOf("async function salvarPerfilAcesso"));
   // Excel/Sheets tratam célula iniciada por =,+,-,@ (ou tab/CR) como fórmula ao
   // abrir o CSV — um valor gravado no log de auditoria (ex.: dentro de
@@ -994,7 +1014,7 @@ test("aba Financeiro mostra plano, mensalidade e status de implantação por emp
 });
 
 test("Master define a comissão (%) do parceiro, usada pela aba Comissões do Portal do Parceiro",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/<input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex\.: 10">/);
   assert.match(html,/commissionPercent=dinheiro\(qs\('#partner-commission'\)\.value\)/);
   // Ganhou email e CNPJ do parceiro desde então (Frontend Master: campo CNPJ).
@@ -1008,14 +1028,14 @@ test("Master define a comissão (%) do parceiro, usada pela aba Comissões do Po
 // é só por familiaridade de quem espera um botão de busca — não substitui
 // o comportamento ao vivo existente.
 test("filtro de notas emitidas tem botão Buscar além dos campos ao vivo",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const card=html.slice(html.indexOf('id="nt-filtro-card"'),html.indexOf('id="nt-filtro-card"')+2000);
   assert.match(card,/<input id="nt-search"[^>]*oninput="filtrarNotas\(\)"/);
   assert.match(card,/<button class="btn btn-s" type="button" onclick="filtrarNotas\(\)" title="Buscar">/);
 });
 
 test("CST PIS/COFINS inclui a opção 00 (empresa fora do Simples, ex.: Lucro Presumido, também usa esse código)",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   // Faltava nos dois seletores (emissão manual e cadastro de serviço) —
   // confirmado contra DANFSe real de outro emissor (empresa "Não optante"
   // do Simples, com CST=00 na tag piscofins), que o backend já aceita
@@ -1025,7 +1045,7 @@ test("CST PIS/COFINS inclui a opção 00 (empresa fora do Simples, ex.: Lucro Pr
 });
 
 test("Dados da Empresa tem os três percentuais de tributos (Federal/Estadual/Municipal) pra empresa fora do Simples, ida e volta com o servidor",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   // Equivalente do percentual único do Simples (e-simple-total), só que em
   // três campos — a DPS de quem não é 'simples' pede pTotTribFed/Est/Mun
   // em vez de pTotTribSN. Opcional: some no corpo do PUT se não preenchido.
@@ -1048,7 +1068,7 @@ test("pré-inscrição da home exige CNPJ (não é mais opcional) e aplica a má
 });
 
 test("painel Master ganha aba Inscrições, listando as pré-inscrições da home com filtro por status",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   // precisa existir nos dois lugares que replicam a navegação do Master
   // (menu dentro da sidebar do cliente, e a sidebar exclusiva do admin)
   const ocorrencias=html.split('data-master-tab="inscricoes"').length-1;
@@ -1068,7 +1088,7 @@ test("painel Master ganha aba Inscrições, listando as pré-inscrições da hom
 });
 
 test("botões de orientação (i) explicam o onboard e o certificado A1 num popup, sem sair da tela",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   // Emitente: botão "i" no cabeçalho da página explica os dois passos do onboard.
   assert.match(html,/<h1>Emitente<\/h1><button class="info-btn" type="button" title="[^"]*" onclick="orientacaoOnboardingEmitente\(\)">/);
   assert.match(html,/function orientacaoOnboardingEmitente\(\)\{/);
@@ -1086,7 +1106,7 @@ test("botões de orientação (i) explicam o onboard e o certificado A1 num popu
 });
 
 test("painel de Atendimentos mostra o saldo do provedor de IA (GET /api/master/settings) — DeepSeek nativo se houver, senão OpenRouter (a chave paga real)",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/<span id="atend-ia-saldo" class="pill p-off" style="display:none"><\/span>/);
   assert.match(html,/carregarSaldoProvedorIA\(\);/);
   const inicio=html.indexOf("async function carregarSaldoProvedorIA()");
@@ -1106,12 +1126,12 @@ test("painel de Atendimentos mostra o saldo do provedor de IA (GET /api/master/s
 // segundo plano, então o polling de 8s podia ficar minutos sem rodar de
 // verdade enquanto o atendente estava com a tela aberta noutra aba.
 test("Atendimentos força atualização imediata ao voltar o foco da aba (visibilitychange), não só pelo polling de 8s",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/document\.addEventListener\('visibilitychange',\(\)=>\{\s*if\(document\.visibilityState==='visible'&&qs\('#master-panel-atendimentos'\)\?\.classList\.contains\('active'\)\)tickAtendimentos\(\);\s*\}\);/);
 });
 
 test("seletor de município não quebra em cidade com apóstrofo no nome (ex.: Sant'Ana do Livramento)",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   // Antes, o onclick embutia JSON.stringify(row) inteiro dentro de aspas simples — um
   // apóstrofo no nome da cidade fechava o atributo cedo e corrompia o HTML/JS ao redor.
   // Agora só o código IBGE (sempre numérico) vai pro atributo; o resto é procurado em memória.
@@ -1129,14 +1149,14 @@ test("modais têm teto de altura e rolagem — conteúdo longo não fica inacess
 });
 
 test("botão 'Enviar por WhatsApp' sem função nenhuma foi removido da lista de notas (não existia backend pra isso)",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.doesNotMatch(html,/title="Enviar por WhatsApp"/);
 });
 
 test("cadastro da empresa exige razão social, CNPJ e endereço antes de salvar; inscrição municipal é opcional",async()=>{
   // Inscrição municipal virou campo (opcional) — nem toda empresa/município
   // exige — mas razão social, CNPJ e endereço continuam obrigatórios.
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/for="e-im">Inscrição municipal <span[^>]*>\(opcional\)<\/span>/);
   const inicio=html.indexOf("async function salvarCadastro()");
   const bloco=html.slice(inicio,inicio+2000);
@@ -1144,7 +1164,7 @@ test("cadastro da empresa exige razão social, CNPJ e endereço antes de salvar;
 });
 
 test("recebimentos e recorrências recusam valor zero ou negativo, não só valor vazio",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/if\(!body\.title\|\|!body\.customerName\|\|!body\.dueDate\|\|!\(amount>0\)\)\{/);
   // A recorrência passou a usar cliente/serviço cadastrados em vez de texto
   // livre com startDate — a checagem de valor>0 virou uma validação por
@@ -1153,7 +1173,7 @@ test("recebimentos e recorrências recusam valor zero ou negativo, não só valo
 });
 
 test("município digitado em checarHabilitacao passa por esc() antes de virar innerHTML",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/Município selecionado: \$\{esc\(mun\)\}\./);
   // Achado da auditoria de 11/08/2026: o ramo "fora do Simples" da mesma
   // função esquecia o esc() que os outros dois ramos já tinham (XSS).
@@ -1162,7 +1182,7 @@ test("município digitado em checarHabilitacao passa por esc() antes de virar in
 });
 
 test("emissão trava se o município exibido não bater com o retorno confirmado do catálogo (achado 11/08/2026: nota podia sair com município errado, silenciosamente)",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/async function montarPayloadEmissao\(\)/);
   assert.match(html,/const munConfirmado=municipiosCatalogo\.find\(row=>row\.code===payload\.service\.municipalityCode\);/);
   assert.match(html,/if\(!munConfirmado\|\|qs\('#s-mun-search'\)\.value\.trim\(\)!==munTextoEsperado\) return \{ok:false/);
@@ -1172,12 +1192,12 @@ test("emissão trava se o município exibido não bater com o retorno confirmado
 });
 
 test("postMessage do popup do DANFSe confere event.origin antes de agir (achado 11/08/2026)",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/window\.addEventListener\('message',\(e\)=>\{\s*\/\/[\s\S]{0,400}if\(e\.origin!==location\.origin\)return;/);
 });
 
 test("número da NFS-e (dado externo da Sefin) interpolado em onclick passa por escAttr(), não só esc() (achado 11/08/2026)",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/const escAttr=value=>esc\(String\(value\?\?''\)\.replaceAll\(/);
   assert.match(html,/onclick="baixarXml\('\$\{x\.id\}','\$\{escAttr\(x\.n\)\}'\)"/);
   assert.match(html,/onclick="abrirCancelamento\('\$\{x\.id\}','\$\{escAttr\(x\.n\)\}'\)"/);
@@ -1190,7 +1210,7 @@ test("indicador de ambiente (topo) é exclusivo do Master — antes ficava inver
 });
 
 test("novidades: sino do topo abre painel real (não mais alert de pendências) e Master consegue publicar",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/id="announcements-modal"/);
   assert.match(html,/id="announcement-title"/);
   assert.match(html,/id="announcement-body"/);
@@ -1202,7 +1222,7 @@ test("novidades: sino do topo abre painel real (não mais alert de pendências) 
 });
 
 test("notas recorrentes: nav habilitado, view e chamadas às rotas de agendamento automático existem",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/onclick="go\('recorrentes',this\)"/);
   assert.doesNotMatch(html,/disabled aria-disabled="true" title="Em preparação"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"\/><\/svg>Notas recorrentes/);
   assert.match(html,/id="v-recorrentes"/);
@@ -1219,7 +1239,7 @@ test("notas recorrentes: nav habilitado, view e chamadas às rotas de agendament
 });
 
 test("vistoria de 09/08/2026: nav das ferramentas fora do Light some quando o plano não vende, sem depender só do backend",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   // As 4 ferramentas gateadas por requireFeature no backend precisam do
   // mesmo gate na tela — senão o botão fica visível e só falha ao clicar.
   assert.match(html,/data-permission="emit" data-feature="invoice_recurrences" onclick="go\('recorrentes',this\)"/);
@@ -1248,7 +1268,7 @@ test("vistoria de 09/08/2026: nav das ferramentas fora do Light some quando o pl
 });
 
 test("pedido de upgrade automático (vistoria de 09/08/2026): empresa pede pelo portal, Master aprova/recusa no painel",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   // Lado da empresa: card "Meu plano" dentro de Emitente/Configurações, carregado
   // ao navegar para lá — não é uma tela nova que ninguém vai encontrar.
   assert.match(html,/if\(v==='emitente'\)\{[^}]*carregarMeuPlano\(\);carregarMeuContrato\(\)/);
@@ -1278,7 +1298,7 @@ test("pedido de upgrade automático (vistoria de 09/08/2026): empresa pede pelo 
 });
 
 test("pedido do usuário (10/08/2026): contrato editável e versionado, com Meu contrato no portal do cliente",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   // Master: editor de texto + histórico + publicação com bump de versão.
   assert.match(html,/id="contract-body"/);
   assert.match(html,/id="contract-versions-history"/);
@@ -1298,7 +1318,7 @@ test("pedido do usuário (10/08/2026): contrato editável e versionado, com Meu 
 });
 
 test("pedido do usuário (10/08/2026): modo restrito por falta de pagamento esconde tudo, exceto Notas emitidas e Sair",async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");
   // api() precisa expor error.code pro front distinguir ACCOUNT_RESTRICTED
   // de qualquer outro erro genérico.
@@ -1319,7 +1339,7 @@ test("pedido do usuário (10/08/2026): modo restrito por falta de pagamento esco
 });
 
 test("Etapa 3 (19/08/2026): a configuração IBS/CBS saiu da emissão e vive em Meus Serviços", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   // Substitui os dois testes de 12/08/2026 que travavam o bloco IBS/CBS na
   // TELA DE EMISSÃO. Pedido do dono do produto: "aqui em Emitir NFS-e
   // identificamos o cliente, o serviço, valor e detalhes necessários. As
@@ -1349,7 +1369,7 @@ test("Etapa 3 (19/08/2026): a configuração IBS/CBS saiu da emissão e vive em 
 });
 
 test("pedido do usuário (12/08/2026): CST/cClassTrib do IBS/CBS vira dropdown pesquisável em Meus Serviços", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/id="cad-ibscbs-cst" type="hidden"/);
   assert.match(html,/id="cad-ibscbs-classtrib" type="hidden"/);
   assert.match(html,/id="cad-ibscbs-search"[^>]*oninput="pesquisarIbscbsClassificacao\(\)"/);
@@ -1361,7 +1381,7 @@ test("pedido do usuário (12/08/2026): CST/cClassTrib do IBS/CBS vira dropdown p
 });
 
 test("pedido do usuário (12/08/2026): Rascunhos ganha busca/filtro e rastreia se virou nota", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/id="draft-search"[^>]*oninput="filtrarRascunhos\(\)"/);
   assert.match(html,/id="draft-status"[^>]*onchange="filtrarRascunhos\(\)"/);
   assert.match(html,/<option value="converted">Convertido em nota<\/option>/);
@@ -1379,7 +1399,7 @@ test("pedido do usuário (12/08/2026): Rascunhos ganha busca/filtro e rastreia s
 });
 
 test("pedido do usuário (12/08/2026, NT07): retenção de IRRF ganha alíquota/base calculados; CSRF (PIS/COFINS/CSLL) ganha alíquota de CSLL", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   // IRRF: toggle Sim/Não + base/alíquota calculando o valor final (mesmo
   // campo de sempre, s-ret-irrf/cad-irrf, pra não quebrar o payload já
   // existente) — antes era só um input manual sem cálculo nenhum.
@@ -1404,7 +1424,7 @@ test("pedido do usuário (12/08/2026, NT07): retenção de IRRF ganha alíquota/
 });
 
 test("pedido do usuário (12/08/2026): Clientes ganha busca, botão + Cliente e atualização em lote (CNPJ)", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/id="cl-search"[^>]*oninput="filtrarClientesCadastro\(\)"/);
   assert.match(html,/function filtrarClientesCadastro\(\)\{/);
   assert.match(html,/api\('\/api\/customers\?search='\+encodeURIComponent\(busca\)\)/);
@@ -1421,7 +1441,7 @@ test("pedido do usuário (12/08/2026): Clientes ganha busca, botão + Cliente e 
 });
 
 test("pedido do usuário (12/08/2026, atualizado 14-15/08/2026): notas recorrentes ganham frequência configurável, data-fim, horário exato, dia de vencimento e importação por CSV", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/id="rc-frequency"[^>]*>[\s\S]*?<option value="1">Mensal<\/option>[\s\S]*?<option value="3">Trimestral<\/option>[\s\S]*?<option value="6">Semestral<\/option>[\s\S]*?<option value="12">Anual<\/option>/);
   assert.match(html,/id="rc-end-date"[^>]*type="date"/);
   // Pedido do usuário (19/08/2026): o contrato passou a terminar de 3 jeitos
@@ -1448,14 +1468,16 @@ test("pedido do usuário (12/08/2026, atualizado 14-15/08/2026): notas recorrent
   // "(opcional)".
   assert.match(html,/id="rc-time" class="inp" type="time"/);
   assert.match(html,/id="rc-due-day" class="inp"/);
-  assert.match(html,/<label>Dia de vencimento<\/label>/);
+  // O for= entrou em 19/08/2026 (item 6 da análise do portal: 70 campos sem
+  // rótulo associado). O que importa é o rótulo existir e apontar para o campo.
+  assert.match(html,/<label for="rc-due-day">Dia de vencimento<\/label>/);
   assert.match(html,/if\(!dueDayTexto\|\|Number\(dueDayTexto\)<1\|\|Number\(dueDayTexto\)>28\)\{alert\('Informe o dia de vencimento/);
   assert.match(html,/runTime:qs\('#rc-time'\)\.value\|\|'09:00',dueDayOfMonth:Number\(dueDayTexto\)/);
   // importação por CSV (14/08/2026, "não txt ou ;"): upload de arquivo +
   // prévia por linha, sem endpoint novo, reaproveita o mesmo POST de sempre.
   // A planilha usa a mesma API, então ganhou a coluna de vencimento junto —
   // sem ela o backend recusaria toda linha importada.
-  assert.match(html,/id="rc-import-file" type="file" accept="\.csv,text\/csv"/);
+  assert.match(html,/id="rc-import-file" aria-label="[^"]+" type="file" accept="\.csv,text\/csv"/);
   assert.match(html,/function baixarModeloRecorrenciaCsv\(\)\{/);
   assert.match(html,/function selecionarArquivoRecorrenciaCsv\(file\)\{/);
   assert.match(html,/async function confirmarImportacaoRecorrenciaCsv\(\)\{/);
@@ -1470,7 +1492,7 @@ test("pedido do usuário (12/08/2026, atualizado 14-15/08/2026): notas recorrent
 });
 
 test("pedido do usuário (12/08/2026): ícones de informação (i) nos campos de Meus Serviços com comportamento/limitação não óbvios", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   const css=await readFile(resolve(root,"public/titan.css"),"utf8");
   assert.match(css,/\.info-tip\{/);
   assert.match(html,/for="cad-search">Buscar no Anexo B nacional <span class="info-tip" title="[^"]*Buscar[^"]*"/);
@@ -1481,7 +1503,7 @@ test("pedido do usuário (12/08/2026): ícones de informação (i) nos campos de
 });
 
 test("pedido do usuário (12/08/2026): destaque do imposto mesmo sem retenção (CSRF e IRRF), só informativo", async()=>{
-  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const html=await lerPortal();
   assert.match(html,/id="s-pis-cofins-destaque" style="display:none"/);
   assert.match(html,/id="s-irrf-destaque" style="display:none"/);
   assert.match(html,/const CSRF_ALIQUOTA_PADRAO=4\.65,IRRF_ALIQUOTA_PADRAO=1\.50;/);

@@ -964,3 +964,15 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
 .atend-attach-remove:hover{color:#9b2226}
 #atend-thread-open .hint{padding:2px 14px 11px}
 @media(max-width:860px){.atend-wrap{grid-template-columns:1fr;min-height:0}.atend-conversas{max-height:320px}.atend-messages{max-height:360px}}
+
+/* ── Item 7 da análise do portal (19/08/2026): alvos de toque no celular ──
+   Botões de ação nas listas ficavam abaixo de 40px de altura — 12 em Notas
+   emitidas, 10 em Meus serviços. São justamente as telas onde os botões ficam
+   colados uns nos outros, então errar o alvo acerta o vizinho. Vale só no
+   celular: no desktop, com mouse, a densidade atual é uma vantagem. */
+@media(max-width:760px){
+  .card-b .btn,.card-b .btn-s,.draft-item .btn,.tbl-cards-mobile .btn,
+  td .btn,.setup-actions .btn,.client-subtab-btn{min-height:40px}
+  /* Espaço entre botões vizinhos: dedo é mais largo que ponteiro. */
+  td .btn+.btn,.draft-item .btn+.btn,.setup-actions .btn+.btn{margin-left:6px}
+}
