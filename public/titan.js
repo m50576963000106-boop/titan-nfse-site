@@ -821,8 +821,20 @@ function ordenarRecebimentos(lista){
   const regra={due_asc:porData,due_desc:(a,b)=>porData(b,a),amount_desc:(a,b)=>porValor(b,a),amount_asc:porValor,client:porCliente}[recebimentoOrdem]||porData;
   return [...lista].sort(regra);
 }
+/**
+ * Aceita "2026-09-10" e "2026-09-10T00:00:00.000Z".
+ *
+ * O driver do Postgres devolvia due_date como Date, e o res.json() mandava
+ * timestamp: `due_date+'T00:00:00'` virava Invalid Date na lista e o
+ * split('-') do calendário devolvia NaN no dia — o lançamento não caía em dia
+ * nenhum. A rota foi corrigida (due_date::text), e isto aqui é o cinto: uma
+ * data de vencimento errada numa tela de nota fiscal não pode depender de um
+ * único ponto estar certo.
+ */
+function soData(valor){return String(valor??'').slice(0,10)}
+function dataBR(valor){const d=soData(valor);return /^\d{4}-\d{2}-\d{2}$/.test(d)?new Date(d+'T00:00:00').toLocaleDateString('pt-BR'):'sem data'}
 function renderRecebimento(item){
-  const due=new Date(item.due_date+'T00:00:00').toLocaleDateString('pt-BR'),amount='R$ '+brl(Number(item.amount||0));
+  const due=dataBR(item.due_date),amount='R$ '+brl(Number(item.amount||0));
   const status={draft:['p-off','Rascunho'],scheduled:['p-gold','Agendado'],to_charge:['p-gold','A cobrar'],charged:['p-off','Cobrado'],received:['p-ok','Recebido'],overdue:['p-off','Vencido'],cancelled:['p-off','Cancelado']}[item.status]||['p-off',item.status];
   const fiscal={not_applicable:'sem NFS-e',pending_issue:'pré-NFS-e pendente',draft_ready:'pré-NFS-e pronta',issuing:'em emissão',issued:'NFS-e emitida',issue_error:'erro fiscal',cancelled:'NFS-e cancelada'}[item.fiscal_status]||'fiscal não informado';
   const collection={not_sent:'cobrança não enviada',review_pending:'cobrança para revisar',queued:'cobrança na fila',sent:'cobrança registrada',failed:'cobrança falhou',answered:'cliente respondeu',waived:'cobrança dispensada'}[item.collection_status]||'cobrança não informada';
@@ -842,7 +854,46 @@ function renderRecebimento(item){
   // "pré-NFS-e pendente" sugere que falta o usuário fazer algo. No previsto do
   // contrato não falta: a nota sai sozinha na data.
   const fiscalTexto=previsto?'NFS-e programada pelo contrato':fiscal;
-  return `<div class="draft-item"><div><b>${esc(item.title)}</b><span>${esc(item.customer_name)} · vence ${due} · <b>${amount}</b></span><div class="hint">${esc(meta||'Sem classificação')} · ${esc(collection)} · ${esc(fiscalTexto)}${item.notes?' · '+esc(item.notes):''}</div></div><div class="acts" style="margin-top:8px"><span class="pill ${status[0]}">${status[1]}</span>${gerado}${cobrar}${receber}${emitir}</div></div>`;
+  // Duas linhas por lançamento (pedido do usuário, 20/08/2026): identificação
+  // e dinheiro em cima, prazo e ações embaixo. Quatro linhas por item faziam
+  // caber cinco recebimentos na tela.
+  return `<div class="draft-item" style="padding:8px 10px">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="flex:1;min-width:170px"><b>${esc(item.title)}</b> <span class="hint" style="display:inline">· ${esc(item.customer_name)}</span></span>
+      <b style="white-space:nowrap">${amount}</b><span class="pill ${status[0]}">${status[1]}</span>${gerado}
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px">
+      <span class="hint" style="flex:1;min-width:170px">vence <b>${due}</b>${meta?' · '+esc(meta):''} · ${esc(collection)} · ${esc(fiscalTexto)}${item.notes?' · '+esc(item.notes):''}</span>
+      ${cobrar}${receber}${emitir}
+    </div></div>`;
+}
+/**
+ * Atalhos de período (pedido do usuário, 20/08/2026: "um filtro melhor").
+ * Preenche os dois campos de data e já busca — o caso comum é querer "o que
+ * vence este mês" ou "o que já venceu", não digitar duas datas.
+ */
+function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function aplicarPeriodoRecebimentos(valor){
+  const hoje=new Date(),ano=hoje.getFullYear(),mes=hoje.getMonth();
+  const faixas={
+    // "Vencidos" para de fora: o filtro de situação já tem o status; aqui é
+    // data, então é tudo que venceu ATÉ ontem.
+    vencidos:['',iso(new Date(ano,mes,hoje.getDate()-1))],
+    hoje:[iso(hoje),iso(hoje)],
+    sete:[iso(hoje),iso(new Date(ano,mes,hoje.getDate()+7))],
+    mes:[iso(new Date(ano,mes,1)),iso(new Date(ano,mes+1,0))],
+    proximo:[iso(new Date(ano,mes+1,1)),iso(new Date(ano,mes+2,0))],
+    todos:['','']
+  };
+  const [de,ate]=faixas[valor]||faixas.todos;
+  qs('#rec-filter-from').value=de;qs('#rec-filter-to').value=ate;
+  carregarRecebimentos();
+}
+function limparFiltrosRecebimentos(){
+  ['#rec-filter-client','#rec-filter-from','#rec-filter-to'].forEach(s=>{const el=qs(s);if(el)el.value=''});
+  const situacao=qs('#rec-filter');if(situacao)situacao.value='all';
+  const periodo=qs('#rec-periodo');if(periodo)periodo.value='todos';
+  carregarRecebimentos();
 }
 // Pedido do usuário (18/08/2026): "Agendar recebimento" precisa ser um botão
 // que abre modal, igual "+ Nova recorrência" (abrirModalRecorrencia) — mesmo
@@ -2855,8 +2906,11 @@ async function carregarAgenda(){
       // id e contrato viajam junto porque a Agenda passou a poder editar e
       // excluir o lançamento (pedido do usuário, 20/08/2026) — sem eles a
       // linha do calendário não sabe em quem mexer.
-      ...(data.receivables||[]).map(r=>({id:r.id,data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'recebimento',status:r.status,emissao:null,contrato:r.invoice_recurrence_id||null,previsto:Boolean(r.invoice_recurrence_id)&&!r.invoice_id})),
-      ...(data.recurring||[]).map(r=>({id:r.id,data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'previsto',status:null,emissao:r.emission_date||null,contrato:r.recurrence_id||null,previsto:true}))
+      // soData() normaliza: o calendário casa o lançamento com o dia por
+      // split('-'), e um timestamp ali devolve NaN — o item some do mês
+      // inteiro sem erro nenhum aparecer.
+      ...(data.receivables||[]).map(r=>({id:r.id,data:soData(r.due_date),cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'recebimento',status:r.status,emissao:null,contrato:r.invoice_recurrence_id||null,previsto:Boolean(r.invoice_recurrence_id)&&!r.invoice_id})),
+      ...(data.recurring||[]).map(r=>({id:r.id,data:soData(r.due_date),cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'previsto',status:null,emissao:soData(r.emission_date)||null,contrato:r.recurrence_id||null,previsto:true}))
     ];
     renderCalendarioAgenda();
   }catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
@@ -2955,7 +3009,7 @@ function mostrarDiaAgenda(dia){
     const tipoPill=ehItemPrevisto(item)
       ?'<span class="pill p-gold" title="Nota recorrente ainda não emitida — vira recebimento quando o contrato disparar">Previsto</span>'
       :(()=>{const [c,l]=AGENDA_STATUS_LABEL[item.status]||['p-off',item.status];return `<span class="pill ${c}">${l}</span>`})();
-    const emissao=item.emissao?` · nota em ${new Date(item.emissao+'T00:00:00').toLocaleDateString('pt-BR')}`:'';
+    const emissao=item.emissao?` · nota em ${dataBR(item.emissao)}`:'';
     const acoes=[
       item.contrato?`<button class="btn btn-s" type="button" title="Abrir o contrato que gera este lançamento" onclick="editarContratoDaAgenda('${item.contrato}')">Editar</button>`:'',
       item.tipo==='recebimento'?`<button class="btn btn-s" type="button" title="Cancela este lançamento (não apaga o contrato nem a nota)" onclick="cancelarLancamentoAgenda('${item.id}')">Excluir</button>`:''

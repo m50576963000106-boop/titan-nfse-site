@@ -1442,6 +1442,31 @@ test("pedido do usuário (12/08/2026): Clientes ganha busca, botão + Cliente e 
   assert.match(html,/job\.status==='completed'\|\|job\.status==='failed'/);
 });
 
+test("REGRA 20/08/2026: data de vencimento sobrevive ao formato que o Postgres devolve", async()=>{
+  const html=await lerPortal();
+  // O driver converte coluna `date` num Date, e o res.json() manda
+  // "2026-09-10T00:00:00.000Z". Concatenar 'T00:00:00' nisso dava Invalid Date
+  // na lista, e o split('-') do calendário devolvia NaN no dia — o lançamento
+  // não caía em dia nenhum e o mês aparecia vazio.
+  assert.match(html,/function soData\(valor\)\{return String\(valor\?\?''\)\.slice\(0,10\)\}/);
+  assert.match(html,/function dataBR\(valor\)\{const d=soData\(valor\);return \/\^\\d\{4\}-\\d\{2\}-\\d\{2\}\$\/\.test\(d\)/);
+  // Data ausente vira texto, não "Invalid Date" numa tela de nota fiscal.
+  assert.match(html,/:'sem data'/);
+  // E o calendário recebe a data já normalizada.
+  assert.match(html,/data:soData\(r\.due_date\)/);
+  assert.doesNotMatch(html,/new Date\(item\.due_date\+'T00:00:00'\)/);
+});
+
+test("pedido do usuário (20/08/2026): Recebimentos em duas linhas, com atalhos de período", async()=>{
+  const html=await lerPortal();
+  assert.match(html,/id="rec-periodo"[^>]*onchange="aplicarPeriodoRecebimentos\(this\.value\)"/);
+  assert.match(html,/onclick="limparFiltrosRecebimentos\(\)"/);
+  assert.match(html,/function aplicarPeriodoRecebimentos\(valor\)\{/);
+  // "Já vencidos" é tudo que venceu até ONTEM — incluir hoje colocaria na
+  // lista de vencido algo que ainda pode ser pago no dia.
+  assert.match(html,/vencidos:\['',iso\(new Date\(ano,mes,hoje\.getDate\(\)-1\)\)\]/);
+});
+
 test("regressão 20/08/2026: os filtros do calendário não podem depender da ORIGEM do lançamento", async()=>{
   const html=await lerPortal();
   // Quando o contrato recorrente passou a gravar a previsão de verdade em
