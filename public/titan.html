@@ -526,6 +526,10 @@
           <button class="btn btn-s" type="button" onclick="carregarAgenda()">Atualizar</button>
         </div>
         <div class="card-b">
+          <!-- Achado 20/08/2026: a Agenda cortava em 200 lançamentos por data
+               crescente e os meses do fim do período sumiam sem aviso. Se o
+               teto for atingido de novo, agora aparece aqui. -->
+          <div id="agenda-truncado" class="hint" style="display:none;margin-bottom:10px"></div>
           <div class="agenda-calendar" id="agenda-calendar"><div class="empty-state">Carregando...</div></div>
           <div class="agenda-day-detail" id="agenda-day-detail" style="display:none"></div>
         </div>
@@ -539,6 +543,15 @@
           <thead><tr><th>Cliente / serviço</th><th style="text-align:right">Valor</th><th>Agenda</th><th>Próxima emissão</th><th>Situação</th><th style="text-align:right">Ações</th></tr></thead>
           <tbody id="recurrence-list"></tbody>
         </table></div>
+      </div></div>
+
+      <!-- Pedido do usuário (20/08/2026): "dupliquei a importação, gostaria
+           que analisasse e removesse os duplicados". A análise é só leitura e
+           mostra o que sai ANTES de sair — apagar contrato de produção é
+           irreversível, e cópia que já emitiu nota carrega histórico fiscal. -->
+      <div class="card" style="margin-top:14px"><div class="card-h"><h2>Contratos duplicados</h2><div class="flex" style="gap:6px"><button class="btn btn-s" type="button" onclick="analisarDuplicados()" id="dup-scan-btn">Analisar</button></div></div><div class="card-b">
+        <div class="hint">Procura contratos com o mesmo cliente, serviço, valor e dia do mês — o que a importação repetida cria. A remoção só alcança a cópia que <b>nunca emitiu nota</b>, e nunca a primeira do grupo.</div>
+        <div id="dup-result" style="margin-top:10px"></div>
       </div></div>
 
       <div class="modal-backdrop" id="recorrencia-modal" role="dialog" aria-modal="true" aria-labelledby="rc-form-title">

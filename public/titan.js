@@ -2706,6 +2706,41 @@ function editarClienteCadastro(index){const cliente=clientesCadastro[index];if(!
 function usarClienteNaEmissao(index){preencherCliente(clientesCadastro[index]);rascunhoAbertoId=null;go('emitir',qs('.sb-link[onclick*="emitir"]'));}
 function abrirClientes(){go('clientes',qs('.sb-link[onclick*="clientes"]'));}
 
+/* ---------- contratos duplicados (importação repetida, 20/08/2026) -------- */
+// A tela mostra o que VAI sair antes de sair. Apagar contrato de produção é
+// irreversível, e cópia que já emitiu nota carrega histórico fiscal.
+let duplicadosAnalise=[];
+async function analisarDuplicados(){
+  const box=qs('#dup-result'),btn=qs('#dup-scan-btn');if(!box)return;
+  box.innerHTML='<div class="empty-state">Analisando...</div>';if(btn)btn.disabled=true;
+  try{duplicadosAnalise=await api('/api/invoice-recurrences/duplicados');box.innerHTML=renderDuplicados(duplicadosAnalise)}
+  catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+  finally{if(btn)btn.disabled=false}
+}
+function renderDuplicados(grupos){
+  if(!grupos.length)return '<div class="empty-state">Nenhum contrato duplicado — nada a remover.</div>';
+  const removiveis=grupos.reduce((soma,g)=>soma+g.removiveis,0),decisao=grupos.filter(g=>g.precisaDecisao).length;
+  const linhas=grupos.map(g=>{
+    const copias=g.copias.map((c,i)=>{
+      const emitiu=c.occurrences_done>0||c.last_invoice_id;
+      const marca=i===0?'<span class="pill p-ok">Fica (a primeira)</span>':c.removivel?'<span class="pill p-gold">Será removida</span>':'<span class="pill p-off">Fica — já emitiu nota</span>';
+      return `<div class="hint">Cadastrada em ${new Date(c.created_at).toLocaleString('pt-BR')} · ${emitiu?`${c.occurrences_done} emissão(ões)`:'nunca emitiu'} ${marca}</div>`;
+    }).join('');
+    const trava=g.precisaDecisao?'<div class="hint"><b>Mais de uma cópia já emitiu nota.</b> Nenhuma delas será removida automaticamente — decida qual fica e exclua na lista acima.</div>':'';
+    return `<div class="draft-item"><div><b>${esc(g.customer_name)}</b><span>${esc(g.service_name)} · R$ ${brl(Number(g.amount||0))} · dia ${g.day_of_month} · ${g.copias.length} cópias</span>${copias}${trava}</div></div>`;
+  }).join('');
+  const acao=removiveis?`<div class="setup-actions" style="margin:10px 0 0"><button class="btn btn-p" type="button" onclick="removerDuplicados(${removiveis})">Remover ${removiveis} cópia(s)</button></div>`:'';
+  return `<div class="hint" style="margin-bottom:8px"><b>${grupos.length}</b> grupo(s) duplicado(s) · <b>${removiveis}</b> cópia(s) removível(is) com segurança${decisao?` · <b>${decisao}</b> precisa(m) da sua decisão`:''}.</div>${linhas}${acao}`;
+}
+async function removerDuplicados(quantas){
+  if(!await titanConfirm(`Remover ${quantas} cópia(s) de contrato e as previsões de recebimento delas?\n\nNão dá pra desfazer. Nenhuma nota fiscal é tocada, e nenhum contrato que já emitiu é removido.`,'Remover duplicados','err'))return;
+  try{
+    const r=await api('/api/invoice-recurrences/duplicados/remover',{method:'POST'});
+    alert(`${r.removidos} contrato(s) e ${r.previstosRemovidos} previsão(ões) de recebimento removidos.${r.mantidosPorSeguranca?`\n\n${r.mantidosPorSeguranca} cópia(s) foram mantidas porque já emitiram nota.`:''}`);
+    await analisarDuplicados();await carregarRecorrencias();
+  }catch(error){alert(error.message)}
+}
+
 /* ---------- notas recorrentes (agendamento automático de emissão) ---------- */
 let recorrencias=[],recorrenciaEditando=null;
 function popularServicosRecorrencia(){
@@ -2724,11 +2759,30 @@ const AGENDA_STATUS_LABEL={draft:['p-off','Rascunho'],scheduled:['p-gold','Agend
 const AGENDA_DIAS_SEMANA=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const AGENDA_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 let agendaItens=[],agendaMesAtual=new Date();
+// A Agenda carrega o mês visto, o anterior e o seguinte (20/08/2026). Antes
+// pedia ±90 dias fixos e o backend cortava em 200 linhas por data crescente:
+// com a importação duplicada, os meses do fim do período simplesmente não
+// chegavam — setembro vazio, outubro pela metade, e nada dizia que faltava.
+function faixaDaAgenda(){
+  const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return {
+    from:iso(new Date(agendaMesAtual.getFullYear(),agendaMesAtual.getMonth()-1,1)),
+    // Dia 0 do mês seguinte = último dia deste mês, sem tabela de 28/30/31.
+    to:iso(new Date(agendaMesAtual.getFullYear(),agendaMesAtual.getMonth()+2,0))
+  };
+}
 async function carregarAgenda(){
   const box=qs('#agenda-calendar');if(!box)return;
   box.innerHTML='<div class="empty-state">Carregando...</div>';
   try{
-    const data=await api('/api/workspace/agenda');
+    const faixa=faixaDaAgenda();
+    const data=await api(`/api/workspace/agenda?from=${faixa.from}&to=${faixa.to}`);
+    // Encostar no teto deixou de ser invisível.
+    const aviso=qs('#agenda-truncado');
+    if(aviso){
+      aviso.style.display=data.truncado?'':'none';
+      if(data.truncado)aviso.textContent='Este período tem mais lançamentos do que a tela carrega de uma vez. Estreite o período para ver tudo.';
+    }
     // A data que posiciona o item no calendário é SEMPRE o vencimento
     // (pedido do usuário, 19/08/2026: a Agenda é a projeção do financeiro).
     // Pra recorrência ainda não emitida, o backend manda também a data de
@@ -2742,7 +2796,10 @@ async function carregarAgenda(){
     renderCalendarioAgenda();
   }catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
 }
-function mudarMesAgenda(delta){agendaMesAtual=new Date(agendaMesAtual.getFullYear(),agendaMesAtual.getMonth()+delta,1);renderCalendarioAgenda()}
+// Recarrega, não só redesenha: a faixa de datas segue o mês visto, então
+// navegar para fora da janela carregada mostraria um mês vazio que na verdade
+// tem lançamentos.
+function mudarMesAgenda(delta){agendaMesAtual=new Date(agendaMesAtual.getFullYear(),agendaMesAtual.getMonth()+delta,1);carregarAgenda()}
 function renderCalendarioAgenda(){
   const box=qs('#agenda-calendar');if(!box)return;
   const ano=agendaMesAtual.getFullYear(),mes=agendaMesAtual.getMonth();
