@@ -509,6 +509,7 @@ function aplicarAcesso(login){
     el.style.display=(okPermissao&&okFeature)?(el.tagName==='DIV'?'':''):'none';
   });
   qsa('[data-master-only]').forEach(el=>el.style.display=user.isMaster?'flex':'none');
+  conferirMenuDoCliente(user);
   if(access.companies?.length){
     const visible=PORTAL_CNPJ?access.companies.filter(c=>normalizarDocumento(c.federal_tax_id)===PORTAL_CNPJ):access.companies;
     qs('#tenant').innerHTML=visible.map(c=>`<option value="${c.id}" ${c.id===companyId?'selected':''}>${esc(c.trade_name||c.legal_name)}</option>`).join('');
@@ -3911,29 +3912,57 @@ async function carregarConfiguracoesMaster(){
     if(status)status.textContent='Configurações carregadas.';if(commStatus)commStatus.textContent='Configurações carregadas.';
   }catch(error){if(status)status.textContent=error.message;if(commStatus)commStatus.textContent=error.message}
 }
-async function salvarConfiguracoesMaster(){
-  const status=qs('#master-settings-status'),commStatus=qs('#master-comm-status');if(status)status.textContent='Salvando com criptografia...';if(commStatus)commStatus.textContent='Salvando com criptografia...';
+/**
+ * Salvamento por PAINEL (20/08/2026).
+ *
+ * Antes era um PUT único que lia campos dos DOIS painéis. Com o Martyn em
+ * seção própria isso ficou errado de duas formas: você salvava configuração de
+ * banco ao mexer no Martyn, e um campo ainda não carregado de um painel podia
+ * sobrescrever o outro.
+ *
+ * O backend aceita envio parcial (settings.ts faz { ...stored, ...input }), e
+ * TODOS os booleanos viraram opcionais lá justamente por isto — antes,
+ * `whatsappEnabled` tinha default(false) e um envio sem ele DESLIGARIA o
+ * WhatsApp e o Martyn em silêncio.
+ */
+async function enviarConfiguracoesMaster(campos, elementoDeStatus){
+  const status=qs(elementoDeStatus);
+  if(status)status.textContent='Salvando com criptografia...';
   try{
-    const data=await api('/api/master/settings',{method:'PUT',body:JSON.stringify({
-      nubankEnabled:qs('#set-nubank-enabled').value==='true',nubankApiBaseUrl:qs('#set-nubank-api').value.trim(),nubankOauthUrl:qs('#set-nubank-oauth').value.trim(),nubankClientId:qs('#set-nubank-id').value.trim(),nubankClientSecret:qs('#set-nubank-secret').value,nubankWebhookSecret:qs('#set-nubank-webhook').value,
-      accountantCronEnabled:qs('#set-accountant-enabled').value==='true',
-      pixChaveRecebedor:qs('#set-pix-chave').value.trim(),pixEscopos:qs('#set-pix-escopos').value.trim(),
-      nubankCertificateBase64:qs('#set-nubank-cert-data').value,nubankCertificateKeyBase64:qs('#set-nubank-cert-key-data').value,nubankCertificatePassphrase:qs('#set-nubank-cert-pass').value,
-      portalLogoDataUrl:qs('#set-portal-logo-data').value,
-      businessPhone:qs('#set-comm-business-phone').value.trim(),businessPhoneEnabled:qs('#set-comm-phone-enabled').value==='true',
-      whatsappEnabled:qs('#set-wa-enabled').value==='true',whatsappDisplayName:qs('#set-wa-display-name').value.trim(),metaGraphApiVersion:qs('#set-wa-graph-version').value.trim(),metaBusinessId:qs('#set-wa-meta-business-id').value.trim(),whatsappBusinessAccountId:qs('#set-wa-waba-id').value.trim(),whatsappPhoneNumberId:qs('#set-wa-phone-number-id').value.trim(),metaAppId:qs('#set-wa-app-id').value.trim(),
-      metaAccessToken:qs('#set-wa-access-token').value,metaAppSecret:qs('#set-wa-app-secret').value,whatsappWebhookVerifyToken:qs('#set-wa-verify-token').value,
-      martynWhatsAppEnabled:qs('#set-martyn-wa-enabled').value==='true',martynOperationMode:qs('#set-martyn-mode').value,martynDisplayName:qs('#set-martyn-name').value.trim(),martynRepresentedCompany:qs('#set-martyn-company').value.trim(),martynGreeting:qs('#set-martyn-greeting').value.trim(),martynTone:qs('#set-martyn-tone').value.trim(),
-      supportHelpPhone:qs('#set-support-phone').value.trim(),supportHelpWhatsAppEnabled:qs('#set-support-wa-enabled').value==='true',supportHelpAlertsEnabled:qs('#set-support-alerts-enabled').value==='true'
-    })});
+    const data=await api('/api/master/settings',{method:'PUT',body:JSON.stringify(campos)});
     const ns=qs('#master-nubank-state');if(ns){ns.textContent=data.nubankEnabled&&data.hasNubankClientSecret?'Configurado':'Não configurado';ns.className=`pill ${data.nubankEnabled&&data.hasNubankClientSecret?'p-ok':'p-off'}`}
     const as=qs('#master-accountant-state');if(as){as.textContent=data.accountantCronEnabled?'Ativo':'Desativado';as.className=`pill ${data.accountantCronEnabled?'p-ok':'p-off'}`}
     atualizarEstadosIntegracoes(data);
     aplicarLogoPortal(data.portalLogoDataUrl||'');
-    qs('#set-nubank-secret').value='';qs('#set-nubank-webhook').value='';
-    qs('#set-wa-access-token').value='';qs('#set-wa-app-secret').value='';qs('#set-wa-verify-token').value='';
-    if(status)status.textContent='Configurações salvas. Segredos mantidos no cofre criptografado.';if(commStatus)commStatus.textContent='Configurações salvas. Segredos mantidos no cofre criptografado.';
-  }catch(error){if(status)status.textContent=error.message;if(commStatus)commStatus.textContent=error.message}
+    // Campos de segredo voltam vazios: vazio significa "manter o que está
+    // gravado", nunca "apagar".
+    ['#set-nubank-secret','#set-nubank-webhook','#set-nubank-cert-pass','#set-sicredi-key','#set-sicredi-pass',
+     '#set-wa-access-token','#set-wa-app-secret','#set-wa-verify-token'].forEach(id=>{const el=qs(id);if(el)el.value=''});
+    if(status)status.textContent='Configurações salvas. Segredos mantidos no cofre criptografado.';
+    return data;
+  }catch(error){ if(status)status.textContent=error.message; }
+}
+
+/** Painel Configurações: banco, cobrança e rotina do contador. */
+async function salvarConfiguracoesMaster(){
+  return enviarConfiguracoesMaster({
+    nubankEnabled:qs('#set-nubank-enabled').value==='true',nubankApiBaseUrl:qs('#set-nubank-api').value.trim(),nubankOauthUrl:qs('#set-nubank-oauth').value.trim(),nubankClientId:qs('#set-nubank-id').value.trim(),nubankClientSecret:qs('#set-nubank-secret').value,nubankWebhookSecret:qs('#set-nubank-webhook').value,
+    accountantCronEnabled:qs('#set-accountant-enabled').value==='true',
+    pixChaveRecebedor:qs('#set-pix-chave').value.trim(),pixEscopos:qs('#set-pix-escopos').value.trim(),
+    nubankCertificateBase64:qs('#set-nubank-cert-data').value,nubankCertificateKeyBase64:qs('#set-nubank-cert-key-data').value,nubankCertificatePassphrase:qs('#set-nubank-cert-pass').value,
+    portalLogoDataUrl:qs('#set-portal-logo-data').value
+  }, '#master-settings-status');
+}
+
+/** Painel Martyn: WhatsApp, identidade e comportamento do atendente. */
+async function salvarConfiguracoesMartyn(){
+  return enviarConfiguracoesMaster({
+    businessPhone:qs('#set-comm-business-phone').value.trim(),businessPhoneEnabled:qs('#set-comm-phone-enabled').value==='true',
+    whatsappEnabled:qs('#set-wa-enabled').value==='true',whatsappDisplayName:qs('#set-wa-display-name').value.trim(),metaGraphApiVersion:qs('#set-wa-graph-version').value.trim(),metaBusinessId:qs('#set-wa-meta-business-id').value.trim(),whatsappBusinessAccountId:qs('#set-wa-waba-id').value.trim(),whatsappPhoneNumberId:qs('#set-wa-phone-number-id').value.trim(),metaAppId:qs('#set-wa-app-id').value.trim(),
+    metaAccessToken:qs('#set-wa-access-token').value,metaAppSecret:qs('#set-wa-app-secret').value,whatsappWebhookVerifyToken:qs('#set-wa-verify-token').value,
+    martynWhatsAppEnabled:qs('#set-martyn-wa-enabled').value==='true',martynOperationMode:qs('#set-martyn-mode').value,martynDisplayName:qs('#set-martyn-name').value.trim(),martynRepresentedCompany:qs('#set-martyn-company').value.trim(),martynGreeting:qs('#set-martyn-greeting').value.trim(),martynTone:qs('#set-martyn-tone').value.trim(),
+    supportHelpPhone:qs('#set-support-phone').value.trim(),supportHelpWhatsAppEnabled:qs('#set-support-wa-enabled').value==='true',supportHelpAlertsEnabled:qs('#set-support-alerts-enabled').value==='true'
+  }, '#master-comm-status');
 }
 function atualizarEstadosIntegracoes(data){
   const waCredentialsReady=Boolean(data.whatsappPhoneNumberId&&data.whatsappBusinessAccountId&&data.hasMetaAccessToken&&data.hasMetaAppSecret&&data.hasWhatsappWebhookVerifyToken);
@@ -5066,4 +5095,43 @@ async function testarConexaoBanco(){
       box.innerHTML=`<b>Não conectou.</b><br>${esc(error.message||String(error))}`;
     }finally{ if(btn)btn.disabled=false; }
   });
+}
+
+/**
+ * Rede contra o menu sumir em silêncio (20/08/2026).
+ *
+ * O que aconteceu: os menus Financeiro e Contratos recorrentes desapareceram e
+ * ninguém soube até o dono do produto reclamar. A causa é sempre a mesma
+ * família — a sessão não trouxe empresa (login de parceiro, empresa não
+ * resolvida, sessão velha), `permissions` fica vazio, e aplicarAcesso() esconde
+ * TUDO que tem data-permission. Do lado do usuário, o produto simplesmente
+ * encolheu, sem uma palavra.
+ *
+ * É o mesmo defeito que passei o dia corrigindo no backend, na versão de tela:
+ * **esconder sem avisar não é o mesmo que o usuário não ter acesso.**
+ *
+ * Esta função não conserta a causa (a sessão), e não deve: ela garante que a
+ * falha seja VISÍVEL. Um menu vazio vira um aviso com saída; um menu parcial
+ * (plano sem alguma ferramenta) é legítimo e passa batido de propósito.
+ */
+function conferirMenuDoCliente(user){
+  const aviso=qs('#menu-vazio-aviso');
+  if(!aviso)return;
+  // Master não tem menu de cliente — o painel dele é outro. Não é falha.
+  if(user?.isMaster){aviso.style.display='none';return}
+
+  // Só os links COM regra de acesso. Os demais (Visão geral, Configurações)
+  // aparecem sempre e mascarariam a falha: a primeira versão desta função
+  // contava todos, achava 11 visíveis e nunca disparava.
+  const comRegra=qsa('.sb-nav.user-sidebar button.sb-link[data-permission],.sb-nav.user-sidebar button.sb-link[data-feature]');
+  const visiveis=comRegra.filter(el=>el.style.display!=='none');
+  // Toda empresa real tem ao menos 'emit'. Nenhum link liberado significa
+  // permissões vazias — sessão sem empresa —, não um plano enxuto.
+  const vazio=comRegra.length>0&&visiveis.length===0;
+  aviso.style.display=vazio?'block':'none';
+  if(vazio){
+    // Fica no console para quem for depurar, com o dado que decide a causa.
+    console.error('titan: menu do cliente ficou vazio — a sessão não trouxe empresa/permissões.',
+      {linksComRegra:comRegra.length, isMaster:Boolean(user?.isMaster)});
+  }
 }

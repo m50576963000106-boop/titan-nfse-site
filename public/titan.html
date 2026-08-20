@@ -91,7 +91,8 @@
 
   <aside class="sidebar" id="sb">
     <a class="sb-mark" href="/" target="_top" onclick="return irParaLogoDestino(event)" aria-label="Página inicial TITAN NFS-e" style="text-decoration:none"><span class="sb-logo"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></span></a>
-    <nav class="sb-nav user-sidebar">
+    <div id="menu-vazio-aviso" class="alert a-warn" role="status" style="display:none;margin:10px 12px;font-size:12px;line-height:1.5"><b>Não carregamos seus acessos.</b><br>O menu está incompleto porque esta sessão não trouxe a empresa vinculada. Saia e entre de novo; se continuar assim, fale com o suporte.<br><button class="btn btn-s" type="button" style="margin-top:8px" onclick="sairPortal()">Sair e entrar de novo</button></div>
+      <nav class="sb-nav user-sidebar">
       <div class="alert a-warn" id="conta-restrita-aviso" style="display:none;margin:0 10px 12px;font-size:12px"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div>Pagamento não identificado. Acesso restrito a Notas emitidas até a confirmação.</div></div>
       <div class="sb-sec">Visão geral</div>
       <button class="sb-link active" data-permission="dashboard" onclick="go('painel',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</button>
@@ -1108,7 +1109,7 @@
               </div>
             </div>
 
-            <div class="flex wrap" style="margin-top:16px"><button class="btn btn-p" type="button" onclick="salvarConfiguracoesMaster()">Salvar configurações</button><span id="master-comm-status" class="foot-note"></span></div>
+            <div class="flex wrap" style="margin-top:16px"><button class="btn btn-p" type="button" onclick="salvarConfiguracoesMartyn()">Salvar configurações do Martyn</button><span id="master-comm-status" class="foot-note"></span></div>
           </div>
         </div>
       </div>

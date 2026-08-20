@@ -1563,3 +1563,84 @@ test("as 3 colunas da comparação viram 1 no celular", async()=>{
   assert.match(css,/max-width:800px\)\{[^@]*\.comparison,\.comparison-3\{grid-template-columns:1fr 1fr\}/);
   assert.match(css,/max-width:560px\)\{[^@]*\.comparison,\.comparison-3,[^@]*grid-template-columns:1fr\}/);
 });
+
+/**
+ * O menu do cliente não pode sumir em silêncio (20/08/2026).
+ *
+ * O que aconteceu: Financeiro e Contratos recorrentes desapareceram do portal e
+ * ninguém soube até o dono do produto reclamar. A causa é sempre a mesma
+ * família — a sessão não trouxe empresa (login de parceiro, empresa não
+ * resolvida, sessão velha), `permissions` fica vazio, e aplicarAcesso() esconde
+ * TUDO que tem data-permission. Do lado do usuário, o produto encolheu sem uma
+ * palavra.
+ *
+ * É o mesmo defeito corrigido o dia todo no backend, na versão de tela:
+ * esconder sem avisar não é o mesmo que o usuário não ter acesso.
+ */
+test("o menu do cliente existe no HTML com os itens que o cliente compra", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const menu=html.slice(html.indexOf('class="sb-nav user-sidebar"'), html.indexOf('class="sb-nav admin-sidebar"'));
+  for(const item of ["Contratos recorrentes","Recebimentos","DASN-SIMEI","Agenda e vencimentos"]){
+    assert.ok(menu.includes(item), `${item} sumiu do menu do cliente`);
+  }
+  // Financeiro é o botão que abre o submenu, não só o título da seção — foi
+  // essa distinção que confundiu o diagnóstico da primeira vez.
+  assert.match(menu,/button[^>]*data-permission="financial"[^>]*>[\s\S]{0,400}?Financeiro/);
+});
+
+test("existe um aviso visível para quando o menu ficar vazio", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html,/id="menu-vazio-aviso"/);
+  assert.match(html,/Não carregamos seus acessos/);
+  // Precisa ter saída: avisar sem dar o que fazer é só assustar.
+  assert.match(html,/onclick="sairPortal\(\)"/);
+});
+
+test("REGRA: o detector olha só os links COM regra de acesso", async()=>{
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  assert.match(js,/function conferirMenuDoCliente/);
+  assert.match(js,/data-permission\],\.sb-nav\.user-sidebar button\.sb-link\[data-feature\]/,
+    "contar TODOS os links mascara a falha: os sem regra aparecem sempre e o detector nunca dispara — foi o erro da primeira versão");
+  assert.match(js,/if\(user\?\.isMaster\)/, "Master não tem menu de cliente; não é falha");
+  assert.match(js,/conferirMenuDoCliente\(user\)/, "precisa ser chamado ao aplicar o acesso");
+});
+
+/**
+ * Configurações salvas por PAINEL (20/08/2026).
+ *
+ * Com o Martyn em seção própria, o PUT único que lia campos dos DOIS painéis
+ * ficou errado: você salvava configuração de banco ao mexer no Martyn.
+ *
+ * O risco real não era o vazamento — era o backend. `whatsappEnabled` e
+ * `martynWhatsAppEnabled` eram `.default(false)` no Zod: um PUT sem esses
+ * campos DESLIGARIA o WhatsApp e o Martyn em silêncio. Por isso os booleanos
+ * viraram opcionais na API antes de a tela passar a mandar subconjuntos.
+ */
+test("cada painel tem a própria função de salvar, sem campo em comum", async()=>{
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const pedaco=(inicio)=>{const i=js.indexOf(inicio);return js.slice(i, js.indexOf("\n}", i))};
+  const tecnicas=pedaco("async function salvarConfiguracoesMaster()");
+  const martyn=pedaco("async function salvarConfiguracoesMartyn()");
+
+  for(const proibido of ["martynOperationMode","whatsappEnabled","metaAccessToken","supportHelpPhone"]){
+    assert.ok(!tecnicas.includes(proibido), `${proibido} nao pode sair do painel de Configuracoes`);
+  }
+  for(const proibido of ["nubankClientSecret","sicrediApiKey","pixChaveRecebedor","accountantCronEnabled"]){
+    assert.ok(!martyn.includes(proibido), `${proibido} nao pode sair do painel do Martyn`);
+  }
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.ok(html.includes('onclick="salvarConfiguracoesMartyn()"'), "o botao do painel do Martyn precisa chamar a funcao dele");
+});
+
+test("todo campo lido pelas duas funcoes existe no HTML", async()=>{
+  // Um id errado quebra o salvamento inteiro no primeiro `.value` — foi assim
+  // que #set-wa-business-account-id (que nao existe; o certo e #set-wa-waba-id)
+  // quase entrou.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const i=js.indexOf("async function enviarConfiguracoesMaster");
+  const trecho=js.slice(i, i+4500);
+  const ids=[...new Set([...trecho.matchAll(/qs\('#([a-z0-9-]+)'\)/g)].map(m=>m[1]))];
+  const faltando=ids.filter(id=>!html.includes(`id="${id}"`));
+  assert.deepEqual(faltando, [], "campo lido pelo JS que nao existe no HTML");
+});
