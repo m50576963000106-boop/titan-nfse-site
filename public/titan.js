@@ -5011,7 +5011,9 @@ async function testarEnvioContador(){
       box.innerHTML=`<b>Enviado para ${esc(r.destinatario)}.</b>`+
         `<br>Competência ${esc(r.competencia)} — ${r.notas} nota(s)${canceladas}.`+
         `<br>Total: R$ ${brl(Number(r.total||0))}`+
-        `<br>Anexo: <code>${esc(r.arquivo)}</code>, com ${r.xmlsNoZip} XML(s) e o <code>${esc(r.livro)}</code>.`+
+        `<br><b>Dois anexos, soltos no e-mail:</b>`+
+        `<br>&nbsp;&nbsp;&#128196; <code>${esc(r.livro)}</code> — o livro, abre direto`+
+        `<br>&nbsp;&nbsp;&#128190; <code>${esc(r.arquivo)}</code> — ${r.xmlsNoZip} XML(s)`+
         (r.usouEmailDoContador?'':'<br><b>Atenção:</b> foi para o e-mail da empresa porque o e-mail do contador está em branco.');
     }catch(e){
       box.className='alert a-warn';
