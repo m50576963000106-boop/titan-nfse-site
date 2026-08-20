@@ -3547,6 +3547,10 @@ function masterTab(tab,button){
   if(tab==='parceiros'){carregarPedidosLicencaMaster();carregarCobrancasLicencaMaster();}
   if(tab==='logs')carregarMasterLogs();
   if(tab==='config'){carregarConfiguracoesMaster();carregarContaMaster();}
+  // A aba do Martyn (20/08/2026) precisa de carregarConfiguracoesMaster() também:
+  // o card de Comunicação mora aqui agora, mas os campos dele são preenchidos
+  // pelo mesmo GET de /api/master/settings que abastece Configurações.
+  if(tab==='martyn'){carregarConfiguracoesMaster();carregarMetricasMartyn();carregarNotasTecnicasMaster();}
   if(tab==='atendimentos')iniciarAtendimentos();else pararPollingAtendimentos();
   fecharMenuLateral();
   window.scrollTo(0,0);
@@ -4965,4 +4969,37 @@ async function testarEnvioContador(){
       box.innerHTML=`<b>Não foi enviado.</b><br>${esc(e.message||String(e))}`;
     }finally{ if(btn)btn.disabled=false; }
   });
+}
+
+/* ── Resolução do Martyn (Etapa 1 do plano dos 99%, 20/08/2026) ─────────────
+   Até agora não existia esse número: o chat do portal não era gravado e nada
+   marcava desfecho no zap. Sem denominador, "melhorou" era impressão. */
+const MM_DESFECHOS={resolvido:'Resolvido',escalado:'Escalado para humano',nao_compreendido:'Não compreendido (cliente repetiu)',estourou_passos:'Estourou os passos do agente',erro_tecnico:'Erro técnico',bloqueado_por_seguranca:'Bloqueado por segurança',abandonado:'Cliente não voltou',em_andamento:'Em andamento'};
+
+function mmPill(el,resumo){
+  if(!el)return;
+  // Sem conversa encerrada no período não existe taxa. Mostrar "0%" seria
+  // dizer que ele falhou em tudo, quando na verdade não houve o que medir.
+  if(!resumo||resumo.total-resumo.emAndamento<=0){el.textContent='sem dados';el.className='pill p-off';return}
+  el.textContent=`${resumo.taxaDeResolucao}%`;
+  el.className='pill '+(resumo.taxaDeResolucao>=99?'p-ok':resumo.taxaDeResolucao>=90?'p-gold':'p-warn');
+}
+
+async function carregarMetricasMartyn(){
+  const falhas=qs('#mm-falhas');if(!falhas)return;
+  try{
+    const dias=qs('#mm-dias')?.value||30;
+    const d=await api('/api/master/martyn-metricas?dias='+encodeURIComponent(dias));
+    mmPill(qs('#mm-geral'),d.todos);mmPill(qs('#mm-portal'),d.portal);mmPill(qs('#mm-zap'),d.whatsapp);
+    const t=d.todos||{};
+    qs('#mm-resumo').innerHTML=`${t.total||0} atendimento(s) no período · ${t.resolvidos||0} resolvido(s) · `+
+      `${t.escalados||0} escalado(s) para humano · ${t.falhas||0} com falha · ${t.emAndamento||0} em andamento.`;
+    falhas.innerHTML=d.falhas?.length?d.falhas.map(f=>{
+      const quando=f.fechado_em?new Date(f.fechado_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+      return `<div class="draft-item"><b>${esc(MM_DESFECHOS[f.desfecho]||f.desfecho)} · ${esc(f.canal)}</b>`+
+        `<span>${esc(f.empresa||f.chave)} · ${f.turnos} turno(s), ${f.passos_do_agente} passo(s) de IA</span>`+
+        (f.detalhe?`<div class="hint">${esc(f.detalhe)}</div>`:'')+
+        `<small>${quando}</small></div>`;
+    }).join(''):'<div class="empty-state">Nenhuma falha registrada no período.</div>';
+  }catch(error){falhas.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
 }
