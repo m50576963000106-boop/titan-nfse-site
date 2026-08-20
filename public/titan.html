@@ -675,6 +675,18 @@
               <div class="field mb0"><label for="e-phone">Telefone da empresa</label><input id="e-phone" class="inp" placeholder="(00) 00000-0000"></div>
             </div>
             <div class="field" style="margin-top:14px"><label for="e-zap">WhatsApp da empresa</label><input id="e-zap" class="inp" inputmode="tel" placeholder="(00) 00000-0000" readonly style="opacity:.7;cursor:not-allowed"><div class="hint">Canal oficial de contato da TITAN com a empresa — também é o que decide quais empresas aparecem juntas pra você no seletor "empresa ativa". Por segurança, só o Master ou o parceiro responsável pela sua conta podem alterar este número; fale com eles para atualizar.</div></div>
+            <div class="card" style="margin-top:18px;background:var(--soft, #f7f8fa)">
+              <div class="card-h"><div><h3 style="margin:0">Contador</h3><p style="margin:4px 0 0 0">Todo dia 01, às 05h30, o TITAN envia sozinho para este e-mail as notas do mês que fechou.</p></div></div>
+              <div class="card-b">
+                <div class="field"><label for="e-contador">E-mail do contador</label><input id="e-contador" class="inp" type="email" placeholder="contador@escritorio.com.br"><div class="hint">Recebe um .zip com o XML de <b>todas</b> as notas do mês anterior e o livro de serviços prestados em PDF, com a situação e o valor de cada uma. As canceladas aparecem na relação, mas não entram no total. Se ficar em branco, o pacote vai para o e-mail da empresa.</div></div>
+                <div class="field mb0"><div class="flex wrap" style="gap:10px;align-items:center">
+                  <button class="btn btn-s" type="button" id="btn-testar-contador" onclick="testarEnvioContador()">Testar envio agora</button>
+                  <select id="e-contador-comp" class="inp" style="max-width:190px" aria-label="Competência do teste de envio"></select>
+                </div>
+                <div class="hint">O teste manda o e-mail de verdade, com os arquivos reais da competência escolhida — e não substitui o envio automático do dia 01.</div></div>
+                <div id="e-contador-status" class="alert a-info" style="display:none;margin-top:12px"></div>
+              </div>
+            </div>
             <div class="field" style="margin-top:14px"><label for="e-logo">Logotipo para orçamentos e O.S.</label><input id="e-logo" class="inp" type="file" accept="image/png,image/jpeg" onchange="salvarLogoComercial(this)"><div class="hint">Aparece no cabeçalho do DANFSe e nos PDFs de orçamentos/O.S. Se não houver logo, mostra o nome da empresa.</div><img id="e-logo-preview" alt="Prévia do logotipo comercial" style="display:none;max-width:180px;max-height:64px;margin-top:8px;border:1px solid var(--line);border-radius:6px;padding:4px;background:transparent"></div>
             <div class="setup-actions">
               <span class="foot-note" style="margin:0">Você poderá revisar estes dados antes de qualquer integração real.</span>

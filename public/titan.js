@@ -892,9 +892,9 @@ async function carregarEmpresaServidor(){
   aplicarModoRestrito(false);
   if(!row){empresaAtual=null;return}
   const regimes={regular:'Lucro Presumido',mei:'MEI',simples:'Simples Nacional — ME'};
-  empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',regime:row.tax_regime,reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.city&&row.state?`${row.city}/${row.state}`:row.municipality_code,endereco:row.address||'',postalCode:row.postal_code||'',street:row.street||'',number:row.number||'',complement:row.complement||'',district:row.district||'',city:row.city||'',state:row.state||'',email:row.email||'',phone:row.phone||'',whatsapp:row.whatsapp_phone||'',series:Number(row.dps_series)||1,next:String(row.next_dps_number||1),simpleAp:[1,2].includes(Number(row.simple_assessment_regime))?Number(row.simple_assessment_regime):1,simpleTotal:row.simple_total_tax_rate==null?'':Number(row.simple_total_tax_rate),taxFed:row.total_tax_rate_federal==null?'':Number(row.total_tax_rate_federal),taxEst:row.total_tax_rate_state==null?'':Number(row.total_tax_rate_state),taxMun:row.total_tax_rate_municipal==null?'':Number(row.total_tax_rate_municipal),special:Number(row.special_tax_regime)||0};
+  empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',regime:row.tax_regime,reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.city&&row.state?`${row.city}/${row.state}`:row.municipality_code,endereco:row.address||'',postalCode:row.postal_code||'',street:row.street||'',number:row.number||'',complement:row.complement||'',district:row.district||'',city:row.city||'',state:row.state||'',email:row.email||'',contador:row.accountant_email||'',phone:row.phone||'',whatsapp:row.whatsapp_phone||'',series:Number(row.dps_series)||1,next:String(row.next_dps_number||1),simpleAp:[1,2].includes(Number(row.simple_assessment_regime))?Number(row.simple_assessment_regime):1,simpleTotal:row.simple_total_tax_rate==null?'':Number(row.simple_total_tax_rate),taxFed:row.total_tax_rate_federal==null?'':Number(row.total_tax_rate_federal),taxEst:row.total_tax_rate_state==null?'':Number(row.total_tax_rate_state),taxMun:row.total_tax_rate_municipal==null?'':Number(row.total_tax_rate_municipal),special:Number(row.special_tax_regime)||0};
   const ibscbsAviso=qs('#emit-ibscbs-aviso');if(ibscbsAviso)ibscbsAviso.style.display=empresaAtual.regime==='regular'?'flex':'none';
-  qs('#e-email').value=empresaAtual.email;qs('#e-phone').value=empresaAtual.phone;qs('#e-zap').value=empresaAtual.whatsapp;
+  qs('#e-email').value=empresaAtual.email;qs('#e-contador').value=empresaAtual.contador||'';qs('#e-phone').value=empresaAtual.phone;qs('#e-zap').value=empresaAtual.whatsapp;
   const logo=qs('#e-logo-preview');if(logo&&row.commercial_logo_data){logo.src=row.commercial_logo_data;logo.style.display='block'}
   localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresaAtual));
 }
@@ -3444,7 +3444,7 @@ async function salvarCadastro(){
     mun:qs('#e-mun').value,
     municipio:empresaAtual?.municipio||qs('#e-mun').value,
     endereco:qs('#e-end').value.trim(),
-    postalCode:empresaAtual?.postalCode||'',street:empresaAtual?.street||'',number:empresaAtual?.number||'',complement:empresaAtual?.complement||'',district:empresaAtual?.district||'',city:empresaAtual?.city||'',state:empresaAtual?.state||'',email:qs('#e-email').value.trim(),phone:qs('#e-phone').value.trim(),whatsapp:qs('#e-zap').value.trim(),
+    postalCode:empresaAtual?.postalCode||'',street:empresaAtual?.street||'',number:empresaAtual?.number||'',complement:empresaAtual?.complement||'',district:empresaAtual?.district||'',city:empresaAtual?.city||'',state:empresaAtual?.state||'',email:qs('#e-email').value.trim(),accountantEmail:qs('#e-contador').value.trim(),contador:qs('#e-contador').value.trim(),phone:qs('#e-phone').value.trim(),whatsapp:qs('#e-zap').value.trim(),
     series:Number(qs('#e-series').value),next:qs('#e-next').value.replace(/\D/g,''),simpleAp:Number(qs('#e-simple-ap').value),simpleTotal:qs('#e-simple-total').value.trim()===''?'':dinheiro(qs('#e-simple-total').value),taxFed:qs('#e-tax-fed').value.trim()===''?'':dinheiro(qs('#e-tax-fed').value),taxEst:qs('#e-tax-est').value.trim()===''?'':dinheiro(qs('#e-tax-est').value),taxMun:qs('#e-tax-mun').value.trim()===''?'':dinheiro(qs('#e-tax-mun').value),special:Number(qs('#e-special').value)
   };
   if(!empresa.rs||!empresa.cnpj||!empresa.endereco){
@@ -3455,7 +3455,7 @@ async function salvarCadastro(){
   const regime=empresa.reg==='MEI'?'mei':empresa.reg.includes('Simples')?'simples':'regular';
   if(ambienteAtual==='production'&&regime==='simples'&&empresa.simpleTotal===''){alert('Informe o percentual aproximado total de tributos do Simples para habilitar emissões fiscais.');return}
   try{
-    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im||undefined,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,simpleTotalTaxRate:regime==='simples'&&empresa.simpleTotal!==''?empresa.simpleTotal:undefined,totalTaxRateFederal:regime!=='simples'&&empresa.taxFed!==''?empresa.taxFed:undefined,totalTaxRateState:regime!=='simples'&&empresa.taxEst!==''?empresa.taxEst:undefined,totalTaxRateMunicipal:regime!=='simples'&&empresa.taxMun!==''?empresa.taxMun:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next,address:empresa.endereco||undefined,postalCode:empresa.postalCode||undefined,street:empresa.street||undefined,number:empresa.number||undefined,complement:empresa.complement||undefined,district:empresa.district||undefined,city:empresa.city||undefined,state:empresa.state||undefined,email:empresa.email||undefined,phone:empresa.phone||undefined,whatsappPhone:empresa.whatsapp||undefined})});
+    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im||undefined,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,simpleTotalTaxRate:regime==='simples'&&empresa.simpleTotal!==''?empresa.simpleTotal:undefined,totalTaxRateFederal:regime!=='simples'&&empresa.taxFed!==''?empresa.taxFed:undefined,totalTaxRateState:regime!=='simples'&&empresa.taxEst!==''?empresa.taxEst:undefined,totalTaxRateMunicipal:regime!=='simples'&&empresa.taxMun!==''?empresa.taxMun:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next,address:empresa.endereco||undefined,postalCode:empresa.postalCode||undefined,street:empresa.street||undefined,number:empresa.number||undefined,complement:empresa.complement||undefined,district:empresa.district||undefined,city:empresa.city||undefined,state:empresa.state||undefined,email:empresa.email||undefined,accountantEmail:empresa.accountantEmail||'',phone:empresa.phone||undefined,whatsappPhone:empresa.whatsapp||undefined})});
     empresaAtual=empresa;
     localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresa));
   }catch(error){alert(error.message);return}
@@ -3492,7 +3492,7 @@ function aplicarEmpresa(){
   qs('#e-im').value=empresaAtual.im;
   qs('#e-reg').value=empresaAtual.reg;
   qs('#e-mun').value=empresaAtual.mun;exibirMunicipioPorCodigo('e',empresaAtual.mun);
-  qs('#e-end').value=empresaAtual.endereco;qs('#e-email').value=empresaAtual.email||'';qs('#e-phone').value=empresaAtual.phone||'';qs('#e-zap').value=empresaAtual.whatsapp||'';
+  qs('#e-end').value=empresaAtual.endereco;qs('#e-email').value=empresaAtual.email||'';qs('#e-contador').value=empresaAtual.contador||'';preencherCompetenciasContador();qs('#e-phone').value=empresaAtual.phone||'';qs('#e-zap').value=empresaAtual.whatsapp||'';
   qs('#e-series').value=empresaAtual.series||1;qs('#e-next').value=empresaAtual.next||1;qs('#e-simple-ap').value=String(empresaAtual.simpleAp||1);qs('#e-simple-total').value=empresaAtual.simpleTotal===''?'':String(empresaAtual.simpleTotal).replace('.',',');qs('#e-tax-fed').value=empresaAtual.taxFed===''||empresaAtual.taxFed==null?'':String(empresaAtual.taxFed).replace('.',',');qs('#e-tax-est').value=empresaAtual.taxEst===''||empresaAtual.taxEst==null?'':String(empresaAtual.taxEst).replace('.',',');qs('#e-tax-mun').value=empresaAtual.taxMun===''||empresaAtual.taxMun==null?'':String(empresaAtual.taxMun).replace('.',',');qs('#e-special').value=String(empresaAtual.special||0);
   // Antes só setava o campo oculto (#s-mun) — #s-mun-search (texto exibido)
   // ficava vazio até o usuário mexer manualmente, o que faria a nova trava de
@@ -4912,3 +4912,57 @@ function supOpen(){qs('#sup-panel').classList.add('on');qs('#sup-fab').classList
 function supClose(){qs('#sup-panel')?.classList.remove('on');qs('#sup-fab')?.classList.remove('open-state');}
 function supToggle(){const p=qs('#sup-panel');if(!p)return;p.classList.contains('on')?supClose():supOpen();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&qs('#sup-panel')?.classList.contains('on'))supClose();});
+
+/* ── Pacote contábil do mês (20/08/2026) ────────────────────────────────────
+   Todo dia 01 às 05h30 o TITAN manda pro contador o .zip com o XML das notas
+   do mês que fechou e o livro de serviços prestados em PDF. O botão abaixo
+   dispara o MESMO caminho na hora, pra dar pra conferir sem esperar virar o
+   mês. */
+function preencherCompetenciasContador(){
+  const sel=qs('#e-contador-comp'); if(!sel||sel.options.length)return;
+  // Últimas 6 competências fechadas, a mais recente primeiro — é a que o
+  // envio automático usaria hoje, então vem pré-selecionada.
+  const meses=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const hoje=new Date();
+  for(let i=1;i<=6;i++){
+    const d=new Date(hoje.getFullYear(),hoje.getMonth()-i,1);
+    const valor=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    sel.insertAdjacentHTML('beforeend',`<option value="${valor}">${meses[d.getMonth()]}/${d.getFullYear()}</option>`);
+  }
+}
+
+async function testarEnvioContador(){
+  return emVoo('teste-contador',async()=>{
+    const box=qs('#e-contador-status'), btn=qs('#btn-testar-contador');
+    const email=qs('#e-contador').value.trim();
+    box.style.display='block'; box.className='alert a-info';
+    box.textContent='Montando o pacote e enviando…';
+    if(btn)btn.disabled=true;
+    try{
+      // O teste usa o e-mail JÁ GRAVADO, não o que está na tela. Se enviasse
+      // para o campo não salvo, o resultado diria "deu certo" e no dia 01 o
+      // pacote iria para outro endereço — o teste teria mentido.
+      if(email!==(empresaAtual?.contador||'')){
+        box.className='alert a-warn';
+        box.innerHTML='<b>Salve o cadastro primeiro.</b><br>O teste usa o e-mail já gravado no servidor, não o que está digitado aqui.';
+        return;
+      }
+      const r=await api('/api/company/accountant-package/test',{method:'POST',body:JSON.stringify({period:qs('#e-contador-comp').value})});
+      if(!r.enviado){
+        box.className='alert a-warn';
+        box.innerHTML=`<b>Não foi enviado.</b><br>${esc(r.erro||'Falha desconhecida.')}`;
+        return;
+      }
+      box.className='alert a-ok';
+      const canceladas=r.canceladas?` (${r.ativas} ativa(s) e ${r.canceladas} cancelada(s) — o total soma só as ativas)`:'';
+      box.innerHTML=`<b>Enviado para ${esc(r.destinatario)}.</b>`+
+        `<br>Competência ${esc(r.competencia)} — ${r.notas} nota(s)${canceladas}.`+
+        `<br>Total: R$ ${brl(Number(r.total||0))}`+
+        `<br>Anexo: <code>${esc(r.arquivo)}</code>, com ${r.xmlsNoZip} XML(s) e o <code>${esc(r.livro)}</code>.`+
+        (r.usouEmailDoContador?'':'<br><b>Atenção:</b> foi para o e-mail da empresa porque o e-mail do contador está em branco.');
+    }catch(e){
+      box.className='alert a-warn';
+      box.innerHTML=`<b>Não foi enviado.</b><br>${esc(e.message||String(e))}`;
+    }finally{ if(btn)btn.disabled=false; }
+  });
+}
