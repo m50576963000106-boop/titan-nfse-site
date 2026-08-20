@@ -750,14 +750,76 @@ async function carregarRecebimentos(){
   if(dueTo)query+='&dueTo='+encodeURIComponent(dueTo);
   if(clientFilter)query+='&search='+encodeURIComponent(clientFilter);
   try{
-    const [summary,items]=await Promise.all([api('/api/workspace/receivables/summary'),api('/api/workspace/receivables'+query)]);
-    recebimentos=items||[];
+    // O painel de números recebe o MESMO recorte da lista (pedido do usuário,
+    // 20/08/2026). Antes o resumo era sempre da empresa inteira: filtrar por
+    // cliente ou por período mudava a lista e não mudava número nenhum, então
+    // os dois discordavam na mesma tela.
+    const [summary,items]=await Promise.all([api('/api/workspace/receivables/summary'+query),api('/api/workspace/receivables'+query)]);
+    recebimentos=ordenarRecebimentos(items||[]);
     qs('#rec-open').textContent='R$ '+brl(Number(summary.open_amount||0));
     qs('#rec-overdue').textContent='R$ '+brl(Number(summary.overdue_amount||0));
-    qs('#rec-month').textContent='R$ '+brl(Number(summary.received_month||0));
+    qs('#rec-month').textContent='R$ '+brl(Number(summary.received_amount||0));
     qs('#rec-nfse').textContent=String(summary.pending_nfse||0);
+    const total=qs('#rec-total');if(total)total.textContent='R$ '+brl(Number(summary.total_amount||0));
+    const contagem=qs('#rec-contagem');
+    if(contagem)contagem.textContent=`${Number(summary.total_count||0).toLocaleString('pt-BR')} lançamento(s) no filtro · ${Number(summary.received_count||0).toLocaleString('pt-BR')} já recebido(s)`;
     qs('#rec-list').innerHTML=recebimentos.length?recebimentos.map(renderRecebimento).join(''):'<div class="empty-state">Nenhum recebimento para o filtro selecionado.</div>';
   }catch(error){qs('#rec-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+}
+/* ---------- relatórios do filtro atual (20/08/2026) ---------------------- */
+// Relatório sai do MESMO recorte que está na tela. Um relatório que ignora o
+// filtro é um número que ninguém consegue conferir olhando a lista.
+function alternarRelatorioRecebimentos(){
+  const box=qs('#rec-report');if(!box)return;
+  const abrindo=box.style.display==='none';
+  box.style.display=abrindo?'':'none';
+  const btn=qs('#rec-report-btn');if(btn)btn.textContent=abrindo?'Ocultar relatórios':'Relatórios';
+  if(abrindo)renderRelatorioRecebimentos();
+}
+function somarPor(lista,chave){
+  const mapa=new Map();
+  lista.forEach(item=>{const k=chave(item)||'—';const a=mapa.get(k)||{qtd:0,total:0};a.qtd++;a.total+=Number(item.amount||0);mapa.set(k,a)});
+  return [...mapa.entries()].sort((a,b)=>b[1].total-a[1].total);
+}
+function tabelaDoRelatorio(titulo,linhas,rotulo=v=>v){
+  if(!linhas.length)return '';
+  const corpo=linhas.map(([chave,v])=>`<tr><td>${esc(rotulo(chave))}</td><td style="text-align:right">${v.qtd}</td><td style="text-align:right">R$ ${brl(v.total)}</td></tr>`).join('');
+  return `<h3 class="hint" style="margin:12px 0 6px"><b>${esc(titulo)}</b></h3><div class="tbl-scroll"><table class="tbl-cards-mobile"><thead><tr><th>${esc(titulo)}</th><th style="text-align:right">Qtd</th><th style="text-align:right">Valor</th></tr></thead><tbody>${corpo}</tbody></table></div>`;
+}
+function renderRelatorioRecebimentos(){
+  const box=qs('#rec-report-body');if(!box)return;
+  if(!recebimentos.length){box.innerHTML='<div class="empty-state">Sem lançamentos no filtro atual.</div>';return}
+  const situacao={draft:'Rascunho',scheduled:'Agendado',to_charge:'A cobrar',charged:'Cobrado',received:'Recebido',overdue:'Vencido',cancelled:'Cancelado'};
+  box.innerHTML=[
+    tabelaDoRelatorio('Situação',somarPor(recebimentos,i=>i.status),v=>situacao[v]||v),
+    tabelaDoRelatorio('Mês de vencimento',somarPor(recebimentos,i=>String(i.due_date||'').slice(0,7))),
+    tabelaDoRelatorio('Cliente',somarPor(recebimentos,i=>i.customer_name).slice(0,15))
+  ].join('');
+}
+function exportarRecebimentosCsv(){
+  if(!recebimentos.length){alert('Nada para exportar no filtro atual.');return}
+  const cabecalho=['Vencimento','Competência','Cliente','CPF/CNPJ','Título','Valor','Situação','Fiscal','Cobrança'];
+  // Ponto e vírgula + BOM: é o que o Excel em português abre sem perguntar nada.
+  const escapar=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const linhas=recebimentos.map(i=>[i.due_date,i.competence,i.customer_name,i.customer_tax_id,i.title,Number(i.amount||0).toFixed(2).replace('.',','),i.status,i.fiscal_status,i.collection_status].map(escapar).join(';'));
+  const blob=new Blob(['﻿'+[cabecalho.join(';'),...linhas].join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=`recebimentos-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// Ordenação escolhida na tela (pedido do usuário, 20/08/2026: "adicione o
+// vencimento correto nos campos para poder organizar os recebimentos").
+// O padrão continua sendo por vencimento, do mais próximo ao mais distante.
+let recebimentoOrdem='due_asc';
+function trocarOrdemRecebimentos(valor){recebimentoOrdem=valor;recebimentos=ordenarRecebimentos(recebimentos);qs('#rec-list').innerHTML=recebimentos.length?recebimentos.map(renderRecebimento).join(''):'<div class="empty-state">Nenhum recebimento para o filtro selecionado.</div>'}
+function ordenarRecebimentos(lista){
+  const porData=(a,b)=>String(a.due_date).localeCompare(String(b.due_date));
+  const porValor=(a,b)=>Number(a.amount||0)-Number(b.amount||0);
+  const porCliente=(a,b)=>String(a.customer_name||'').localeCompare(String(b.customer_name||''),'pt-BR');
+  const regra={due_asc:porData,due_desc:(a,b)=>porData(b,a),amount_desc:(a,b)=>porValor(b,a),amount_asc:porValor,client:porCliente}[recebimentoOrdem]||porData;
+  return [...lista].sort(regra);
 }
 function renderRecebimento(item){
   const due=new Date(item.due_date+'T00:00:00').toLocaleDateString('pt-BR'),amount='R$ '+brl(Number(item.amount||0));
@@ -2790,8 +2852,11 @@ async function carregarAgenda(){
     // "vence dia 10, a nota sai dia 1" é informação que não existia em
     // lugar nenhum da tela.
     agendaItens=[
-      ...(data.receivables||[]).map(r=>({data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'recebimento',status:r.status,emissao:null})),
-      ...(data.recurring||[]).map(r=>({data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'previsto',status:null,emissao:r.emission_date||null}))
+      // id e contrato viajam junto porque a Agenda passou a poder editar e
+      // excluir o lançamento (pedido do usuário, 20/08/2026) — sem eles a
+      // linha do calendário não sabe em quem mexer.
+      ...(data.receivables||[]).map(r=>({id:r.id,data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'recebimento',status:r.status,emissao:null,contrato:r.invoice_recurrence_id||null,previsto:Boolean(r.invoice_recurrence_id)&&!r.invoice_id})),
+      ...(data.recurring||[]).map(r=>({id:r.id,data:r.due_date,cliente:r.customer_name,titulo:r.title,valor:r.amount,tipo:'previsto',status:null,emissao:r.emission_date||null,contrato:r.recurrence_id||null,previsto:true}))
     ];
     renderCalendarioAgenda();
   }catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
@@ -2864,12 +2929,38 @@ function mostrarDiaAgenda(dia){
     const quantos=itensDoDia.filter(item=>agendaItemNoFiltro(item,id)).length;
     return `<button class="btn btn-s comm-tab-btn${agendaFiltro===id?' on':''}" type="button" onclick="filtrarDiaAgenda('${id}')">${label} (${quantos})</button>`;
   }).join('');
+  // Uma linha por lançamento (pedido do usuário, 20/08/2026). O cartão de três
+  // linhas empurrava um dia com 5 vencimentos para fora da tela; aqui o que
+  // importa é varrer a lista, não ler cada item em detalhe.
   const lista=visiveis.length?visiveis.map(item=>{
-    const tipoPill=item.tipo==='previsto'?'<span class="pill p-off" title="Nota recorrente ainda não emitida — vira recebimento quando disparar">Nota recorrente prevista</span>':(()=>{const [c,l]=AGENDA_STATUS_LABEL[item.status]||['p-off',item.status];return `<span class="pill ${c}">${l}</span>`})();
-    const emissao=item.emissao?`<div class="hint">Nota prevista para ${new Date(item.emissao+'T00:00:00').toLocaleDateString('pt-BR')}</div>`:'';
-    return `<div class="draft-item"><div><b>${esc(item.titulo)}</b><span>${esc(item.cliente)} · R$ ${brl(Number(item.valor||0))}</span>${emissao}</div><div class="acts" style="margin-top:8px">${tipoPill}</div></div>`;
+    const tipoPill=item.tipo==='previsto'||item.previsto
+      ?'<span class="pill p-gold" title="Nota recorrente ainda não emitida — vira recebimento quando o contrato disparar">Previsto</span>'
+      :(()=>{const [c,l]=AGENDA_STATUS_LABEL[item.status]||['p-off',item.status];return `<span class="pill ${c}">${l}</span>`})();
+    const emissao=item.emissao?` · nota em ${new Date(item.emissao+'T00:00:00').toLocaleDateString('pt-BR')}`:'';
+    const acoes=[
+      item.contrato?`<button class="btn btn-s" type="button" title="Abrir o contrato que gera este lançamento" onclick="editarContratoDaAgenda('${item.contrato}')">Editar</button>`:'',
+      item.tipo==='recebimento'?`<button class="btn btn-s" type="button" title="Cancela este lançamento (não apaga o contrato nem a nota)" onclick="cancelarLancamentoAgenda('${item.id}')">Excluir</button>`:''
+    ].join('');
+    return `<div class="draft-item" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px">
+      <span style="flex:1;min-width:180px"><b>${esc(item.titulo)}</b> <span class="hint" style="display:inline">· ${esc(item.cliente)}${emissao}</span></span>
+      <b style="white-space:nowrap">R$ ${brl(Number(item.valor||0))}</b>${tipoPill}${acoes}</div>`;
   }).join(''):'<div class="empty-state">Nenhum lançamento neste filtro.</div>';
-  box.innerHTML=`<h3>${dia} de ${AGENDA_MESES[mes]} <span style="font-weight:400;color:var(--ink-3);font-size:12.5px">· R$ ${brl(total)} em ${AGENDA_FILTROS.find(([id])=>id===agendaFiltro)[1].toLowerCase()}</span></h3><div class="agenda-day-filters">${filtros}</div>${lista}`;
+  const atalho='<button class="btn btn-s" type="button" style="margin-left:auto" onclick="irParaRecebimentos()">Ver em Recebimentos</button>';
+  box.innerHTML=`<h3>${dia} de ${AGENDA_MESES[mes]} <span style="font-weight:400;color:var(--ink-3);font-size:12.5px">· R$ ${brl(total)} em ${AGENDA_FILTROS.find(([id])=>id===agendaFiltro)[1].toLowerCase()}</span></h3><div class="agenda-day-filters" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${filtros}${atalho}</div>${lista}`;
+}
+/** Atalho pedido em 20/08/2026: da Agenda direto para a tela que edita de verdade. */
+function irParaRecebimentos(){go('recebimentos',qs('.sb-nav.user-sidebar button.sb-link[onclick*="recebimentos"]'))}
+function editarContratoDaAgenda(contratoId){
+  go('recorrentes',qs('.sb-nav.user-sidebar button.sb-link[onclick*="recorrentes"]'));
+  // carregarRecorrencias() é quem popula a lista que editarRecorrencia() lê.
+  carregarRecorrencias().then(()=>editarRecorrencia(contratoId)).catch(()=>{});
+}
+async function cancelarLancamentoAgenda(id){
+  // Não existe exclusão física de recebimento — e é proposital: o histórico
+  // financeiro não some, ele fica cancelado. A Agenda já não mostra cancelado.
+  if(!await titanConfirm('Cancelar este lançamento?\n\nEle sai da Agenda e das somas. O contrato recorrente e qualquer nota fiscal continuam como estão.','Cancelar lançamento','err'))return;
+  try{await api('/api/workspace/receivables/'+id+'/status',{method:'PATCH',body:JSON.stringify({status:'cancelled'})});await carregarAgenda()}
+  catch(error){alert(error.message)}
 }
 async function carregarRecorrencias(){
   try{
