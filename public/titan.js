@@ -3874,6 +3874,14 @@ async function carregarConfiguracoesMaster(){
     qs('#set-nubank-oauth').value=data.nubankOauthUrl||'';
     qs('#set-nubank-id').value=data.nubankClientId||'';
     qs('#set-nubank-secret').value='';qs('#set-nubank-webhook').value='';
+    // Segredos nunca voltam do servidor — só o "tem ou não tem". Os campos de
+    // arquivo ficam vazios de propósito: reenviar é opcional.
+    qs('#set-pix-chave').value=data.pixChaveRecebedor||'';qs('#set-pix-escopos').value=data.pixEscopos||'';
+    qs('#set-nubank-cert-pass').value='';qs('#set-nubank-cert-data').value='';qs('#set-nubank-cert-key-data').value='';
+    const certEstado=qs('#set-nubank-cert-estado');
+    if(certEstado)certEstado.textContent=data.hasNubankCertificate
+      ?'Certificado gravado. Envie um arquivo novo só para substituir.'
+      :'Nenhum certificado enviado. Se o banco exigir mTLS, a conexão será recusada sem ele.';
     qs('#set-accountant-enabled').value=String(Boolean(data.accountantCronEnabled));
     qs('#set-portal-logo-data').value=data.portalLogoDataUrl||'';
     aplicarLogoPortal(data.portalLogoDataUrl||'');
@@ -3909,6 +3917,8 @@ async function salvarConfiguracoesMaster(){
     const data=await api('/api/master/settings',{method:'PUT',body:JSON.stringify({
       nubankEnabled:qs('#set-nubank-enabled').value==='true',nubankApiBaseUrl:qs('#set-nubank-api').value.trim(),nubankOauthUrl:qs('#set-nubank-oauth').value.trim(),nubankClientId:qs('#set-nubank-id').value.trim(),nubankClientSecret:qs('#set-nubank-secret').value,nubankWebhookSecret:qs('#set-nubank-webhook').value,
       accountantCronEnabled:qs('#set-accountant-enabled').value==='true',
+      pixChaveRecebedor:qs('#set-pix-chave').value.trim(),pixEscopos:qs('#set-pix-escopos').value.trim(),
+      nubankCertificateBase64:qs('#set-nubank-cert-data').value,nubankCertificateKeyBase64:qs('#set-nubank-cert-key-data').value,nubankCertificatePassphrase:qs('#set-nubank-cert-pass').value,
       portalLogoDataUrl:qs('#set-portal-logo-data').value,
       businessPhone:qs('#set-comm-business-phone').value.trim(),businessPhoneEnabled:qs('#set-comm-phone-enabled').value==='true',
       whatsappEnabled:qs('#set-wa-enabled').value==='true',whatsappDisplayName:qs('#set-wa-display-name').value.trim(),metaGraphApiVersion:qs('#set-wa-graph-version').value.trim(),metaBusinessId:qs('#set-wa-meta-business-id').value.trim(),whatsappBusinessAccountId:qs('#set-wa-waba-id').value.trim(),whatsappPhoneNumberId:qs('#set-wa-phone-number-id').value.trim(),metaAppId:qs('#set-wa-app-id').value.trim(),
@@ -5002,4 +5012,58 @@ async function carregarMetricasMartyn(){
         `<small>${quando}</small></div>`;
     }).join(''):'<div class="empty-state">Nenhuma falha registrada no período.</div>';
   }catch(error){falhas.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+}
+
+/* ── Certificado mTLS do banco (20/08/2026) ─────────────────────────────────
+   A API Pix do Banco Central exige certificado do cliente em cada chamada. O
+   arquivo é lido aqui e vai em base64 no mesmo PUT das demais credenciais —
+   nunca volta do servidor, que só informa se existe ou não. */
+const LIMITE_CERT_BYTES = 128 * 1024;
+
+function lerArquivoBase64(input, destino, aoTerminar){
+  const arquivo = input.files?.[0];
+  if(!arquivo)return;
+  if(arquivo.size > LIMITE_CERT_BYTES){
+    alert('Arquivo grande demais para ser um certificado ('+Math.round(arquivo.size/1024)+' KB). Confira se é o arquivo certo.');
+    input.value=''; return;
+  }
+  const leitor = new FileReader();
+  leitor.onload = () => {
+    // dataURL vem como "data:...;base64,XXXX" — só a parte depois da vírgula.
+    qs(destino).value = String(leitor.result).split(',')[1] || '';
+    aoTerminar?.(arquivo);
+  };
+  leitor.readAsDataURL(arquivo);
+}
+
+function carregarCertificadoBanco(input){
+  lerArquivoBase64(input, '#set-nubank-cert-data', arquivo => {
+    qs('#set-nubank-cert-estado').textContent =
+      `${arquivo.name} carregado (${Math.round(arquivo.size/1024)} KB). Clique em Salvar configurações para gravar.`;
+  });
+}
+
+function carregarChaveBanco(input){ lerArquivoBase64(input, '#set-nubank-cert-key-data'); }
+
+async function testarConexaoBanco(){
+  return emVoo('teste-banco', async () => {
+    const box=qs('#set-nubank-teste'), btn=qs('#btn-testar-banco');
+    box.style.display='block'; box.className='alert a-info';
+    box.textContent='Autenticando no banco...';
+    if(btn)btn.disabled=true;
+    try{
+      const r=await api('/api/master/nubank/test',{method:'POST'});
+      const selo = r.mtls ? `com certificado mTLS (${esc(r.formato||'?')})` : 'sem certificado mTLS';
+      if(r.ok){
+        box.className='alert a-ok';
+        box.innerHTML=`<b>Conexão OK — ${selo}.</b><br>O banco autenticou e devolveu o token. As cobranças podem ser criadas.`;
+      }else{
+        box.className='alert a-warn';
+        box.innerHTML=`<b>Não conectou (${selo}).</b><br>${esc(r.erro||'Falha desconhecida.')}`;
+      }
+    }catch(error){
+      box.className='alert a-warn';
+      box.innerHTML=`<b>Não conectou.</b><br>${esc(error.message||String(error))}`;
+    }finally{ if(btn)btn.disabled=false; }
+  });
 }
