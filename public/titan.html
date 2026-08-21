@@ -200,10 +200,24 @@
           <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/><circle cx="12" cy="12" r="9"/></svg></div>
           <div class="dash-stat-copy"><span>Autorizadas</span><strong id="dash-autorizadas">0</strong><small id="dash-autorizadas-sub">Aguardando a primeira nota</small></div>
         </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/></svg></div>
+          <div class="dash-stat-copy"><span>Canceladas</span><strong id="dash-canceladas">0</strong><small id="dash-canceladas-sub">Nenhum cancelamento no mês</small></div>
+        </div>
         <div class="dash-stat attention">
           <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></div>
           <div class="dash-stat-copy"><span>Requer atenção</span><strong id="dash-pendencias">0</strong><small id="dash-pendencias-sub">Tudo em dia</small></div>
         </div>
+      </div>
+
+      <!-- Faixa de competência (desenho do usuário, 20/08/2026). Sem o card de
+           "tudo conciliado": ele foi retirado a pedido dele, e pintar
+           conciliação sem alguém ter conciliado seria pior do que não ter. -->
+      <div class="flex wrap" id="dash-competencia" style="gap:16px;align-items:center;margin:14px 0;padding:10px 14px;border:1px solid var(--line);border-radius:10px">
+        <b style="white-space:nowrap">Competência: <span id="dash-comp-label">—</span></b>
+        <span class="hint"><b id="dash-comp-notas">0</b> nota(s) emitida(s)</span>
+        <span class="hint"><b id="dash-comp-faturamento">R$ 0,00</b> de faturamento</span>
+        <span class="hint" id="dash-comp-certificado" style="margin-left:auto">—</span>
       </div>
 
       <div class="cgsn" style="margin-bottom:16px;padding:13px 16px;gap:14px">
@@ -233,6 +247,8 @@
             <button class="quick-action" type="button" onclick="go('clientes',qs('.sb-link[onclick*=&quot;clientes&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21c.7-4 3-6 7-6s6.3 2 7 6M19 8v6M16 11h6"/></svg><b>Novo cliente</b><span>Cadastre ou consulte por CNPJ</span></button>
             <button class="quick-action" type="button" onclick="go('comercial',qs('.sb-link[onclick*=&quot;comercial&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5M8 17h7"/></svg><b>Orçamento / O.S.</b><span>Prepare um documento comercial</span></button>
             <button class="quick-action" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"/></svg><b>Ver notas</b><span>Histórico e ações fiscais</span></button>
+            <button class="quick-action" type="button" data-feature="dasn_simei" onclick="go('dasn',qs('.sb-link[onclick*=&quot;dasn&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6"/></svg><b>DASN-SIMEI</b><span>Resumo anual do MEI</span></button>
+            <button class="quick-action" type="button" data-permission="financial" onclick="go('recebimentos',qs('.sb-nav.user-sidebar button.sb-link[onclick*=&quot;recebimentos&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><b>Relatórios</b><span>Notas, faturamento e mais</span></button>
             <button class="quick-action" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><b>Certificado A1</b><span>Confira a validade do certificado</span></button>
           </div>
         </div>

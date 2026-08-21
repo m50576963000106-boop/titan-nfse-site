@@ -2202,8 +2202,42 @@ function renderDashboard(){
   const rejectedCount=stats?stats.rejected_count:notas.filter(n=>n.st==='err').length;
   const processingCount=stats?stats.processing_count:notas.filter(n=>n.st==='proc').length;
   const set=(id,value)=>{const el=qs(id);if(el)el.textContent=value};
+  /**
+   * Variação contra o mês anterior (desenho do usuário, 20/08/2026).
+   *
+   * Mês anterior zerado NÃO vira percentual: divisão por zero não tem
+   * resultado, e "↑ 100%" ou "↑ 12%" saindo de R$ 0,00 é número inventado
+   * numa tela que o cliente usa para conferir faturamento. Nesse caso a frase
+   * diz o que de fato aconteceu.
+   */
+  function variacaoDoMes(atual){
+    const lista=dashboardStats?.months||[];
+    if(lista.length<2)return atual?`Total do mês · ${monthAuthorized} autorizada(s)`:'Sem movimento';
+    const anterior=Number(lista[lista.length-2]?.amount||0);
+    if(!atual)return 'Sem movimento neste mês';
+    if(!anterior)return 'Primeiro mês com faturamento';
+    const pct=((atual-anterior)/anterior)*100;
+    const seta=pct>=0?'↑':'↓';
+    return `${seta} ${Math.abs(pct).toFixed(0)}% vs. mês anterior`;
+  }
   set('#dash-notas',String(monthCount));set('#dash-notas-sub',monthCount?`${monthAuthorized} autorizada(s) no mês`:'Nenhuma emissão registrada');
-  set('#dash-faturamento',`R$ ${brl(monthAmount)}`);set('#dash-faturamento-sub',monthAmount?`Total do mês · ${monthAuthorized} autorizada(s)`:'Sem movimento');
+  set('#dash-faturamento',`R$ ${brl(monthAmount)}`);set('#dash-faturamento-sub',variacaoDoMes(monthAmount));
+  set('#dash-canceladas',String(stats?.canceled_count||0));
+  set('#dash-canceladas-sub',stats?.canceled_count?'Fora do faturamento do mês':'Nenhum cancelamento no mês');
+  // Faixa de competência (desenho do usuário, 20/08/2026).
+  const meses=dashboardStats?.months||[];
+  const compAtual=meses.length?meses[meses.length-1].month:'';
+  set('#dash-comp-label',compAtual?`${compAtual.slice(5,7)}/${compAtual.slice(0,4)}`:'—');
+  set('#dash-comp-notas',String(monthCount));
+  set('#dash-comp-faturamento',`R$ ${brl(monthAmount)}`);
+  const certChip=dashboardStats?.certificate;
+  // dataBR e não new Date(...).toLocaleDateString: a data vem como ISO, e o
+  // construtor a lê como meia-noite UTC — em UTC-3 isso exibe o DIA ANTERIOR.
+  // Certificado "válido até 31/05" quando vale até 01/06 é um dia a menos de
+  // validade na tela de quem depende dele para emitir.
+  set('#dash-comp-certificado',certChip?.validTo
+    ? `Certificado A1 válido até ${dataBR(certChip.validTo)}`
+    : 'Certificado A1 não cadastrado');
   set('#dash-autorizadas',String(authorized.length));set('#dash-autorizadas-sub',authorized.length?`R$ ${brl(total)} no histórico`:'Aguardando a primeira nota');
   const pendingCount=rejectedCount+processingCount+(!empresaAtual?1:0);set('#dash-pendencias',String(pendingCount));set('#dash-pendencias-sub',pendingCount?`${rejectedCount+processingCount} nota(s) para revisar no mês`:'Tudo em dia no mês');
   const certificado=dashboardStats?.certificate||null;
