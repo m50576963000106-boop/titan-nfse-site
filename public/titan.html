@@ -179,11 +179,21 @@
 
     <!-- ---------- PAINEL ---------- -->
     <section class="view on" id="v-painel">
+      <!-- Cabeçalho (desenho do dono do produto, 21/08/2026): sem o sobretítulo
+           "Visão geral" — o nome da empresa e os dois selos já dizem onde se
+           está, e a linha extra só empurrava o conteúdo para baixo. -->
       <div class="dash-hero">
         <div class="dash-hero-copy">
-          <div class="eyebrow">Visão geral</div>
           <h1 id="dash-greeting">Olá, usuário 👋</h1>
           <p id="painel-sub">Cadastre a primeira empresa para iniciar os testes.</p>
+          <!-- Os dois selos saem de dado real: validade do certificado vem do
+               GET /api/dashboard e a situação do Portal Nacional é o mesmo
+               ambiente que o rodapé do login consulta. Selo verde fixo seria
+               dizer "está tudo no ar" sem ter perguntado. -->
+          <div class="dash-selos" id="dash-selos">
+            <span class="dash-selo" id="dash-selo-cert"><span class="selo-dot"></span><b>Certificado A1</b></span>
+            <span class="dash-selo" id="dash-selo-portal"><span class="selo-dot"></span><b>Portal Nacional</b></span>
+          </div>
         </div>
         <button class="dash-primary" type="button" onclick="go('emitir',qs('.sb-link[onclick*=&quot;emitir&quot;]'),true)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
@@ -191,22 +201,22 @@
         </button>
       </div>
 
+      <!-- Quatro indicadores, não cinco. O quinto ("Notas no mês") quebrava
+           sozinho numa segunda linha porque .dash-stats sempre foi grid de 4
+           colunas — a contagem de notas passou para a faixa de competência,
+           onde já convive com faturamento da mesma competência. -->
       <div class="dash-stats" aria-label="Resumo da empresa">
-        <div class="dash-stat">
-          <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></div>
-          <div class="dash-stat-copy"><span>Notas no mês</span><strong id="dash-notas">0</strong><small id="dash-notas-sub">Nenhuma emissão registrada</small></div>
-        </div>
-        <div class="dash-stat">
+        <div class="dash-stat s-money">
           <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg></div>
-          <div class="dash-stat-copy"><span>Faturamento bruto</span><strong id="dash-faturamento">R$ 0,00</strong><small id="dash-faturamento-sub">Sem movimento</small></div>
+          <div class="dash-stat-copy"><span>Faturamento no mês</span><strong id="dash-faturamento">R$ 0,00</strong><small id="dash-faturamento-sub">Sem movimento</small></div>
         </div>
-        <div class="dash-stat">
+        <div class="dash-stat s-ok">
           <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/><circle cx="12" cy="12" r="9"/></svg></div>
-          <div class="dash-stat-copy"><span>Autorizadas</span><strong id="dash-autorizadas">0</strong><small id="dash-autorizadas-sub">Aguardando a primeira nota</small></div>
+          <div class="dash-stat-copy"><span>NFS-e autorizadas</span><strong id="dash-autorizadas">0</strong><small id="dash-autorizadas-sub">Aguardando a primeira nota</small></div>
         </div>
-        <div class="dash-stat">
+        <div class="dash-stat s-canc">
           <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/></svg></div>
-          <div class="dash-stat-copy"><span>Canceladas</span><strong id="dash-canceladas">0</strong><small id="dash-canceladas-sub">Nenhum cancelamento no mês</small></div>
+          <div class="dash-stat-copy"><span>NFS-e canceladas</span><strong id="dash-canceladas">0</strong><small id="dash-canceladas-sub">R$ 0,00 no mês</small></div>
         </div>
         <div class="dash-stat attention">
           <div class="dash-stat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></div>
@@ -214,26 +224,35 @@
         </div>
       </div>
 
-      <!-- Faixa de competência (desenho do usuário, 20/08/2026). Sem o card de
-           "tudo conciliado": ele foi retirado a pedido dele, e pintar
-           conciliação sem alguém ter conciliado seria pior do que não ter. -->
-      <div class="flex wrap" id="dash-competencia" style="gap:16px;align-items:center;margin:14px 0;padding:10px 14px;border:1px solid var(--line);border-radius:10px">
-        <b style="white-space:nowrap">Competência: <span id="dash-comp-label">—</span></b>
-        <span class="hint"><b id="dash-comp-notas">0</b> nota(s) emitida(s)</span>
-        <span class="hint"><b id="dash-comp-faturamento">R$ 0,00</b> de faturamento</span>
-        <span class="hint" id="dash-comp-certificado" style="margin-left:auto">—</span>
-      </div>
-
-      <!-- Saúde fiscal (pedido do usuário, 21/08/2026): certificado válido,
-           notas emitidas e canceladas, erro nas emissões manual e recorrente.
-           Sem nota de 0 a 100 — o nível é o PIOR item, porque média deixaria
-           "certificado vencido" parecer saudável ao lado de quatro itens bons. -->
-      <div class="card" id="dash-saude" style="margin:0 0 16px">
-        <div class="dash-card-h">
-          <div><h2>Saúde fiscal</h2><p id="dash-saude-resumo">Verificando…</p></div>
-          <span class="pill p-off right" id="dash-saude-nivel">—</span>
+      <!-- Faixa de competência (desenho do dono do produto, 21/08/2026).
+           A conciliação voltou, mas SÓ como leitura do que já foi conferido:
+           sai de fiscal_synced_at/fiscal_sync_divergent das notas carregadas.
+           Sem nota conferida ela diz "conciliação pendente" — nunca pinta
+           "tudo conciliado" por não ter encontrado divergência em nada. -->
+      <div class="card comp-band" id="dash-competencia">
+        <div class="comp-item comp-item-lead">
+          <span class="comp-ico comp-ico-dark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg></span>
+          <div class="comp-copy"><b id="dash-comp-label">Competência: —</b></div>
         </div>
-        <div class="dash-pending" id="dash-saude-itens"></div>
+        <div class="comp-item">
+          <span class="comp-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></span>
+          <div class="comp-copy"><b id="dash-comp-notas">0</b><small>Notas emitidas</small></div>
+        </div>
+        <div class="comp-item">
+          <span class="comp-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg></span>
+          <div class="comp-copy"><b id="dash-comp-faturamento">R$ 0,00</b><small>Faturamento</small></div>
+        </div>
+        <div class="comp-item">
+          <span class="comp-ico" id="dash-comp-conc-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span>
+          <div class="comp-copy"><b id="dash-comp-conciliacao">—</b><small>Sistema e Portal Nacional</small></div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-copy"><b id="dash-comp-sync">—</b><small id="dash-comp-sync-sub">Última importação: —</small></div>
+        </div>
+        <button class="btn btn-s comp-sync" type="button" onclick="sincronizarPortalDoPainel()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg>
+          Sincronizar agora
+        </button>
       </div>
 
       <div class="cgsn" style="margin-bottom:16px;padding:13px 16px;gap:14px">
@@ -245,38 +264,70 @@
       </div>
 
       <div class="dash-grid">
-        <div class="card">
-          <div class="dash-card-h"><div><h2>Faturamento por competência</h2><p>Últimos meses</p></div><span class="pill p-off right" id="dash-chart-status">Sem movimento</span></div>
-          <div class="dash-chart chart" id="chart"></div>
+        <div class="dash-col">
+          <div class="card">
+            <div class="dash-card-h">
+              <div>
+                <h2>Faturamento por competência<span class="dash-info" tabindex="0" role="img" aria-label="Considera as notas ativas da competência: autorizadas menos canceladas."><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></span></h2>
+                <p id="dash-chart-sub">Últimos 6 meses</p>
+              </div>
+              <select class="dash-range" id="dash-chart-range" aria-label="Período do gráfico" onchange="chart()">
+                <option value="6" selected>6 meses</option>
+                <option value="12">12 meses</option>
+              </select>
+            </div>
+            <div class="dash-chart chart" id="chart"></div>
+            <!-- A legenda só cita a série de quantidade porque ela é desenhada
+                 de verdade (o ponto sobre cada barra). Legenda de série que não
+                 existe no gráfico é enfeite que o leitor tenta procurar. -->
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-swatch legend-bar"></span>Faturamento (R$)</span>
+              <span class="legend-item"><span class="legend-swatch legend-dot"></span>Quantidade de notas</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="dash-card-h"><div><h2>Ações rápidas</h2><p>Acesse as funções mais usadas</p></div></div>
+            <div class="quick-grid">
+              <button class="quick-action" type="button" onclick="go('emitir',qs('.sb-link[onclick*=&quot;emitir&quot;]'),true)"><span class="quick-ico qi-gold"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span><b>Emitir NFS-e</b><span>Nova nota fiscal de serviço</span></button>
+              <button class="quick-action" type="button" onclick="irParaImportacaoPortal()"><span class="quick-ico qi-blue"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg></span><b>Importar NFS-e</b><span>Do Portal Nacional</span></button>
+              <button class="quick-action" type="button" onclick="go('clientes',qs('.sb-link[onclick*=&quot;clientes&quot;]'))"><span class="quick-ico qi-green"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21c.7-4 3-6 7-6s6.3 2 7 6M19 8v6M16 11h6"/></svg></span><b>Clientes</b><span>Cadastrar ou consultar</span></button>
+              <button class="quick-action" type="button" data-feature="dasn_simei" onclick="go('dasn',qs('.sb-link[onclick*=&quot;dasn&quot;]'))"><span class="quick-ico qi-violet"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6"/></svg></span><b>DASN-SIMEI</b><span>Resumo anual</span></button>
+              <button class="quick-action" type="button" data-permission="financial" onclick="go('recebimentos',qs('.sb-nav.user-sidebar button.sb-link[onclick*=&quot;recebimentos&quot;]'))"><span class="quick-ico qi-teal"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><b>Relatórios</b><span>Notas, faturamento e mais</span></button>
+              <button class="quick-action" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="quick-ico qi-amber"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><b>Certificado A1</b><span>Gerenciar certificado</span></button>
+            </div>
+          </div>
         </div>
-        <div class="card">
-          <div class="dash-card-h"><div><h2>Central de pendências</h2><p>Itens que precisam de atenção</p></div></div>
-          <div class="dash-pending" id="dash-pending-list"></div>
+        <div class="dash-col">
+          <!-- Saúde fiscal (pedido do usuário, 21/08/2026): certificado válido,
+               notas emitidas e canceladas, erro nas emissões manual e recorrente.
+               Sem nota de 0 a 100 — o nível é o PIOR item, porque média deixaria
+               "certificado vencido" parecer saudável ao lado de quatro itens bons. -->
+          <div class="card" id="dash-saude">
+            <div class="dash-card-h">
+              <div><h2>Saúde fiscal</h2><p>Situação dos principais itens</p></div>
+              <div class="flex" style="gap:8px">
+                <span class="pill p-off" id="dash-saude-nivel">—</span>
+                <button class="btn btn-s" type="button" onclick="verDetalhesSaude()">Ver detalhes</button>
+              </div>
+            </div>
+            <div class="dash-pending" id="dash-saude-itens"></div>
+          </div>
+          <div class="card">
+            <div class="dash-card-h"><div><h2>Atividade recente</h2><p>Últimos eventos da empresa</p></div><button class="btn btn-s right" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))">Ver todas</button></div>
+            <div class="activity-list" id="dash-activity"></div>
+          </div>
         </div>
       </div>
 
       <div class="dash-bottom">
         <div class="card">
-          <div class="dash-card-h"><div><h2>Ações rápidas</h2><p>Acesse as funções mais usadas</p></div></div>
-          <div class="quick-grid">
-            <button class="quick-action" type="button" onclick="go('emitir',qs('.sb-link[onclick*=&quot;emitir&quot;]'),true)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><b>Emitir NFS-e</b><span>Nova nota fiscal de serviço</span></button>
-            <button class="quick-action" type="button" onclick="go('clientes',qs('.sb-link[onclick*=&quot;clientes&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21c.7-4 3-6 7-6s6.3 2 7 6M19 8v6M16 11h6"/></svg><b>Novo cliente</b><span>Cadastre ou consulte por CNPJ</span></button>
-            <button class="quick-action" type="button" onclick="go('comercial',qs('.sb-link[onclick*=&quot;comercial&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM8 9h8M8 13h5M8 17h7"/></svg><b>Orçamento / O.S.</b><span>Prepare um documento comercial</span></button>
-            <button class="quick-action" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"/></svg><b>Ver notas</b><span>Histórico e ações fiscais</span></button>
-            <button class="quick-action" type="button" data-feature="dasn_simei" onclick="go('dasn',qs('.sb-link[onclick*=&quot;dasn&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6"/></svg><b>DASN-SIMEI</b><span>Resumo anual do MEI</span></button>
-            <button class="quick-action" type="button" data-permission="financial" onclick="go('recebimentos',qs('.sb-nav.user-sidebar button.sb-link[onclick*=&quot;recebimentos&quot;]'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><b>Relatórios</b><span>Notas, faturamento e mais</span></button>
-            <button class="quick-action" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><b>Certificado A1</b><span>Confira a validade do certificado</span></button>
-          </div>
+          <div class="dash-card-h"><div><h2>Central de pendências</h2><p>Itens que precisam de atenção</p></div></div>
+          <div class="dash-pending" id="dash-pending-list"></div>
         </div>
         <div class="card">
-          <div class="dash-card-h"><div><h2>Atividade recente</h2><p>Últimos eventos da empresa</p></div><button class="btn btn-s right" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))">Ver todas</button></div>
-          <div class="activity-list" id="dash-activity"></div>
+          <div class="dash-card-h"><div><h2>Causas de rejeição</h2><p>Últimos 30 dias, agrupadas por motivo</p></div></div>
+          <div class="dash-pending" id="dash-rejeicoes-list"></div>
         </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <div class="dash-card-h"><div><h2>Causas de rejeição</h2><p>Últimos 30 dias, agrupadas por motivo</p></div></div>
-        <div class="dash-pending" id="dash-rejeicoes-list"></div>
       </div>
 
       <div class="card" style="margin-top:16px">
@@ -287,6 +338,21 @@
             <tbody id="ult"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- Rodapé do Painel (desenho do dono do produto, 21/08/2026): de onde
+           vieram os números e para onde ir quando não bater. A data da última
+           importação é a mesma do topo — sai da conciliação real, não é texto fixo. -->
+      <div class="dash-foot">
+        <button class="dash-foot-sync" type="button" onclick="sincronizarPortalDoPainel()">
+          <span id="dash-foot-import">Última importação: —</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg>
+        </button>
+        <span class="dash-foot-src">Fonte: Portal Nacional NFS-e + TITAN (Notas ativas)</span>
+        <button class="dash-foot-sup" type="button" onclick="supOpen()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="14" width="5" height="6" rx="1.6"/><rect x="17" y="14" width="5" height="6" rx="1.6"/></svg>
+          Dúvidas? Fale com o suporte
+        </button>
       </div>
 
       <div class="sr-only" aria-hidden="true"><span id="kpi-empresas">0</span><span id="kpi-cadastro" class="pill p-warn">Pendente</span></div>
@@ -836,7 +902,7 @@
           <div><b>Hospedagem compartilhada não serve aqui.</b> O mTLS exige apresentar um certificado de cliente diferente por empresa a cada requisição. Em cPanel compartilhado você não controla o handshake TLS de saída. Este módulo precisa de VPS ou container próprio.</div>
         </div>
 
-        <div class="card">
+        <div class="card" id="card-importar-portal">
           <div class="card-h"><h2>Importar do Portal Nacional</h2><span class="pill p-off right" id="import-status-pill">—</span></div>
           <div class="card-b">
             <p class="sm" style="color:var(--ink-2);margin:0 0 12px">Busca no ADN os documentos fiscais e cadastra automaticamente os dados de clientes (razão social, CNPJ, endereço) a partir das notas encontradas. Usa o certificado configurado acima.</p>

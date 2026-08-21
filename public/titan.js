@@ -154,6 +154,9 @@ redirecionarParaLoginUnico();
 const dataBrasil=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 qs('#s-comp').value=dataBrasil();
 let ambienteAtual='restricted';
+// Só vira true quando /health respondeu. O selo "Portal Nacional operacional"
+// do Painel depende disso para não nascer verde antes de alguém ter perguntado.
+let ambienteConsultado=false;
 
 function atualizarAmbiente(){
   const producao=ambienteAtual==='production';
@@ -171,7 +174,9 @@ async function carregarAmbiente(){
   const response=await fetchSeguro(API_URL+'/health');
   const health=await response.json();
   ambienteAtual=health.environment==='production'?'production':'restricted';
+  ambienteConsultado=true;
   atualizarAmbiente();
+  renderSeloPortal();
 }
 carregarAmbiente().catch(()=>{qs('#login-env').textContent='Servidor fiscal indisponível';});
 
@@ -344,6 +349,10 @@ let contaRestrita=false;
 // "Requer atenção" somava rejeitadas+processando de TODO o histórico, sem
 // corte de mês, ao lado de cards que são mensais.
 let dashboardStats=null;
+// Base já trazida do Portal Nacional (GET /api/import): quantos documentos e
+// clientes existem localmente. O Painel usa isso na Atividade recente e no
+// rodapé — sem ela, "importação" no Painel seria texto fixo.
+let statusImportacao=null;
 function aplicarModoRestrito(restrita){
   contaRestrita=restrita;
   document.body.classList.toggle('conta-restrita',restrita);
@@ -1123,7 +1132,8 @@ async function carregarEmpresaServidor(){
 async function carregarNotasServidor(){
   const [rows]=await Promise.all([
     api('/api/invoices'),
-    api('/api/dashboard').then(dados=>{dashboardStats=dados}).catch(()=>{dashboardStats=null})
+    api('/api/dashboard').then(dados=>{dashboardStats=dados}).catch(()=>{dashboardStats=null}),
+    api('/api/import').then(dados=>{statusImportacao=dados}).catch(()=>{statusImportacao=null})
   ]);
   notas.splice(0,notas.length,...rows.map(row=>({
     id:row.id,key:row.access_key,n:row.nfse_number||row.dps_number,date:row.created_at,d:new Date(row.created_at).toLocaleDateString('pt-BR'),t:row.borrower_name,
@@ -2107,30 +2117,54 @@ function contagem(){
 }
 
 /* ---------- gráfico ---------- */
-const meses=[];
-function chart(){
-  meses.splice(0,meses.length);
-  const now=new Date();
-  for(let offset=5;offset>=0;offset--){
-    const d=new Date(now.getFullYear(),now.getMonth()-offset,1),key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    const total=notas.filter(n=>{const dt=new Date(n.date||'');return !Number.isNaN(dt.valueOf())&&`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`===key&&n.st!=='canc'&&n.st!=='err'}).reduce((sum,n)=>sum+Number(n.v||0),0);
-    meses.push([d.toLocaleDateString('pt-BR',{month:'short'}).replace('.',''),total]);
+/**
+ * Meses do gráfico.
+ *
+ * O valor de cada competência vem do servidor (GET /api/dashboard → months),
+ * que é quem corta por período corretamente. O cálculo local em cima de
+ * `notas` continua como reserva para o instante entre abrir o Painel e o
+ * dashboard responder — e para as competências que o servidor não devolveu
+ * (ex.: 12 meses na tela e 6 na resposta).
+ */
+function mesesDoGrafico(){
+  const range=Number(qs('#dash-chart-range')?.value)||6;
+  const doServidor=new Map((dashboardStats?.months||[]).map(m=>[m.month,m]));
+  const now=new Date(),lista=[];
+  for(let offset=range-1;offset>=0;offset--){
+    const d=new Date(now.getFullYear(),now.getMonth()-offset,1);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const servidor=doServidor.get(key);
+    const locais=notas.filter(n=>{
+      const dt=new Date(n.date||'');
+      return !Number.isNaN(dt.valueOf())&&`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`===key&&n.st!=='canc'&&n.st!=='err';
+    });
+    lista.push({
+      rotulo:d.toLocaleDateString('pt-BR',{month:'short'}).replace('.',''),
+      valor:servidor?Number(servidor.amount||0):locais.reduce((sum,n)=>sum+Number(n.v||0),0),
+      qtd:servidor?Number(servidor.count||0):locais.length
+    });
   }
-  if(!meses.length){
-    qs('#chart').innerHTML='<div class="empty-state" style="width:100%;align-self:center">O gráfico aparecerá depois da primeira emissão de teste.</div>';
+  return lista;
+}
+function chart(){
+  const alvo=qs('#chart');if(!alvo)return;
+  const lista=mesesDoGrafico();
+  const sub=qs('#dash-chart-sub');if(sub)sub.textContent=`Últimos ${lista.length} meses`;
+  if(!lista.length){
+    alvo.innerHTML='<div class="empty-state" style="width:100%;align-self:center">O gráfico aparecerá depois da primeira emissão de teste.</div>';
     return;
   }
-  const max=Math.max(...meses.map(m=>m[1]),1)*1.12;
-  const hasMovement=meses.some(m=>m[1]>0);
-  qs('#dash-chart-status')?.classList.toggle('p-ok',hasMovement);
-  qs('#dash-chart-status')?.classList.toggle('p-off',!hasMovement);
-  if(qs('#dash-chart-status'))qs('#dash-chart-status').textContent=hasMovement?'Com movimento':'Sem movimento';
-  qs('#chart').innerHTML=meses.map(([m,v],i)=>`
+  const maxValor=Math.max(...lista.map(m=>m.valor),1)*1.12;
+  const maxQtd=Math.max(...lista.map(m=>m.qtd),1)*1.12;
+  alvo.innerHTML=lista.map((m,i)=>`
     <div class="bar-wrap">
-      <div class="bar ${i===meses.length-1?'last':''}" style="height:${(v/max*100).toFixed(1)}%">
-        <span class="bar-v">R$ ${brl(v)}</span>
+      <div class="bar-plot">
+        <div class="bar ${i===lista.length-1?'last':''}" style="height:${(m.valor/maxValor*100).toFixed(1)}%">
+          <span class="bar-v">R$ ${brl(m.valor)}</span>
+        </div>
+        <span class="bar-n" style="bottom:${(m.qtd/maxQtd*100).toFixed(1)}%" title="${m.qtd} nota(s) em ${esc(m.rotulo)}"></span>
       </div>
-      <span class="bar-l">${m}</span>
+      <span class="bar-l">${esc(m.rotulo)}</span>
     </div>`).join('');
 }
 
@@ -2289,6 +2323,106 @@ function dashDateLabel(date){
   const d=new Date(date||'');
   return Number.isNaN(d.valueOf())?'agora':d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','');
 }
+const MES_ABREV={1:'JAN',2:'FEV',3:'MAR',4:'ABR',5:'MAI',6:'JUN',7:'JUL',8:'AGO',9:'SET',10:'OUT',11:'NOV',12:'DEZ'};
+
+/** Rótulo "Hoje • 14:32" / "Ontem • 09:10" / "18 ago • 09:10". */
+function dashDataHora(date){
+  const d=new Date(date||'');
+  if(Number.isNaN(d.valueOf()))return 'agora';
+  const hora=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const mesmoDia=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+  const hoje=new Date(),ontem=new Date();ontem.setDate(hoje.getDate()-1);
+  if(mesmoDia(d,hoje))return `Hoje • ${hora}`;
+  if(mesmoDia(d,ontem))return `Ontem • ${hora}`;
+  return `${d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','')} • ${hora}`;
+}
+function tempoRelativo(d){
+  const min=Math.round((Date.now()-d.valueOf())/60000);
+  if(min<1)return 'agora mesmo';
+  if(min<60)return `há ${min} min`;
+  const horas=Math.round(min/60);
+  if(horas<24)return `há ${horas} h`;
+  const dias=Math.round(horas/24);
+  return dias===1?'há 1 dia':`há ${dias} dias`;
+}
+
+/** Pinta um selo do cabeçalho: bolinha + texto, com o estado no próprio selo. */
+function selo(seletor,estado,texto){
+  const el=qs(seletor);if(!el)return;
+  el.classList.remove('is-warn','is-err','is-off');
+  if(estado!=='ok')el.classList.add('is-'+estado);
+  const rotulo=el.querySelector('b');if(rotulo)rotulo.textContent=texto;
+}
+function renderSeloPortal(){
+  if(!ambienteConsultado){selo('#dash-selo-portal','off','Portal Nacional — verificando');return}
+  selo('#dash-selo-portal','ok',ambienteAtual==='production'
+    ? 'Portal Nacional operacional'
+    : 'Portal Nacional operacional (produção restrita)');
+}
+
+/** Valor cancelado NA COMPETÊNCIA — o cartão diz "no mês", então some só o mês. */
+function valorCanceladoNoMes(){
+  const now=new Date();
+  return notas.filter(n=>{
+    if(n.st!=='canc')return false;
+    const d=new Date(n.date||'');
+    return !Number.isNaN(d.valueOf())&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  }).reduce((sum,n)=>sum+Number(n.v||0),0);
+}
+
+/**
+ * Conciliação entre o que o TITAN tem e o que está no Portal Nacional.
+ *
+ * Lê fiscal_synced_at/fiscal_sync_divergent das notas já carregadas. Nenhuma
+ * nota conferida NÃO é "tudo conciliado" — é "conciliação pendente". Dizer
+ * que bate quando ninguém comparou é exatamente o motivo pelo qual este item
+ * tinha sido tirado da faixa em 20/08/2026.
+ */
+function renderConciliacao(){
+  const set=(id,value)=>{const el=qs(id);if(el)el.textContent=value};
+  const conferidas=notas.filter(n=>n.syncedAt);
+  const divergentes=notas.filter(n=>n.syncDivergent);
+  const ico=qs('#dash-comp-conc-ico');
+  let estado='ok',texto='Tudo conciliado';
+  if(divergentes.length){estado='err';texto=`${divergentes.length} divergência(s)`}
+  else if(!conferidas.length){estado='warn';texto='Conciliação pendente'}
+  if(ico){ico.classList.remove('is-warn','is-err');if(estado!=='ok')ico.classList.add('is-'+estado)}
+  set('#dash-comp-conciliacao',texto);
+  const ultima=conferidas
+    .map(n=>new Date(n.syncedAt))
+    .filter(d=>!Number.isNaN(d.valueOf()))
+    .sort((a,b)=>b-a)[0]||null;
+  // "21/08/2026 18:05" e não o toLocaleString cheio ("21/08/2026, 18:05"):
+  // a vírgula no meio só ocupa espaço na faixa, que já é apertada.
+  const quando=ultima
+    ? `${ultima.toLocaleDateString('pt-BR')} ${ultima.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`
+    : '—';
+  set('#dash-comp-sync',ultima?`Sincronizado ${tempoRelativo(ultima)}`:'Nunca sincronizado');
+  set('#dash-comp-sync-sub',`Última importação: ${quando}`);
+  set('#dash-foot-import',`Última importação: ${quando}`);
+}
+
+/** Leva para o card de importação e deixa ele à vista. */
+function irParaImportacaoPortal(){
+  go('emitente',qs('#sb-configuracoes'));
+  qs('#card-importar-portal')?.scrollIntoView({behavior:'smooth',block:'center'});
+}
+/**
+ * "Sincronizar agora" do Painel. Abre o card de importação e dispara a MESMA
+ * busca do botão de lá — o progresso real aparece onde já era mostrado, em vez
+ * de rodar escondido atrás de um botão que volta ao normal sem dizer no quê deu.
+ */
+function sincronizarPortalDoPainel(){
+  if(!empresaAtual){alert('Cadastre e salve a empresa antes de sincronizar com o Portal Nacional.');return}
+  irParaImportacaoPortal();
+  buscarPortalNacional();
+}
+/** "Ver detalhes" da Saúde fiscal: leva à lista completa de pendências. */
+function verDetalhesSaude(){
+  const alvo=qs('#dash-pending-list')?.closest('.card');
+  if(alvo)alvo.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
 function renderDashboard(){
   const name=dashUserName().trim().split(/\s+/)[0]||'usuário';
   const greeting=qs('#dash-greeting');if(greeting)greeting.textContent=`Olá, ${name} 👋`;
@@ -2323,27 +2457,48 @@ function renderDashboard(){
     const seta=pct>=0?'↑':'↓';
     return `${seta} ${Math.abs(pct).toFixed(0)}% vs. mês anterior`;
   }
-  set('#dash-notas',String(monthCount));set('#dash-notas-sub',monthCount?`${monthAuthorized} autorizada(s) no mês`:'Nenhuma emissão registrada');
-  set('#dash-faturamento',`R$ ${brl(monthAmount)}`);set('#dash-faturamento-sub',variacaoDoMes(monthAmount));
-  set('#dash-canceladas',String(stats?.canceled_count||0));
-  set('#dash-canceladas-sub',stats?.canceled_count?'Fora do faturamento do mês':'Nenhum cancelamento no mês');
-  // Faixa de competência (desenho do usuário, 20/08/2026).
+  // Faturamento do mês, com a variação colorida (verde sobe, vermelho desce).
+  const variacao=variacaoDoMes(monthAmount);
+  set('#dash-faturamento',`R$ ${brl(monthAmount)}`);set('#dash-faturamento-sub',variacao);
+  const varEl=qs('#dash-faturamento-sub');
+  if(varEl){varEl.classList.toggle('up',variacao.startsWith('↑'));varEl.classList.toggle('down',variacao.startsWith('↓'))}
+  // Autorizadas: contagem E valor da MESMA competência. Antes o número era do
+  // mês e o texto embaixo era "R$ ... no histórico" — dois períodos diferentes
+  // colados um no outro, e quem lia somava os dois como se fossem o mesmo mês.
+  set('#dash-autorizadas',String(monthAuthorized));
+  set('#dash-autorizadas-sub',monthAuthorized?`R$ ${brl(monthAmount)} no mês`:'Aguardando a primeira nota');
+  // Canceladas: o valor cancelado sai das notas da competência, não do total.
+  const canceledCount=stats?Number(stats.canceled_count||0):notas.filter(n=>n.st==='canc').length;
+  set('#dash-canceladas',String(canceledCount));
+  set('#dash-canceladas-sub',`R$ ${brl(valorCanceladoNoMes())} no mês`);
+  const pendingCount=rejectedCount+processingCount+(!empresaAtual?1:0);
+  set('#dash-pendencias',String(pendingCount));
+  set('#dash-pendencias-sub',pendingCount?`${rejectedCount+processingCount} nota(s) para revisar no mês`:'Tudo em dia no mês');
+  // Faixa de competência (desenho do dono do produto, 21/08/2026).
   const meses=dashboardStats?.months||[];
   const compAtual=meses.length?meses[meses.length-1].month:'';
-  set('#dash-comp-label',compAtual?`${compAtual.slice(5,7)}/${compAtual.slice(0,4)}`:'—');
+  set('#dash-comp-label',compAtual?`Competência: ${MES_ABREV[Number(compAtual.slice(5,7))]||''}/${compAtual.slice(0,4)}`:'Competência: —');
   set('#dash-comp-notas',String(monthCount));
   set('#dash-comp-faturamento',`R$ ${brl(monthAmount)}`);
-  const certChip=dashboardStats?.certificate;
+  renderConciliacao();
+  // Selos do cabeçalho: certificado e Portal Nacional.
   // dataBR e não new Date(...).toLocaleDateString: a data vem como ISO, e o
   // construtor a lê como meia-noite UTC — em UTC-3 isso exibe o DIA ANTERIOR.
   // Certificado "válido até 31/05" quando vale até 01/06 é um dia a menos de
   // validade na tela de quem depende dele para emitir.
-  set('#dash-comp-certificado',certChip?.validTo
-    ? `Certificado A1 válido até ${dataBR(certChip.validTo)}`
-    : 'Certificado A1 não cadastrado');
-  set('#dash-autorizadas',String(authorized.length));set('#dash-autorizadas-sub',authorized.length?`R$ ${brl(total)} no histórico`:'Aguardando a primeira nota');
-  const pendingCount=rejectedCount+processingCount+(!empresaAtual?1:0);set('#dash-pendencias',String(pendingCount));set('#dash-pendencias-sub',pendingCount?`${rejectedCount+processingCount} nota(s) para revisar no mês`:'Tudo em dia no mês');
+  const certChip=dashboardStats?.certificate;
+  if(!certChip||!certChip.configured)selo('#dash-selo-cert','off','Certificado A1 não cadastrado');
+  else if(certChip.expired)selo('#dash-selo-cert','err',`Certificado A1 vencido em ${dataBR(certChip.validTo)}`);
+  else selo('#dash-selo-cert','ok',`Certificado A1 válido até ${dataBR(certChip.validTo)}`);
+  // "Operacional" só quando o backend respondeu de fato o ambiente. Enquanto a
+  // consulta não voltou, o selo fica cinza — verde por omissão seria dizer que
+  // o Portal Nacional está no ar sem ninguém ter perguntado.
+  renderSeloPortal();
   const certificado=dashboardStats?.certificate||null;
+  // Estas linhas usavam new Date(validTo).toLocaleDateString e caíam na mesma
+  // armadilha de fuso já resolvida no selo do cabeçalho: a data chega como ISO,
+  // o construtor lê meia-noite UTC e em UTC-3 a tela mostra o DIA ANTERIOR. O
+  // selo dizia 01/06/2027 e a pendência, 31/05/2027 — para o mesmo certificado.
   const pending=qs('#dash-pending-list');
   if(pending){
     const rows=[];
@@ -2351,8 +2506,8 @@ function renderDashboard(){
     else rows.push(`<button class="pending-row ok" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><span class="pending-copy"><b>Cadastro do emitente</b><span>${esc(empresaAtual.rs||'Empresa ativa')}</span></span><strong class="pending-count">Concluído</strong></button>`);
     if(!certificado)rows.push(`<button class="pending-row" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Verifique validade e vínculo do CNPJ</span></span><strong class="pending-count">Verificar</strong></button>`);
     else if(!certificado.configured)rows.push(`<button class="pending-row" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Nenhum certificado cadastrado</span></span><strong class="pending-count">Pendente</strong></button>`);
-    else if(certificado.expired)rows.push(`<button class="pending-row" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Vencido em ${esc(new Date(certificado.validTo).toLocaleDateString('pt-BR'))}</span></span><strong class="pending-count">Vencido</strong></button>`);
-    else rows.push(`<button class="pending-row ok" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Válido até ${esc(new Date(certificado.validTo).toLocaleDateString('pt-BR'))}</span></span><strong class="pending-count">Concluído</strong></button>`);
+    else if(certificado.expired)rows.push(`<button class="pending-row" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Vencido em ${esc(dataBR(certificado.validTo))}</span></span><strong class="pending-count">Vencido</strong></button>`);
+    else rows.push(`<button class="pending-row ok" type="button" onclick="go('emitente',qs('#sb-configuracoes'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><span class="pending-copy"><b>Certificado A1</b><span>Válido até ${esc(dataBR(certificado.validTo))}</span></span><strong class="pending-count">Concluído</strong></button>`);
     if(rejectedCount)rows.push(`<button class="pending-row" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.6 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0Z"/></svg></span><span class="pending-copy"><b>Notas rejeitadas no mês</b><span>Confira o retorno da Sefin Nacional</span></span><strong class="pending-count">${rejectedCount}</strong></button>`);
     if(processingCount)rows.push(`<button class="pending-row" type="button" onclick="go('notas',qs('.sb-link[onclick*=&quot;notas&quot;]'))"><span class="pending-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="pending-copy"><b>Emissões em processamento</b><span>Acompanhe o retorno oficial</span></span><strong class="pending-count">${processingCount}</strong></button>`);
     if(!rejectedCount&&!processingCount&&!(!empresaAtual))rows.push(`<div class="dash-empty">Nenhuma pendência fiscal encontrada no mês.<br>O próximo passo é emitir uma nova NFS-e.</div>`);
@@ -2365,11 +2520,84 @@ function renderDashboard(){
   }
   const activity=qs('#dash-activity');
   if(activity){
-    const items=notas.slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,4);
-    activity.innerHTML=items.length?items.map(n=>`<div class="activity-row"><span class="activity-dot ${n.st==='ok'?'ok':n.st==='err'?'err':n.st==='proc'?'warn':''}"></span><span class="activity-copy"><b>${esc(n.st==='ok'?'NFS-e autorizada':n.st==='err'?'Emissão rejeitada':n.st==='canc'?'Nota cancelada':'Emissão em processamento')}</b><span>${esc(n.t||'Tomador não informado')} · ${esc(n.s||'Serviço')}</span></span>${acoesDaAtividade(n)}<strong class="activity-value">${esc(dashDateLabel(n.date))}</strong></div>`).join(''):'<div class="dash-empty">Nenhuma atividade ainda.<br>As emissões e eventos aparecerão aqui.</div>';
+    const eventos=eventosDaAtividade().slice(0,4);
+    const linhas=eventos.map(n=>{
+      const ponto=n.st==='ok'?'ok':n.st==='err'?'err':n.st==='proc'?'warn':'';
+      const titulo=n.st==='ok'?'autorizada':n.st==='err'?'rejeitada':n.st==='canc'?'cancelada':'em processamento';
+      const numero=n.n?`NFS-e #${esc(String(n.n))} `:'NFS-e ';
+      return `<div class="activity-row">`
+        +`<span class="activity-dot ${ponto}"></span>`
+        +`<span class="activity-copy"><b>${numero}${titulo}</b><span>${esc(n.t||'Tomador não informado')} • R$ ${brl(Number(n.v||0))}</span></span>`
+        +`<strong class="activity-value">${esc(dashDataHora(n.date))}</strong>`
+        +`<span class="activity-acts">${acoesDaAtividade(n)}</span>`
+        +menuDaAtividade(n)
+        +`</div>`;
+    });
+    // UMA linha de importação, com o total real da base local — nunca uma
+    // linha por nota importada (seria a mesma NFS-e contada duas vezes: uma
+    // como emissão e outra dentro do lote).
+    const documentos=Number(statusImportacao?.documents||0);
+    if(documentos>0){
+      const ultimaSync=notas.map(n=>new Date(n.syncedAt||'')).filter(d=>!Number.isNaN(d.valueOf())).sort((a,b)=>b-a)[0]||null;
+      linhas.push(`<div class="activity-row">`
+        +`<span class="activity-dot ok"></span>`
+        +`<span class="activity-copy"><b>Importação concluída</b><span>Portal Nacional • ${documentos} documento(s) na base local</span></span>`
+        +`<strong class="activity-value">${ultimaSync?esc(dashDataHora(ultimaSync)):'—'}</strong>`
+        +`<span class="activity-acts"><button class="btn btn-s" type="button" title="Abrir a importação do Portal Nacional" onclick="irParaImportacaoPortal()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-5V2M4 17h5v5M20 7a8 8 0 0 0-13-3M4 17a8 8 0 0 0 13 3"/></svg></button></span>`
+        +`<span class="activity-kebab"></span>`
+        +`</div>`);
+    }
+    activity.innerHTML=linhas.length?linhas.join(''):'<div class="dash-empty">Nenhuma atividade ainda.<br>As emissões e eventos aparecerão aqui.</div>';
   }
   renderSaudeFiscal();
 }
+
+/**
+ * Eventos da Atividade recente, DEDUPLICADOS PELA CHAVE DE ACESSO.
+ *
+ * A importação repetida do Portal Nacional regrava notas que já estavam na
+ * base — é o mesmo defeito que obrigou a criar
+ * /api/invoice-recurrences/duplicados (20/08/2026) para os contratos. Aqui
+ * cada registro repetido virava mais uma linha, e a lista mostrava a mesma
+ * emissão duas vezes; quem olhava lia como duas notas. A chave de acesso é o
+ * identificador nacional do documento: dois registros com a mesma chave são o
+ * mesmo documento, e fica o mais recente. Sem chave (nota ainda em
+ * processamento, que só ganha chave depois de autorizada) o desempate usa
+ * número + dia + tomador.
+ */
+function eventosDaAtividade(){
+  const porDocumento=new Map();
+  for(const n of notas){
+    const chave=n.key||`${n.n||''}|${String(n.date||'').slice(0,10)}|${n.t||''}`;
+    const atual=porDocumento.get(chave);
+    if(!atual||new Date(n.date||0)>new Date(atual.date||0))porDocumento.set(chave,n);
+  }
+  return [...porDocumento.values()].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+}
+
+/** Menu "⋮" da linha: só ações que já existem no portal para aquela nota. */
+function menuDaAtividade(n){
+  const id=escAttr(n.id),num=escAttr(String(n.n||''));
+  const itens=[`<button type="button" onclick="abrirDanfse('${id}','${num}')">Ver DANFSE</button>`];
+  if(n.st==='ok'||n.st==='canc'){
+    itens.push(`<button type="button" onclick="baixarPdf('${id}','${num}','${escAttr(empresaAtual?.rs||'')}')">Baixar PDF</button>`);
+    itens.push(`<button type="button" onclick="baixarXml('${id}','${num}')">Baixar XML</button>`);
+  }
+  itens.push(`<button type="button" onclick="irParaNotas()">Abrir em Notas emitidas</button>`);
+  return `<span class="activity-kebab">`
+    +`<button type="button" aria-label="Mais ações da NFS-e ${num}" onclick="alternarMenuAtividade(event,this)">⋮</button>`
+    +`<span class="activity-menu">${itens.join('')}</span></span>`;
+}
+function irParaNotas(){go('notas',qs('.sb-link[onclick*="notas"]'))}
+function alternarMenuAtividade(event,botao){
+  event.stopPropagation();
+  const alvo=botao.closest('.activity-kebab'),aberto=alvo.classList.contains('on');
+  qsa('.activity-kebab.on').forEach(el=>el.classList.remove('on'));
+  if(!aberto)alvo.classList.add('on');
+}
+// Clique fora fecha o menu aberto — senão ele fica pendurado na tela enquanto
+// o cliente navega e cobre a linha seguinte.
+document.addEventListener('click',()=>qsa('.activity-kebab.on').forEach(el=>el.classList.remove('on')));
 
 /**
  * PDF e XML direto na linha da atividade (desenho do usuário).
@@ -2381,31 +2609,41 @@ function renderDashboard(){
 function acoesDaAtividade(n){
   if(n.st!=='ok'&&n.st!=='canc')return '';
   const num=escAttr(String(n.n||''));
-  return `<span class="flex" style="gap:6px;margin-right:10px">`
-    +`<button class="btn btn-s" type="button" title="Baixar PDF da NFS-e ${num}" onclick="baixarPdf('${escAttr(n.id)}','${num}','${escAttr(empresaAtual?.rs||'')}')">PDF</button>`
-    +`<button class="btn btn-s" type="button" title="Baixar XML da NFS-e ${num}" onclick="baixarXml('${escAttr(n.id)}','${num}')">XML</button>`
-    +`</span>`;
+  return `<button class="btn btn-s" type="button" title="Baixar PDF da NFS-e ${num}" onclick="baixarPdf('${escAttr(n.id)}','${num}','${escAttr(empresaAtual?.rs||'')}')">PDF</button>`
+    +`<button class="btn btn-s" type="button" title="Baixar XML da NFS-e ${num}" onclick="baixarXml('${escAttr(n.id)}','${num}')">XML</button>`;
 }
 
 /** Cor e rótulo do nível. Sem estado desconhecido virando verde. */
 const SAUDE_PILL={ok:['p-ok','Saudável'],atencao:['p-warn','Atenção'],critico:['p-err','Crítico']};
 
 function renderSaudeFiscal(){
+  // O subtítulo do card virou texto fixo ("Situação dos principais itens") no
+  // desenho de 21/08/2026, então #dash-saude-resumo pode não existir — ele não
+  // pode continuar sendo condição para a lista renderizar, senão o card inteiro
+  // fica em branco por causa de um <p> que saiu do HTML.
   const lista=qs('#dash-saude-itens'),resumo=qs('#dash-saude-resumo'),nivel=qs('#dash-saude-nivel');
-  if(!lista||!resumo||!nivel)return;
+  if(!lista||!nivel)return;
   const saude=dashboardStats?.saudeFiscal;
   if(!saude){
     // Sem dado, o card NÃO pode ficar verde: dizer "tudo em ordem" porque a
     // consulta falhou é exatamente a mentira que este card existe para evitar.
     nivel.className='pill p-off right';nivel.textContent='Indisponível';
-    resumo.textContent='Não consegui avaliar agora.';
+    if(resumo)resumo.textContent='Não consegui avaliar agora.';
     lista.innerHTML='<div class="dash-empty">A verificação não respondeu. Recarregue a página para tentar de novo.</div>';
     return;
   }
   const [classe,rotulo]=SAUDE_PILL[saude.nivel]||SAUDE_PILL.ok;
-  nivel.className='pill '+classe+' right';nivel.textContent=rotulo;
-  resumo.textContent=saude.resumo||'';
-  lista.innerHTML=(saude.itens||[]).map(i=>{
+  nivel.className='pill '+classe;nivel.textContent=rotulo;
+  if(resumo)resumo.textContent=saude.resumo||'';
+  const itens=saude.itens||[];
+  // Avaliação que voltou sem NENHUM item não pode virar cartão em branco: o
+  // cabeçalho sozinho parece card quebrado, e quem olha não sabe se está tudo
+  // bem ou se a lista não carregou. Diz o que aconteceu.
+  if(!itens.length){
+    lista.innerHTML='<div class="dash-empty">A avaliação voltou sem itens para conferir.<br>Cadastre a empresa e o certificado para o TITAN ter o que verificar.</div>';
+    return;
+  }
+  lista.innerHTML=itens.map(i=>{
     const ponto=i.estado==='critico'?'err':i.estado==='atencao'?'warn':'ok';
     const acao=i.acao?`<span>${esc(i.detalhe)} · ${esc(i.acao.rotulo)}</span>`:`<span>${esc(i.detalhe)}</span>`;
     const corpo=`<span class="pending-ico"><span class="activity-dot ${ponto}"></span></span><span class="pending-copy"><b>${esc(i.rotulo)}</b>${acao}</span>`;
@@ -4150,7 +4388,9 @@ function aplicarEmpresa(){
   opt.value=empresaAtual.cnpj;
   opt.textContent=empresaAtual.rs;
   if(!JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}').companies?.length)qs('#tenant').replaceChildren(opt);
-  qs('#painel-sub').textContent=`${empresaAtual.rs} · CNPJ ${empresaAtual.cnpj} · ${empresaAtual.municipio} · ${empresaAtual.reg}`;
+  // CNPJ com máscara (formatarCnpj, o mesmo do cadastro): a linha saía
+  // "CNPJ 54221993000150", 14 dígitos colados que ninguém confere de bate-pronto.
+  qs('#painel-sub').textContent=`${empresaAtual.rs} • CNPJ ${formatarCnpj(empresaAtual.cnpj)} • ${empresaAtual.municipio} • ${empresaAtual.reg}`;
   qs('#e-rs').value=empresaAtual.rs;
   qs('#e-cnpj').value=empresaAtual.cnpj;
   qs('#e-im').value=empresaAtual.im;

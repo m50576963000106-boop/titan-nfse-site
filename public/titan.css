@@ -740,31 +740,103 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
 .dash-primary:hover{background:var(--navy-2)}
 .dash-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
 .dash-stat{display:flex;align-items:flex-start;gap:12px;padding:17px;background:var(--paper);border:1px solid var(--line);border-radius:10px;min-width:0}
-.dash-stat-icon{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;flex:none;background:#eef2f8;color:#345078}
-.dash-stat:nth-child(2) .dash-stat-icon{background:#f8f1dd;color:var(--gold-dim)}
-.dash-stat:nth-child(3) .dash-stat-icon{background:var(--ok-bg);color:var(--ok)}
-.dash-stat.attention .dash-stat-icon{background:var(--err-bg);color:var(--err)}
+/* Ícone redondo e colorido por SIGNIFICADO, não por posição. Antes as cores
+   saíam de :nth-child(2)/(3) — mudar a ordem dos cartões repintava o cartão
+   errado (canceladas ficava verde). Agora cada cartão carrega a própria classe. */
+.dash-stat-icon{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:none;background:#eef2f8;color:#345078}
+.dash-stat.s-money .dash-stat-icon,.dash-stat.s-ok .dash-stat-icon{background:var(--ok-bg);color:var(--ok)}
+.dash-stat.s-canc .dash-stat-icon{background:var(--err-bg);color:var(--err)}
+.dash-stat.attention .dash-stat-icon{background:var(--warn-bg);color:var(--warn)}
+.dash-stat-copy small.up{color:var(--ok);font-weight:700}
+.dash-stat-copy small.down{color:var(--err);font-weight:700}
+
+/* Selos do cabeçalho */
+.dash-selos{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin-top:11px}
+.dash-selo{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;color:var(--ink-2);padding:0 13px;border-left:1px solid var(--line)}
+.dash-selo:first-child{padding-left:0;border-left:none}
+.dash-selo b{font-weight:600}
+.selo-dot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--ok)}
+.dash-selo.is-warn .selo-dot{background:var(--warn)}
+.dash-selo.is-err .selo-dot{background:var(--err)}
+.dash-selo.is-off .selo-dot{background:var(--ink-3)}
+
+/* Faixa larga de competência */
+.comp-band{display:flex;flex-wrap:wrap;align-items:center;gap:0;padding:12px 14px;margin-bottom:16px}
+.comp-item{display:flex;align-items:center;gap:8px;padding:2px 10px;border-left:1px solid var(--line);min-width:0}
+.comp-item:first-child{padding-left:0;border-left:none}
+.comp-ico{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--ok-bg);color:var(--ok)}
+.comp-ico-dark{background:var(--navy);color:#fff}
+.comp-ico.is-warn{background:var(--warn-bg);color:var(--warn)}
+.comp-ico.is-err{background:var(--err-bg);color:var(--err)}
+.comp-copy{min-width:0}
+.comp-copy b{display:block;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.comp-copy small{display:block;font-size:9px;color:var(--ink-3);margin-top:2px;white-space:nowrap}
+.comp-item-lead .comp-copy b{font-size:10.5px;letter-spacing:.02em;text-transform:uppercase}
+.comp-sync{margin-left:auto;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:none}
 .dash-stat-copy{min-width:0}.dash-stat-copy span{display:block;color:var(--ink-3);font-size:9.5px;font-weight:750;letter-spacing:.07em;text-transform:uppercase}
 .dash-stat-copy strong{display:block;margin-top:6px;font-size:21px;line-height:1;font-weight:780;letter-spacing:-.035em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .dash-stat-copy small{display:block;margin-top:6px;color:var(--ink-3);font-size:10.5px}
-.dash-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,.85fr);gap:16px;margin-bottom:16px}
+.dash-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:16px;margin-bottom:16px;align-items:start}
+.dash-col{display:grid;gap:16px;align-content:start;min-width:0}
 .dash-card-h{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
-.dash-card-h h2{font-size:13px;font-weight:700}.dash-card-h p{font-size:10.5px;color:var(--ink-3);margin-top:2px}
+.dash-card-h h2{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}.dash-card-h p{font-size:10.5px;color:var(--ink-3);margin-top:2px}
+.dash-info{display:inline-grid;place-items:center;color:var(--ink-3);cursor:help}
+.dash-range{border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink-2);font-family:inherit;font-size:10.5px;font-weight:600;padding:5px 8px}
 .dash-chart{height:205px;display:flex;align-items:flex-end;gap:12px;padding:32px 18px 15px;background:linear-gradient(180deg,#fff,#fdfcf9)}
 .dash-chart .bar-wrap{min-width:0}.dash-chart .bar{background:linear-gradient(180deg,#243c63,var(--navy));border-radius:5px 5px 2px 2px}
-.dash-chart .bar.last{background:linear-gradient(180deg,#d9b95c,var(--gold-dim))}.dash-chart .bar-v{font-size:9.5px}
+.dash-chart .bar.last{background:linear-gradient(180deg,#d9b95c,var(--gold-dim))}
+/* No Painel o valor fica SEMPRE à vista. Só no hover (padrão antigo) obrigava
+   a passar o mouse em cada mês para ler o próprio faturamento — e no celular,
+   onde não há hover, o número simplesmente não existia. */
+.dash-chart .bar-v{font-size:9.5px;opacity:1}
+.bar-plot{position:relative;flex:1;width:100%;display:flex;align-items:flex-end;min-height:0}
+/* Ponto da 2ª série (quantidade de notas), na própria escala */
+.bar-n{position:absolute;left:50%;transform:translate(-50%,50%);width:7px;height:7px;border-radius:50%;background:var(--navy);border:1.5px solid #fff;box-shadow:0 1px 2px rgba(11,22,41,.25)}
+.chart-legend{display:flex;flex-wrap:wrap;gap:16px;padding:0 18px 14px;border-top:1px solid var(--line);padding-top:11px}
+.legend-item{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--ink-3)}
+.legend-swatch{flex:none}
+.legend-bar{width:10px;height:10px;border-radius:2px;background:linear-gradient(180deg,#d9b95c,var(--gold-dim))}
+.legend-dot{width:8px;height:8px;border-radius:50%;background:var(--navy)}
 .dash-pending{padding:5px 16px 12px}
 .pending-row{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #f0eee6}
 .pending-row:last-child{border:none}.pending-ico{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--warn-bg);color:var(--warn)}
 .pending-row.ok .pending-ico{background:var(--ok-bg);color:var(--ok)}.pending-copy b{display:block;font-size:11.5px}.pending-copy span{display:block;font-size:9.8px;color:var(--ink-3);margin-top:2px}.pending-count{font-size:12px;font-weight:750}
-.dash-bottom{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:16px}
+.dash-bottom{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:16px}
-.quick-action{padding:13px 11px;border:1px solid var(--line);border-radius:9px;background:#fbfaf7;text-align:left;min-height:92px;transition:transform .12s,border-color .12s,box-shadow .12s}
+.quick-action{display:flex;flex-wrap:wrap;align-items:center;gap:0 10px;padding:13px 11px;border:1px solid var(--line);border-radius:9px;background:#fbfaf7;text-align:left;min-height:78px;transition:transform .12s,border-color .12s,box-shadow .12s}
 .quick-action:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 7px 16px rgba(11,22,41,.07)}
-.quick-action svg{color:var(--gold-dim)}.quick-action b{display:block;font-size:11.5px;margin-top:8px}.quick-action span{display:block;font-size:9.5px;color:var(--ink-3);margin-top:3px;line-height:1.35}
-.activity-list{padding:2px 16px 10px}.activity-row{display:grid;grid-template-columns:9px 1fr auto;gap:10px;align-items:start;padding:11px 0;border-bottom:1px solid #f0eee6}
-.activity-row:last-child{border:none}.activity-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;background:var(--ink-3)}.activity-dot.ok{background:var(--ok)}.activity-dot.err{background:var(--err)}.activity-dot.warn{background:var(--warn)}
-.activity-copy b{display:block;font-size:11px}.activity-copy span{display:block;font-size:9.8px;color:var(--ink-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.activity-value{font-size:10.5px;font-weight:700;white-space:nowrap}
+.quick-ico{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none;background:#f1efe6;color:var(--ink-2)}
+.qi-gold{background:#f8f1dd;color:var(--gold-dim)}
+.qi-blue{background:#e8eef8;color:#2d4f86}
+.qi-green{background:var(--ok-bg);color:var(--ok)}
+.qi-violet{background:#efeafa;color:#5b47a8}
+.qi-teal{background:#e4f2f1;color:#1c6f6a}
+.qi-amber{background:var(--warn-bg);color:var(--warn)}
+.quick-action b{flex:1;min-width:0;font-size:11.5px}
+.quick-action>span:last-child{flex-basis:100%;font-size:9.5px;color:var(--ink-3);margin-top:5px;line-height:1.35}
+.activity-list{padding:2px 16px 10px}
+/* 5 colunas: bolinha · texto · quando · PDF/XML · ⋮ */
+.activity-row{display:grid;grid-template-columns:9px minmax(0,1fr) auto auto auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #f0eee6}
+.activity-row:last-child{border:none}.activity-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3)}.activity-dot.ok{background:var(--ok)}.activity-dot.err{background:var(--err)}.activity-dot.warn{background:var(--warn)}
+.activity-copy{min-width:0}
+.activity-copy b{display:block;font-size:11px}.activity-copy span{display:block;font-size:9.8px;color:var(--ink-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.activity-value{font-size:10px;font-weight:700;white-space:nowrap;color:var(--ink-2)}
+.activity-acts{display:flex;gap:4px}
+.activity-kebab{position:relative}
+.activity-kebab>button{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;color:var(--ink-3);font-size:14px;line-height:1;background:transparent}
+.activity-kebab>button:hover{background:#f1efe6;color:var(--ink)}
+.activity-menu{display:none;position:absolute;right:0;top:26px;z-index:20;min-width:172px;background:var(--paper);border:1px solid var(--line);border-radius:9px;box-shadow:0 12px 26px rgba(11,22,41,.15);padding:5px;text-align:left}
+.activity-kebab.on .activity-menu{display:block}
+.activity-menu button{display:block;width:100%;text-align:left;padding:7px 9px;border-radius:6px;font-size:10.5px;color:var(--ink-2);background:transparent;font-family:inherit}
+.activity-menu button:hover{background:var(--cream);color:var(--ink)}
+
+/* Rodapé do Painel */
+.dash-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin-top:18px;padding:13px 2px 4px;border-top:1px solid var(--line);font-size:10.5px;color:var(--ink-3)}
+.dash-foot-sync{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--ink-3);font-family:inherit;font-size:10.5px}
+.dash-foot-sync:hover{color:var(--ink-2)}
+.dash-foot-src{text-align:center;flex:1;min-width:180px}
+.dash-foot-sup{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--gold-dim);font-family:inherit;font-size:10.5px;font-weight:600}
+.dash-foot-sup:hover{color:var(--ink)}
 .dash-empty{padding:28px 16px;text-align:center;color:var(--ink-3);font-size:11.5px;line-height:1.5}
 .pending-row{width:100%;background:transparent;text-align:left;font-family:inherit}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
@@ -774,6 +846,11 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
 @media(max-width:900px){
   .dash-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .dash-grid,.dash-bottom{grid-template-columns:1fr}
+  /* A faixa larga vira grade de 2 colunas: as divisórias verticais só fazem
+     sentido enquanto os itens estão lado a lado numa linha só. */
+  .comp-band{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 0}
+  .comp-item{border-left:none;padding:0 12px 0 0}
+  .comp-sync{margin-left:0;grid-column:1/-1;justify-content:center}
   .g4{grid-template-columns:1fr 1fr}
   .g3,.g2,.r3,.r2,.r21,.g-emit,.commercial-grid,.master-bottom-grid{grid-template-columns:1fr}
   .span2{grid-column:auto}
@@ -825,6 +902,20 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
   .dash-chart{height:170px;gap:7px;padding-left:12px;padding-right:12px}
   .dash-card-h{padding:13px 14px}
   .activity-copy span{white-space:normal}
+  .comp-band{grid-template-columns:1fr;padding:14px}
+  /* Empilhados, os selos perdem a divisória: ela viraria um risco à esquerda
+     do segundo selo, empurrando o texto para fora do alinhamento do resto. */
+  .dash-selos{flex-direction:column;align-items:flex-start;gap:6px}
+  .dash-selo{padding:0;border-left:none}
+  /* No celular a linha da atividade empilha: o texto ocupa a linha toda e
+     quando/PDF/XML/⋮ descem para uma segunda linha em vez de espremer o nome
+     do tomador até virar reticências. */
+  .activity-row{grid-template-columns:9px minmax(0,1fr) auto;row-gap:8px}
+  .activity-value{grid-column:3}
+  .activity-acts{grid-column:2/3;grid-row:2}
+  .activity-kebab{grid-column:3;grid-row:2;justify-self:end}
+  .dash-foot{justify-content:flex-start}
+  .dash-foot-src{text-align:left;flex-basis:100%}
   .top-user-copy{max-width:64px}
   .global-search{width:min(210px,38vw)}
   .global-search input{padding-left:32px;padding-right:8px}
