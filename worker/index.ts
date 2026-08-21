@@ -45,7 +45,16 @@ const CANONICAL_ORIGIN = "https://nfse.titanbackoffice.com.br";
 // martyn/entrega-nota-whatsapp.ts no titan-nfse-api). /api/whatsapp/download/
 // é o formato antigo (token longo); mantido só para os links já mandados a
 // clientes continuarem abrindo dentro da janela de validade deles.
-const API_ORIGIN = "https://titan-nfse-api.onrender.com";
+// Homologação (21/08/2026): um segundo par site+API, isolado, para a bateria
+// de testes antes do lançamento. O host que atendeu o pedido decide qual API
+// responde — assim o link de download do Martyn de homologação não vai buscar
+// o arquivo na API de produção. Host desconhecido cai em produção, que é o
+// comportamento de sempre.
+const API_POR_HOST: Record<string, string> = {
+  "homolog.titanbackoffice.com.br": "https://titan-nfse-api-homolog.onrender.com"
+};
+const API_ORIGIN_PADRAO = "https://titan-nfse-api.onrender.com";
+const apiOrigin = (hostname: string): string => API_POR_HOST[hostname] ?? API_ORIGIN_PADRAO;
 const DOWNLOAD_PATH_PREFIXES = ["/n/", "/api/whatsapp/download/"];
 
 function mapLegacyPath(pathname: string): string {
@@ -71,7 +80,7 @@ const worker = {
     // Link de download de nota (XML/ZIP) mandado pelo Martyn: repassa para a
     // API real, sem redirecionar — o cliente nunca vê o domínio do Render.
     if (DOWNLOAD_PATH_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
-      const target = new URL(url.pathname + url.search, API_ORIGIN);
+      const target = new URL(url.pathname + url.search, apiOrigin(url.hostname));
       return fetch(new Request(target, request));
     }
 
@@ -139,7 +148,8 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data:",
-  "connect-src 'self' https://titan-nfse-api.onrender.com",
+  // Os dois backends nossos: produção e homologação. Nenhum host de terceiro.
+  "connect-src 'self' https://titan-nfse-api.onrender.com https://titan-nfse-api-homolog.onrender.com",
   "frame-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",

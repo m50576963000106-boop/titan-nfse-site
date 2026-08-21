@@ -32,7 +32,11 @@ test("carrega a configuração externa do backend", async () => {
   // Trava o backend do emissor. Trocar esta URL troca o banco inteiro (cada
   // serviço Render tem o seu DATABASE_URL), o que já derrubou o login em
   // produção uma vez — ver o comentário em public/config.js.
-  assert.match(config, /window\.TITAN_API_URL = window\.TITAN_API_URL \|\| "https:\/\/titan-nfse-api\.onrender\.com"/);
+  // Ganhou um mapa por host em 21/08/2026 (portal de homologação). A regra que
+  // importa continua: qualquer host fora do mapa cai em PRODUCAO, igual antes.
+  assert.match(config, /window\.TITAN_API_URL = window\.TITAN_API_URL \|\|/);
+  assert.match(config, /\|\| "https:\/\/titan-nfse-api\.onrender\.com"\)/, "producao precisa ser o padrao, nao mais uma entrada do mapa");
+  assert.match(config, /"homolog\.titanbackoffice\.com\.br": "https:\/\/titan-nfse-api-homolog\.onrender\.com"/);
   assert.match(html, /\/api\/invoices\/emit/);
   assert.match(html, /\/api\/auth\/login/);
 });
@@ -833,7 +837,14 @@ test("worker manda Content-Security-Policy restrita, cobrindo só as origens de 
   assert.match(worker,/"style-src 'self' 'unsafe-inline' https:\/\/fonts\.googleapis\.com"/);
   assert.match(worker,/"font-src 'self' https:\/\/fonts\.gstatic\.com"/);
   assert.match(worker,/"img-src 'self' data:"/);
-  assert.match(worker,/"connect-src 'self' https:\/\/titan-nfse-api\.onrender\.com"/);
+  // Ganhou a API de homologação em 21/08/2026. O que este teste protege não é
+  // a lista literal: e que connect-src so tenha backend NOSSO. Terceiro aqui
+  // seria exfiltracao de dado fiscal com bencao do CSP.
+  const connect = worker.match(/"connect-src ([^"]+)"/)[1].split(/\s+/);
+  assert.deepEqual(connect.filter((o) => o !== "'self'").sort(), [
+    "https://titan-nfse-api-homolog.onrender.com",
+    "https://titan-nfse-api.onrender.com"
+  ], "connect-src so pode listar as APIs do proprio TITAN");
   // DANFSe (abrirDanfse em titan.html) usa srcdoc no iframe sandbox, então
   // não precisa mais de blob: aqui — só 'self' mesmo
   assert.match(worker,/"frame-src 'self'"/);
@@ -1810,4 +1821,20 @@ test("a busca avisa quando não conseguiu consultar os clientes", async()=>{
 test("o campo de filtro que a busca preenche existe no cadastro de clientes", async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   assert.ok(html.includes('id="cl-search"'), "sem esse id, clicar no cliente encontrado não filtra nada");
+});
+
+test("REGRA: host desconhecido continua sendo rebatido para produção", async()=>{
+  // A guarda da linha 4 do titan.html existe para o portal não rodar em
+  // domínio de terceiro (embed, cópia, phishing). Em 21/08/2026 ela passou a
+  // aceitar TAMBÉM o host de homologação — e é justamente por isso que este
+  // teste existe: o risco de "só mais um host" é a lista virar um cheque em
+  // branco. Só estes dois passam; tudo o mais volta para produção.
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const guarda=html.slice(0, html.indexOf("</script>"));
+  const hosts=[...guarda.matchAll(/'([a-z0-9.-]+\.titanbackoffice\.com\.br)':1/g)].map(m=>m[1]).sort();
+  assert.deepEqual(hosts, ["homolog.titanbackoffice.com.br","nfse.titanbackoffice.com.br"],
+    "só produção e homologação — qualquer host novo aqui precisa de decisão explícita");
+  assert.match(guarda, /if\(!oficiais\[location\.hostname\]\)/, "a guarda continua sendo lista de permissão, não de bloqueio");
+  assert.match(guarda, /window\.top\.location\.replace\('https:\/\/nfse\.titanbackoffice\.com\.br'/,
+    "o destino do rebate continua sendo produção, e continua sendo window.top (quebra o embed)");
 });
