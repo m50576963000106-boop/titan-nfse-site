@@ -880,10 +880,43 @@
 
     <!-- ---------- DASN ---------- -->
     <section class="view" id="v-dasn">
-      <div class="page-h"><h1>DASN-SIMEI</h1><p>Consolide valores emitidos pelo TITAN, XMLs externos e lançamentos manuais para a declaração anual.</p></div>
+      <!-- Tela conforme desenho aprovado pelo usuário (20/08/2026). Duas
+           decisões dele que estão no layout: NÃO existe botão de enviar ao
+           contador (o envio é automático em 10/01 — botão manual convidaria a
+           mandar duas vezes), e o ano inteiro aparece mês a mês, inclusive os
+           meses ainda vazios, porque quem declara precisa ver o que falta. -->
+      <div class="page-h master-head">
+        <div><h1>DASN-SIMEI</h1><p>Consolide valores emitidos pelo TITAN, XMLs externos e lançamentos manuais para a declaração anual.</p></div>
+        <div class="flex wrap" style="gap:6px;align-items:center">
+          <button class="btn btn-s" type="button" onclick="importarDasnDoPortal()" id="dasn-import-btn" title="Usa seu certificado digital para buscar valores e situações de cada mês no Portal Nacional">Importar do Portal Nacional</button>
+          <button class="btn btn-s" type="button" onclick="baixarDasnPdf()">Exportar PDF</button>
+        </div>
+      </div>
+      <div class="hint" style="text-align:right;margin:-6px 0 12px">Envio automático ao contador: <b>10/01</b> de cada ano.</div>
       <div class="grid g2" style="align-items:start">
-        <div class="card"><div class="card-h"><h2>Lançamento manual</h2></div><div class="card-b"><div class="row r2"><div class="field"><label for="dasn-year">Ano</label><input id="dasn-year" class="inp" inputmode="numeric"></div><div class="field"><label for="dasn-month">Mês</label><input id="dasn-month" class="inp" inputmode="numeric" min="1" max="12"></div></div><div class="field"><label for="dasn-amount">Receita bruta (R$)</label><input id="dasn-amount" class="inp num" inputmode="decimal" placeholder="0,00"></div><button class="btn btn-p" type="button" onclick="salvarDasnManual()">Salvar valor</button></div></div>
-        <div class="card"><div class="card-h"><h2>Resumo anual</h2><span id="dasn-total" class="pill p-gold">R$ 0,00</span></div><div class="card-b" id="dasn-list"><div class="empty-state">Nenhum lançamento para o ano selecionado.</div></div></div>
+        <div>
+          <div class="card"><div class="card-h"><h2>Lançamento manual / ajustes</h2></div><div class="card-b">
+            <div class="row r2"><div class="field"><label for="dasn-year">Ano</label><input id="dasn-year" class="inp" inputmode="numeric" onchange="carregarDasn()"></div><div class="field"><label for="dasn-month">Mês</label><select id="dasn-month" class="inp"><option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option></select></div></div>
+            <div class="field"><label for="dasn-amount">Receita bruta (R$)</label><input id="dasn-amount" class="inp num" inputmode="decimal" placeholder="0,00"></div>
+            <div class="field"><label for="dasn-notes">Observações (opcional)</label><textarea id="dasn-notes" class="inp" rows="3" placeholder="Ex.: ajuste de valores, nota de outro emissor..."></textarea></div>
+            <button class="btn btn-p" type="button" onclick="salvarDasnManual()">Salvar alterações</button>
+          </div></div>
+          <div class="card" style="margin-top:14px"><div class="card-h"><h2>Informações importantes</h2></div><div class="card-b">
+            <div class="hint">Todo dia <b>10/01</b>, o sistema envia a DASN-SIMEI ao contador automaticamente.</div>
+            <div class="hint" style="margin-top:8px">Importe do Portal Nacional com seu certificado digital para preencher os valores e situações de cada mês.</div>
+            <div class="hint" style="margin-top:8px">São consideradas <b>apenas notas com situação ativa</b> — cancelada não entra na receita.</div>
+            <div class="hint" style="margin-top:8px">Edite manualmente os valores, se necessário, antes do envio.</div>
+          </div></div>
+        </div>
+        <div class="card"><div class="card-h"><h2>Resumo anual — <span id="dasn-ano-label">—</span></h2><span id="dasn-total" class="pill p-gold">R$ 0,00</span></div>
+          <div class="card-b">
+            <div id="dasn-aviso" class="hint" style="display:none;margin-bottom:10px"></div>
+            <div class="tbl-scroll"><table class="tbl-cards-mobile">
+              <thead><tr><th>Mês</th><th style="text-align:right">Receita bruta (R$)</th><th>Situação</th><th>Fonte</th><th style="text-align:right">Ações</th></tr></thead>
+              <tbody id="dasn-list"></tbody>
+            </table></div>
+          </div>
+        </div>
       </div>
     </section>
 

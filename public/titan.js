@@ -957,11 +957,93 @@ async function carregarBilling(){
 async function gerarCobranca(){
   const method=qs('#billing-method').value,due=qs('#billing-due').value||undefined;try{const data=await api('/api/billing/charges',{method:'POST',body:JSON.stringify({method,dueDate:due})});alert('Cobrança oficial criada.');await carregarBilling()}catch(error){alert(error.message)}
 }
-async function carregarDasn(){
-  const year=qs('#dasn-year');if(!year)return;if(!year.value)year.value=String(new Date().getFullYear());if(!qs('#dasn-month').value)qs('#dasn-month').value=String(new Date().getMonth()+1);
-  try{const data=await api('/api/dasn?year='+encodeURIComponent(year.value));qs('#dasn-total').textContent=`R$ ${Number(data.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}`;qs('#dasn-list').innerHTML=data.entries?.length?data.entries.map(item=>`<div class="draft-item"><b>${String(item.reference_month).padStart(2,'0')}/${item.reference_year}</b><span>${esc(item.source)} · R$ ${Number(item.gross_amount||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span></div>`).join(''):'<div class="empty-state">Nenhum lançamento para o ano selecionado.</div>'}catch(error){qs('#dasn-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+/* ---------- DASN-SIMEI (tela do desenho aprovado, 20/08/2026) ------------ */
+const DASN_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+// De onde veio o valor do mês. A ordem importa: o que o TITAN emitiu manda,
+// porque é nota fiscal própria; ajuste manual só aparece quando é a única
+// origem, senão o usuário acha que o número dele substituiu a nota.
+function fonteDoMes(porOrigem){
+  const o=porOrigem||{};
+  if(Number(o.titan)>0)return 'TITAN';
+  if(Number(o.portal)>0)return 'Importado';
+  if(Number(o.external_xml)>0)return 'XML externo';
+  if(Number(o.manual)>0)return 'Manual';
+  return '—';
 }
-async function salvarDasnManual(){const year=Number(qs('#dasn-year').value),month=Number(qs('#dasn-month').value),amount=dinheiro(qs('#dasn-amount').value);if(!year||month<1||month>12||amount<0){alert('Informe ano, mês e valor válidos.');return}try{await api('/api/dasn/manual',{method:'POST',body:JSON.stringify({year,month,amount})});qs('#dasn-amount').value='0,00';await carregarDasn();alert('Valor DASN salvo.')}catch(error){alert(error.message)}}
+async function carregarDasn(){
+  const year=qs('#dasn-year');if(!year)return;
+  if(!year.value)year.value=String(new Date().getFullYear());
+  if(!qs('#dasn-month').value)qs('#dasn-month').value=String(new Date().getMonth()+1);
+  const corpo=qs('#dasn-list');
+  try{
+    const data=await api('/api/dasn?year='+encodeURIComponent(year.value));
+    qs('#dasn-total').textContent='R$ '+brl(Number(data.total||0));
+    const rotulo=qs('#dasn-ano-label');if(rotulo)rotulo.textContent=String(data.year||year.value);
+    // O aviso do backend existe para o número não enganar quem declara: sem
+    // certificado o Portal não devolve a receita anterior ao cadastro, e o
+    // total apareceria silenciosamente incompleto.
+    const aviso=qs('#dasn-aviso'),textoAviso=data.consolidacao?.aviso||data.consolidacao?.avisos?.join(' ')||'';
+    if(aviso){aviso.style.display=textoAviso?'':'none';aviso.textContent=textoAviso}
+    // Os 12 meses SEMPRE, inclusive os vazios: quem declara precisa enxergar
+    // o que ainda falta preencher, não só o que já tem valor.
+    const meses=data.consolidacao?.meses||[];
+    corpo.innerHTML=DASN_MESES.map((nome,i)=>{
+      const m=meses.find(x=>Number(x.mes)===i+1)||{total:0,porOrigem:{}};
+      const valor=Number(m.total||0),temValor=valor>0;
+      const situacao=temValor?'<span class="pill p-ok">Ativa</span>':'<span class="hint">—</span>';
+      const manual=Number(m.porOrigem?.manual)>0;
+      const excluir=manual?`<button class="ico-btn danger" title="Remover o lançamento manual deste mês" onclick="removerDasnManual(${data.year||year.value},${i+1})">×</button>`:'';
+      return `<tr>
+        <td data-th="Mês">${nome}</td>
+        <td class="r" data-th="Receita bruta">${brl(valor)}</td>
+        <td data-th="Situação">${situacao}</td>
+        <td data-th="Fonte">${esc(fonteDoMes(m.porOrigem))}</td>
+        <td class="r" data-th="Ações"><div class="acts"><button class="ico-btn" title="Editar este mês" onclick="editarMesDasn(${i+1},${valor})">✎</button>${excluir}</div></td>
+      </tr>`;
+    }).join('');
+  }catch(error){corpo.innerHTML=`<tr><td colspan="5"><div class="empty-state">${esc(error.message)}</div></td></tr>`}
+}
+/** Leva o mês para o formulário da esquerda, já preenchido. */
+function editarMesDasn(mes,valor){
+  qs('#dasn-month').value=String(mes);
+  qs('#dasn-amount').value=brl(Number(valor||0));
+  qs('#dasn-notes').value='';
+  qs('#dasn-amount').focus();
+}
+async function salvarDasnManual(){
+  const year=Number(qs('#dasn-year').value),month=Number(qs('#dasn-month').value),amount=dinheiro(qs('#dasn-amount').value);
+  const notes=qs('#dasn-notes')?.value.trim()||undefined;
+  if(!year||month<1||month>12||amount<0){alert('Informe ano, mês e valor válidos.');return}
+  try{
+    await api('/api/dasn/manual',{method:'POST',body:JSON.stringify({year,month,amount,notes})});
+    qs('#dasn-amount').value='0,00';if(qs('#dasn-notes'))qs('#dasn-notes').value='';
+    await carregarDasn();alert('Valor salvo.');
+  }catch(error){alert(error.message)}
+}
+async function removerDasnManual(year,month){
+  if(!await titanConfirm(`Remover o lançamento manual de ${DASN_MESES[month-1]}/${year}?\n\nO que foi emitido pelo TITAN e o que veio do Portal continuam contando.`,'Remover lançamento','err'))return;
+  // Sem rota de exclusão: gravar zero é o ajuste que o backend entende, e
+  // preserva o histórico de quem mexeu — apagar a linha apagaria isso.
+  try{await api('/api/dasn/manual',{method:'POST',body:JSON.stringify({year,month,amount:0,notes:'Lançamento manual zerado pelo usuário.'})});await carregarDasn()}
+  catch(error){alert(error.message)}
+}
+async function importarDasnDoPortal(){
+  const btn=qs('#dasn-import-btn'),year=Number(qs('#dasn-year').value)||new Date().getFullYear();
+  if(btn)btn.disabled=true;
+  try{
+    const r=await api('/api/dasn/importar-portal',{method:'POST',body:JSON.stringify({year})});
+    await carregarDasn();
+    alert(r?.mensagem||`Importação concluída para ${year}.`);
+  }catch(error){alert(error.message)}
+  finally{if(btn)btn.disabled=false}
+}
+async function baixarDasnPdf(){
+  const year=Number(qs('#dasn-year').value)||new Date().getFullYear();
+  // apiDownload carrega a sessão; abrir a URL direto no navegador cairia em
+  // 401, porque o token não viaja numa navegação comum.
+  try{await apiDownload('/api/dasn/rascunho.pdf?year='+encodeURIComponent(year),`DASN-SIMEI ${year} (rascunho).pdf`)}
+  catch(error){alert(error.message)}
+}
 
 // Logs da API — pedido do usuário (16/08/2026): a tela existia desde antes
 // mas nunca foi ligada (sempre mostrava "0 requisições"). GET /api/invoices/logs
