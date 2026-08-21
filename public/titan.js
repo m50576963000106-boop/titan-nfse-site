@@ -5373,13 +5373,40 @@ function supRenderChips(){const wrap=qs('#sup-chips');if(!wrap)return;const item
 function supChip(id){if(id==='diag'){supBubble('🔎 Analisar minha conta','me');supAnalisar();return}const t=supTopics.find(x=>x.id===id);if(!t)return;supBubble(esc(t.chip),'me');supAnswerTopic(t);}
 
 /**
- * Memória curta da conversa com o Martyn de verdade (mesma API que atende o
- * widget de erro de emissão e o WhatsApp). Cresce por turno e é cortada no
- * mesmo teto que o backend aceita — sem isso, a cada nova pergunta cresceria
- * o payload à toa e ainda arriscaria estourar o limite do schema.
+ * Cópia local da conversa com o Martyn.
+ *
+ * Desde 21/08/2026 esta variável NÃO é mais a memória dele: o servidor guarda
+ * a conversa em martyn_mensagens_portal e a rota lê de lá. Aqui ficou só o
+ * reforço enviado no payload — o que salva o atendimento se a leitura do banco
+ * falhar. Enquanto isto era a única memória, recarregar a página apagava o
+ * atendimento inteiro e o Martyn recomeçava perguntando o que já sabia.
  */
 let supHistoricoIA=[];
 const SUP_HISTORICO_MAX=8;
+/**
+ * Traz de volta a conversa guardada no servidor quando o painel abre.
+ *
+ * Sem isto, a memória do servidor viraria um defeito: chat visualmente vazio e
+ * um Martyn respondendo como se a conversa estivesse em andamento.
+ */
+async function supRestaurarConversa(){
+  const carregando=supBubble('<span class="sup-typing">Recuperando nossa conversa…</span>','bot');
+  let dados=null;
+  try{dados=await api('/api/martyn/historico');}catch(e){}
+  if(carregando)carregando.remove();
+  const msgs=(dados&&Array.isArray(dados.mensagens))?dados.mensagens:[];
+  if(!msgs.length){
+    supGreet();
+    // Falhou a leitura (dados nulo) é diferente de não ter conversa nenhuma —
+    // e o cliente precisa saber em qual dos dois casos está.
+    if(!dados)supBubble('Não consegui recuperar nossa conversa anterior agora. Se já falamos hoje, pode ser que eu peça de novo algum detalhe.','bot');
+    return;
+  }
+  supBubble('Retomando de onde paramos.','bot');
+  msgs.forEach(m=>supBubble(esc(m.content).replace(/\n/g,'<br>'),m.role==='user'?'me':'bot'));
+  supHistoricoIA=msgs.slice(-SUP_HISTORICO_MAX).map(m=>({role:m.role,content:m.content}));
+  supScroll();
+}
 async function supPerguntarIA(texto){
   const holder=supBubble('<span class="sup-typing">Martyn está digitando…</span>','bot');
   try{
@@ -5415,7 +5442,7 @@ function supGreet(){const emp=(typeof empresaAtual!=='undefined')?empresaAtual:n
   if(!emp||!emp.rs){msg+='<br><br>Notei que <b>ainda não há empresa ativa</b>. Quer começar pelo cadastro?';act=[['Cadastrar empresa','emitente']];}
   else{msg+=`<br><br>Empresa ativa: <b>${esc(emp.rs)}</b> · ${supAmb()}.`;act=[['🔎 Analisar minha conta','diag']];}
   supBubble(msg+supActs(act),'bot');}
-function supOpen(){qs('#sup-panel').classList.add('on');qs('#sup-fab').classList.add('open-state');const dot=qs('.sup-fab-dot');if(dot)dot.style.display='none';if(!supGreeted){supGreeted=true;supRenderChips();supGreet();}setTimeout(()=>{const i=qs('#sup-in');if(i&&window.innerWidth>760)i.focus();},60);}
+function supOpen(){qs('#sup-panel').classList.add('on');qs('#sup-fab').classList.add('open-state');const dot=qs('.sup-fab-dot');if(dot)dot.style.display='none';if(!supGreeted){supGreeted=true;supRenderChips();supRestaurarConversa();}setTimeout(()=>{const i=qs('#sup-in');if(i&&window.innerWidth>760)i.focus();},60);}
 function supClose(){qs('#sup-panel')?.classList.remove('on');qs('#sup-fab')?.classList.remove('open-state');}
 function supToggle(){const p=qs('#sup-panel');if(!p)return;p.classList.contains('on')?supClose():supOpen();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&qs('#sup-panel')?.classList.contains('on'))supClose();});
