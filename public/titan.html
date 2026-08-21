@@ -145,9 +145,13 @@
     <button class="burger" id="sb-burger" onclick="alternarMenuLateral()" aria-label="Menu" aria-controls="sb" aria-expanded="false">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
     </button>
-    <label for="tenant" class="global-search" aria-label="Buscar no portal">
+    <!-- Esta busca prometia "módulo, cliente ou nota" no placeholder e só sabia
+         navegar no menu (21/08/2026). Agora procura nota e cliente de verdade;
+         a navegação por módulo continua no Enter, como sempre foi. -->
+    <label for="tenant" class="global-search" aria-label="Buscar no portal" style="position:relative">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
       <input id="global-search" aria-label="Buscar no portal" type="search" placeholder="Buscar módulo, cliente ou nota..." autocomplete="off" oninput="buscarNoPortal(this.value)" onkeydown="if(event.key==='Enter')abrirResultadoBusca()">
+      <div id="busca-res" class="card busca-res"></div>
     </label>
     <div class="tenant">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b8f99" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
@@ -218,6 +222,18 @@
         <span class="hint"><b id="dash-comp-notas">0</b> nota(s) emitida(s)</span>
         <span class="hint"><b id="dash-comp-faturamento">R$ 0,00</b> de faturamento</span>
         <span class="hint" id="dash-comp-certificado" style="margin-left:auto">—</span>
+      </div>
+
+      <!-- Saúde fiscal (pedido do usuário, 21/08/2026): certificado válido,
+           notas emitidas e canceladas, erro nas emissões manual e recorrente.
+           Sem nota de 0 a 100 — o nível é o PIOR item, porque média deixaria
+           "certificado vencido" parecer saudável ao lado de quatro itens bons. -->
+      <div class="card" id="dash-saude" style="margin:0 0 16px">
+        <div class="dash-card-h">
+          <div><h2>Saúde fiscal</h2><p id="dash-saude-resumo">Verificando…</p></div>
+          <span class="pill p-off right" id="dash-saude-nivel">—</span>
+        </div>
+        <div class="dash-pending" id="dash-saude-itens"></div>
       </div>
 
       <div class="cgsn" style="margin-bottom:16px;padding:13px 16px;gap:14px">
@@ -1139,6 +1155,22 @@
 
 
       <div class="master-panel" id="master-panel-martyn">
+        <!-- Diagnóstico do canal (21/08/2026). O WhatsApp recusa com uma frase
+             só — "número não habilitado" — em qualquer uma das quatro portas, e
+             isso está certo para o cliente: negar com detalhe entrega
+             informação a quem sonda. Aqui, e só para o Master, dá para ver qual
+             porta barrou. -->
+        <div class="card">
+          <div class="card-h"><div><h3>Por que este número não é reconhecido</h3><p>O canal recusa sempre com a mesma frase. Aqui aparece qual das quatro portas barrou.</p></div></div>
+          <div class="card-b">
+            <div class="row r3">
+              <div class="field"><label for="diag-fone">Telefone que mandou a mensagem</label><input id="diag-fone" class="inp" placeholder="41 3012-2998" onkeydown="if(event.key==='Enter')rodarDiagnosticoWhatsapp()"><div class="hint">Com ou sem DDI, com ou sem máscara.</div></div>
+              <div class="field"><label for="diag-busca">Empresa a inspecionar (opcional)</label><input id="diag-busca" class="inp" placeholder="CNPJ ou razão social" onkeydown="if(event.key==='Enter')rodarDiagnosticoWhatsapp()"><div class="hint">Use quando a empresa está sem telefone de vínculo — aí ela não aparece pela busca por número.</div></div>
+              <div class="field"><label for="diag-rodar">&nbsp;</label><button class="btn btn-p" id="diag-rodar" type="button" onclick="rodarDiagnosticoWhatsapp()">Diagnosticar</button></div>
+            </div>
+            <div id="diag-resultado" style="margin-top:14px"></div>
+          </div>
+        </div>
         <!-- Seção própria do Martyn (pedido do dono do produto, 20/08/2026):
              estava tudo espalhado dentro de Configurações, junto com conta,
              cobrança e fila fiscal. O Martyn é o produto, não um ajuste. -->

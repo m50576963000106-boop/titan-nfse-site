@@ -988,3 +988,13 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
   /* Espaço entre botões vizinhos: dedo é mais largo que ponteiro. */
   td .btn+.btn,.draft-item .btn+.btn,.setup-actions .btn+.btn{margin-left:6px}
 }
+
+/* Resultados da busca do topo (21/08/2026). Em classe, e não em style inline,
+   porque largura fixada inline vence @media e o celular paga a conta. */
+.busca-res{display:none;position:absolute;z-index:60;left:0;right:0;top:calc(100% + 8px);min-width:320px;max-height:340px;overflow:auto;padding:6px}
+.busca-res.on{display:block}
+@media (max-width:760px){
+  /* No celular a barra é estreita: a lista sai do fluxo do campo e ocupa a
+     largura da tela, senão nasceria cortada pela lateral. */
+  .busca-res{position:fixed;left:12px;right:12px;top:60px;min-width:0}
+}

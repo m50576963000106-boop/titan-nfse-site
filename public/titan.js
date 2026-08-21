@@ -193,11 +193,22 @@ function buscarNoPortal(value){
   const match=alias?links.find(el=>(el.getAttribute('onclick')||'').includes(`go('${alias[1]}'`)):links.find(el=>supNorm(el.textContent).includes(supNorm(query)));
   if(match){buscaPortalView=(match.getAttribute('onclick')||'').match(/go\('([^']+)'/)?.[1]||'';input.title=`Pressione Enter para abrir ${match.textContent.trim()}`;}
   else input.title=query.length>1?'Nenhum módulo encontrado':'';
+  // Até 21/08/2026 a função acabava aqui: o placeholder prometia "cliente ou
+  // nota" e ela só sabia achar item de menu. Quem digitava o número da nota ou
+  // o nome do tomador não recebia nada e concluía que o portal não tinha.
+  buscarRegistrosDoPortal(String(value||'').trim());
 }
 function abrirResultadoBusca(){
-  const input=qs('#global-search');
+  const input=qs('#global-search'),caixa=qs('#busca-res');
+  const temResultados=caixa&&caixa.classList.contains('on')&&caixa.querySelector('button');
   if(buscaPortalView){const el=[...qsa('.sb-link')].find(b=>(b.getAttribute('onclick')||'').includes(`go('${buscaPortalView}'`));go(buscaPortalView,el);}
+  // Sem módulo, mas com nota ou cliente na lista, o Enter abre o primeiro
+  // resultado. Antes disto o alerta "nenhum módulo correspondente" aparecia por
+  // cima de uma lista cheia de achados — dizendo que não havia o que já estava
+  // na tela.
+  else if(temResultados){temResultados.click();return}
   else if(input?.value.trim())mostrarNotificacoes('Nenhum módulo correspondente foi encontrado.');
+  fecharBuscaDoPainel();
   if(input){input.value='';input.title='';}buscaPortalView='';
 }
 function mostrarNotificacoes(message){
@@ -2263,9 +2274,115 @@ function renderDashboard(){
   const activity=qs('#dash-activity');
   if(activity){
     const items=notas.slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,4);
-    activity.innerHTML=items.length?items.map(n=>`<div class="activity-row"><span class="activity-dot ${n.st==='ok'?'ok':n.st==='err'?'err':n.st==='proc'?'warn':''}"></span><span class="activity-copy"><b>${esc(n.st==='ok'?'NFS-e autorizada':n.st==='err'?'Emissão rejeitada':n.st==='canc'?'Nota cancelada':'Emissão em processamento')}</b><span>${esc(n.t||'Tomador não informado')} · ${esc(n.s||'Serviço')}</span></span><strong class="activity-value">${esc(dashDateLabel(n.date))}</strong></div>`).join(''):'<div class="dash-empty">Nenhuma atividade ainda.<br>As emissões e eventos aparecerão aqui.</div>';
+    activity.innerHTML=items.length?items.map(n=>`<div class="activity-row"><span class="activity-dot ${n.st==='ok'?'ok':n.st==='err'?'err':n.st==='proc'?'warn':''}"></span><span class="activity-copy"><b>${esc(n.st==='ok'?'NFS-e autorizada':n.st==='err'?'Emissão rejeitada':n.st==='canc'?'Nota cancelada':'Emissão em processamento')}</b><span>${esc(n.t||'Tomador não informado')} · ${esc(n.s||'Serviço')}</span></span>${acoesDaAtividade(n)}<strong class="activity-value">${esc(dashDateLabel(n.date))}</strong></div>`).join(''):'<div class="dash-empty">Nenhuma atividade ainda.<br>As emissões e eventos aparecerão aqui.</div>';
   }
+  renderSaudeFiscal();
 }
+
+/**
+ * PDF e XML direto na linha da atividade (desenho do usuário).
+ *
+ * Só aparecem quando existe documento: nota rejeitada ou ainda processando não
+ * tem XML autorizado nenhum, e o botão ali só levaria a um erro depois do
+ * clique. Botão que não funciona é pior do que botão ausente.
+ */
+function acoesDaAtividade(n){
+  if(n.st!=='ok'&&n.st!=='canc')return '';
+  const num=escAttr(String(n.n||''));
+  return `<span class="flex" style="gap:6px;margin-right:10px">`
+    +`<button class="btn btn-s" type="button" title="Baixar PDF da NFS-e ${num}" onclick="baixarPdf('${escAttr(n.id)}','${num}','${escAttr(empresaAtual?.rs||'')}')">PDF</button>`
+    +`<button class="btn btn-s" type="button" title="Baixar XML da NFS-e ${num}" onclick="baixarXml('${escAttr(n.id)}','${num}')">XML</button>`
+    +`</span>`;
+}
+
+/** Cor e rótulo do nível. Sem estado desconhecido virando verde. */
+const SAUDE_PILL={ok:['p-ok','Saudável'],atencao:['p-warn','Atenção'],critico:['p-err','Crítico']};
+
+function renderSaudeFiscal(){
+  const lista=qs('#dash-saude-itens'),resumo=qs('#dash-saude-resumo'),nivel=qs('#dash-saude-nivel');
+  if(!lista||!resumo||!nivel)return;
+  const saude=dashboardStats?.saudeFiscal;
+  if(!saude){
+    // Sem dado, o card NÃO pode ficar verde: dizer "tudo em ordem" porque a
+    // consulta falhou é exatamente a mentira que este card existe para evitar.
+    nivel.className='pill p-off right';nivel.textContent='Indisponível';
+    resumo.textContent='Não consegui avaliar agora.';
+    lista.innerHTML='<div class="dash-empty">A verificação não respondeu. Recarregue a página para tentar de novo.</div>';
+    return;
+  }
+  const [classe,rotulo]=SAUDE_PILL[saude.nivel]||SAUDE_PILL.ok;
+  nivel.className='pill '+classe+' right';nivel.textContent=rotulo;
+  resumo.textContent=saude.resumo||'';
+  lista.innerHTML=(saude.itens||[]).map(i=>{
+    const ponto=i.estado==='critico'?'err':i.estado==='atencao'?'warn':'ok';
+    const acao=i.acao?`<span>${esc(i.detalhe)} · ${esc(i.acao.rotulo)}</span>`:`<span>${esc(i.detalhe)}</span>`;
+    const corpo=`<span class="pending-ico"><span class="activity-dot ${ponto}"></span></span><span class="pending-copy"><b>${esc(i.rotulo)}</b>${acao}</span>`;
+    return i.acao
+      ? `<button class="pending-row" type="button" onclick="irParaSaude('${escAttr(i.acao.view)}')">${corpo}</button>`
+      : `<div class="pending-row">${corpo}</div>`;
+  }).join('');
+}
+
+/** Leva o cliente para a tela onde o item se resolve. */
+function irParaSaude(view){
+  const alvo=qs(`.user-sidebar .sb-link[onclick*="${view}"]`)||qs(`.sb-link[onclick*="${view}"]`);
+  go(view,alvo);
+}
+
+/* ── Busca do painel ───────────────────────────────────────────────────────
+   Notas saem da lista já carregada (não vale gastar chamada para o que está
+   na memória); clientes vêm do servidor, porque o cadastro de clientes só é
+   carregado quando alguém abre aquela tela. */
+let painelBuscaTimer,painelBuscaSeq=0;
+const PAINEL_BUSCA_MIN=2;
+
+function buscarRegistrosDoPortal(termo){
+  const caixa=qs('#busca-res');
+  if(!caixa)return;
+  clearTimeout(painelBuscaTimer);
+  if(String(termo||'').length<PAINEL_BUSCA_MIN){fecharBuscaDoPainel();return}
+  painelBuscaTimer=setTimeout(()=>executarBuscaDoPainel(termo),260);
+}
+
+function normalizarBusca(t){return String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')}
+
+async function executarBuscaDoPainel(termo){
+  const caixa=qs('#busca-res');if(!caixa)return;
+  const alvo=normalizarBusca(termo),somenteDigitos=termo.replace(/\D/g,'');
+  const achadas=notas.filter(n=>
+    normalizarBusca(n.t).includes(alvo)||normalizarBusca(n.s).includes(alvo)||
+    String(n.n||'').includes(termo)||(somenteDigitos&&String(n.key||'').includes(somenteDigitos))
+  ).slice(0,5);
+  // A busca de cliente é a única parte que depende da rede. Se ela falhar, as
+  // notas achadas continuam aparecendo e a caixa diz o que ficou faltando —
+  // some silenciosamente seria o cliente concluir que não existe cadastro.
+  const seq=++painelBuscaSeq;
+  let clientes=null;
+  try{clientes=await api('/api/customers?search='+encodeURIComponent(termo)+'&limit=5')}catch{}
+  if(seq!==painelBuscaSeq)return; // chegou fora de ordem: uma busca mais nova já mandou
+  const blocos=[];
+  if(achadas.length)blocos.push('<div class="hint" style="padding:6px 8px">Notas</div>'+achadas.map(n=>
+    `<button class="pending-row" type="button" onclick="abrirResultadoDaBusca('nota','${escAttr(n.id)}','${escAttr(String(n.n||''))}')"><span class="pending-copy"><b>NFS-e ${esc(String(n.n||'—'))} · ${esc(n.t||'Tomador não informado')}</b><span>${esc(n.s||'Serviço')} · ${esc(n.d||'')}</span></span></button>`).join(''));
+  if(clientes&&clientes.length)blocos.push('<div class="hint" style="padding:6px 8px">Clientes</div>'+clientes.slice(0,5).map(c=>
+    `<button class="pending-row" type="button" onclick="abrirResultadoDaBusca('cliente','','${escAttr(c.legal_name||'')}')"><span class="pending-copy"><b>${esc(c.legal_name||'Sem nome')}</b><span>${esc(c.tax_id||'Sem CPF/CNPJ')}</span></span></button>`).join(''));
+  if(!clientes)blocos.push('<div class="hint" style="padding:8px">Não consegui consultar os clientes agora — acima só aparecem notas.</div>');
+  caixa.innerHTML=blocos.length?blocos.join(''):`<div class="dash-empty">Nada encontrado para "${esc(termo)}".</div>`;
+  caixa.classList.add('on');
+}
+
+function abrirResultadoDaBusca(tipo,id,rotulo){
+  fecharBuscaDoPainel();
+  if(tipo==='nota'){abrirDanfse(id,rotulo);return}
+  go('clientes',qs('.user-sidebar .sb-link[onclick*="clientes"]')||qs('.sb-link[onclick*="clientes"]'));
+  const filtro=qs('#cl-search');if(filtro){filtro.value=rotulo;filtrarClientesCadastro();}
+}
+
+function fecharBuscaDoPainel(){const c=qs('#busca-res');if(c){c.classList.remove('on');c.innerHTML=''}}
+document.addEventListener('click',e=>{
+  if(!qs('#busca-res'))return;
+  if(!e.target.closest('#global-search')&&!e.target.closest('#busca-res'))fecharBuscaDoPainel();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharBuscaDoPainel()});
 
 async function exportarXmls(btn){
   const search=qs('#nt-search')?.value.trim()||'';
@@ -5656,4 +5773,43 @@ async function testarConexaoSicredi(){
       box.innerHTML=`<b>Não conectou.</b><br>${esc(error.message||String(error))}`;
     }finally{ if(btn)btn.disabled=false; }
   });
+}
+
+/* ── Diagnóstico do canal WhatsApp (Master, 21/08/2026) ─────────────────────
+   O canal recusa com "número não habilitado" em qualquer uma das quatro
+   portas. Para o cliente isso está certo — negar com detalhe entrega
+   informação a quem sonda. Para o suporte era um beco: nem dava para saber
+   qual porta barrou, e a porta mais provável (telefone de vínculo vazio) faz a
+   empresa sumir da consulta do canal. */
+async function rodarDiagnosticoWhatsapp(){
+  const fone=qs('#diag-fone')?.value.trim()||'',busca=qs('#diag-busca')?.value.trim()||'';
+  const alvo=qs('#diag-resultado'),botao=qs('#diag-rodar');
+  if(!alvo)return;
+  if(!fone){alvo.innerHTML='<div class="alert a-warn">Informe o telefone que mandou a mensagem.</div>';return}
+  const rotulo=botao?botao.textContent:'';if(botao){botao.disabled=true;botao.textContent='Consultando...'}
+  try{
+    const d=await api('/api/master/whatsapp-diagnostico?telefone='+encodeURIComponent(fone)+(busca?'&busca='+encodeURIComponent(busca):''));
+    alvo.innerHTML=montarDiagnosticoWhatsapp(d);
+  }catch(error){
+    alvo.innerHTML=`<div class="alert a-err">Não consegui rodar o diagnóstico: ${esc(error.message||'falha de comunicação')}</div>`;
+  }finally{if(botao){botao.disabled=false;botao.textContent=rotulo}}
+}
+
+function montarDiagnosticoWhatsapp(d){
+  const cabecalho=d.formatoReconhecido
+    ? `<div class="alert a-info">Telefone <b>${esc(d.telefone)}</b> vira a chave <b>${esc(d.chave)}</b>. Resultado do canal: <b>${esc(d.resultadoDoCanal==='visitante'?'VISITANTE (não reconhecido)':d.resultadoDoCanal==='empresa_unica'?'reconhecido, 1 empresa':'reconhecido, várias empresas')}</b>. ${d.totalDeEmpresas} empresa(s) avaliada(s).</div>`
+    : `<div class="alert a-err">O número <b>${esc(d.telefone)}</b> não tem formato brasileiro reconhecível — nenhuma empresa poderia casar com ele.</div>`;
+  const bloco=(titulo,lista,vazio)=>`<div class="section-title" style="margin-top:16px">${esc(titulo)}</div>`
+    +(lista&&lista.length?lista.map(cartaoDoDiagnostico).join(''):`<div class="hint" style="padding:6px 2px">${esc(vazio)}</div>`);
+  return cabecalho
+    +bloco('Empresas que o canal aprovaria',d.aprovadas,'Nenhuma — é por isso que o Martyn respondeu como visitante.')
+    +bloco('Telefone bate, mas reprovou depois',d.comTelefoneCerto,'Nenhuma empresa tem este telefone cadastrado.')
+    +(d.porBusca&&d.porBusca.length?bloco('Empresas da busca',d.porBusca,''):'');
+}
+
+function cartaoDoDiagnostico(e){
+  const cor=e.aprovada?'p-ok':'p-err';
+  const selo=e.aprovada?'Aprovada':`Reprovou em: ${esc(e.reprovadaEm)}`;
+  const portas=e.portas.map(p=>`<div class="pending-row" style="cursor:default"><span class="pending-ico"><span class="activity-dot ${p.passou?'ok':'err'}"></span></span><span class="pending-copy"><b>${p.passou?'✓':'✗'} ${esc(p.porta)}</b><span>${esc(p.detalhe)}</span></span></div>`).join('');
+  return `<div class="card" style="margin:10px 0"><div class="card-h"><div><h3 style="font-size:15px">${esc(e.razaoSocial||'Sem razão social')}</h3><p>CNPJ ${esc(e.cnpj||'—')} · vínculo: ${esc(e.telefoneCadastrado||'não preenchido')}</p></div><span class="pill ${cor} right">${selo}</span></div><div class="card-b" style="padding-top:0">${portas}</div></div>`;
 }

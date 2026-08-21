@@ -1735,3 +1735,79 @@ test("todo campo lido pelas duas funcoes existe no HTML", async()=>{
   const faltando=ids.filter(id=>!html.includes(`id="${id}"`));
   assert.deepEqual(faltando, [], "campo lido pelo JS que nao existe no HTML");
 });
+
+/* ── Página inicial: busca, Saúde fiscal e PDF/XML na atividade (21/08/2026) ──
+   Os três itens do desenho do usuário que ainda não existiam. */
+
+test("o card de Saúde fiscal NÃO fica verde quando a avaliação não veio", async()=>{
+  // É a mentira que este card existe para evitar: dizer "tudo em ordem" porque
+  // a consulta falhou dá permissão para não olhar.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const i=js.indexOf("function renderSaudeFiscal()");
+  assert.ok(i>0,"renderSaudeFiscal precisa existir");
+  const trecho=js.slice(i, js.indexOf("\n}", i));
+  assert.match(trecho, /if\(!saude\)\{/, "sem dado precisa ter tratamento próprio");
+  assert.match(trecho, /Indisponível/);
+  assert.match(trecho, /p-off/, "estado desconhecido não pode pegar a cor de saudável");
+});
+
+test("o nível da saúde tem as três cores, e nenhuma delas é o padrão silencioso", async()=>{
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  assert.match(js, /SAUDE_PILL=\{ok:\['p-ok'.*atencao:\['p-warn'.*critico:\['p-err'/);
+});
+
+test("cada tela apontada pela Saúde fiscal existe de verdade no portal", async()=>{
+  // A API decide o destino de cada item ('emitente','notas','recorrentes'). Um
+  // nome que não existe vira clique que não leva a lugar nenhum.
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  for(const view of ["emitente","notas","recorrentes"]){
+    assert.ok(html.includes(`go('${view}'`), `a Saúde fiscal manda para '${view}', que precisa ser uma tela real`);
+  }
+});
+
+test("PDF e XML só aparecem na atividade quando existe documento", async()=>{
+  // Nota rejeitada ou em processamento não tem XML autorizado: o botão ali só
+  // levaria a um erro depois do clique.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const i=js.indexOf("function acoesDaAtividade(n)");
+  assert.ok(i>0);
+  const trecho=js.slice(i, js.indexOf("\n}", i));
+  assert.match(trecho, /if\(n\.st!=='ok'&&n\.st!=='canc'\)return ''/);
+  assert.match(trecho, /baixarPdf\(/);
+  assert.match(trecho, /baixarXml\(/);
+});
+
+test("a busca do topo cumpre o que o placeholder promete: nota e cliente, não só menu", async()=>{
+  // Ela prometia "módulo, cliente ou nota" e só sabia navegar no menu. Quem
+  // digitava o número da nota não recebia nada e concluía que o portal não tinha.
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  assert.ok(html.includes('id="busca-res"'), "sem a caixa de resultados não há onde mostrar o que foi achado");
+  assert.ok(!html.includes('id="dash-busca"'), "duas buscas no portal seria pior do que uma que funciona");
+  assert.match(js, /buscarRegistrosDoPortal\(String\(value\|\|''\)\.trim\(\)\)/, "a busca por registros precisa sair da mesma função do campo");
+  assert.match(js, /PAINEL_BUSCA_MIN=2/, "buscar a cada tecla gastaria chamada à toa");
+  assert.match(js, /setTimeout\(\(\)=>executarBuscaDoPainel\(termo\),\s*\d+\)/);
+  assert.match(js, /function fecharBuscaDoPainel\(\)/);
+});
+
+test("com resultados na tela, o Enter abre o primeiro em vez de dizer que não achou nada", async()=>{
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const i=js.indexOf("function abrirResultadoBusca()");
+  const trecho=js.slice(i, js.indexOf("\n}", i));
+  assert.match(trecho, /temResultados/);
+  assert.ok(trecho.indexOf("temResultados.click()") < trecho.indexOf("Nenhum módulo correspondente"),
+    "o alerta de 'não achei' não pode passar na frente de uma lista cheia de achados");
+});
+
+test("a busca avisa quando não conseguiu consultar os clientes", async()=>{
+  // Sumir em silêncio faria o cliente concluir que o cadastro não existe.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  assert.match(js, /Não consegui consultar os clientes agora/);
+  // Resposta fora de ordem não pode sobrescrever uma busca mais nova.
+  assert.match(js, /if\(seq!==painelBuscaSeq\)return/);
+});
+
+test("o campo de filtro que a busca preenche existe no cadastro de clientes", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.ok(html.includes('id="cl-search"'), "sem esse id, clicar no cliente encontrado não filtra nada");
+});
