@@ -963,10 +963,13 @@ async function avisarLimiteDoPlano(){
 }
 async function carregarBilling(){
   const box=qs('#billing-status'),list=qs('#billing-charges');if(!box||!list)return;
-  try{const data=await api('/api/billing/status');const plan=data.plan?`${esc(data.plan.name)} · ${data.plan.monthlyLimit} notas/mês · R$ ${(data.plan.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'Plano ainda não configurado';const addons=data.addons?.length?`<ul class="hint" style="margin:4px 0 0;padding-left:18px">${data.addons.map(a=>`<li>${esc(a.name)} avulso · R$ ${(a.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}/mês</li>`).join('')}</ul>`:'';const total=data.plan?`<p class="hint" style="margin-top:6px"><b>Total mensal: R$ ${((data.totalCents||0)/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}</b></p>`:'';box.innerHTML=`<b>${plan}</b>${addons}${total}<p class="hint">Status: ${esc(data.company?.billing_status||'trial')}${data.access?.blocked?' · emissão bloqueada por atraso':''}</p>${data.configured?'':'<div class="alert a-info">A integração Nubank está aguardando credenciais PJ no ambiente seguro.</div>'}`;list.innerHTML=data.charges?.length?data.charges.map(item=>`<div class="draft-item"><b>${esc(item.method)} · ${esc(item.status)}</b><span>R$ ${(Number(item.amount_cents||0)/100).toLocaleString('pt-BR',{minimumFractionDigits:2})} · vence ${new Date(item.due_at).toLocaleDateString('pt-BR')}</span>${item.pix_copy_paste?`<div class="hint mono">${esc(item.pix_copy_paste)}</div>`:''}</div>`).join(''):'<div class="empty-state">Nenhuma cobrança emitida.</div>'}catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`;list.innerHTML=''}
+  try{const data=await api('/api/billing/status');const plan=data.plan?`${esc(data.plan.name)} · ${data.plan.monthlyLimit} notas/mês · R$ ${(data.plan.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'Plano ainda não configurado';const addons=data.addons?.length?`<ul class="hint" style="margin:4px 0 0;padding-left:18px">${data.addons.map(a=>`<li>${esc(a.name)} avulso · R$ ${(a.priceCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}/mês</li>`).join('')}</ul>`:'';const total=data.plan?`<p class="hint" style="margin-top:6px"><b>Total mensal: R$ ${((data.totalCents||0)/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}</b></p>`:'';box.innerHTML=`<b>${plan}</b>${addons}${total}<p class="hint">Status: ${esc(data.company?.billing_status||'trial')}${data.access?.blocked?' · emissão bloqueada por atraso':''}</p>${data.configured?'':'<div class="alert a-info">A cobrança pelo Sicredi está aguardando credenciais PJ no ambiente seguro.</div>'}`;list.innerHTML=data.charges?.length?data.charges.map(item=>`<div class="draft-item"><b>${esc(item.method)} · ${esc(item.status)}</b><span>R$ ${(Number(item.amount_cents||0)/100).toLocaleString('pt-BR',{minimumFractionDigits:2})} · vence ${new Date(item.due_at).toLocaleDateString('pt-BR')}</span>${item.pix_copy_paste?`<div class="hint mono">Pix copia e cola: ${esc(item.pix_copy_paste)}</div>`:''}${item.boleto_linha_digitavel?`<div class="hint mono">Linha digitável: ${esc(item.boleto_linha_digitavel)}</div>`:''}</div>`).join(''):'<div class="empty-state">Nenhuma cobrança emitida.</div>'}catch(error){box.innerHTML=`<div class="empty-state">${esc(error.message)}</div>`;list.innerHTML=''}
 }
+// Pix e boleto são a MESMA cobrança no Sicredi (boleto híbrido: o QR Code Pix
+// nasce grudado no boleto). `method` só registra o que o cliente escolheu ver —
+// o que volta do banco tem sempre os dois, copia e cola e linha digitável.
 async function gerarCobranca(){
-  const method=qs('#billing-method').value,due=qs('#billing-due').value||undefined;try{const data=await api('/api/billing/charges',{method:'POST',body:JSON.stringify({method,dueDate:due})});alert('Cobrança oficial criada.');await carregarBilling()}catch(error){alert(error.message)}
+  const method=qs('#billing-method').value,due=qs('#billing-due').value||undefined;try{await api('/api/billing/charges',{method:'POST',body:JSON.stringify({method,dueDate:due})});alert('Cobrança oficial criada. O QR Code Pix e a linha digitável aparecem no histórico abaixo.');await carregarBilling()}catch(error){alert(error.message)}
 }
 /* ---------- DASN-SIMEI (tela do desenho aprovado, 20/08/2026) ------------ */
 const DASN_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -4441,11 +4444,11 @@ async function carregarConfiguracoesMaster(){
   const status=qs('#master-settings-status'),commStatus=qs('#master-comm-status');if(status)status.textContent='Carregando...';if(commStatus)commStatus.textContent='Carregando...';
   try{
     const data=await api('/api/master/settings');
-    qs('#set-nubank-enabled').value=String(Boolean(data.nubankEnabled));
-    qs('#set-nubank-api').value=data.nubankApiBaseUrl||'https://api.nubank.com.br';
-    qs('#set-nubank-oauth').value=data.nubankOauthUrl||'';
-    qs('#set-nubank-id').value=data.nubankClientId||'';
-    qs('#set-nubank-secret').value='';qs('#set-nubank-webhook').value='';
+    qs('#set-pix-enabled').value=String(Boolean(data.nubankEnabled));
+    qs('#set-pix-api').value=data.nubankApiBaseUrl||'https://api.nubank.com.br';
+    qs('#set-pix-oauth').value=data.nubankOauthUrl||'';
+    qs('#set-pix-id').value=data.nubankClientId||'';
+    qs('#set-pix-secret').value='';qs('#set-pix-webhook').value='';
     // Segredos nunca voltam do servidor — só o "tem ou não tem". Os campos de
     // arquivo ficam vazios de propósito: reenviar é opcional.
     qs('#set-sicredi-ambiente').value=data.sicrediAmbiente||'sandbox';
@@ -4456,8 +4459,8 @@ async function carregarConfiguracoesMaster(){
       ss.textContent=pronto?`Configurado (${data.sicrediAmbiente==='producao'?'produção':'sandbox'})`:'Não configurado';
       ss.className='pill '+(pronto?(data.sicrediAmbiente==='producao'?'p-ok':'p-gold'):'p-off')}
     qs('#set-pix-chave').value=data.pixChaveRecebedor||'';qs('#set-pix-escopos').value=data.pixEscopos||'';
-    qs('#set-nubank-cert-pass').value='';qs('#set-nubank-cert-data').value='';qs('#set-nubank-cert-key-data').value='';
-    const certEstado=qs('#set-nubank-cert-estado');
+    qs('#set-pix-cert-pass').value='';qs('#set-pix-cert-data').value='';qs('#set-pix-cert-key-data').value='';
+    const certEstado=qs('#set-pix-cert-estado');
     if(certEstado)certEstado.textContent=data.hasNubankCertificate
       ?'Certificado gravado. Envie um arquivo novo só para substituir.'
       :'Nenhum certificado enviado. Se o banco exigir mTLS, a conexão será recusada sem ele.';
@@ -4484,7 +4487,7 @@ async function carregarConfiguracoesMaster(){
     qs('#set-support-phone').value=data.supportHelpPhone||'';
     qs('#set-support-wa-enabled').value=String(data.supportHelpWhatsAppEnabled!==false);
     qs('#set-support-alerts-enabled').value=String(data.supportHelpAlertsEnabled!==false);
-    const ns=qs('#master-nubank-state');if(ns){ns.textContent=data.nubankEnabled&&data.hasNubankClientSecret?'Configurado':'Não configurado';ns.className=`pill ${data.nubankEnabled&&data.hasNubankClientSecret?'p-ok':'p-off'}`}
+    const ns=qs('#master-pix-state');if(ns){ns.textContent=data.nubankEnabled&&data.hasNubankClientSecret?'Configurado':'Não configurado';ns.className=`pill ${data.nubankEnabled&&data.hasNubankClientSecret?'p-ok':'p-off'}`}
     const as=qs('#master-accountant-state');if(as){as.textContent=data.accountantCronEnabled?'Ativo':'Desativado';as.className=`pill ${data.accountantCronEnabled?'p-ok':'p-off'}`}
     atualizarEstadosIntegracoes(data);
     if(status)status.textContent='Configurações carregadas.';if(commStatus)commStatus.textContent='Configurações carregadas.';
@@ -4508,29 +4511,37 @@ async function enviarConfiguracoesMaster(campos, elementoDeStatus){
   if(status)status.textContent='Salvando com criptografia...';
   try{
     const data=await api('/api/master/settings',{method:'PUT',body:JSON.stringify(campos)});
-    const ns=qs('#master-nubank-state');if(ns){ns.textContent=data.nubankEnabled&&data.hasNubankClientSecret?'Configurado':'Não configurado';ns.className=`pill ${data.nubankEnabled&&data.hasNubankClientSecret?'p-ok':'p-off'}`}
+    const ns=qs('#master-pix-state');if(ns){ns.textContent=data.nubankEnabled&&data.hasNubankClientSecret?'Configurado':'Não configurado';ns.className=`pill ${data.nubankEnabled&&data.hasNubankClientSecret?'p-ok':'p-off'}`}
     const as=qs('#master-accountant-state');if(as){as.textContent=data.accountantCronEnabled?'Ativo':'Desativado';as.className=`pill ${data.accountantCronEnabled?'p-ok':'p-off'}`}
     atualizarEstadosIntegracoes(data);
     aplicarLogoPortal(data.portalLogoDataUrl||'');
     // Campos de segredo voltam vazios: vazio significa "manter o que está
     // gravado", nunca "apagar".
-    ['#set-nubank-secret','#set-nubank-webhook','#set-nubank-cert-pass','#set-sicredi-key','#set-sicredi-pass',
+    ['#set-pix-secret','#set-pix-webhook','#set-pix-cert-pass','#set-sicredi-key','#set-sicredi-pass',
      '#set-wa-access-token','#set-wa-app-secret','#set-wa-verify-token'].forEach(id=>{const el=qs(id);if(el)el.value=''});
     if(status)status.textContent='Configurações salvas. Segredos mantidos no cofre criptografado.';
     return data;
   }catch(error){ if(status)status.textContent=error.message; }
 }
 
-/** Painel Configurações: banco, cobrança e rotina do contador. */
+/**
+ * Painel Configurações: banco, cobrança e rotina do contador.
+ *
+ * Os campos `nubank*` do corpo são o nome do CONTRATO com a API (e das chaves
+ * gravadas em system_settings) — o banco é o Sicredi, e o prefixo só sobrevive
+ * porque renomeá-lo exigiria migrar o registro cifrado no servidor. Os ids da
+ * tela já são `set-pix-*`, que é o que este painel realmente configura: a API
+ * Pix do banco. Ver a nota em src/system/settings.ts da API.
+ */
 async function salvarConfiguracoesMaster(){
   return enviarConfiguracoesMaster({
-    nubankEnabled:qs('#set-nubank-enabled').value==='true',nubankApiBaseUrl:qs('#set-nubank-api').value.trim(),nubankOauthUrl:qs('#set-nubank-oauth').value.trim(),nubankClientId:qs('#set-nubank-id').value.trim(),nubankClientSecret:qs('#set-nubank-secret').value,nubankWebhookSecret:qs('#set-nubank-webhook').value,
+    nubankEnabled:qs('#set-pix-enabled').value==='true',nubankApiBaseUrl:qs('#set-pix-api').value.trim(),nubankOauthUrl:qs('#set-pix-oauth').value.trim(),nubankClientId:qs('#set-pix-id').value.trim(),nubankClientSecret:qs('#set-pix-secret').value,nubankWebhookSecret:qs('#set-pix-webhook').value,
     accountantCronEnabled:qs('#set-accountant-enabled').value==='true',
     sicrediAmbiente:qs('#set-sicredi-ambiente').value,sicrediApiKey:qs('#set-sicredi-key').value,
     sicrediUsername:qs('#set-sicredi-user').value.trim(),sicrediPassword:qs('#set-sicredi-pass').value,
     sicrediCooperativa:qs('#set-sicredi-coop').value.trim(),sicrediPosto:qs('#set-sicredi-posto').value.trim(),sicrediCodigoBeneficiario:qs('#set-sicredi-benef').value.trim(),
     pixChaveRecebedor:qs('#set-pix-chave').value.trim(),pixEscopos:qs('#set-pix-escopos').value.trim(),
-    nubankCertificateBase64:qs('#set-nubank-cert-data').value,nubankCertificateKeyBase64:qs('#set-nubank-cert-key-data').value,nubankCertificatePassphrase:qs('#set-nubank-cert-pass').value,
+    nubankCertificateBase64:qs('#set-pix-cert-data').value,nubankCertificateKeyBase64:qs('#set-pix-cert-key-data').value,nubankCertificatePassphrase:qs('#set-pix-cert-pass').value,
     portalLogoDataUrl:qs('#set-portal-logo-data').value
   }, '#master-settings-status');
 }
@@ -5676,21 +5687,29 @@ function lerArquivoBase64(input, destino, aoTerminar){
 }
 
 function carregarCertificadoBanco(input){
-  lerArquivoBase64(input, '#set-nubank-cert-data', arquivo => {
-    qs('#set-nubank-cert-estado').textContent =
+  lerArquivoBase64(input, '#set-pix-cert-data', arquivo => {
+    qs('#set-pix-cert-estado').textContent =
       `${arquivo.name} carregado (${Math.round(arquivo.size/1024)} KB). Clique em Salvar configurações para gravar.`;
   });
 }
 
-function carregarChaveBanco(input){ lerArquivoBase64(input, '#set-nubank-cert-key-data'); }
+function carregarChaveBanco(input){ lerArquivoBase64(input, '#set-pix-cert-key-data'); }
 
+/**
+ * Testa a API Pix do banco (o Sicredi). É o botão do card "Configurações
+ * técnicas" — o outro, testarConexaoSicredi(), testa a API da Cobrança.
+ */
 async function testarConexaoBanco(){
   return emVoo('teste-banco', async () => {
-    const box=qs('#set-nubank-teste'), btn=qs('#btn-testar-banco');
+    const box=qs('#set-pix-teste'), btn=qs('#btn-testar-banco');
     box.style.display='block'; box.className='alert a-info';
     box.textContent='Autenticando no banco...';
     if(btn)btn.disabled=true;
     try{
+      // A API responde neste caminho E no novo /api/master/pix/test. O portal
+      // só pode passar para o novo DEPOIS que a API com ele estiver em
+      // produção — são dois deploys separados, e trocar aqui primeiro deixaria
+      // este botão em 404 na janela entre os dois.
       const r=await api('/api/master/nubank/test',{method:'POST'});
       const selo = r.mtls ? `com certificado mTLS (${esc(r.formato||'?')})` : 'sem certificado mTLS';
       if(r.ok){
