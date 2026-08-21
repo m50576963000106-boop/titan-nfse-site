@@ -336,7 +336,7 @@ test("aciona Martyn IA no widget dedicado de erro de emissão", async()=>{
   assert.match(html,/const MARTYN_TARGETS=/);
   assert.match(html,/function aplicarAcaoMartyn\(action\)/);
   assert.match(html,/emitir:\['s-desc','s-nbs-search','s-cod-search','s-mun-search','t-doc','t-nome','t-mail','t-cep','s-comp','s-ret-pc'\]/);
-  assert.match(html,/servicos:\['cad-mun-code','cad-ibscbs-search'\]/);
+  assert.match(html,/servicos:\['cad-mun-code','cad-ibscbs-cst-search','cad-ibscbs-classtrib-search'\]/);
   assert.match(html,/cert:\['c-file'\]/);
   assert.match(html,/field\.scrollIntoView\(\{behavior:'smooth',block:'center'\}\)/);
   assert.match(html,/field\.classList\.add\('martyn-target'\)/);
@@ -1363,13 +1363,13 @@ test("Etapa 3 (19/08/2026): a configuração IBS/CBS saiu da emissão e vive em 
   // Os campos agora são cadastro do serviço.
   assert.match(html,/id="cad-ibscbs-indfinal"/);
   assert.match(html,/id="cad-ibscbs-tpoper"/);
-  assert.match(html,/id="cad-ibscbs-indop-search"[^>]*oninput="pesquisarIndOpCadastro\(\)"/);
+  assert.match(html,/id="cad-ibscbs-indop-search"[^>]*oninput="pesquisarCombo\('indop'\)"/);
   // "uso ou consumo pessoal" ganhou explicação — era a dúvida do usuário.
   assert.match(html,/uso ou consumo pessoal\?[\s\S]{0,120}info-tip/);
   // cIndOp abre a lista ao clicar: antes só reagia depois de 2 caracteres, e
   // por isso parecia que o campo não existia.
-  assert.match(html,/id="cad-ibscbs-indop-search"[^>]*onfocus="pesquisarIndOpCadastro\(\)"/);
-  assert.match(html,/const rows=\(term\?indOpCatalogo\.filter/,"sem termo digitado, mostra o catálogo inteiro");
+  assert.match(html,/id="cad-ibscbs-indop-search"[^>]*onfocus="pesquisarCombo\('indop'\)"/);
+  assert.match(html,/const rows=\(term\?elegiveis\.filter/,"sem termo digitado, mostra o catálogo inteiro");
   // tpOper 2 e 3 dependem de chave de NFS-e referenciada (dado da nota) e não
   // entram no cadastro — só 1, 4 e 5.
   assert.doesNotMatch(html,/id="cad-ibscbs-tpoper"[\s\S]{0,400}value="2"/);
@@ -1383,12 +1383,53 @@ test("pedido do usuário (12/08/2026): CST/cClassTrib do IBS/CBS vira dropdown p
   const html=await lerPortal();
   assert.match(html,/id="cad-ibscbs-cst" type="hidden"/);
   assert.match(html,/id="cad-ibscbs-classtrib" type="hidden"/);
-  assert.match(html,/id="cad-ibscbs-search"[^>]*oninput="pesquisarIbscbsClassificacao\(\)"/);
   assert.match(html,/function carregarIbscbsClassificacoesCatalogo\(\)/);
   assert.match(html,/api\('\/api\/services\/ibscbs-classificacoes'\)/);
-  assert.match(html,/function selecionarIbscbsClassificacao\(cst,classTrib\)/);
   // editar um serviço existente repovoa o texto de busca, não só os hidden
   assert.match(html,/exibirIbscbsClassificacaoPorCodigo\(item\.ibscbs_cst\|\|'',item\.ibscbs_class_trib\|\|''\)/);
+});
+
+test("pedido do dono do produto (21/08/2026): CST e cClassTrib do IBS/CBS em campos pesquisáveis SEPARADOS, e cIndOp igual", async()=>{
+  const html=await lerPortal();
+  // Antes eram um campo só ("CST / cClassTrib") que ainda exigia 2 caracteres
+  // digitados pra mostrar qualquer coisa. Agora são dois campos, cada um com a
+  // lista abrindo ao clicar (onfocus) e filtrando ao digitar (oninput).
+  assert.doesNotMatch(html,/id="cad-ibscbs-search"/,"o campo combinado CST/cClassTrib tem que ter sumido");
+  assert.doesNotMatch(html,/function pesquisarIbscbsClassificacao\(/,"a busca do campo combinado saiu junto");
+  assert.match(html,/id="cad-ibscbs-cst-search"[^>]*oninput="pesquisarCombo\('ibscbs-cst'\)"[^>]*onfocus="pesquisarCombo\('ibscbs-cst'\)"/);
+  assert.match(html,/id="cad-ibscbs-classtrib-search"[^>]*oninput="pesquisarCombo\('ibscbs-classtrib'\)"[^>]*onfocus="pesquisarCombo\('ibscbs-classtrib'\)"/);
+  assert.match(html,/id="cad-ibscbs-cst-results" class="municipality-results"/);
+  assert.match(html,/id="cad-ibscbs-classtrib-results" class="municipality-results"/);
+
+  // Um componente só para os três campos — não um terceiro jeito de fazer
+  // dropdown de busca no portal.
+  assert.match(html,/function registrarComboBusca\(config\)/);
+  assert.match(html,/async function pesquisarCombo\(nome\)/);
+  assert.match(html,/nome:'ibscbs-cst',busca:'cad-ibscbs-cst-search'/);
+  assert.match(html,/nome:'ibscbs-classtrib',busca:'cad-ibscbs-classtrib-search'/);
+  assert.match(html,/nome:'indop',busca:'cad-ibscbs-indop-search'/);
+
+  // Busca por CÓDIGO e por NOME no mesmo campo, sem acento e sem caixa.
+  assert.match(html,/digitos&&cfg\.codigos\(row\)\.some\(codigo=>String\(codigo\)\.includes\(digitos\)\)/);
+  assert.match(html,/supNorm\(cfg\.termos\(row\)\.filter\(Boolean\)\.join\(' '\)\)\.includes\(q\)/);
+  // cIndOp mostra o que ajuda a decidir (Anexo VII), não só o código.
+  assert.match(html,/termos:row=>\[row\.tipoOperacao,row\.caracteristicaFornecimento,row\.localFornecimentoIdentificar,row\.dispositivoLegal\]/);
+
+  // Regra do Portal Nacional: os 3 primeiros dígitos do cClassTrib são o CST.
+  // A tela garante isso dos dois lados, e ainda avisa antes de ir ao servidor.
+  assert.match(html,/filtro:row=>\{const cst=qs\('#cad-ibscbs-cst'\)\?\.value\|\|'';return !cst\|\|row\.cst===cst\}/);
+  assert.match(html,/aoSelecionar:row=>\{if\(row\)exibirComboPorValor\('ibscbs-cst',row\.cst\)\}/);
+  assert.match(html,/if\(classTrib&&classTrib\.value&&!classTrib\.value\.startsWith\(row\?\.cst\|\|''\)\)limparCombo\('ibscbs-classtrib'\)/);
+  assert.match(html,/Os 3 primeiros dígitos do cClassTrib devem ser iguais ao CST IBS\/CBS informado\./);
+
+  // O que chega ao backend não pode mudar de nome — é o mesmo contrato do POST
+  // /api/services/profiles (ibscbsCst, ibscbsClassTrib, ibscbsCindOp).
+  assert.match(html,/ibscbsCst:ibscbsCst\|\|undefined,ibscbsClassTrib:ibscbsClassTrib\|\|undefined/);
+  assert.match(html,/ibscbsCindOp:qs\('#cad-ibscbs-indop'\)\.value\|\|undefined/);
+  assert.match(html,/const ibscbsCst=qs\('#cad-ibscbs-cst'\)\.value\.trim\(\),ibscbsClassTrib=qs\('#cad-ibscbs-classtrib'\)\.value\.trim\(\)/);
+
+  // Lista que abre no clique tem que fechar no clique fora.
+  assert.match(html,/qsa\('\.municipality-results\.on'\)\.forEach\(box=>\{if\(!box\.parentElement\?\.contains\(event\.target\)\)box\.classList\.remove\('on'\)\}\)/);
 });
 
 test("pedido do usuário (12/08/2026): Rascunhos ganha busca/filtro e rastreia se virou nota", async()=>{
@@ -1601,7 +1642,8 @@ test("pedido do usuário (12/08/2026): ícones de informação (i) nos campos de
   assert.match(html,/for="cad-mun-code">Código municipal <span class="info-tip"/);
   assert.match(html,/for="cad-nbs-search">Código NBS <span class="required-mark">\*<\/span> <span class="info-tip"/);
   assert.match(html,/for="cad-cst">CST PIS\/COFINS <span class="info-tip"/);
-  assert.match(html,/for="cad-ibscbs-search">Classificação tributária IBS\/CBS \(CST \/ cClassTrib\) <span class="info-tip"/);
+  assert.match(html,/for="cad-ibscbs-cst-search">CST IBS\/CBS <span class="info-tip"/);
+  assert.match(html,/for="cad-ibscbs-classtrib-search">Classificação tributária IBS\/CBS \(cClassTrib\) <span class="info-tip"/);
 });
 
 test("pedido do usuário (12/08/2026): destaque do imposto mesmo sem retenção (CSRF e IRRF), só informativo", async()=>{

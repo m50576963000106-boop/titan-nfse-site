@@ -291,7 +291,7 @@ async function apiDownload(path,fallbackName){
 
 const MARTYN_TARGETS={
   emitir:['s-desc','s-nbs-search','s-cod-search','s-mun-search','t-doc','t-nome','t-mail','t-cep','s-comp','s-ret-pc'],
-  servicos:['cad-mun-code','cad-ibscbs-search'],
+  servicos:['cad-mun-code','cad-ibscbs-cst-search','cad-ibscbs-classtrib-search'],
   cert:['c-file']
 };
 function aplicarAcaoMartyn(action){
@@ -1242,83 +1242,168 @@ async function exibirMunicipioPorCodigo(tipo,code){
   }catch{qs(`#${tipo}-mun-search`).value=code}
 }
 
-/* ---------- cIndOp (Anexo VII IndOp IBSCBS) — mesmo padrão de pesquisarMunicipio ---------- */
-let indOpTimer;
+/* ---------- dropdown de busca por código E por nome — componente único ----------
+ * Havia DOIS dropdowns de busca escritos na mão quase iguais no cadastro de
+ * serviço (cIndOp e classificação IBS/CBS), cada um com o seu timer, o seu
+ * cache e o seu jeito de filtrar — e o da classificação ainda exigia 2
+ * caracteres digitados antes de mostrar qualquer coisa, sem nada visível pra
+ * clicar. Foi por isso que o dono do produto concluiu que o campo não existia.
+ *
+ * Agora os três campos fiscais do IBS/CBS (CST, cClassTrib e cIndOp) usam este
+ * mesmo componente: a lista abre ao clicar, digitar só filtra, e o filtro casa
+ * tanto dígitos do código quanto palavras do nome (sem acento e sem caixa).
+ * Quem tem catálogo pequeno e já baixado usa isto; CTN e NBS continuam com
+ * busca no servidor (input + botão Buscar + <select>) porque filtram 338 e 675
+ * itens do lado de lá — ver relatório.
+ */
+const COMBOS_BUSCA={};
+const combosBuscaTimers={};
+function registrarComboBusca(config){COMBOS_BUSCA[config.nome]=config;return config}
+// Depois de escolher, o campo mostra o rótulo da opção. Voltar a clicar nele
+// tem que reabrir a lista INTEIRA — filtrar pelo próprio rótulo não acharia
+// nada e pareceria campo quebrado.
+function termoCombo(input){
+  const valor=input.value.trim();
+  return valor===(input.dataset.rotuloCombo||'')?'':valor;
+}
+function aplicarValorCombo(cfg,valor,row){
+  const input=qs('#'+cfg.busca),hidden=qs('#'+cfg.alvo),box=qs('#'+cfg.resultados);
+  if(hidden)hidden.value=valor||'';
+  if(input){
+    const rotulo=valor?(row?cfg.rotulo(row):String(valor)):'';
+    input.value=rotulo;
+    if(rotulo)input.dataset.rotuloCombo=rotulo;else delete input.dataset.rotuloCombo;
+  }
+  if(box)box.classList.remove('on');
+}
+async function pesquisarCombo(nome){
+  const cfg=COMBOS_BUSCA[nome];if(!cfg)return;
+  const input=qs('#'+cfg.busca),box=qs('#'+cfg.resultados),hidden=qs('#'+cfg.alvo);
+  if(!input||!box)return;
+  const term=termoCombo(input);
+  // Digitar por cima de uma escolha anterior desfaz a escolha: o valor guardado
+  // não pode contradizer o que está escrito na tela.
+  if(term&&input.dataset.rotuloCombo){delete input.dataset.rotuloCombo;if(hidden)hidden.value='';if(cfg.aoLimpar)cfg.aoLimpar()}
+  clearTimeout(combosBuscaTimers[nome]);
+  box.innerHTML='<div class="empty-state" style="padding:12px">Buscando...</div>';box.classList.add('on');
+  combosBuscaTimers[nome]=setTimeout(async()=>{
+    try{
+      cfg.linhas=await cfg.carregar();
+      const q=supNorm(term),digitos=term.replace(/\D/g,'');
+      const elegiveis=cfg.filtro?cfg.linhas.filter(cfg.filtro):cfg.linhas;
+      const rows=(term?elegiveis.filter(row=>(digitos&&cfg.codigos(row).some(codigo=>String(codigo).includes(digitos)))||supNorm(cfg.termos(row).filter(Boolean).join(' ')).includes(q)):elegiveis).slice(0,cfg.limite||60);
+      box.innerHTML=rows.length?rows.map(row=>`<button type="button" class="municipality-option" onclick="selecionarCombo('${nome}','${esc(cfg.chave(row))}')">${cfg.linha(row)}</button>`).join(''):`<div class="empty-state" style="padding:12px">${esc(cfg.vazio||'Nenhuma opção encontrada.')}</div>`;
+    }catch(error){box.innerHTML='<div class="empty-state" style="padding:12px">Catálogo indisponível no momento — tente novamente em instantes.</div>'}
+  },150);
+}
+function selecionarCombo(nome,valor){
+  const cfg=COMBOS_BUSCA[nome];if(!cfg)return;
+  const row=(cfg.linhas||[]).find(item=>String(cfg.chave(item))===String(valor));
+  aplicarValorCombo(cfg,valor,row);
+  if(cfg.aoSelecionar)cfg.aoSelecionar(row,valor);
+}
+// Repõe um valor já salvo (edição de serviço, sugestão do Anexo VIII) — precisa
+// do catálogo carregado pra mostrar o nome, então é assíncrono e silencioso:
+// falhar aqui não pode impedir a edição do resto do cadastro.
+async function exibirComboPorValor(nome,valor){
+  const cfg=COMBOS_BUSCA[nome];if(!cfg)return;
+  aplicarValorCombo(cfg,valor,null);
+  if(!valor)return;
+  try{cfg.linhas=await cfg.carregar();aplicarValorCombo(cfg,valor,(cfg.linhas||[]).find(item=>String(cfg.chave(item))===String(valor)))}catch(error){}
+}
+function limparCombo(nome){const cfg=COMBOS_BUSCA[nome];if(cfg)aplicarValorCombo(cfg,'',null)}
+// Lista que abre no clique precisa fechar no clique fora — senão fica pendurada
+// na tela até alguém escolher alguma coisa. Vale para todos os dropdowns de
+// busca do portal, inclusive os de município.
+document.addEventListener('click',event=>{
+  qsa('.municipality-results.on').forEach(box=>{if(!box.parentElement?.contains(event.target))box.classList.remove('on')});
+});
+
+/* ---------- cIndOp (Anexo VII IndOp IBSCBS) ---------- */
 let indOpCatalogo=[];
 let indOpCatalogoPromise=null;
 function carregarIndOpCatalogo(){
-  if(!indOpCatalogoPromise)indOpCatalogoPromise=api('/api/services/ibscbs-indop').then(data=>{indOpCatalogo=Array.isArray(data?.items)?data.items:[]}).catch(error=>{indOpCatalogoPromise=null;throw error});
+  if(!indOpCatalogoPromise)indOpCatalogoPromise=api('/api/services/ibscbs-indop').then(data=>{indOpCatalogo=Array.isArray(data?.items)?data.items:[];return indOpCatalogo}).catch(error=>{indOpCatalogoPromise=null;throw error});
   return indOpCatalogoPromise;
 }
-// Etapa 3 (19/08/2026): o cIndOp saiu da emissão e vive no cadastro do
-// serviço. O usuário achou que o campo não existia — ele existia, mas só
-// reagia depois de 2 caracteres digitados, sem nada visível pra clicar. Agora
-// abre a lista inteira ao clicar no campo, e digitar só filtra.
-async function pesquisarIndOpCadastro(){
-  const input=qs('#cad-ibscbs-indop-search'),box=qs('#cad-ibscbs-indop-results');
-  if(!input||!box)return;
-  const term=input.value.trim();
-  clearTimeout(indOpTimer);
-  box.innerHTML='<div class="empty-state" style="padding:12px">Buscando...</div>';box.classList.add('on');
-  indOpTimer=setTimeout(async()=>{
-    try{
-      await carregarIndOpCatalogo();
-      const q=supNorm(term),digitos=term.replace(/\D/g,'');
-      const rows=(term?indOpCatalogo.filter(row=>(digitos&&row.cIndOp.includes(digitos))||supNorm(`${row.tipoOperacao||''} ${row.caracteristicaFornecimento||''}`).includes(q)):indOpCatalogo).slice(0,25);
-      box.innerHTML=rows.length?rows.map(row=>`<button type="button" class="municipality-option" onclick="selecionarIndOpPorCodigo('${row.cIndOp}')"><b>${esc(row.tipoOperacao||row.cIndOp)}</b><br><span class="mono">${esc(row.cIndOp)}</span> — ${esc(row.localFornecimentoIdentificar||'')}</button>`).join(''):'<div class="empty-state" style="padding:12px">Nenhum código encontrado.</div>';
-    }catch(error){box.innerHTML='<div class="empty-state" style="padding:12px">Catálogo indisponível no momento — tente novamente em instantes.</div>'}
-  },200);
-}
-// Repõe o cIndOp salvo ao abrir um serviço para edição — precisa do catálogo
-// carregado para mostrar o nome, então é assíncrono e silencioso: falhar aqui
-// não pode impedir a edição do resto do cadastro.
-async function exibirIndOpCadastroPorCodigo(code){
-  const hidden=qs('#cad-ibscbs-indop'),busca=qs('#cad-ibscbs-indop-search');
-  if(!hidden||!busca)return;
-  hidden.value=code||'';busca.value=code||'';
-  if(!code)return;
-  try{await carregarIndOpCatalogo();const row=indOpCatalogo.find(r=>r.cIndOp===code);if(row)busca.value=`${row.tipoOperacao||row.cIndOp} — ${row.cIndOp}`;}catch(error){}
-}
-function selecionarIndOpPorCodigo(code){
-  const row=indOpCatalogo.find(r=>r.cIndOp===code);
-  if(!row)return;
-  qs('#cad-ibscbs-indop').value=row.cIndOp;
-  qs('#cad-ibscbs-indop-search').value=`${row.tipoOperacao||row.cIndOp} — ${row.cIndOp}`;
-  qs('#cad-ibscbs-indop-results').classList.remove('on');
-}
+registrarComboBusca({
+  nome:'indop',busca:'cad-ibscbs-indop-search',alvo:'cad-ibscbs-indop',resultados:'cad-ibscbs-indop-results',
+  carregar:carregarIndOpCatalogo,
+  chave:row=>row.cIndOp,
+  codigos:row=>[row.cIndOp],
+  // Busca por nome cobre tudo o que ajuda a decidir: o tipo da operação, a
+  // característica do fornecimento, onde o fornecimento se considera ocorrido
+  // e o dispositivo legal da LC 214/2025.
+  termos:row=>[row.tipoOperacao,row.caracteristicaFornecimento,row.localFornecimentoIdentificar,row.dispositivoLegal],
+  rotulo:row=>`${row.tipoOperacao||row.cIndOp} — ${row.cIndOp}`,
+  linha:row=>`<b>${esc(row.tipoOperacao||row.cIndOp)}</b><br><span class="mono">${esc(row.cIndOp)}</span> — ${esc(row.caracteristicaFornecimento||'')}<br><span class="hint">${esc(row.localFornecimentoIdentificar||'')}${row.dispositivoLegal?` · ${esc(row.dispositivoLegal)}`:''}</span>`,
+  vazio:'Nenhum código encontrado.'
+});
+function exibirIndOpCadastroPorCodigo(code){return exibirComboPorValor('indop',code)}
 
-/* ---------- CST/cClassTrib IBS/CBS (Meus Serviços) — mesmo padrão de pesquisarMunicipio ---------- */
-let ibscbsClassifTimer;
+/* ---------- CST e cClassTrib do IBS/CBS (Meus Serviços) ----------
+ * Pedido do dono do produto (21/08/2026): os dois vinham num campo só
+ * ("CST/cClassTrib"), e ele queria escolher cada um separadamente. Continuam
+ * amarrados pela regra do Portal Nacional — os 3 primeiros dígitos do
+ * cClassTrib são o CST (ver superRefine em routes/services.ts do backend) —, e
+ * é a tela que garante isso: escolher o CST filtra os cClassTrib possíveis, e
+ * escolher o cClassTrib preenche o CST correspondente sozinho.
+ */
 let ibscbsClassifCatalogo=[];
 let ibscbsClassifCatalogoPromise=null;
 function carregarIbscbsClassificacoesCatalogo(){
-  if(!ibscbsClassifCatalogoPromise)ibscbsClassifCatalogoPromise=api('/api/services/ibscbs-classificacoes').then(data=>{ibscbsClassifCatalogo=Array.isArray(data?.items)?data.items:[]}).catch(error=>{ibscbsClassifCatalogoPromise=null;throw error});
+  if(!ibscbsClassifCatalogoPromise)ibscbsClassifCatalogoPromise=api('/api/services/ibscbs-classificacoes').then(data=>{ibscbsClassifCatalogo=Array.isArray(data?.items)?data.items:[];return ibscbsClassifCatalogo}).catch(error=>{ibscbsClassifCatalogoPromise=null;throw error});
   return ibscbsClassifCatalogoPromise;
 }
-async function pesquisarIbscbsClassificacao(){
-  const input=qs('#cad-ibscbs-search'),box=qs('#cad-ibscbs-results'),term=input.value.trim();
-  clearTimeout(ibscbsClassifTimer);
-  if(term.length<2){box.classList.remove('on');return}
-  box.innerHTML='<div class="empty-state" style="padding:12px">Buscando...</div>';box.classList.add('on');
-  ibscbsClassifTimer=setTimeout(async()=>{
-    try{
-      await carregarIbscbsClassificacoesCatalogo();
-      const q=supNorm(term),digits=term.replace(/\D/g,'');
-      const rows=ibscbsClassifCatalogo.filter(row=>(digits&&(row.cst.includes(digits)||row.cClassTrib.includes(digits)))||supNorm(row.name||'').includes(q)).slice(0,25);
-      box.innerHTML=rows.length?rows.map(row=>`<button type="button" class="municipality-option" onclick="selecionarIbscbsClassificacao('${row.cst}','${row.cClassTrib}')"><b>${esc(row.name||'')}</b><br><span class="mono">CST ${esc(row.cst)} · cClassTrib ${esc(row.cClassTrib)}</span></button>`).join(''):'<div class="empty-state" style="padding:12px">Nenhuma classificação encontrada.</div>';
-    }catch(error){box.innerHTML='<div class="empty-state" style="padding:12px">Catálogo indisponível no momento — tente novamente em instantes.</div>'}
-  },200);
+// O Anexo VIII não publica um nome para o CST isolado, só para cada
+// cClassTrib. Em vez de inventar uma tabela de CST, a lista é derivada do
+// próprio catálogo: cada CST aparece com quantas classificações tem e com os
+// nomes delas — que é justamente o que faz a busca por nome funcionar aqui
+// (digitar "saúde" acha o CST 011 e o 200).
+async function carregarCstsIbscbs(){
+  const linhas=await carregarIbscbsClassificacoesCatalogo();
+  const porCst=new Map();
+  for(const row of linhas){
+    if(!porCst.has(row.cst))porCst.set(row.cst,{cst:row.cst,nomes:[]});
+    porCst.get(row.cst).nomes.push(row.name||'');
+  }
+  return [...porCst.values()].sort((a,b)=>a.cst.localeCompare(b.cst));
 }
-function selecionarIbscbsClassificacao(cst,classTrib){
-  qs('#cad-ibscbs-cst').value=cst;qs('#cad-ibscbs-classtrib').value=classTrib;
-  const row=ibscbsClassifCatalogo.find(r=>r.cst===cst&&r.cClassTrib===classTrib);
-  qs('#cad-ibscbs-search').value=row?`${row.name} — CST ${cst} · cClassTrib ${classTrib}`:`CST ${cst} · cClassTrib ${classTrib}`;
-  qs('#cad-ibscbs-results').classList.remove('on');
-}
+const contarClassif=total=>`${total} ${total>1?'classificações':'classificação'}`;
+registrarComboBusca({
+  nome:'ibscbs-cst',busca:'cad-ibscbs-cst-search',alvo:'cad-ibscbs-cst',resultados:'cad-ibscbs-cst-results',
+  carregar:carregarCstsIbscbs,
+  chave:row=>row.cst,
+  codigos:row=>[row.cst],
+  termos:row=>row.nomes,
+  rotulo:row=>`CST ${row.cst} — ${contarClassif(row.nomes.length)}`,
+  linha:row=>`<b>CST ${esc(row.cst)}</b> <span class="mono">${esc(contarClassif(row.nomes.length))}</span><br><span class="hint">${esc(row.nomes.slice(0,3).join(' · '))}${row.nomes.length>3?' …':''}</span>`,
+  vazio:'Nenhum CST encontrado.',
+  // Trocar o CST não pode deixar para trás um cClassTrib de outra família: os
+  // 3 primeiros dígitos precisam bater, senão o backend rejeita ao salvar.
+  aoSelecionar:row=>{
+    const classTrib=qs('#cad-ibscbs-classtrib');
+    if(classTrib&&classTrib.value&&!classTrib.value.startsWith(row?.cst||''))limparCombo('ibscbs-classtrib');
+  }
+});
+registrarComboBusca({
+  nome:'ibscbs-classtrib',busca:'cad-ibscbs-classtrib-search',alvo:'cad-ibscbs-classtrib',resultados:'cad-ibscbs-classtrib-results',
+  carregar:carregarIbscbsClassificacoesCatalogo,
+  chave:row=>row.cClassTrib,
+  codigos:row=>[row.cClassTrib],
+  termos:row=>[row.name],
+  rotulo:row=>`${row.cClassTrib} — ${row.name}`,
+  linha:row=>`<b>${esc(row.name||'')}</b><br><span class="mono">cClassTrib ${esc(row.cClassTrib)} · CST ${esc(row.cst)}</span>`,
+  vazio:'Nenhuma classificação encontrada.',
+  // Com CST escolhido, a lista já mostra só o que é válido com ele.
+  filtro:row=>{const cst=qs('#cad-ibscbs-cst')?.value||'';return !cst||row.cst===cst},
+  aoSelecionar:row=>{if(row)exibirComboPorValor('ibscbs-cst',row.cst)}
+});
+// Os dois andam juntos (um sem o outro é erro de validação no backend), então
+// quem repõe valores salvos repõe os dois de uma vez.
 async function exibirIbscbsClassificacaoPorCodigo(cst,classTrib){
-  if(!cst||!classTrib){qs('#cad-ibscbs-search').value='';return}
-  try{await carregarIbscbsClassificacoesCatalogo();selecionarIbscbsClassificacao(cst,classTrib);}
-  catch{qs('#cad-ibscbs-search').value=`CST ${cst} · cClassTrib ${classTrib}`}
+  await exibirComboPorValor('ibscbs-cst',cst||'');
+  await exibirComboPorValor('ibscbs-classtrib',classTrib||'');
 }
 
 function formatarCnpj(value){
@@ -1748,7 +1833,8 @@ function atualizarCompetenciaFiscal(){
 }
 
 function limparFormularioServico(){
-  ['cad-id','cad-name','cad-type','cad-search','cad-nbs-search','cad-desc','cad-mun-code','cad-rate','cad-cst','cad-default-amount','cad-ibscbs-cst','cad-ibscbs-classtrib','cad-ibscbs-search','cad-ibscbs-indop','cad-ibscbs-indop-search'].forEach(id=>qs('#'+id).value='');
+  ['cad-id','cad-name','cad-type','cad-search','cad-nbs-search','cad-desc','cad-mun-code','cad-rate','cad-cst','cad-default-amount'].forEach(id=>qs('#'+id).value='');
+  ['ibscbs-cst','ibscbs-classtrib','indop'].forEach(limparCombo);
   ['cad-ibscbs-indfinal','cad-ibscbs-tpoper'].forEach(id=>{const el=qs('#'+id);if(el)el.value=''});
   qs('#cad-nbs').innerHTML='<option value="">Pesquise o catálogo NBS</option>';
   ['cad-pc-base','cad-pis-rate','cad-cofins-rate','cad-pis-amount','cad-cofins-amount','cad-csll-rate','cad-cp','cad-irrf-base','cad-irrf-rate','cad-irrf','cad-csll'].forEach(id=>qs('#'+id).value='0,00');
@@ -1810,10 +1896,10 @@ async function sugerirIbscbsPorNbs(){
     sugestaoIbscbsAtual=sugestao;
     const jaPreenchido=qs('#cad-ibscbs-cst').value.trim()||qs('#cad-ibscbs-classtrib').value.trim();
     if(sugestao.options.length===1){
-      if(!jaPreenchido){qs('#cad-ibscbs-cst').value=sugestao.suggested.cst;qs('#cad-ibscbs-classtrib').value=sugestao.suggested.cClassTrib;qs('#cad-ibscbs-search').value=`${sugestao.suggested.name} — CST ${sugestao.suggested.cst} · cClassTrib ${sugestao.suggested.cClassTrib}`;}
+      if(!jaPreenchido)exibirIbscbsClassificacaoPorCodigo(sugestao.suggested.cst,sugestao.suggested.cClassTrib);
       hint.innerHTML=`Sugestão pelo Anexo VIII: CST ${esc(sugestao.suggested.cst)} / cClassTrib ${esc(sugestao.suggested.cClassTrib)} — ${esc(sugestao.suggested.name)}`;
     }else{
-      hint.innerHTML=`Este NBS tem ${sugestao.options.length} classificações possíveis — escolha a que se aplica: `+sugestao.options.map(o=>`<button class="btn btn-s" type="button" style="margin:2px" onclick="qs('#cad-ibscbs-cst').value='${o.cst}';qs('#cad-ibscbs-classtrib').value='${o.cClassTrib}';qs('#cad-ibscbs-search').value='${esc(o.name).replace(/'/g,"\\'")} — CST ${o.cst} · cClassTrib ${o.cClassTrib}'">${esc(o.cClassTrib)} — ${esc(o.name)}</button>`).join(' ');
+      hint.innerHTML=`Este NBS tem ${sugestao.options.length} classificações possíveis — escolha a que se aplica: `+sugestao.options.map(o=>`<button class="btn btn-s" type="button" style="margin:2px" onclick="exibirIbscbsClassificacaoPorCodigo('${o.cst}','${o.cClassTrib}')">${esc(o.cClassTrib)} — ${esc(o.name)}</button>`).join(' ');
     }
   }catch{sugestaoIbscbsAtual=null}
 }
@@ -1831,6 +1917,9 @@ async function salvarPerfilServico(){
   if((ibscbsCst&&!ibscbsClassTrib)||(ibscbsClassTrib&&!ibscbsCst)){alert('Informe CST e cClassTrib do IBS/CBS juntos, ou deixe os dois em branco.');return}
   if(ibscbsCst&&!/^\d{3}$/.test(ibscbsCst)){alert('O CST IBS/CBS deve conter exatamente 3 dígitos.');return}
   if(ibscbsClassTrib&&!/^\d{6}$/.test(ibscbsClassTrib)){alert('O cClassTrib IBS/CBS deve conter exatamente 6 dígitos.');return}
+  // Mesma regra do Portal Nacional que o backend valida (superRefine em
+  // routes/services.ts) — avisada aqui pra não gastar uma ida ao servidor.
+  if(ibscbsCst&&ibscbsClassTrib&&!ibscbsClassTrib.startsWith(ibscbsCst)){alert('Os 3 primeiros dígitos do cClassTrib devem ser iguais ao CST IBS/CBS informado.');return}
   try{await api('/api/services/profiles',{method:'POST',body:JSON.stringify(payload)});await carregarPerfisServico();limparFormularioServico();fecharModalServico();alert('Serviço padrão salvo. Ele já está disponível na emissão.')}catch(error){alert(error.message)}
 }
 
