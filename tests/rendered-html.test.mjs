@@ -878,8 +878,27 @@ test("tela de detalhes do cliente edita o parceiro comercial da empresa (diferen
   const abrir=html.slice(html.indexOf("async function abrirDetalhesCliente"),html.indexOf("function fecharDetalhesCliente"));
   assert.match(abrir,/partnerSelect\.innerHTML='<option value="">Cliente direto<\/option>'\+\(masterData\?\.partners\|\|\[\]\)\.map\(p=>`<option value="\$\{p\.id\}">\$\{esc\(p\.nickname\)\}<\/option>`\)\.join\(''\);/);
   assert.match(abrir,/partnerSelect\.value=data\.partner_id\|\|'';/);
-  const salvar=html.slice(html.indexOf("async function salvarDetalhesCliente"),html.indexOf("async function salvarDetalhesCliente")+1600);
+  // Janela maior desde 22/08/2026: a confirmação de remover o WhatsApp entrou
+  // antes do corpo do PUT e empurrava a asserção pra fora dos 1600 caracteres.
+  const salvar=html.slice(html.indexOf("async function salvarDetalhesCliente"),html.indexOf("async function salvarDetalhesCliente")+3000);
   assert.match(salvar,/partnerId:qs\('#master-detail-partner'\)\.value\|\|null/);
+});
+
+test("SEGURANÇA: o modal do Master não apaga o WhatsApp vinculado sem querer",async()=>{
+  // Até 22/08/2026 a chave whatsappPhone ia em TODO save, e a rota do Master
+  // grava sempre que ela está presente: campo vazio por acidente = vínculo
+  // apagado, empresa fora do Martyn e fora do grupo do seletor, sem aviso.
+  // Com o parceiro perdendo a escrita, este PUT virou o caminho principal do
+  // produto — o acidente ficou mais provável, não menos.
+  const html=await lerPortal();
+  const salvar=html.slice(html.indexOf("async function salvarDetalhesCliente"),html.indexOf("async function salvarDetalhesCliente")+3000);
+  assert.match(salvar,/const zapMudou=zapNovo!==zapOriginal;/);
+  assert.match(salvar,/\.\.\.\(zapMudou\?\{whatsappPhone:zapNovo\|\|null\}:\{\}\)/,
+    "a chave só pode ir no corpo quando o número mudou de verdade");
+  assert.match(salvar,/titanConfirm\(`Remover o WhatsApp/,"limpar o campo precisa de confirmação explícita");
+  // E o valor original tem que ser guardado ao abrir o modal, senão não há com
+  // o que comparar.
+  assert.match(html,/qs\('#master-detail-whatsapp'\)\.dataset\.original=data\.whatsapp_phone\|\|'';/);
 });
 
 // ── Item 4: filtro por parceiro na lista de empresas do Master ─────────────
@@ -1135,9 +1154,88 @@ test("Master define a comissão (%) do parceiro, usada pela aba Comissões do Po
   assert.match(html,/<input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex\.: 10">/);
   assert.match(html,/commissionPercent=dinheiro\(qs\('#partner-commission'\)\.value\)/);
   // Ganhou email e CNPJ do parceiro desde então (Frontend Master: campo CNPJ).
-  assert.match(html,/JSON\.stringify\(\{name,nickname,email,federalTaxId,active,commissionPercent,licenseDiscountPercent\}\)/);
+  // Ganhou whatsappPhone em 22/08/2026: é o número contra o qual o sistema
+  // avisa quando o parceiro informa o WhatsApp DELE no lugar do do cliente.
+  assert.match(html,/JSON\.stringify\(\{name,nickname,email,federalTaxId,whatsappPhone,active,commissionPercent,licenseDiscountPercent\}\)/);
   assert.match(html,/qs\('#partner-commission'\)\.value=String\(Number\(partner\.commission_percent\|\|0\)\)\.replace\('\.',','\);/);
   assert.match(html,/commissionPercent:Number\(partner\.commission_percent\|\|0\)/);
+});
+
+// ── WhatsApp vinculado: o parceiro solicita, o Master grava (22/08/2026) ────
+// A ordem do dono fechou a brecha crítica do mesmo dia mudando QUEM escreve o
+// número, não quem o lê (o agrupamento por telefone é intencional e foi
+// reafirmado). Estes testes prendem as duas telas.
+
+test("carteira do parceiro: o WhatsApp virou leitura + Solicitar alteração",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  // O input inline com botão Salvar era a porta que a regra fechou.
+  assert.doesNotMatch(html,/onclick="salvarWhatsappParceiro/,
+    "o parceiro não grava mais o número — a alteração virou pedido ao Master");
+  assert.doesNotMatch(html,/\/whatsapp',\{method:'PUT'/);
+  assert.match(html,/onclick="abrirSolicitacaoWhatsapp\('\$\{company\.id\}'\)"/);
+  assert.match(html,/chamarApiParceiro\('\/api\/partner\/whatsapp-requests',\{method:'POST'/);
+  // "Enviado para aprovação", nunca "salvo".
+  assert.match(html,/Solicitação enviada para aprovação do Master/);
+  // O estado do pedido aparece na própria linha: o parceiro não tem sino
+  // endereçável e, sem isso, pede duas vezes.
+  assert.match(html,/buscarApiParceiro\('\/api\/partner\/whatsapp-requests'\)/);
+  assert.match(html,/pending:\['p-warn','Aguardando o Master'\]/);
+  assert.match(html,/Motivo: \$\{esc\(pedido\.review_note\)\}/);
+});
+
+test("indicação de cliente mostra o aviso de WhatsApp em destaque, não num canto",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/<div class="alert a-warn" id="ind-avisos"[^>]*role="alert"><\/div>/);
+  assert.match(html,/const painel=qs\('#ind-avisos'\),avisos=\(resultado&&resultado\.avisos\)\|\|\[\];/);
+  // Aviso não é erro: a empresa foi criada de qualquer jeito.
+  assert.match(html,/avisar\('ind-status',`Convite enviado para \$\{email\}/);
+});
+
+test("Master vê a fila de troca de WhatsApp com os selos de quem é o número",async()=>{
+  const html=await lerPortal();
+  assert.match(html,/<tbody id="master-whatsapp-requests">/);
+  assert.match(html,/api\('\/api\/master\/whatsapp-change-requests'\)/);
+  // Os dois selos que a ordem do dono exige enxergar antes de aprovar.
+  assert.match(html,/É o WhatsApp cadastrado do parceiro/);
+  assert.match(html,/Já é de \$\{esc\(p\.conflitoForaDaCarteira\.legalName\)\}, fora desta carteira/);
+  // Número cru do parceiro ao lado do selo: a chave canônica descarta o nono
+  // dígito, então o selo pode ser falso positivo e a ausência dele não prova
+  // nada.
+  assert.match(html,/WhatsApp do parceiro: \$\{doParceiro\}/);
+  assert.match(html,/não cadastrado — sem isso não há como comparar/);
+  assert.match(html,/whatsapp-change-requests\/'\+id\+'\/approve/);
+  assert.match(html,/whatsapp-change-requests\/'\+id\+'\/reject/);
+});
+
+test("a fila de WhatsApp aparece sem depender de o Master abrir a aba certa",async()=>{
+  const html=await lerPortal();
+  // Pill no card (como o de upgrade de plano) E banner na tela de abertura:
+  // fronteira de acesso parada numa fila que só aparece pra quem já clicou na
+  // aba é uma fila que para.
+  assert.match(html,/id="whatsapp-requests-pending-pill"/);
+  assert.match(html,/id="master-whatsapp-pending-banner"/);
+  const carregar=html.slice(html.indexOf("async function carregarMaster"),html.indexOf("function usuariosDoCnpj"));
+  assert.match(carregar,/masterData\.pendingWhatsappRequests/);
+  assert.match(carregar,/carregarWhatsappRequests\(\);/);
+});
+
+test("Master cadastra o WhatsApp do próprio parceiro — é o que torna o aviso possível",async()=>{
+  const html=await lerPortal();
+  assert.match(html,/<input id="partner-whatsapp" class="inp" inputmode="tel"/);
+  assert.match(html,/qs\('#partner-whatsapp'\)\.value=partner\.whatsapp_phone\|\|'';/);
+  // Sem o número cadastrado, a comparação fica muda — a tabela precisa dizer.
+  assert.match(html,/Sem WhatsApp<\/span>/);
+});
+
+test("o cliente continua sem gravar o próprio WhatsApp, inclusive no payload",async()=>{
+  // O campo #e-zap é readonly desde 13/08/2026 e a rota da empresa descarta o
+  // campo — mas o portal ainda mandava whatsappPhone no corpo, prometendo uma
+  // escrita que não acontece. Importa porque o parceiro abre sessão DENTRO do
+  // portal do cliente: se a rota voltasse a aceitar, ele recuperaria a escrita
+  // por impersonação.
+  const html=await lerPortal();
+  assert.match(html,/<input id="e-zap" class="inp" inputmode="tel" placeholder="\(00\) 00000-0000" readonly/);
+  assert.doesNotMatch(html,/whatsappPhone:empresa\.whatsapp/);
 });
 
 // ── Item 1: botão "Buscar" explícito no filtro de notas ─────────────────────

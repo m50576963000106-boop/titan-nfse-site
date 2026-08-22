@@ -178,6 +178,26 @@
         </table></div>
       </div>
     </div>
+    <!-- Solicitar alteração do WhatsApp (22/08/2026). O parceiro deixou de
+         gravar este número: ele pede, e quem grava é o Master. O motivo está
+         no texto do card, e não só no código, porque a pergunta "por que eu
+         não consigo mais salvar?" chega antes de qualquer documentação. -->
+    <div class="card" id="zap-card" style="display:none;margin-top:14px">
+      <div class="card-h"><div><h3>Solicitar alteração do WhatsApp — <span id="zap-empresa-nome"></span></h3><p>O número vinculado decide quais empresas aparecem juntas no seletor "empresa ativa" e por qual empresa o Martyn emite. Por isso a alteração passa pelo Master: você solicita, ele confere e aprova.</p></div></div>
+      <div class="card-b">
+        <div class="alert a-warn">O número tem que ser o do <b>cliente</b>. O portal e o Martyn são de acesso exclusivo dele — informar o WhatsApp do seu escritório em nome do cliente é proibido pelo Contrato de Parceria, salvo quando a empresa for do próprio parceiro.</div>
+        <form onsubmit="event.preventDefault();enviarSolicitacaoWhatsapp()">
+          <input type="hidden" id="zap-company-id">
+          <div class="row r2">
+            <div class="field"><label for="zap-atual">WhatsApp vinculado hoje</label><input id="zap-atual" class="inp" readonly style="opacity:.7;cursor:not-allowed"></div>
+            <div class="field"><label for="zap-novo">Novo WhatsApp do cliente</label><input id="zap-novo" class="inp" placeholder="(00) 00000-0000" inputmode="tel"><div class="hint">Deixe em branco para pedir a remoção do vínculo. Remover também é alteração e também passa pelo Master.</div></div>
+          </div>
+          <div class="field"><label for="zap-motivo">Motivo (opcional, ajuda o Master a decidir)</label><input id="zap-motivo" class="inp" maxlength="500" placeholder="Ex.: o cliente trocou de número"></div>
+          <div class="acts" style="justify-content:flex-start"><button class="btn btn-p" type="submit">Enviar solicitação</button><button class="btn" type="button" onclick="fecharSolicitacaoWhatsapp()">Cancelar</button></div>
+          <div class="form-status" id="zap-status" role="status"></div>
+        </form>
+      </div>
+    </div>
     <div class="card" id="assinatura-card" style="display:none;margin-top:14px">
       <div class="card-h"><div><h3>Liberar assinatura — <span id="assinatura-empresa-nome"></span></h3><p>Consome 1 licença do seu saldo e passa a valer o preço de revenda que você definir para este cliente.</p></div></div>
       <div class="card-b">
@@ -204,10 +224,11 @@
           <div class="row r3">
             <div class="field"><label for="ind-cnpj">CNPJ</label><input id="ind-cnpj" class="inp" autocapitalize="characters" maxlength="18" placeholder="AA.AAA.AAA/AAAA-99"></div>
             <div class="field"><label for="ind-email">E-mail do responsável</label><input id="ind-email" class="inp" type="email" placeholder="responsavel@empresa.com.br"></div>
-            <div class="field"><label for="ind-whatsapp">WhatsApp (opcional)</label><input id="ind-whatsapp" class="inp" placeholder="(00) 00000-0000" inputmode="tel"></div>
+            <div class="field"><label for="ind-whatsapp">WhatsApp do cliente (opcional)</label><input id="ind-whatsapp" class="inp" placeholder="(00) 00000-0000" inputmode="tel"><div class="hint">Tem que ser o número do cliente: é por ele que o Martyn reconhece a empresa e é ele que agrupa as empresas no seletor do portal. Depois do cadastro, alterar esse número passa a depender de aprovação do Master.</div></div>
           </div>
           <button class="btn btn-p" type="submit">Enviar convite</button>
           <div class="form-status" id="ind-status" role="status"></div>
+          <div class="alert a-warn" id="ind-avisos" style="display:none;margin-top:12px" role="alert"></div>
         </form>
         <div class="alert a-info" style="margin-top:14px">A empresa entra sem emissão liberada e sem plano de avaliação. Ela passa a emitir quando você liberar uma assinatura com uma licença do seu saldo.</div>
       </div>
@@ -513,7 +534,7 @@
     alvo.textContent=mensagem;
   }
 
-  let PARCEIRO_EMPRESAS=[],PARCEIRO_PLANOS=null,PARCEIRO_DESCONTO=0,EMPRESA_ATIVA=null;
+  let PARCEIRO_EMPRESAS=[],PARCEIRO_PLANOS=null,PARCEIRO_DESCONTO=0,EMPRESA_ATIVA=null,PARCEIRO_ZAP_PEDIDOS=[];
   async function garantirPlanosParceiro(){
     if(PARCEIRO_PLANOS)return PARCEIRO_PLANOS;
     const data=await buscarApiParceiro('/api/partner/plans');
@@ -607,6 +628,11 @@
     status.className='partner-status';status.style.display='';status.textContent='Carregando carteira...';tabela.style.display='none';
     try{
       const data=await buscarApiParceiro('/api/partner/companies');
+      // Os pedidos de troca de WhatsApp vêm junto: sem o estado na própria
+      // linha, o parceiro não tem como saber que já pediu (ele não tem sino
+      // endereçável) e pede de novo.
+      const pedidos=await buscarApiParceiro('/api/partner/whatsapp-requests').catch(()=>({requests:[]}));
+      PARCEIRO_ZAP_PEDIDOS=pedidos.requests||[];
       const empresas=data.companies||[];
       PARCEIRO_EMPRESAS=empresas;
       renderEmpresasSeletor();
@@ -621,7 +647,7 @@
           <td data-th="CNPJ" class="mono">${esc(formatarCnpj(company.federal_tax_id))}</td>
           <td data-th="Status de emissão"><span class="pill ${company.emission_enabled?'p-ok':'p-off'}">${company.emission_enabled?'Emissão liberada':'Emissão suspensa'}</span></td>
           <td data-th="Assinatura">${assinatura}</td>
-          <td data-th="WhatsApp (vínculo)"><div class="input-action"><input class="inp" id="zap-${company.id}" value="${esc(company.whatsapp_phone||'')}" placeholder="(00) 00000-0000" inputmode="tel"><button class="btn btn-s" type="button" onclick="salvarWhatsappParceiro('${company.id}')">Salvar</button></div></td>
+          <td data-th="WhatsApp (vínculo)">${celulaWhatsappCarteira(company)}</td>
           <td data-th="Ações"><div class="acts"><button class="btn btn-s" type="button" onclick="abrirPortalDoCliente('${company.id}')">Acessar portal</button></div></td>
         </tr>`;
       }).join('');
@@ -663,11 +689,67 @@
     }catch(error){avisar('assinatura-status',error.message,'err')}
   }
 
-  async function salvarWhatsappParceiro(companyId){
-    const valor=qs('#zap-'+companyId).value.trim();
+  /* ---------- WHATSAPP VINCULADO: O PARCEIRO SOLICITA, O MASTER GRAVA ----------
+     Ordem do dono (22/08/2026). Este campo não é contato: ele agrupa as
+     empresas do mesmo dono no seletor, concede acesso a elas e é a chave que o
+     Martyn usa para saber por qual empresa emitir. Era editável aqui, na
+     linha, com um botão "Salvar" — e foi por aí que passou a brecha crítica.
+     Agora a linha é só leitura e o botão abre um pedido. */
+  const ZAP_SITUACAO={pending:['p-warn','Aguardando o Master'],approved:['p-ok','Aprovada'],rejected:['p-err','Recusada'],canceled:['p-off','Cancelada']};
+  // Mostra o pendente sempre, e a RECUSA por 30 dias — é a única decisão que
+  // exige ação do parceiro (ele precisa ler o motivo antes de pedir de novo).
+  // Aprovada não fica na linha: o número novo já aparece ali do lado, e uma
+  // pilha de selos antigos faria o pendente se perder no meio.
+  const ZAP_JANELA_RECUSA_MS=30*24*60*60*1000;
+  function pedidoZapDaEmpresa(companyId){
+    return PARCEIRO_ZAP_PEDIDOS.find(item=>item.company_id===companyId&&(
+      item.status==='pending'||
+      (item.status==='rejected'&&item.reviewed_at&&Date.now()-new Date(item.reviewed_at).getTime()<ZAP_JANELA_RECUSA_MS)
+    ));
+  }
+  function celulaWhatsappCarteira(company){
+    const atual=company.whatsapp_phone?`<span class="mono">${esc(company.whatsapp_phone)}</span>`:'<span class="hint">Sem número vinculado</span>';
+    const pedido=pedidoZapDaEmpresa(company.id);
+    const pendente=pedido&&pedido.status==='pending';
+    let estado='';
+    if(pedido){
+      const [classe,rotulo]=ZAP_SITUACAO[pedido.status]||['p-off',pedido.status];
+      const pedidoTexto=pedido.requested_phone?esc(pedido.requested_phone):'remover o número';
+      const motivo=pedido.status==='rejected'&&pedido.review_note?`<br><span class="hint">Motivo: ${esc(pedido.review_note)}</span>`:'';
+      estado=`<br><span class="pill ${classe}">${rotulo}</span> <span class="hint">pedido: ${pedidoTexto}</span>${motivo}`;
+    }
+    const acao=pendente
+      ?`<br><button class="btn btn-s" type="button" onclick="cancelarSolicitacaoWhatsapp('${pedido.id}')">Cancelar solicitação</button>`
+      :`<br><button class="btn btn-s" type="button" onclick="abrirSolicitacaoWhatsapp('${company.id}')">Solicitar alteração</button>`;
+    return atual+estado+acao;
+  }
+  function abrirSolicitacaoWhatsapp(companyId){
+    const empresa=PARCEIRO_EMPRESAS.find(item=>item.id===companyId);if(!empresa)return;
+    qs('#zap-empresa-nome').textContent=empresa.trade_name||empresa.legal_name;
+    qs('#zap-company-id').value=companyId;
+    qs('#zap-atual').value=empresa.whatsapp_phone||'(sem número vinculado)';
+    qs('#zap-novo').value='';qs('#zap-motivo').value='';
+    avisar('zap-status','');
+    const card=qs('#zap-card');card.style.display='';card.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  function fecharSolicitacaoWhatsapp(){qs('#zap-card').style.display='none'}
+  async function enviarSolicitacaoWhatsapp(){
+    const companyId=qs('#zap-company-id').value,whatsappPhone=qs('#zap-novo').value.trim(),reason=qs('#zap-motivo').value.trim();
+    avisar('zap-status','Enviando solicitação...');
     try{
-      await chamarApiParceiro('/api/partner/companies/'+companyId+'/whatsapp',{method:'PUT',body:JSON.stringify({whatsappPhone:valor||null})});
-      alert('WhatsApp salvo. Isso também decide quais empresas aparecem juntas no seletor "empresa ativa" da empresa.');
+      await chamarApiParceiro('/api/partner/whatsapp-requests',{method:'POST',body:JSON.stringify({companyId,whatsappPhone:whatsappPhone||null,reason:reason||undefined})});
+      // "Enviado para aprovação", nunca "salvo": nada mudou no cadastro ainda,
+      // e prometer o contrário faz o parceiro dizer ao cliente que já está
+      // valendo.
+      avisar('zap-status','Solicitação enviada para aprovação do Master. Nada mudou no cadastro ainda — você vê o resultado nesta mesma tela.','ok');
+      fecharSolicitacaoWhatsapp();
+      await carregarCarteira();
+    }catch(error){avisar('zap-status',error.message,'err')}
+  }
+  async function cancelarSolicitacaoWhatsapp(id){
+    try{
+      await chamarApiParceiro('/api/partner/whatsapp-requests/'+id,{method:'DELETE'});
+      await carregarCarteira();
     }catch(error){alert(error.message)}
   }
 
@@ -1034,8 +1116,17 @@
     if(!email)return avisar('ind-status','Informe o e-mail do responsável.','err');
     avisar('ind-status','Consultando CNPJ e enviando convite...');
     try{
-      await chamarApiParceiro('/api/partner/invitations',{method:'POST',body:JSON.stringify({federalTaxId,email,whatsappPhone:whatsappPhone||undefined})});
+      const resultado=await chamarApiParceiro('/api/partner/invitations',{method:'POST',body:JSON.stringify({federalTaxId,email,whatsappPhone:whatsappPhone||undefined})});
       avisar('ind-status',`Convite enviado para ${email}. A empresa já está na sua carteira.`,'ok');
+      // Os avisos da API não são erro — a empresa FOI criada. Mas também não
+      // podem ficar num canto: o caso principal é o parceiro ter informado o
+      // WhatsApp do próprio escritório no lugar do número do cliente, e é o
+      // último momento em que ele conserta isso sozinho (daqui em diante, a
+      // alteração vira pedido ao Master).
+      const painel=qs('#ind-avisos'),avisos=(resultado&&resultado.avisos)||[];
+      painel.style.display=avisos.length?'':'none';
+      painel.innerHTML=avisos.map(aviso=>`<p style="margin:0 0 6px">${esc(aviso)}</p>`).join('')
+        +(avisos.length?'<p style="margin:0"><b>Para corrigir agora:</b> abra Gestão por CNPJ e solicite a alteração — a partir daqui quem grava o número é o Master.</p>':'');
       qs('#ind-cnpj').value='';qs('#ind-email').value='';qs('#ind-whatsapp').value='';
       carregarCarteira();
     }catch(error){avisar('ind-status',error.message,'err')}

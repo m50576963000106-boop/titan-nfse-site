@@ -4848,7 +4848,13 @@ async function salvarCadastro(){
   const regime=empresa.reg==='MEI'?'mei':empresa.reg.includes('Simples')?'simples':'regular';
   if(ambienteAtual==='production'&&regime==='simples'&&empresa.simpleTotal===''){alert('Informe o percentual aproximado total de tributos do Simples para habilitar emissões fiscais.');return}
   try{
-    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im||undefined,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,simpleTotalTaxRate:regime==='simples'&&empresa.simpleTotal!==''?empresa.simpleTotal:undefined,totalTaxRateFederal:regime!=='simples'&&empresa.taxFed!==''?empresa.taxFed:undefined,totalTaxRateState:regime!=='simples'&&empresa.taxEst!==''?empresa.taxEst:undefined,totalTaxRateMunicipal:regime!=='simples'&&empresa.taxMun!==''?empresa.taxMun:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next,address:empresa.endereco||undefined,postalCode:empresa.postalCode||undefined,street:empresa.street||undefined,number:empresa.number||undefined,complement:empresa.complement||undefined,district:empresa.district||undefined,city:empresa.city||undefined,state:empresa.state||undefined,email:empresa.email||undefined,accountantEmail:empresa.accountantEmail||'',phone:empresa.phone||undefined,whatsappPhone:empresa.whatsapp||undefined})});
+    // Sem whatsappPhone aqui, de propósito (retirado em 22/08/2026): a rota
+    // da empresa descarta o campo desde 13/08 (achado de segurança — o
+    // cliente digitando o número livremente copiaria o WhatsApp de uma
+    // empresa alheia e ganharia acesso a ela), então mandá-lo era um payload
+    // prometendo uma escrita que não acontece. O campo #e-zap segue readonly:
+    // quem grava é o Master, e o parceiro solicita.
+    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im||undefined,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,simpleTotalTaxRate:regime==='simples'&&empresa.simpleTotal!==''?empresa.simpleTotal:undefined,totalTaxRateFederal:regime!=='simples'&&empresa.taxFed!==''?empresa.taxFed:undefined,totalTaxRateState:regime!=='simples'&&empresa.taxEst!==''?empresa.taxEst:undefined,totalTaxRateMunicipal:regime!=='simples'&&empresa.taxMun!==''?empresa.taxMun:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next,address:empresa.endereco||undefined,postalCode:empresa.postalCode||undefined,street:empresa.street||undefined,number:empresa.number||undefined,complement:empresa.complement||undefined,district:empresa.district||undefined,city:empresa.city||undefined,state:empresa.state||undefined,email:empresa.email||undefined,accountantEmail:empresa.accountantEmail||'',phone:empresa.phone||undefined})});
     empresaAtual=empresa;
     localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresa));
   }catch(error){alert(error.message);return}
@@ -5482,7 +5488,20 @@ async function carregarMaster(){
     renderEmpresasAdmin();
     const pendPill=qs('#plan-upgrade-pending-pill');
     if(pendPill){const n=Number(masterData.pendingUpgradeRequests||0);pendPill.style.display=n?'':'none';pendPill.textContent=n+' pendente'+(n>1?'s':'');}
+    // A pill mora dentro do card, na aba Gestão de Parceiros. Para WhatsApp
+    // isso não basta: é fronteira de acesso, e uma fila que só aparece pra
+    // quem já abriu aquela aba é uma fila que para. O banner fica na tela de
+    // abertura do Master, que é sempre a primeira coisa que ele vê.
+    const zapPendentes=Number(masterData.pendingWhatsappRequests||0);
+    const zapPill=qs('#whatsapp-requests-pending-pill');
+    if(zapPill){zapPill.style.display=zapPendentes?'':'none';zapPill.textContent=zapPendentes+' pendente'+(zapPendentes>1?'s':'');}
+    const zapBanner=qs('#master-whatsapp-pending-banner');
+    if(zapBanner){
+      zapBanner.style.display=zapPendentes?'':'none';
+      zapBanner.innerHTML=zapPendentes?`<b>${zapPendentes} pedido(s) de troca de WhatsApp aguardando você.</b> Enquanto não forem analisados, o cliente segue com o número atual no Martyn e no seletor de empresas. <button class="btn btn-s" type="button" style="margin-left:8px" onclick="masterTab('parceiros')">Analisar agora</button>`:'';
+    }
     carregarPlanUpgradeRequests();
+    carregarWhatsappRequests();
     carregarContratoMaster();
   }catch(error){
     if(error?.status===401){
@@ -5557,8 +5576,12 @@ function renderMasterPartners(){const box=qs('#master-partners');if(!box||!maste
     ?`${esc(p.email)}<br>${PARTNER_INVITE_LABEL[inviteStatus]||PARTNER_INVITE_LABEL.none}${inviteStatus!=='accepted'?` <button class="btn btn-s" type="button" style="padding:3px 8px;font-size:11.5px" onclick="enviarConviteParceiroMaster('${p.id}')">${inviteStatus==='pending'?'Reenviar':'Enviar'} convite</button>`:''}`
     :'<span class="hint">Sem e-mail cadastrado</span>';
   const cnpjCell=p.federal_tax_id?`<span class="mono">${esc(formatarCnpj(p.federal_tax_id))}</span>`:'<span class="pill p-warn" title="Necessário para liberar licenças cobradas">Sem CNPJ/CPF</span>';
-  return `<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${cnpjCell}</td><td>${conviteCell}</td><td>${brl(Number(p.commission_percent||0))}%</td><td>${brl(Number(p.license_discount_percent||0))}%</td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td><td><div class="acts"><button class="btn btn-s" type="button" onclick="editarParceiroMaster('${p.id}')">Editar</button><button class="btn btn-s" type="button" onclick="redefinirSenhaParceiroMaster('${p.id}')" ${p.login_email?'':'disabled title="Este parceiro ainda não tem acesso criado — envie o convite primeiro."'}>Redefinir senha</button><button class="btn btn-s" type="button" onclick="alternarStatusParceiroMaster('${p.id}')">${p.active?'Suspender':'Ativar'}</button></div></td></tr>`;
-}).join('')||'<tr><td colspan="8">Nenhum parceiro cadastrado.</td></tr>'}
+  // Sem o WhatsApp do parceiro cadastrado, o aviso de "ele está informando o
+  // próprio número no lugar do número do cliente" fica mudo — a tabela precisa
+  // deixar isso visível, senão a conferência parece funcionar e não funciona.
+  const zapCell=p.whatsapp_phone?`<span class="mono">${esc(p.whatsapp_phone)}</span>`:'<span class="pill p-warn" title="Sem este número não há como avisar quando o parceiro informa o WhatsApp dele no lugar do WhatsApp do cliente">Sem WhatsApp</span>';
+  return `<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${cnpjCell}</td><td>${zapCell}</td><td>${conviteCell}</td><td>${brl(Number(p.commission_percent||0))}%</td><td>${brl(Number(p.license_discount_percent||0))}%</td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td><td><div class="acts"><button class="btn btn-s" type="button" onclick="editarParceiroMaster('${p.id}')">Editar</button><button class="btn btn-s" type="button" onclick="redefinirSenhaParceiroMaster('${p.id}')" ${p.login_email?'':'disabled title="Este parceiro ainda não tem acesso criado — envie o convite primeiro."'}>Redefinir senha</button><button class="btn btn-s" type="button" onclick="alternarStatusParceiroMaster('${p.id}')">${p.active?'Suspender':'Ativar'}</button></div></td></tr>`;
+}).join('')||'<tr><td colspan="9">Nenhum parceiro cadastrado.</td></tr>'}
 async function enviarConviteParceiroMaster(id){
   const partner=masterData?.partners.find(item=>item.id===id);if(!partner)return;
   if(!partner.email){alert('Cadastre o e-mail do parceiro antes de enviar o convite.');return}
@@ -5683,6 +5706,62 @@ async function recusarUpgradePlano(id){
   try{await api('/api/master/plan-upgrade-requests/'+id+'/reject',{method:'POST',body:JSON.stringify({reviewNote:reviewNote||undefined})});await carregarMaster()}catch(error){alert(error.message)}
 }
 
+// Pedidos de troca do WhatsApp vinculado (22/08/2026). A ordem do dono é
+// explícita sobre o que a tela precisa mostrar: "eu, no admin, vou ver que ele
+// está colocando o número dele". Por isso a coluna Conferência traz os dois
+// selos — e os números CRUS ao lado, porque a chave canônica descarta o nono
+// dígito e o selo pode ser falso positivo (fixo x celular de mesma base).
+async function carregarWhatsappRequests(){
+  const box=qs('#master-whatsapp-requests');if(!box)return;
+  try{
+    const pedidos=await api('/api/master/whatsapp-change-requests');
+    box.innerHTML=pedidos.map(p=>{
+      const selos=[];
+      if(p.ehWhatsappDoParceiro)selos.push('<span class="pill p-err">É o WhatsApp cadastrado do parceiro</span>');
+      if(p.conflitoForaDaCarteira)selos.push(`<span class="pill p-err">Já é de ${esc(p.conflitoForaDaCarteira.legalName)}, fora desta carteira</span>`);
+      (p.tambemNaCarteira||[]).forEach(item=>selos.push(`<span class="pill p-warn">Mesmo número de ${esc(item.legalName)}, da mesma carteira</span>`));
+      if(p.limpandoONumero)selos.push('<span class="pill p-warn">Pedido de REMOÇÃO do vínculo</span>');
+      if(!selos.length)selos.push('<span class="pill p-ok">Nada a apontar</span>');
+      // O WhatsApp cadastrado do parceiro aparece sempre, mesmo sem selo: em
+      // branco ele explica por que o selo não apareceu (a comparação é
+      // melhor-esforço, ausência de aviso não prova nada).
+      const doParceiro=p.partner_phone?esc(p.partner_phone):'<span class="hint">não cadastrado — sem isso não há como comparar</span>';
+      const motivo=p.reason?`<br><span class="hint">Motivo: ${esc(p.reason)}</span>`:'';
+      return `<tr>
+        <td><b>${esc(p.company_name)}</b><br><span class="mono">${esc(formatarCnpj(p.federal_tax_id||''))}</span></td>
+        <td>${esc(p.partner_nickname)}<br><span class="hint">WhatsApp do parceiro: ${doParceiro}</span></td>
+        <td class="mono">${esc(p.current_phone||'—')}</td>
+        <td class="mono">${esc(p.requested_phone||'(remover)')}${motivo}</td>
+        <td>${selos.join(' ')}</td>
+        <td>${formatarDataNovidade(p.requested_at)}</td>
+        <td><div class="acts"><button class="btn btn-p" onclick="aprovarTrocaWhatsapp('${p.id}')">Aprovar</button><button class="btn btn-s" onclick="recusarTrocaWhatsapp('${p.id}')">Recusar</button></div></td>
+      </tr>`;
+    }).join('')||'<tr><td colspan="7" class="empty-state">Nenhum pedido de troca de WhatsApp pendente.</td></tr>';
+  }catch(error){box.innerHTML=`<tr><td colspan="7"><div class="empty-state">${esc(error.message)}</div></td></tr>`}
+}
+async function aprovarTrocaWhatsapp(id,force){
+  if(!force&&!await titanConfirm('Aprovar grava o número na empresa na hora: ele passa a valer para o Martyn e para o seletor "empresa ativa" do cliente, e a empresa é avisada no sino. Confirma?','Aprovar troca de WhatsApp'))return;
+  try{
+    await api('/api/master/whatsapp-change-requests/'+id+'/approve',{method:'POST',body:JSON.stringify({force:Boolean(force)})});
+    await carregarMaster();
+  }catch(error){
+    // O 409 de conflito não é erro de digitação: é o número tendo virado de
+    // outra empresa ENTRE o pedido e agora. O Master pode ser justamente quem
+    // está consertando esse cadastro, então ele tem escape — explícito e
+    // auditado, nunca silencioso.
+    if(error?.status===409&&error?.code==='CONFLITO_TELEFONE'){
+      if(await titanConfirm(`${error.message}\n\nAprovar mesmo assim faz as duas empresas dividirem o número: elas passam a aparecer juntas no seletor e o Martyn vai perguntar por qual delas emitir. Só siga se for matriz/filial, mesmo grupo econômico, ou se você estiver consertando um cadastro errado.`,'Aprovar mesmo com conflito','err'))return aprovarTrocaWhatsapp(id,true);
+      return;
+    }
+    alert(error.message);
+  }
+}
+async function recusarTrocaWhatsapp(id){
+  const reviewNote=await titanPrompt('Motivo da recusa (o parceiro vê esta mensagem na carteira dele):','','Recusar troca de WhatsApp');
+  if(reviewNote===null)return;
+  try{await api('/api/master/whatsapp-change-requests/'+id+'/reject',{method:'POST',body:JSON.stringify({reviewNote:reviewNote||undefined})});await carregarMaster()}catch(error){alert(error.message)}
+}
+
 let contractVersionsHistorico=[];
 async function carregarContratoMaster(){
   const box=qs('#contract-versions-history');if(!box)return;
@@ -5762,14 +5841,14 @@ async function consultarNovoClienteCnpj(){const input=qs('#master-new-cnpj'),cnp
 async function criarConviteNovoCliente(){const email=qs('#master-new-email').value.trim(),planCode=qs('#master-new-plan').value,whatsappPhone=qs('#master-new-zap').value.trim();if(!masterNewLookup?.active){alert('Consulte um CNPJ ativo antes de gerar o convite.');return}if(!email||!planCode){alert('Informe e-mail e plano.');return}try{const result=await api('/api/master/invitations',{method:'POST',body:JSON.stringify({federalTaxId:masterNewLookup.federalTaxId,email,planCode,whatsappPhone:whatsappPhone||undefined})});const token=new URL(result.invitePath,location.origin).searchParams.get('invite'),link=new URL('/dashboard',location.origin);if(token)link.searchParams.set('invite',token);const box=qs('#master-new-link');box.style.display='block';box.innerHTML=`<b>Link pronto para envio</b><br><span id="master-new-link-value">${esc(link.href)}</span><br><button class="btn btn-s" style="margin-top:8px" onclick="copiarTextoSeguro(qs('#master-new-link-value').textContent,this)">Copiar link</button>`;await carregarMaster()}catch(error){alert(error.message)}}
 let masterEditingPartnerId='';
 async function salvarParceiroMaster(){
-  const name=qs('#partner-name').value.trim(),nickname=qs('#partner-nickname').value.trim(),email=qs('#partner-email').value.trim(),federalTaxId=normalizarDocumento(qs('#partner-cnpj').value.trim()),commissionPercent=dinheiro(qs('#partner-commission').value),licenseDiscountPercent=dinheiro(qs('#partner-discount').value);
+  const name=qs('#partner-name').value.trim(),nickname=qs('#partner-nickname').value.trim(),email=qs('#partner-email').value.trim(),federalTaxId=normalizarDocumento(qs('#partner-cnpj').value.trim()),whatsappPhone=qs('#partner-whatsapp').value.trim(),commissionPercent=dinheiro(qs('#partner-commission').value),licenseDiscountPercent=dinheiro(qs('#partner-discount').value);
   if(name.length<2||nickname.length<2){alert('Informe nome e apelido do parceiro.');return}
   if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){alert('Informe um e-mail válido, ou deixe em branco.');return}
   if(commissionPercent<0||commissionPercent>100){alert('A comissão precisa estar entre 0 e 100%.');return}
   if(licenseDiscountPercent<0||licenseDiscountPercent>100){alert('O desconto em licenças precisa estar entre 0 e 100%.');return}
   const active=masterEditingPartnerId?qs('#partner-id').dataset.active!=='false':true;
   try{
-    await api('/api/master/partners'+(masterEditingPartnerId?'/'+masterEditingPartnerId:''),{method:masterEditingPartnerId?'PUT':'POST',body:JSON.stringify({name,nickname,email,federalTaxId,active,commissionPercent,licenseDiscountPercent})});
+    await api('/api/master/partners'+(masterEditingPartnerId?'/'+masterEditingPartnerId:''),{method:masterEditingPartnerId?'PUT':'POST',body:JSON.stringify({name,nickname,email,federalTaxId,whatsappPhone,active,commissionPercent,licenseDiscountPercent})});
     cancelarEdicaoParceiroMaster();
     await carregarMaster();
   }catch(error){alert(error.message)}
@@ -5780,6 +5859,7 @@ function editarParceiroMaster(id){
   qs('#partner-id').value=id;qs('#partner-id').dataset.active=String(partner.active!==false);
   qs('#partner-name').value=partner.name;qs('#partner-nickname').value=partner.nickname;qs('#partner-email').value=partner.email||'';
   qs('#partner-cnpj').value=partner.federal_tax_id?formatarCnpj(partner.federal_tax_id):'';
+  qs('#partner-whatsapp').value=partner.whatsapp_phone||'';
   qs('#partner-commission').value=String(Number(partner.commission_percent||0)).replace('.',',');
   qs('#partner-discount').value=String(Number(partner.license_discount_percent||0)).replace('.',',');
   qs('#partner-save').textContent='Salvar alterações';qs('#partner-cancel').style.display='inline-flex';
@@ -5788,7 +5868,7 @@ function editarParceiroMaster(id){
 function cancelarEdicaoParceiroMaster(){
   masterEditingPartnerId='';
   qs('#partner-id').value='';qs('#partner-id').dataset.active='';
-  qs('#partner-name').value='';qs('#partner-nickname').value='';qs('#partner-email').value='';qs('#partner-cnpj').value='';qs('#partner-commission').value='';qs('#partner-discount').value='';
+  qs('#partner-name').value='';qs('#partner-nickname').value='';qs('#partner-email').value='';qs('#partner-cnpj').value='';qs('#partner-whatsapp').value='';qs('#partner-commission').value='';qs('#partner-discount').value='';
   qs('#partner-save').textContent='Cadastrar parceiro';qs('#partner-cancel').style.display='none';
 }
 // Redefinir a senha do login do parceiro (22/08/2026). Antes disso não havia
@@ -5829,7 +5909,7 @@ async function salvarPlanoMaster(){
 }
 function editarPlanoMaster(code){const plan=masterData?.plans.find(item=>item.code===code);if(!plan)return;masterEditingPlanCode=code;qs('#plan-code').value=plan.code;qs('#plan-code').disabled=false;qs('#plan-name').value=plan.name;qs('#plan-price').value=String(Number(plan.price_cents)/100).replace('.',',');qs('#plan-limit').value=plan.monthly_limit;qs('#plan-description').value=plan.description||'';qs('#plan-active').value=String(plan.active!==false);renderPlanFeatures(featuresDoPlano(plan));qs('#plan-cancel').style.display='inline-flex';masterTab('planos');}
 function cancelarEdicaoPlanoMaster(){masterEditingPlanCode='';qs('#plan-code').disabled=false;qs('#plan-code').value='';qs('#plan-name').value='';qs('#plan-price').value='';qs('#plan-limit').value='';qs('#plan-description').value='';qs('#plan-active').value='true';renderPlanFeatures([]);qs('#plan-cancel').style.display='none';}
-async function abrirDetalhesCliente(companyId){try{const data=await api('/api/master/companies/'+companyId),consumption=await api('/api/master/companies/'+companyId+'/consumption');qs('#master-detail-company-id').value=companyId;qs('#master-company-subtitle').textContent=`${data.legal_name} · ${formatarCnpj(data.federal_tax_id)}`;const user=usuarioPrincipalCnpj(companyId),userSection=qs('#master-detail-user-section');const resetBtn=qs('#master-detail-reset-btn');if(user&&user.access_origin!=='pending'){userSection.style.display='';qs('#master-detail-user-id').value=user.id;qs('#master-detail-user-name').value=user.name||'';qs('#master-detail-user-email').value=user.email||'';resetBtn.style.display='inline-flex';const partnerLoginSelect=qs('#master-detail-user-partner-login');partnerLoginSelect.innerHTML='<option value="">Não é parceiro</option>'+(masterData?.partners||[]).map(p=>`<option value="${p.id}">${esc(p.nickname)}</option>`).join('');partnerLoginSelect.value=user.partner_id||'';partnerLoginSelect.dataset.original=user.partner_id||''}else{userSection.style.display='none';qs('#master-detail-user-id').value='';resetBtn.style.display='none'}qs('#master-detail-legal-name').value=data.legal_name||'';qs('#master-detail-trade-name').value=data.trade_name||'';qs('#master-detail-email').value=data.contact_email||'';qs('#master-detail-whatsapp').value=data.whatsapp_phone||'';const planSelect=qs('#master-detail-plan');planSelect.innerHTML=(masterData?.plans||[]).map(p=>`<option value="${esc(p.code)}">${esc(p.name)} — ${brl(Number(p.price_cents)/100)}/mês</option>`).join('');planSelect.value=data.plan_code||'';qs('#master-detail-emission').value=String(Boolean(data.emission_enabled));qs('#master-detail-emission').dataset.original=String(Boolean(data.emission_enabled));qs('#master-detail-implementation').value=data.implementation_status||'self_service';qs('#master-detail-fee').value=String(Number(data.implementation_fee_cents||0)/100).replace('.',',');qs('#master-detail-environment').value=data.environment_override||'';qs('#master-detail-notes').value=data.implementation_notes||'';const partnerSelect=qs('#master-detail-partner');partnerSelect.innerHTML='<option value="">Cliente direto</option>'+(masterData?.partners||[]).map(p=>`<option value="${p.id}">${esc(p.nickname)}</option>`).join('');partnerSelect.value=data.partner_id||'';qs('#master-detail-consumption').textContent=`Consumo do mês: ${consumption.used} de ${consumption.limit||'—'} notas autorizadas · ${consumption.remaining===null?'limite não configurado':`${consumption.remaining} restantes`}`;const importSelect=qs('#master-detail-import-customer');importSelect.innerHTML='<option value="">Selecione uma empresa da plataforma</option>'+(masterData?.companies||[]).filter(item=>item.id!==companyId).map(item=>`<option value="${item.id}">${esc(item.trade_name||item.legal_name)} · ${esc(formatarCnpj(item.federal_tax_id))}</option>`).join('');const featuresDoPlanoAtual=featuresDoPlano((masterData?.plans||[]).find(p=>p.code===data.plan_code));const addonsAtivos=data.addons||[];qs('#master-detail-addons').innerHTML=(masterData?.addons||[]).map(a=>{const incluido=featuresDoPlanoAtual.includes(a.code);const ativo=incluido||addonsAtivos.includes(a.code);return `<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" ${ativo?'checked':''} ${incluido?'disabled':''} onchange="alternarAddonCliente('${companyId}','${a.code}',this.checked,this)"><span>${esc(a.name)} ${incluido?'<span class="pill p-ok">Incluído no plano</span>':`<span class="pill p-gold">R$ ${brl(Number(a.priceCents||0)/100)}/mês</span>`}</span></label>`}).join('')||'<div class="hint">Nenhuma ferramenta avulsa cadastrada em Planos.</div>';qs('#master-company-modal').classList.add('on')}catch(error){alert(error.message)}}
+async function abrirDetalhesCliente(companyId){try{const data=await api('/api/master/companies/'+companyId),consumption=await api('/api/master/companies/'+companyId+'/consumption');qs('#master-detail-company-id').value=companyId;qs('#master-company-subtitle').textContent=`${data.legal_name} · ${formatarCnpj(data.federal_tax_id)}`;const user=usuarioPrincipalCnpj(companyId),userSection=qs('#master-detail-user-section');const resetBtn=qs('#master-detail-reset-btn');if(user&&user.access_origin!=='pending'){userSection.style.display='';qs('#master-detail-user-id').value=user.id;qs('#master-detail-user-name').value=user.name||'';qs('#master-detail-user-email').value=user.email||'';resetBtn.style.display='inline-flex';const partnerLoginSelect=qs('#master-detail-user-partner-login');partnerLoginSelect.innerHTML='<option value="">Não é parceiro</option>'+(masterData?.partners||[]).map(p=>`<option value="${p.id}">${esc(p.nickname)}</option>`).join('');partnerLoginSelect.value=user.partner_id||'';partnerLoginSelect.dataset.original=user.partner_id||''}else{userSection.style.display='none';qs('#master-detail-user-id').value='';resetBtn.style.display='none'}qs('#master-detail-legal-name').value=data.legal_name||'';qs('#master-detail-trade-name').value=data.trade_name||'';qs('#master-detail-email').value=data.contact_email||'';qs('#master-detail-whatsapp').value=data.whatsapp_phone||'';qs('#master-detail-whatsapp').dataset.original=data.whatsapp_phone||'';const planSelect=qs('#master-detail-plan');planSelect.innerHTML=(masterData?.plans||[]).map(p=>`<option value="${esc(p.code)}">${esc(p.name)} — ${brl(Number(p.price_cents)/100)}/mês</option>`).join('');planSelect.value=data.plan_code||'';qs('#master-detail-emission').value=String(Boolean(data.emission_enabled));qs('#master-detail-emission').dataset.original=String(Boolean(data.emission_enabled));qs('#master-detail-implementation').value=data.implementation_status||'self_service';qs('#master-detail-fee').value=String(Number(data.implementation_fee_cents||0)/100).replace('.',',');qs('#master-detail-environment').value=data.environment_override||'';qs('#master-detail-notes').value=data.implementation_notes||'';const partnerSelect=qs('#master-detail-partner');partnerSelect.innerHTML='<option value="">Cliente direto</option>'+(masterData?.partners||[]).map(p=>`<option value="${p.id}">${esc(p.nickname)}</option>`).join('');partnerSelect.value=data.partner_id||'';qs('#master-detail-consumption').textContent=`Consumo do mês: ${consumption.used} de ${consumption.limit||'—'} notas autorizadas · ${consumption.remaining===null?'limite não configurado':`${consumption.remaining} restantes`}`;const importSelect=qs('#master-detail-import-customer');importSelect.innerHTML='<option value="">Selecione uma empresa da plataforma</option>'+(masterData?.companies||[]).filter(item=>item.id!==companyId).map(item=>`<option value="${item.id}">${esc(item.trade_name||item.legal_name)} · ${esc(formatarCnpj(item.federal_tax_id))}</option>`).join('');const featuresDoPlanoAtual=featuresDoPlano((masterData?.plans||[]).find(p=>p.code===data.plan_code));const addonsAtivos=data.addons||[];qs('#master-detail-addons').innerHTML=(masterData?.addons||[]).map(a=>{const incluido=featuresDoPlanoAtual.includes(a.code);const ativo=incluido||addonsAtivos.includes(a.code);return `<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" ${ativo?'checked':''} ${incluido?'disabled':''} onchange="alternarAddonCliente('${companyId}','${a.code}',this.checked,this)"><span>${esc(a.name)} ${incluido?'<span class="pill p-ok">Incluído no plano</span>':`<span class="pill p-gold">R$ ${brl(Number(a.priceCents||0)/100)}/mês</span>`}</span></label>`}).join('')||'<div class="hint">Nenhuma ferramenta avulsa cadastrada em Planos.</div>';qs('#master-company-modal').classList.add('on')}catch(error){alert(error.message)}}
 async function alternarAddonCliente(companyId,featureCode,enabled,checkbox){
   checkbox.disabled=true;
   try{await api('/api/master/companies/'+companyId+'/addons/'+encodeURIComponent(featureCode),{method:'PUT',body:JSON.stringify({enabled})})}
@@ -5854,7 +5934,19 @@ async function salvarDetalhesCliente(){
     if(userName.length<2||!userEmail){alert('Informe nome e e-mail do usuário.');return}
   }
   try{
-    const chamadas=[api('/api/master/companies/'+id,{method:'PUT',body:JSON.stringify({emissionEnabled:novaEmissao,implementationStatus:qs('#master-detail-implementation').value,implementationFeeCents:Math.round(dinheiro(qs('#master-detail-fee').value)*100),implementationNotes:qs('#master-detail-notes').value.trim(),partnerId:qs('#master-detail-partner').value||null,environmentOverride:qs('#master-detail-environment').value||null,planCode:qs('#master-detail-plan').value||undefined,legalName:qs('#master-detail-legal-name').value.trim()||undefined,tradeName:qs('#master-detail-trade-name').value.trim()||null,contactEmail:qs('#master-detail-email').value.trim()||undefined,whatsappPhone:qs('#master-detail-whatsapp').value.trim()||null})})];
+    // whatsappPhone só entra no corpo quando MUDOU (22/08/2026). Antes ele ia
+    // em todo save, e a rota do Master grava sempre que a chave está presente:
+    // um campo vazio por acidente (ou um modal aberto antes de o cadastro
+    // carregar) apagava o vínculo — a empresa sumia do Martyn e do grupo
+    // econômico do seletor, sem ninguém perceber. Agora este PUT é o caminho
+    // de escrita principal do produto, então o acidente ficou mais provável,
+    // não menos.
+    const zapCampo=qs('#master-detail-whatsapp'),zapNovo=zapCampo.value.trim(),zapOriginal=(zapCampo.dataset.original||'').trim();
+    const zapMudou=zapNovo!==zapOriginal;
+    if(zapMudou&&!zapNovo&&zapOriginal){
+      if(!await titanConfirm(`Remover o WhatsApp ${zapOriginal} desta empresa? Ela deixa de ser reconhecida pelo Martyn e sai do grupo de empresas que aparecem juntas no seletor "empresa ativa" do cliente.`,'Remover o WhatsApp vinculado','err'))return;
+    }
+    const chamadas=[api('/api/master/companies/'+id,{method:'PUT',body:JSON.stringify({emissionEnabled:novaEmissao,implementationStatus:qs('#master-detail-implementation').value,implementationFeeCents:Math.round(dinheiro(qs('#master-detail-fee').value)*100),implementationNotes:qs('#master-detail-notes').value.trim(),partnerId:qs('#master-detail-partner').value||null,environmentOverride:qs('#master-detail-environment').value||null,planCode:qs('#master-detail-plan').value||undefined,legalName:qs('#master-detail-legal-name').value.trim()||undefined,tradeName:qs('#master-detail-trade-name').value.trim()||null,contactEmail:qs('#master-detail-email').value.trim()||undefined,...(zapMudou?{whatsappPhone:zapNovo||null}:{})})})];
     if(userId)chamadas.push(api('/api/master/users/'+userId,{method:'PUT',body:JSON.stringify({companyId:id,name:qs('#master-detail-user-name').value.trim(),email:qs('#master-detail-user-email').value.trim()})}));
     const partnerLoginSelect=qs('#master-detail-user-partner-login');
     if(userId&&partnerLoginSelect&&partnerLoginSelect.value!==(partnerLoginSelect.dataset.original||''))chamadas.push(api('/api/master/users/'+userId+'/partner-login',{method:'PUT',body:JSON.stringify({partnerId:partnerLoginSelect.value||null})}));
