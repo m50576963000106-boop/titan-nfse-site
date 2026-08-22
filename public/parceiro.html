@@ -224,7 +224,7 @@
           <div class="row r3">
             <div class="field"><label for="ind-cnpj">CNPJ</label><input id="ind-cnpj" class="inp" autocapitalize="characters" maxlength="18" placeholder="AA.AAA.AAA/AAAA-99"></div>
             <div class="field"><label for="ind-email">E-mail do responsável</label><input id="ind-email" class="inp" type="email" placeholder="responsavel@empresa.com.br"></div>
-            <div class="field"><label for="ind-whatsapp">WhatsApp do cliente (opcional)</label><input id="ind-whatsapp" class="inp" placeholder="(00) 00000-0000" inputmode="tel"><div class="hint">Tem que ser o número do cliente: é por ele que o Martyn reconhece a empresa e é ele que agrupa as empresas no seletor do portal. Depois do cadastro, alterar esse número passa a depender de aprovação do Master.</div></div>
+            <div class="field"><label for="ind-whatsapp">WhatsApp do cliente</label><input id="ind-whatsapp" class="inp" placeholder="(00) 00000-0000" inputmode="tel" required><div class="hint">Obrigatório: sem ele o cadastro do cliente não fica completo. Tem que ser o número do cliente — é por ele que o Martyn reconhece a empresa, é ele que agrupa as empresas no seletor do portal e é para ele que vai o código de recuperação de senha. Esta é a sua única chance de informá-lo: depois do cadastro, alterar passa a depender de aprovação do Master.</div></div>
           </div>
           <button class="btn btn-p" type="submit">Enviar convite</button>
           <div class="form-status" id="ind-status" role="status"></div>
@@ -1114,9 +1114,13 @@
     const federalTaxId=qs('#ind-cnpj').value.replace(/\D/g,''),email=qs('#ind-email').value.trim(),whatsappPhone=qs('#ind-whatsapp').value.trim();
     if(federalTaxId.length!==14)return avisar('ind-status','Informe um CNPJ válido (14 dígitos).','err');
     if(!email)return avisar('ind-status','Informe o e-mail do responsável.','err');
+    // Obrigatório desde 22/08/2026 ("para completar o cadastro, e-mail e zap
+    // obrigatório"). Conferido aqui só para o parceiro não esperar a ida ao
+    // servidor — quem recusa de verdade é POST /api/partner/invitations.
+    if(!whatsappPhone)return avisar('ind-status','Informe o WhatsApp do cliente — ele é obrigatório para o cadastro ficar completo.','err');
     avisar('ind-status','Consultando CNPJ e enviando convite...');
     try{
-      const resultado=await chamarApiParceiro('/api/partner/invitations',{method:'POST',body:JSON.stringify({federalTaxId,email,whatsappPhone:whatsappPhone||undefined})});
+      const resultado=await chamarApiParceiro('/api/partner/invitations',{method:'POST',body:JSON.stringify({federalTaxId,email,whatsappPhone})});
       avisar('ind-status',`Convite enviado para ${email}. A empresa já está na sua carteira.`,'ok');
       // Os avisos da API não são erro — a empresa FOI criada. Mas também não
       // podem ficar num canto: o caso principal é o parceiro ter informado o

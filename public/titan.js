@@ -1578,6 +1578,20 @@ async function carregarLogsApi(){
 }
 ['li-cnpj','li-mail','li-pw'].forEach(id=>qs('#'+id)?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();iniciarCadastro()}}));
 
+/**
+ * Pendencia do cadastro completo (22/08/2026, "para completar o cadastro,
+ * e-mail e zap obrigatorio"). Quem decide o texto e o servidor
+ * (access/cadastro-completo.ts) — a tela so mostra: repetir a regra aqui
+ * criaria uma segunda versao dela para divergir da primeira.
+ */
+function mostrarCadastroPendente(row){
+  const painel=qs('#e-cadastro-pendente');
+  if(!painel)return;
+  const mensagem=row&&row.cadastroPendenteMensagem;
+  painel.style.display=mensagem?'':'none';
+  painel.textContent=mensagem||'';
+}
+
 async function carregarEmpresaServidor(){
   let row;
   try{row=await api('/api/company')}catch(error){
@@ -1590,6 +1604,7 @@ async function carregarEmpresaServidor(){
   empresaAtual={rs:row.legal_name,cnpj:row.federal_tax_id,im:row.municipal_registration||'',regime:row.tax_regime,reg:regimes[row.tax_regime]||'Lucro Presumido',mun:row.municipality_code,municipio:row.city&&row.state?`${row.city}/${row.state}`:row.municipality_code,endereco:row.address||'',postalCode:row.postal_code||'',street:row.street||'',number:row.number||'',complement:row.complement||'',district:row.district||'',city:row.city||'',state:row.state||'',email:row.email||'',contador:row.accountant_email||'',phone:row.phone||'',whatsapp:row.whatsapp_phone||'',series:Number(row.dps_series)||1,next:String(row.next_dps_number||1),simpleAp:[1,2].includes(Number(row.simple_assessment_regime))?Number(row.simple_assessment_regime):1,simpleTotal:row.simple_total_tax_rate==null?'':Number(row.simple_total_tax_rate),taxFed:row.total_tax_rate_federal==null?'':Number(row.total_tax_rate_federal),taxEst:row.total_tax_rate_state==null?'':Number(row.total_tax_rate_state),taxMun:row.total_tax_rate_municipal==null?'':Number(row.total_tax_rate_municipal),special:Number(row.special_tax_regime)||0};
   const ibscbsAviso=qs('#emit-ibscbs-aviso');if(ibscbsAviso)ibscbsAviso.style.display=empresaAtual.regime==='regular'?'flex':'none';
   qs('#e-email').value=empresaAtual.email;qs('#e-contador').value=empresaAtual.contador||'';qs('#e-phone').value=empresaAtual.phone;qs('#e-zap').value=empresaAtual.whatsapp;
+  mostrarCadastroPendente(row);
   const logo=qs('#e-logo-preview');if(logo&&row.commercial_logo_data){logo.src=row.commercial_logo_data;logo.style.display='block'}
   localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresaAtual));
 }
@@ -5245,6 +5260,7 @@ async function salvarCadastro(){
     return;
   }
   if(!Number.isInteger(empresa.series)||empresa.series<1||empresa.series>99999||!empresa.next){alert('Informe uma série entre 1 e 99999 e o próximo número da DPS.');return}
+  let salvoNoServidor=null;
   const regime=empresa.reg==='MEI'?'mei':empresa.reg.includes('Simples')?'simples':'regular';
   if(ambienteAtual==='production'&&regime==='simples'&&empresa.simpleTotal===''){alert('Informe o percentual aproximado total de tributos do Simples para habilitar emissões fiscais.');return}
   try{
@@ -5254,12 +5270,20 @@ async function salvarCadastro(){
     // empresa alheia e ganharia acesso a ela), então mandá-lo era um payload
     // prometendo uma escrita que não acontece. O campo #e-zap segue readonly:
     // quem grava é o Master, e o parceiro solicita.
-    await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im||undefined,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,simpleTotalTaxRate:regime==='simples'&&empresa.simpleTotal!==''?empresa.simpleTotal:undefined,totalTaxRateFederal:regime!=='simples'&&empresa.taxFed!==''?empresa.taxFed:undefined,totalTaxRateState:regime!=='simples'&&empresa.taxEst!==''?empresa.taxEst:undefined,totalTaxRateMunicipal:regime!=='simples'&&empresa.taxMun!==''?empresa.taxMun:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next,address:empresa.endereco||undefined,postalCode:empresa.postalCode||undefined,street:empresa.street||undefined,number:empresa.number||undefined,complement:empresa.complement||undefined,district:empresa.district||undefined,city:empresa.city||undefined,state:empresa.state||undefined,email:empresa.email||undefined,accountantEmail:empresa.accountantEmail||'',phone:empresa.phone||undefined})});
+    salvoNoServidor=await api('/api/company',{method:'PUT',body:JSON.stringify({legalName:empresa.rs,federalTaxId:empresa.cnpj,municipalRegistration:empresa.im||undefined,municipalityCode:empresa.mun,taxRegime:regime,simpleAssessmentRegime:regime==='simples'?empresa.simpleAp:undefined,simpleTotalTaxRate:regime==='simples'&&empresa.simpleTotal!==''?empresa.simpleTotal:undefined,totalTaxRateFederal:regime!=='simples'&&empresa.taxFed!==''?empresa.taxFed:undefined,totalTaxRateState:regime!=='simples'&&empresa.taxEst!==''?empresa.taxEst:undefined,totalTaxRateMunicipal:regime!=='simples'&&empresa.taxMun!==''?empresa.taxMun:undefined,specialTaxRegime:empresa.special,dpsSeries:empresa.series,nextDpsNumber:empresa.next,address:empresa.endereco||undefined,postalCode:empresa.postalCode||undefined,street:empresa.street||undefined,number:empresa.number||undefined,complement:empresa.complement||undefined,district:empresa.district||undefined,city:empresa.city||undefined,state:empresa.state||undefined,email:empresa.email||undefined,accountantEmail:empresa.accountantEmail||'',phone:empresa.phone||undefined})});
     empresaAtual=empresa;
     localStorage.setItem(STORAGE_EMPRESA,JSON.stringify(empresa));
   }catch(error){alert(error.message);return}
   aplicarEmpresa();
   checarHabilitacao();
+  // Cadastro salvo mas ainda NAO completo (22/08/2026): os dados fiscais
+  // foram gravados de verdade — o que nao aconteceu foi a conclusao, e com
+  // ela a liberacao da emissao. Sair para o Painel aqui esconderia o aviso na
+  // tela que ele acabou de deixar, entao a navegacao so acontece quando nao
+  // ha pendencia.
+  mostrarCadastroPendente(salvoNoServidor);
+  const pendencia=salvoNoServidor&&salvoNoServidor.cadastroPendenteMensagem;
+  if(pendencia){alert(pendencia);return}
   alert(`Cadastro salvo no servidor seguro. Ambiente: ${ambienteAtual==='production'?'Produção oficial':'Produção Restrita'}.`);
   go('painel',qs('.sb-link[onclick*="painel"]'));
 }
@@ -6248,7 +6272,14 @@ let masterNewLookup=null,masterEditingPlanCode='';
 function abrirNovoCliente(){qs('#master-client-modal').classList.add('on');qs('#master-new-cnpj').focus();}
 function fecharNovoCliente(){qs('#master-client-modal').classList.remove('on');masterNewLookup=null;qs('#master-new-cnpj').value='';qs('#master-new-email').value='';qs('#master-new-zap').value='';qs('#master-new-company').style.display='none';qs('#master-new-link').style.display='none';qs('#master-new-cnpj-status').textContent=''}
 async function consultarNovoClienteCnpj(){const input=qs('#master-new-cnpj'),cnpj=normalizarDocumento(input.value);const status=qs('#master-new-cnpj-status'),box=qs('#master-new-company');if(!cnpjComFormatoValido(cnpj)){status.textContent='Informe um CNPJ com 14 caracteres válidos.';return}status.textContent='Consultando CNPJ e situação cadastral...';masterNewLookup=null;try{const data=await api('/api/master/cnpj/'+cnpj);masterNewLookup=data;box.style.display='block';box.innerHTML=`<b>${esc(data.legalName)}</b>${data.tradeName?` · ${esc(data.tradeName)}`:''}<br><span class="mono">${esc(formatarCnpj(data.federalTaxId))}</span> · ${esc(data.municipalityName||'Município não informado')} / ${esc(data.state||'—')}<br><span class="pill ${data.active?'p-ok':'p-err'}">${esc(data.status||'')}</span> · Regime sugerido: ${esc(data.regime)}`;status.textContent=data.active?'CNPJ ativo. Confira os dados antes de gerar o convite.':'CNPJ não está ativo.'}catch(error){status.textContent=error.message;box.style.display='none'}}
-async function criarConviteNovoCliente(){const email=qs('#master-new-email').value.trim(),planCode=qs('#master-new-plan').value,whatsappPhone=qs('#master-new-zap').value.trim();if(!masterNewLookup?.active){alert('Consulte um CNPJ ativo antes de gerar o convite.');return}if(!email||!planCode){alert('Informe e-mail e plano.');return}try{const result=await api('/api/master/invitations',{method:'POST',body:JSON.stringify({federalTaxId:masterNewLookup.federalTaxId,email,planCode,whatsappPhone:whatsappPhone||undefined})});const token=new URL(result.invitePath,location.origin).searchParams.get('invite'),link=new URL('/dashboard',location.origin);if(token)link.searchParams.set('invite',token);const box=qs('#master-new-link');box.style.display='block';box.innerHTML=`<b>Link pronto para envio</b><br><span id="master-new-link-value">${esc(link.href)}</span><br><button class="btn btn-s" style="margin-top:8px" onclick="copiarTextoSeguro(qs('#master-new-link-value').textContent,this)">Copiar link</button>`;await carregarMaster()}catch(error){alert(error.message)}}
+async function criarConviteNovoCliente(){const email=qs('#master-new-email').value.trim(),planCode=qs('#master-new-plan').value,whatsappPhone=qs('#master-new-zap').value.trim();if(!masterNewLookup?.active){alert('Consulte um CNPJ ativo antes de gerar o convite.');return}if(!email||!planCode){alert('Informe e-mail e plano.');return}
+  // Mesmo recorte do servidor (POST /api/master/invitations): CNPJ que ainda
+  // nao esta na plataforma nasce com WhatsApp, por ordem do dono de 22/08/2026.
+  // Convite para empresa que JA existe segue sem exigir — boa parte da base
+  // antiga nao tem numero, e recusar ali deixaria esse cliente sem acesso.
+  const jaCadastrada=(masterData?.companies||[]).some(item=>normalizarDocumento(item.federal_tax_id||'')===masterNewLookup.federalTaxId);
+  if(!jaCadastrada&&!whatsappPhone){alert('Informe o WhatsApp do cliente. Ele é obrigatório para o cadastro ficar completo — é por ele que o Martyn reconhece a empresa e que o cliente recebe o código de recuperação de senha.');return}
+  try{const result=await api('/api/master/invitations',{method:'POST',body:JSON.stringify({federalTaxId:masterNewLookup.federalTaxId,email,planCode,whatsappPhone:whatsappPhone||undefined})});const token=new URL(result.invitePath,location.origin).searchParams.get('invite'),link=new URL('/dashboard',location.origin);if(token)link.searchParams.set('invite',token);const box=qs('#master-new-link');box.style.display='block';box.innerHTML=`<b>Link pronto para envio</b><br><span id="master-new-link-value">${esc(link.href)}</span><br><button class="btn btn-s" style="margin-top:8px" onclick="copiarTextoSeguro(qs('#master-new-link-value').textContent,this)">Copiar link</button>`;await carregarMaster()}catch(error){alert(error.message)}}
 let masterEditingPartnerId='';
 async function salvarParceiroMaster(){
   const name=qs('#partner-name').value.trim(),nickname=qs('#partner-nickname').value.trim(),email=qs('#partner-email').value.trim(),federalTaxId=normalizarDocumento(qs('#partner-cnpj').value.trim()),whatsappPhone=qs('#partner-whatsapp').value.trim(),commissionPercent=dinheiro(qs('#partner-commission').value),licenseDiscountPercent=dinheiro(qs('#partner-discount').value);

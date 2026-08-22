@@ -2971,3 +2971,45 @@ test("a projecao dos contratos recorrentes e serie separada do faturamento reali
   // Marca de "hoje" separando mes fechado de mes futuro.
   assert.match(css, /\.dash-chart \.bar-wrap\.marca-hoje::after\{content:'hoje'/);
 });
+
+test("cadastro completo exige e-mail e WhatsApp: a tela do cliente avisa, sem devolver o campo a ele", async()=>{
+  // Ordem do dono do produto (22/08/2026): "para completar o cadastro, e-mail
+  // e zap obrigatorio". O WhatsApp continua SOMENTE LEITURA aqui — o campo
+  // saiu do alcance do cliente em 13/08/2026 porque ele decide quais outras
+  // empresas aparecem no seletor "empresa ativa", e reabri-lo agora daria a
+  // toda empresa incompleta um motivo legitimo para digitar o numero de uma
+  // empresa alheia. O que muda e o AVISO, nao a permissao.
+  const html=await lerPortal();
+  assert.match(html, /<input id="e-zap"[^>]*readonly/, "o campo do cliente segue somente leitura");
+  assert.match(html, /<div class="alert a-warn" id="e-cadastro-pendente"/);
+  // O texto vem do servidor (cadastroPendenteMensagem), nunca remontado aqui:
+  // duas versoes da mesma regra divergem na primeira mudanca.
+  assert.match(html, /painel\.textContent=mensagem\|\|''/);
+  assert.match(html, /mostrarCadastroPendente\(row\)/);
+  // Salvar com pendencia NAO navega para o Painel — sairia da tela escondendo
+  // o aviso que acabou de aparecer.
+  assert.match(html, /if\(pendencia\)\{alert\(pendencia\);return\}/);
+});
+
+test("Gestao por CNPJ: WhatsApp obrigatorio para CNPJ novo, opcional para quem ja existe", async()=>{
+  // O recorte e o mesmo do servidor. Exigir tambem no convite de empresa ja
+  // cadastrada trancaria o Master fora do unico caminho de dar acesso a um
+  // cliente antigo — boa parte da base anterior a regra nao tem numero.
+  const html=await lerPortal();
+  assert.match(html, /<input id="master-new-zap"[^>]*required/);
+  assert.match(html, /const jaCadastrada=\(masterData\?\.companies\|\|\[\]\)\.some\(item=>normalizarDocumento\(item\.federal_tax_id\|\|''\)===masterNewLookup\.federalTaxId\)/);
+  assert.match(html, /if\(!jaCadastrada&&!whatsappPhone\)\{alert\('Informe o WhatsApp do cliente\./);
+});
+
+test("indicacao de cliente pelo parceiro: o WhatsApp deixou de ser opcional", async()=>{
+  // E a unica porta em que o parceiro ainda escreve esse campo — depois dela
+  // ele SOLICITA ao Master. Deixar opcional aqui empurraria a pendencia para
+  // quem nao pode resolve-la.
+  const parceiro=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.doesNotMatch(parceiro, /WhatsApp do cliente \(opcional\)/);
+  assert.match(parceiro, /<input id="ind-whatsapp"[^>]*required/);
+  assert.match(parceiro, /if\(!whatsappPhone\)return avisar\('ind-status'/);
+  // Sem `||undefined`: o campo agora sempre vai no corpo, e o servidor recusa
+  // vazio em vez de gravar uma empresa sem numero.
+  assert.match(parceiro, /body:JSON\.stringify\(\{federalTaxId,email,whatsappPhone\}\)/);
+});
