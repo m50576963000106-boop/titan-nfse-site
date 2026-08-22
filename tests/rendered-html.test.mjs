@@ -549,6 +549,43 @@ test("protege e otimiza login e redefinicao de senha no front",async()=>{
   assert.match(html,/\['reset-password','reset-password-confirm'\]\.forEach/);
 });
 
+test("redefinicao de senha pede o segundo fator pelo WhatsApp, e o cliente e quem inicia a conversa",async()=>{
+  const html=await lerPortal();
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  // O passo 2 existe e comeca escondido — quem nao tem WhatsApp cadastrado
+  // conclui na primeira tela e nunca ve este bloco.
+  assert.match(html,/id="reset-2fa"/);
+  assert.match(css,/\.reset-2fa\{display:none\}/);
+  assert.match(css,/\.reset-2fa\.on\{display:block\}/);
+  // O sistema NUNCA dispara a mensagem: monta o link wa.me e o cliente envia.
+  // Mensagem iniciada pela empresa e paga; iniciada pelo cliente abre a janela
+  // gratuita. Se um dia isto virar disparo do servidor, a conta muda.
+  assert.match(html,/Solicitar no WhatsApp/);
+  assert.match(html,/dados\.waLink/);
+  assert.match(html,/id="reset-2fa-link"/);
+  assert.match(html,/target="_blank" rel="noopener"/);
+  // Os dois ultimos digitos do numero CADASTRADO, com a instrucao de mandar
+  // daquele aparelho: de outro numero nenhum codigo volta e nao aparece erro.
+  assert.match(html,/id="reset-2fa-final"/);
+  assert.match(html,/dados\.phoneHint/);
+  assert.match(html,/Se mandar de outro número, o código não volta/);
+  // QR para quem esta no computador com o WhatsApp no celular.
+  assert.match(html,/id="reset-2fa-qr"/);
+  assert.match(html,/dados\.qrCodeDataUrl/);
+});
+
+test("a tela so diz 'senha definida' depois do codigo do WhatsApp, porque o servidor so grava depois",async()=>{
+  const html=await lerPortal();
+  assert.match(html,/if\(resposta\.secondFactorRequired\)\{abrirSegundoFatorWhatsApp\(token,resposta\.whatsapp\|\|\{\}\);return\}/);
+  assert.match(html,/password-resets\/'\+encodeURIComponent\(token\)\+'\/whatsapp-code/);
+  assert.match(html,/id="reset-code"/);
+  assert.match(html,/autocomplete="one-time-code" maxlength="6"/);
+  assert.match(html,/\/\^\\d\{6\}\$\/\.test\(codigo\)/);
+  // O campo do codigo tem o proprio Enter: reaproveitar o forEach das senhas
+  // dispararia o botao da PRIMEIRA etapa, que a essa altura ja esta escondido.
+  assert.match(html,/qs\('#reset-code'\)\?\.addEventListener\('keydown'/);
+});
+
 test("convite operacional cria apenas senha e confirmação",async()=>{
   const html=await lerPortal();
   const inviteFlow=html.slice(html.indexOf("async function prepararConvite"),html.indexOf("async function prepararRedefinicao"));

@@ -6653,10 +6653,55 @@ async function confirmarRedefinicao(token){
   if(password.length<10){hint.textContent='A nova senha precisa ter pelo menos 10 caracteres.';hint.classList.add('error');return}
   if(password!==confirmation){hint.textContent='A confirmação não confere. Digite a mesma senha nos dois campos.';hint.classList.add('error');return}
   action.disabled=true;action.textContent='Salvando...';
-  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password,confirmation})});hint.textContent='Senha definida com sucesso. Redirecionando para o login...';hint.classList.add('ok');window.setTimeout(()=>window.top.location.href=ehParceiroNaRedefinicao?'/?login=admin':'/?login=client',700)}catch(error){hint.textContent=error.message;hint.classList.add('error');action.disabled=false;action.textContent='Definir senha'}
+  try{
+    const resposta=await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password,confirmation})});
+    // A senha ainda NÃO foi gravada quando vem secondFactorRequired: o servidor
+    // guardou a escolha e espera o código do WhatsApp. Dizer "senha definida"
+    // aqui seria mentira, e a pessoa iria embora da tela achando que acabou.
+    if(resposta.secondFactorRequired){abrirSegundoFatorWhatsApp(token,resposta.whatsapp||{});return}
+    hint.textContent='Senha definida com sucesso. Redirecionando para o login...';hint.classList.add('ok');window.setTimeout(()=>window.top.location.href=ehParceiroNaRedefinicao?'/?login=admin':'/?login=client',700)
+  }catch(error){hint.textContent=error.message;hint.classList.add('error');action.disabled=false;action.textContent='Definir senha'}
+}
+// Segundo fator por WhatsApp (22/08/2026). O sistema NUNCA inicia a conversa:
+// mensagem iniciada pela empresa é paga, iniciada pelo cliente abre uma janela
+// em que responder é de graça. Por isso a tela só monta o link wa.me com o
+// texto pronto — quem manda o "oi" é o cliente, e só então o Martyn responde
+// com o código. Não trocar isto por um disparo do servidor.
+function abrirSegundoFatorWhatsApp(token,dados){
+  const painel=qs('#reset-2fa'),hint=qs('#reset-hint'),acao=qs('#reset-action'),lead=qs('#reset-lead');
+  // Os dois últimos dígitos não são enfeite: quem clica no link a partir de um
+  // computador logado no WhatsApp Web de OUTRO número manda o "oi" de uma linha
+  // sem pedido em aberto, nenhum código volta e não há erro para explicar.
+  qs('#reset-2fa-final').textContent=dados.phoneHint||'--';
+  qs('#reset-2fa-numero').textContent=dados.businessPhone||'consulte o suporte';
+  const link=qs('#reset-2fa-link');
+  if(dados.waLink){link.href=dados.waLink;link.style.display=''}else{link.style.display='none'}
+  const qr=qs('#reset-2fa-qr');
+  if(dados.qrCodeDataUrl){qr.src=dados.qrCodeDataUrl;qr.classList.add('on')}else qr.classList.remove('on');
+  hint.textContent='';hint.classList.remove('error','ok');
+  acao.style.display='none';if(lead)lead.style.display='none';
+  ['reset-password','reset-password-confirm'].forEach(id=>{const campo=qs('#'+id);if(campo)campo.closest('.reset-field').style.display='none'});
+  painel.classList.add('on');
+  qs('#reset-2fa-action').onclick=()=>concluirComCodigoWhatsApp(token);
+  qs('#reset-code').focus();
+}
+async function concluirComCodigoWhatsApp(token){
+  const campo=qs('#reset-code'),aviso=qs('#reset-2fa-hint'),botao=qs('#reset-2fa-action'),codigo=campo.value.trim();
+  aviso.classList.remove('error','ok');
+  if(!/^\d{6}$/.test(codigo)){aviso.textContent='Informe os 6 dígitos que o Martyn respondeu no WhatsApp.';aviso.classList.add('error');return}
+  botao.disabled=true;botao.textContent='Confirmando...';
+  try{
+    await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/whatsapp-code',{method:'POST',body:JSON.stringify({code:codigo})});
+    aviso.textContent='Senha redefinida. Redirecionando para o login...';aviso.classList.add('ok');
+    window.setTimeout(()=>window.top.location.href=ehParceiroNaRedefinicao?'/?login=admin':'/?login=client',700);
+  }catch(error){aviso.textContent=error.message;aviso.classList.add('error');botao.disabled=false;botao.textContent='Concluir redefinição';campo.select()}
 }
 function alternarSenha(id,button){const input=qs('#'+id);if(!input)return;const visible=input.type==='password';input.type=visible?'text':'password';button.setAttribute('aria-pressed',String(visible));button.setAttribute('aria-label',visible?'Ocultar senha':'Mostrar senha')}
 ['reset-password','reset-password-confirm'].forEach(id=>qs('#'+id)?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!qs('#reset-action')?.disabled){e.preventDefault();qs('#reset-action').click()}}));
+// Enter no campo do código: bloco próprio, e não acrescentado ao forEach das
+// senhas logo acima, porque aquele dispara o botão da PRIMEIRA etapa — que a
+// essa altura já está escondido.
+qs('#reset-code')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!qs('#reset-2fa-action')?.disabled){e.preventDefault();qs('#reset-2fa-action').click()}});
 
 function carregarEstado(){
   try{empresaAtual=JSON.parse(localStorage.getItem(STORAGE_EMPRESA)||'null')}catch{empresaAtual=null}

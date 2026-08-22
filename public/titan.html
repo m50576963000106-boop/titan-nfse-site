@@ -75,12 +75,21 @@
     <div class="login-mark"><a class="login-brand" href="/" target="_top" aria-label="Página inicial TITAN NFS-e"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a></div>
     <div class="onboard-step">Segurança da conta</div>
     <h1 id="reset-title">Definir nova senha</h1>
-    <p class="reset-lead">Crie uma senha nova para continuar. Use pelo menos 10 caracteres e confirme a mesma senha no segundo campo.</p>
+    <p id="reset-lead" class="reset-lead">Crie uma senha nova para continuar. Use pelo menos 10 caracteres e confirme a mesma senha no segundo campo.</p>
     <div id="reset-account" class="reset-account">Validando o link de redefinição...</div>
     <div class="reset-field"><label for="reset-password">Nova senha</label><div class="reset-input-wrap"><input id="reset-password" type="password" minlength="10" autocomplete="new-password" placeholder="Digite a nova senha" disabled><button class="password-toggle" type="button" aria-label="Mostrar senha" aria-pressed="false" onclick="alternarSenha('reset-password',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div></div>
     <div class="reset-field"><label for="reset-password-confirm">Confirmar nova senha</label><div class="reset-input-wrap"><input id="reset-password-confirm" type="password" minlength="10" autocomplete="new-password" placeholder="Repita a nova senha" disabled><button class="password-toggle" type="button" aria-label="Mostrar confirmação" aria-pressed="false" onclick="alternarSenha('reset-password-confirm',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div></div>
     <div id="reset-hint" class="reset-hint">O link será validado antes de liberar os campos.</div>
     <button id="reset-action" class="reset-action" type="button" disabled>Definir senha</button>
+    <div id="reset-2fa" class="reset-2fa">
+      <p class="reset-lead">Falta o último passo. Envie a mensagem que já vai escrita, <b>pelo WhatsApp do número final <span id="reset-2fa-final">--</span></b>. Se mandar de outro número, o código não volta e não aparece erro nenhum — é assim de propósito.</p>
+      <div class="reset-account">WhatsApp da TITAN: <b id="reset-2fa-numero">--</b></div>
+      <a id="reset-2fa-link" class="reset-action reset-2fa-link" href="#" target="_blank" rel="noopener">Solicitar no WhatsApp</a>
+      <img id="reset-2fa-qr" class="reset-2fa-qr" alt="QR Code para abrir a conversa da TITAN no WhatsApp">
+      <div class="reset-field"><label for="reset-code">Código recebido no WhatsApp</label><div class="reset-input-wrap"><input id="reset-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div></div>
+      <div id="reset-2fa-hint" class="reset-hint">O Martyn responde com o código assim que a sua mensagem chegar.</div>
+      <button id="reset-2fa-action" class="reset-action" type="button">Concluir redefinição</button>
+    </div>
     <a class="reset-back" href="/?login=client">Voltar para o login</a>
     <div class="reset-support">A redefinição exige um link temporário gerado pelo gestor Master.<br><a href="/martyn_ia">Precisa de ajuda?</a></div>
   </div>
