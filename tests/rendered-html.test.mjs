@@ -2485,3 +2485,40 @@ test("o Trajeto da nota não é menor no desktop do que no celular", async () =>
   assert.ok(desktop >= celular, "o desktop não pode ter letra menor que o celular");
   assert.doesNotMatch(compacto.slice(0, 900), /font-size:8px/);
 });
+
+test("o calendário da Agenda cabe inteiro em tela estreita", async () => {
+  // `1fr` é minmax(AUTO,1fr): a coluna não encolhia abaixo de "R$ 1.234,56",
+  // os 7 dias não cabiam em 375px e o overflow:hidden do container cortava
+  // sexta e sábado — sem rolagem para alcançá-los.
+  const css = await readFile(resolve(root, "public/titan.css"), "utf8");
+  assert.match(css, /\.agenda-calendar\{display:grid;grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.agenda-cal-valor\{[^}]*overflow-wrap:anywhere/);
+  const estreito = css.slice(css.indexOf("@media(max-width:680px){.agenda-cal-cell"));
+  assert.match(estreito.slice(0, 300), /\.agenda-cal-valor\{font-size:9\.5px/);
+});
+
+test("na barra do topo quem cede espaço é a busca, não o seletor de empresa", async () => {
+  // O seletor é o que diz QUAL empresa está ativa; emitir nota pela empresa
+  // errada não tem desfazer.
+  const css = await readFile(resolve(root, "public/titan.css"), "utf8");
+  const celular = css.slice(css.indexOf("@media(max-width:760px){"));
+  assert.match(celular, /\.global-search\{width:auto;flex:1 1 92px;min-width:0;max-width:210px\}/);
+  assert.match(celular, /\.tenant\{flex:0 1 auto;min-width:118px\}/);
+  // Sem min-width:0 o piso do nome do usuário vira o próprio max-width, e quem
+  // sai da barra é o avatar.
+  assert.match(celular, /\.top-user-copy\{max-width:64px;min-width:0\}/);
+});
+
+test("as tabelas em modo cartão sempre trazem o rótulo da célula", async () => {
+  const js = await readFile(resolve(root, "public/titan.js"), "utf8");
+  const relatorio = js.slice(js.indexOf("function tabelaDoRelatorio("), js.indexOf("function renderRelatorioRecebimentos"));
+  assert.match(relatorio, /<td data-th="\$\{esc\(titulo\)\}">/);
+  assert.match(relatorio, /<td data-th="Qtd"/);
+  assert.match(relatorio, /<td data-th="Valor"/);
+  // Nenhuma tabela .tbl-cards-mobile pode voltar a ter <td> sem data-th.
+  for (const m of js.matchAll(/<table class="tbl-cards-mobile">[\s\S]{0,4000}?<\/table>/g)) {
+    for (const td of m[0].matchAll(/<td(?![^>]*data-th)[^>]*>/g)) {
+      assert.fail(`<td> sem data-th numa tabela-cartão: ${td[0]}`);
+    }
+  }
+});

@@ -278,7 +278,11 @@ main{margin-left:230px;padding:58px 0 0}
    sumia contra o branco da célula e a grade não parecia um calendário. O
    traço é o próprio fundo da grade, aparecendo pelo gap de 1px — escurecer
    aqui escurece a grade inteira de uma vez. */
-.agenda-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#94a3b8;border:1.5px solid #64748b;border-radius:var(--r);overflow:hidden}
+/* minmax(0,1fr), não 1fr: `1fr` é minmax(AUTO,1fr) e por isso a coluna nunca
+   encolhe abaixo do conteúdo — "R$ 1.234,56" fixava ~62px por dia, 7 dias não
+   cabiam em 375px, e o overflow:hidden daqui (que existe pelo canto
+   arredondado) cortava sexta e sábado sem deixar rolagem para alcançá-los. */
+.agenda-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:#94a3b8;border:1.5px solid #64748b;border-radius:var(--r);overflow:hidden}
 .agenda-cal-head{background:#eef2f6;padding:8px 6px;text-align:center;font-size:11px;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em}
 .agenda-cal-cell{background:#fff;min-height:86px;padding:6px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:background .15s ease}
 .agenda-cal-cell.vazio{background:#fafaf8;cursor:default}
@@ -286,7 +290,10 @@ main{margin-left:230px;padding:58px 0 0}
 .agenda-cal-cell.hoje{background:rgba(201,168,76,.09)}
 .agenda-cal-cell.hoje .agenda-cal-dia{color:var(--gold);font-weight:800}
 .agenda-cal-dia{font-size:11.5px;font-weight:650;color:var(--ink-2)}
-.agenda-cal-valor{font-size:11px;font-weight:800;color:var(--ink);line-height:1.25}
+/* Com a coluna livre para encolher, o valor precisa poder quebrar: sem isto
+   ele volta a ser a maior palavra indivisível da célula e reinstala o mesmo
+   piso de largura que a linha acima acabou de tirar. */
+.agenda-cal-valor{font-size:11px;font-weight:800;color:var(--ink);line-height:1.25;overflow-wrap:anywhere}
 .agenda-cal-valor.previsto{color:var(--warn)}
 .agenda-cal-valor.recebido{color:var(--ok);font-size:10px}
 .agenda-cal-count{font-size:9px;color:var(--ink-3)}
@@ -296,7 +303,7 @@ main{margin-left:230px;padding:58px 0 0}
 .agenda-pill-mais{font-size:9.5px;color:var(--ink-3);font-weight:650}
 .agenda-day-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .agenda-day-detail h3{font-size:13px;margin-bottom:10px;color:var(--ink)}
-@media(max-width:680px){.agenda-cal-cell{min-height:58px;font-size:10px}.agenda-cal-head{font-size:9.5px;padding:6px 2px}}
+@media(max-width:680px){.agenda-cal-cell{min-height:58px;font-size:10px;padding:5px 3px}.agenda-cal-head{font-size:9.5px;padding:6px 2px}.agenda-cal-valor{font-size:9.5px;line-height:1.2}.agenda-cal-valor.recebido{font-size:9px}}
 
 .grid{display:grid;gap:14px}
 .g4{grid-template-columns:repeat(4,1fr)}
@@ -898,7 +905,7 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
   .sidebar-backdrop{display:block;position:fixed;inset:0;z-index:35;background:rgba(11,22,41,.5);opacity:0;pointer-events:none;transition:opacity .22s}
   .sidebar-backdrop.on{opacity:1;pointer-events:auto}
   body.menu-aberto{overflow:hidden}
-  .topbar{left:0;padding:0 14px}
+  .topbar{left:0;padding:0 14px;gap:8px}
   main{margin-left:0}
   .view{padding:20px 14px 60px}
   .burger{display:grid;place-items:center;width:32px;height:32px;flex:none}
@@ -931,9 +938,24 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
   .activity-kebab{grid-column:3;grid-row:2;justify-self:end}
   .dash-foot{justify-content:flex-start}
   .dash-foot-src{text-align:left;flex-basis:100%}
-  .top-user-copy{max-width:64px}
-  .global-search{width:min(210px,38vw)}
-  .global-search input{padding-left:32px;padding-right:8px}
+  /* min-width:0 junto do max-width: o piso automático de um item flex é
+     min(min-content, max-width) — ou seja, os 64px viravam largura MÍNIMA, e
+     como o nome não encolhia mais, quem saía da barra era o avatar, para fora
+     da própria .top-user. Com o piso zerado o nome corta com reticências (é
+     para isso que os filhos já têm overflow:hidden) e o avatar fica dentro. */
+  .top-user-copy{max-width:64px;min-width:0}
+  /* Quem cede espaço na barra do topo, em 360–400px (achado 22/08/2026).
+     Antes cedia o seletor de empresa: .global-search era flex:none com
+     largura fixa, então todo o aperto caía no .tenant, que ia encolhendo até
+     sobrar só o ícone do prédio — e o avatar encostava na borda. É a troca
+     errada. O seletor é o que diz QUAL empresa está ativa, e emitir nota pela
+     empresa errada não tem desfazer; a busca, no máximo, obriga a digitar num
+     campo estreito. Agora a busca é o item elástico (flex + min-width:0) e o
+     seletor tem piso próprio. Com uma empresa só o .tenant nem aparece
+     (aplicarAcesso o esconde) e a busca fica com a largura toda. */
+  .global-search{width:auto;flex:1 1 92px;min-width:0;max-width:210px}
+  .global-search input{padding-left:30px;padding-right:6px}
+  .tenant{flex:0 1 auto;min-width:118px}
   .corner-notify{right:76px;bottom:21px;width:42px;height:42px}
   .g4{grid-template-columns:1fr}
   .kpi .val{font-size:22px}

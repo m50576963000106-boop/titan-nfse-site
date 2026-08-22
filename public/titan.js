@@ -944,7 +944,11 @@ function somarPor(lista,chave){
 }
 function tabelaDoRelatorio(titulo,linhas,rotulo=v=>v){
   if(!linhas.length)return '';
-  const corpo=linhas.map(([chave,v])=>`<tr><td>${esc(rotulo(chave))}</td><td style="text-align:right">${v.qtd}</td><td style="text-align:right">R$ ${brl(v.total)}</td></tr>`).join('');
+  // data-th é o que vira o rótulo de cada célula quando a tabela se
+  // transforma em cartão no celular (.tbl-cards-mobile td::before). Sem ele,
+  // esta era a única das seis tabelas do portal que virava três números
+  // alinhados à direita sem dizer o que cada um é.
+  const corpo=linhas.map(([chave,v])=>`<tr><td data-th="${esc(titulo)}">${esc(rotulo(chave))}</td><td data-th="Qtd" style="text-align:right">${v.qtd}</td><td data-th="Valor" style="text-align:right">R$ ${brl(v.total)}</td></tr>`).join('');
   return `<h3 class="hint" style="margin:12px 0 6px"><b>${esc(titulo)}</b></h3><div class="tbl-scroll"><table class="tbl-cards-mobile"><thead><tr><th>${esc(titulo)}</th><th style="text-align:right">Qtd</th><th style="text-align:right">Valor</th></tr></thead><tbody>${corpo}</tbody></table></div>`;
 }
 function renderRelatorioRecebimentos(){
