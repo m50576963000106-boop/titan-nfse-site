@@ -1095,6 +1095,24 @@ test("convite de parceiro para e-mail que já tem conta não pede senha nova",as
   assert.match(html,/botao\.textContent='Liberar meu acesso de parceiro'/);
 });
 
+test("o link de convite de parceiro atravessa a rota e chega ao portal",async()=>{
+  // A API manda /dashboard?partner-invite=TOKEN (master.ts). O portal roda num
+  // iframe, e só chega até ele o que a rota repassa: sem esta linha o token
+  // parava na moldura de fora, prepararConviteParceiro() não achava nada,
+  // NENHUMA tela aparecia e o convite morria de velho em 7 dias. O onboarding
+  // de parceiro inteiro dependia disto.
+  const route=await readFile(resolve(root,"app/[[...tenant]]/page.tsx"),"utf8");
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  assert.match(route,/"partner-invite"\?: string \| string\[\]/,"o parâmetro precisa existir no tipo, senão o TS derruba a leitura");
+  assert.match(route,/frameQuery\.set\("partner-invite", partnerInvite\)/);
+  // Array.isArray igual aos outros dois: ?partner-invite=a&partner-invite=b
+  // chega como array e viraria "a,b" na URL do iframe.
+  assert.match(route,/Array\.isArray\(query\["partner-invite"\]\) \? query\["partner-invite"\]\[0\] : query\["partner-invite"\]/);
+  // Do outro lado, quem consome. Se este nome mudar de um lado só, volta a
+  // não chegar nada — e de novo em silêncio.
+  assert.match(js,/const token=new URLSearchParams\(location\.search\)\.get\('partner-invite'\)/);
+});
+
 test("Contrato de Parceria: aceite obrigatório bloqueia o portal do parceiro até concordar",async()=>{
   // Pedido do usuário (21/08/2026): o contrato TITAN↔parceiro é aceito dentro
   // do portal. A trava de verdade é do servidor (403 PARTNER_CONTRACT_PENDING

@@ -2,7 +2,15 @@ import { notFound } from "next/navigation";
 
 type Props = {
   params: Promise<{ tenant?: string[] }>;
-  searchParams: Promise<{ invite?: string | string[]; first?: string | string[]; token?: string | string[] }>;
+  searchParams: Promise<{
+    invite?: string | string[];
+    first?: string | string[];
+    token?: string | string[];
+    // Convite DEDICADO do Portal do Parceiro. A chave tem hífen porque é a que
+    // a API monta em master.ts (`/dashboard?partner-invite=...`) e já saiu em
+    // e-mail para gente de fora — o nome não é nosso para trocar.
+    "partner-invite"?: string | string[];
+  }>;
 };
 
 export default async function TenantPortal({ params, searchParams }: Props) {
@@ -55,6 +63,14 @@ export default async function TenantPortal({ params, searchParams }: Props) {
   if (invite) frameQuery.set("invite", invite);
   const token = Array.isArray(query.token) ? query.token[0] : query.token;
   if (token) frameQuery.set("token", token);
+  // O portal roda dentro de um iframe, e só chega até ele o que for repassado
+  // aqui. Este parâmetro ficava de fora: o convite de parceiro abria
+  // /dashboard?partner-invite=..., a moldura de fora ficava com o token na
+  // barra e a de dentro carregava sem ele, então prepararConviteParceiro()
+  // não achava nada e NENHUMA tela aparecia. O convite expirava em 7 dias sem
+  // nunca ter sido usável — o onboarding de parceiro inteiro dependia disto.
+  const partnerInvite = Array.isArray(query["partner-invite"]) ? query["partner-invite"][0] : query["partner-invite"];
+  if (partnerInvite) frameQuery.set("partner-invite", partnerInvite);
 
   return (
     <main className="prototype-shell">
