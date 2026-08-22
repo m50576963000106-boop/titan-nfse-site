@@ -730,7 +730,7 @@ function go(v,el,limpar){
   if(v==='recebimentos')carregarRecebimentos();
   if(v==='financeiro')carregarBilling();
   if(v==='dasn')carregarDasn();
-  if(v==='emitente'){qs('#c-pw').value='';carregarCertificado();carregarMeuPlano();carregarMeuContrato();carregarStatusImportacao()}
+  if(v==='emitente'){qs('#c-pw').value='';carregarCertificado();carregarMeuPlano();carregarMeuContrato();carregarDistratoLicenca();carregarStatusImportacao()}
   if(v==='logs')carregarLogsApi();
 }
 
@@ -4435,6 +4435,37 @@ async function carregarMeuContrato(){
 async function aceitarContrato(){
   try{await api('/api/contract/accept',{method:'POST'});await carregarMeuContrato()}catch(error){alert(error.message)}
 }
+
+// Distrato da licença revendida por parceiro (21/08/2026): o parceiro pede,
+// a empresa decide. Enquanto ela não aceita, nada muda — a emissão continua
+// e a licença segue presa ao parceiro. Aceitar encerra a emissão na hora e
+// devolve a licença para o saldo dele (o servidor faz as duas coisas na
+// mesma transação, routes/contract.ts).
+async function carregarDistratoLicenca(){
+  const card=qs('#termination-card'),box=qs('#termination-box');if(!card||!box)return;
+  try{
+    const dados=await api('/api/contract/termination');
+    if(!dados.termination){card.style.display='none';return}
+    const pedido=dados.termination;
+    card.style.display='';
+    box.innerHTML=`<div class="alert a-warn"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div><b>${esc(pedido.partner_name)}</b> pediu o encerramento da licença desta empresa em ${formatarDataNovidade(pedido.requested_at)}.</div></div>
+      <div class="field"><label>Plano</label><div>${esc(pedido.plan_name||'—')} · mensalidade atual R$ ${brl(Number(pedido.resale_price_cents||0)/100)}</div></div>
+      ${pedido.reason?`<div class="field"><label>Motivo informado</label><div style="white-space:pre-wrap">${esc(pedido.reason)}</div></div>`:''}
+      <div class="alert a-info">Ao concordar, a emissão de NFS-e desta empresa é encerrada imediatamente. As notas já emitidas e todo o histórico continuam disponíveis. Enquanto você não responder, nada muda.</div>
+      <div class="acts" style="justify-content:flex-start"><button class="btn btn-a" type="button" onclick="responderDistrato('${pedido.id}',true)">Concordo com o distrato</button><button class="btn" type="button" onclick="responderDistrato('${pedido.id}',false)">Não concordo</button></div>`;
+  }catch{card.style.display='none'}
+}
+async function responderDistrato(id,aceitar){
+  const mensagem=aceitar
+    ?'Ao concordar, a emissão desta empresa é encerrada agora e a licença volta para o parceiro. Confirma?'
+    :'Recusar o distrato? A licença continua ativa e o parceiro é avisado da sua resposta.';
+  if(!await titanConfirm(mensagem,aceitar?'Concordar com o distrato':'Recusar distrato',aceitar?'err':'warn'))return;
+  try{
+    await api('/api/contract/termination/'+id+'/'+(aceitar?'accept':'reject'),{method:'POST'});
+    await carregarDistratoLicenca();
+    if(aceitar)location.reload();
+  }catch(error){alert(error.message)}
+}
 async function baixarContrato(){
   try{const blob=await apiBlob('/api/contract/pdf'),url=URL.createObjectURL(blob),tab=window.open(url,'_blank');if(!tab){const a=document.createElement('a');a.href=url;a.download='contrato-titan-nfse.pdf';a.click()}setTimeout(()=>URL.revokeObjectURL(url),120000)}catch(error){alert(error.message)}
 }
@@ -5444,7 +5475,7 @@ function renderMasterPartners(){const box=qs('#master-partners');if(!box||!maste
     ?`${esc(p.email)}<br>${PARTNER_INVITE_LABEL[inviteStatus]||PARTNER_INVITE_LABEL.none}${inviteStatus!=='accepted'?` <button class="btn btn-s" type="button" style="padding:3px 8px;font-size:11.5px" onclick="enviarConviteParceiroMaster('${p.id}')">${inviteStatus==='pending'?'Reenviar':'Enviar'} convite</button>`:''}`
     :'<span class="hint">Sem e-mail cadastrado</span>';
   const cnpjCell=p.federal_tax_id?`<span class="mono">${esc(formatarCnpj(p.federal_tax_id))}</span>`:'<span class="pill p-warn" title="Necessário para liberar licenças cobradas">Sem CNPJ/CPF</span>';
-  return `<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${cnpjCell}</td><td>${conviteCell}</td><td>${brl(Number(p.commission_percent||0))}%</td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td><td><div class="acts"><button class="btn btn-s" type="button" onclick="editarParceiroMaster('${p.id}')">Editar</button><button class="btn btn-s" type="button" onclick="alternarStatusParceiroMaster('${p.id}')">${p.active?'Suspender':'Ativar'}</button></div></td></tr>`;
+  return `<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${cnpjCell}</td><td>${conviteCell}</td><td>${brl(Number(p.commission_percent||0))}%</td><td>${brl(Number(p.license_discount_percent||0))}%</td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td><td><div class="acts"><button class="btn btn-s" type="button" onclick="editarParceiroMaster('${p.id}')">Editar</button><button class="btn btn-s" type="button" onclick="alternarStatusParceiroMaster('${p.id}')">${p.active?'Suspender':'Ativar'}</button></div></td></tr>`;
 }).join('')||'<tr><td colspan="8">Nenhum parceiro cadastrado.</td></tr>'}
 async function enviarConviteParceiroMaster(id){
   const partner=masterData?.partners.find(item=>item.id===id);if(!partner)return;
@@ -5601,13 +5632,14 @@ async function consultarNovoClienteCnpj(){const input=qs('#master-new-cnpj'),cnp
 async function criarConviteNovoCliente(){const email=qs('#master-new-email').value.trim(),planCode=qs('#master-new-plan').value,whatsappPhone=qs('#master-new-zap').value.trim();if(!masterNewLookup?.active){alert('Consulte um CNPJ ativo antes de gerar o convite.');return}if(!email||!planCode){alert('Informe e-mail e plano.');return}try{const result=await api('/api/master/invitations',{method:'POST',body:JSON.stringify({federalTaxId:masterNewLookup.federalTaxId,email,planCode,whatsappPhone:whatsappPhone||undefined})});const token=new URL(result.invitePath,location.origin).searchParams.get('invite'),link=new URL('/dashboard',location.origin);if(token)link.searchParams.set('invite',token);const box=qs('#master-new-link');box.style.display='block';box.innerHTML=`<b>Link pronto para envio</b><br><span id="master-new-link-value">${esc(link.href)}</span><br><button class="btn btn-s" style="margin-top:8px" onclick="copiarTextoSeguro(qs('#master-new-link-value').textContent,this)">Copiar link</button>`;await carregarMaster()}catch(error){alert(error.message)}}
 let masterEditingPartnerId='';
 async function salvarParceiroMaster(){
-  const name=qs('#partner-name').value.trim(),nickname=qs('#partner-nickname').value.trim(),email=qs('#partner-email').value.trim(),federalTaxId=normalizarDocumento(qs('#partner-cnpj').value.trim()),commissionPercent=dinheiro(qs('#partner-commission').value);
+  const name=qs('#partner-name').value.trim(),nickname=qs('#partner-nickname').value.trim(),email=qs('#partner-email').value.trim(),federalTaxId=normalizarDocumento(qs('#partner-cnpj').value.trim()),commissionPercent=dinheiro(qs('#partner-commission').value),licenseDiscountPercent=dinheiro(qs('#partner-discount').value);
   if(name.length<2||nickname.length<2){alert('Informe nome e apelido do parceiro.');return}
   if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){alert('Informe um e-mail válido, ou deixe em branco.');return}
   if(commissionPercent<0||commissionPercent>100){alert('A comissão precisa estar entre 0 e 100%.');return}
+  if(licenseDiscountPercent<0||licenseDiscountPercent>100){alert('O desconto em licenças precisa estar entre 0 e 100%.');return}
   const active=masterEditingPartnerId?qs('#partner-id').dataset.active!=='false':true;
   try{
-    await api('/api/master/partners'+(masterEditingPartnerId?'/'+masterEditingPartnerId:''),{method:masterEditingPartnerId?'PUT':'POST',body:JSON.stringify({name,nickname,email,federalTaxId,active,commissionPercent})});
+    await api('/api/master/partners'+(masterEditingPartnerId?'/'+masterEditingPartnerId:''),{method:masterEditingPartnerId?'PUT':'POST',body:JSON.stringify({name,nickname,email,federalTaxId,active,commissionPercent,licenseDiscountPercent})});
     cancelarEdicaoParceiroMaster();
     await carregarMaster();
   }catch(error){alert(error.message)}
@@ -5619,13 +5651,14 @@ function editarParceiroMaster(id){
   qs('#partner-name').value=partner.name;qs('#partner-nickname').value=partner.nickname;qs('#partner-email').value=partner.email||'';
   qs('#partner-cnpj').value=partner.federal_tax_id?formatarCnpj(partner.federal_tax_id):'';
   qs('#partner-commission').value=String(Number(partner.commission_percent||0)).replace('.',',');
+  qs('#partner-discount').value=String(Number(partner.license_discount_percent||0)).replace('.',',');
   qs('#partner-save').textContent='Salvar alterações';qs('#partner-cancel').style.display='inline-flex';
   masterTab('parceiros');
 }
 function cancelarEdicaoParceiroMaster(){
   masterEditingPartnerId='';
   qs('#partner-id').value='';qs('#partner-id').dataset.active='';
-  qs('#partner-name').value='';qs('#partner-nickname').value='';qs('#partner-email').value='';qs('#partner-cnpj').value='';qs('#partner-commission').value='';
+  qs('#partner-name').value='';qs('#partner-nickname').value='';qs('#partner-email').value='';qs('#partner-cnpj').value='';qs('#partner-commission').value='';qs('#partner-discount').value='';
   qs('#partner-save').textContent='Cadastrar parceiro';qs('#partner-cancel').style.display='none';
 }
 async function alternarStatusParceiroMaster(id){
@@ -5633,7 +5666,7 @@ async function alternarStatusParceiroMaster(id){
   const novoAtivo=!partner.active;
   if(!novoAtivo&&!await titanConfirm(`O parceiro "${partner.nickname}" será suspenso. Usuários já vinculados continuam vinculados a ele; você pode reativar quando quiser.`,'Suspender parceiro','err'))return;
   try{
-    await api('/api/master/partners/'+id,{method:'PUT',body:JSON.stringify({name:partner.name,nickname:partner.nickname,active:novoAtivo,commissionPercent:Number(partner.commission_percent||0)})});
+    await api('/api/master/partners/'+id,{method:'PUT',body:JSON.stringify({name:partner.name,nickname:partner.nickname,active:novoAtivo,commissionPercent:Number(partner.commission_percent||0),licenseDiscountPercent:Number(partner.license_discount_percent||0)})});
     await carregarMaster();
   }catch(error){alert(error.message)}
 }
