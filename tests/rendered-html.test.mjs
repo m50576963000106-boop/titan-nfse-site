@@ -2522,3 +2522,58 @@ test("as tabelas em modo cartão sempre trazem o rótulo da célula", async () =
     }
   }
 });
+
+test("o cabeçalho INTEGRAÇÕES some junto com o grupo que ele anuncia", async () => {
+  // Os 4 itens do grupo estão desativados e a regra escondia o expansor e o
+  // submenu — o rótulo ficava, colado em CONFIGURAÇÕES.
+  const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  const css = await readFile(resolve(root, "public/titan.css"), "utf8");
+  assert.match(html, /<div class="sb-sec" id="integracoes-menu-sec">Integrações<\/div>/);
+  assert.match(css, /#integracoes-menu,#integracoes-menu-trigger,#integracoes-menu-sec\{display:none!important\}/);
+});
+
+test("o alerta do Financeiro vem do número real de vencidos, e nasce apagado", async () => {
+  const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  const css = await readFile(resolve(root, "public/titan.css"), "utf8");
+  const js = await readFile(resolve(root, "public/titan.js"), "utf8");
+  assert.match(html, /<span class="nav-alert" id="nav-alert-financeiro" role="img" style="display:none">/);
+  // Dois margin-left:auto no mesmo flex dividiam o espaço livre entre si e o
+  // aviso parava no meio do botão. O auto é do chevron.
+  assert.match(css, /\.nav-alert\{color:var\(--gold\)/);
+  assert.doesNotMatch(css, /\.nav-alert\{margin-left:auto/);
+  const fn = js.slice(js.indexOf("async function atualizarAlertaFinanceiro()"), js.indexOf("async function carregarRecebimentos()"));
+  assert.match(fn, /api\('\/api\/workspace\/receivables\/summary'\)/, "sem filtro: o menu fala da empresa inteira");
+  assert.match(fn, /overdue_amount/);
+  assert.match(fn, /permissions\.includes\('financial'\)/);
+  assert.match(fn, /features\.includes\('receivables'\)/);
+  assert.match(fn, /catch\{\}/, "falha apaga o aviso em vez de deixá-lo aceso por via das dúvidas");
+});
+
+test("os apelidos da busca do topo levam a telas que existem", async () => {
+  // Item 12 da auditoria: já estava resolvido antes desta rodada. O teste
+  // existe para não regredir — o apelido tem que casar com o RÓTULO de um item
+  // de menu, e apelido que não casa cai na busca por texto em vez de desistir.
+  const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  const js = await readFile(resolve(root, "public/titan.js"), "utf8");
+  const linha = /const aliases=\[([\s\S]*?)\];/.exec(js)[1];
+  const rotulos = [...html.matchAll(/<button class="sb-link"[^>]*>(?:<svg[\s\S]*?<\/svg>)?([^<]+)/g)]
+    .map((m) => m[1].trim().toLowerCase());
+  for (const m of linha.matchAll(/\['[^']*','([^']+)'\]/g)) {
+    const destino = m[1].toLowerCase();
+    if (["sair", "gestão por cnpj"].includes(destino)) continue;
+    assert.ok(rotulos.some((r) => r.includes(destino)), `apelido aponta para "${destino}", que não é rótulo de item de menu nenhum`);
+  }
+  assert.match(js, /\|\|\(query&&links\.find\(el=>supNorm\(el\.textContent\)\.includes\(supNorm\(query\)\)\)\)/);
+});
+
+test("Logs da API tem item de menu, com a permissão que a rota exige", async () => {
+  // A tela e o carregador existiam desde 16/08/2026 e nada os chamava.
+  // GET /api/invoices/logs é requireCompany("invoices"): com outra permissão o
+  // item apareceria só para o cliente tomar 403 ao clicar.
+  const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  const js = await readFile(resolve(root, "public/titan.js"), "utf8");
+  assert.match(html, /<section class="view" id="v-logs">/);
+  assert.match(html, /data-permission="invoices" onclick="go\('logs',this\)"[\s\S]{0,400}Logs da API<\/button>/);
+  assert.match(js, /if\(v==='logs'\)carregarLogsApi\(\);/);
+  assert.match(js, /api\('\/api\/invoices\/logs'\)/);
+});

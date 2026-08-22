@@ -534,6 +534,7 @@ function abrirAreaAutenticada(access){
   carregarEstado();
   render();
   atualizarBadgeNovidades().catch(()=>{});
+  if(!PORTAL_ADMIN)atualizarAlertaFinanceiro();
   if(PORTAL_ADMIN){
     go('master',qs('.admin-sidebar .sb-link'));const requestedAdminTab=PORTAL_QUERY.get('tab');setTimeout(()=>masterTab(['clientes','inscricoes','atendimentos','parceiros','planos','config','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes',qs(`.admin-sidebar [data-master-tab="${['clientes','inscricoes','atendimentos','parceiros','planos','config','logs'].includes(requestedAdminTab)?requestedAdminTab:'clientes'}"]`)),0);
   }else if(PORTAL_HELP){
@@ -899,6 +900,40 @@ function aplicarPresetRecorrencia(){
   qs('#rc-due-day').value=p.due_day_of_month;
   verificarVencimentoRecorrencia();
 }
+/**
+ * O ⚠ ao lado de "Financeiro" no menu.
+ *
+ * Estava escrito fixo no HTML e nenhum código o tocava: nascia aceso e nunca
+ * apagava. Avisava a mesma coisa na empresa com dez vencidos e na empresa sem
+ * lançamento nenhum — que é o mesmo que não avisar.
+ *
+ * A fonte é GET /api/workspace/receivables/summary SEM filtro. `overdue_amount`
+ * é a definição de vencido que a própria API aplica (vencimento anterior a hoje
+ * em Brasília, situação ainda em aberto); filtrar por `status=overdue` daria
+ * outro número, porque esse status é só a marcação manual do lançamento.
+ * O Painel NÃO sabe esse número, ao contrário do que parecia: GET /api/dashboard
+ * devolve notas, certificado, rejeições e saúde fiscal — nada de recebíveis.
+ *
+ * Só pergunta quem pode responder: a rota exige a permissão `financial` e a
+ * feature `receivables` do plano, as mesmas que já governam o item de menu.
+ * Qualquer falha apaga o aviso: um ⚠ que talvez seja verdade é pior que ⚠
+ * nenhum, porque ensina o cliente a ignorá-lo.
+ */
+async function atualizarAlertaFinanceiro(){
+  const aviso=qs('#nav-alert-financeiro');if(!aviso)return;
+  aviso.style.display='none';
+  const {user={},permissions=[],features=[]}=acessoVigente||{};
+  if(!user.isMaster&&(!permissions.includes('financial')||!features.includes('receivables')))return;
+  try{
+    const resumo=await api('/api/workspace/receivables/summary');
+    const vencido=Number(resumo?.overdue_amount||0);
+    if(!(vencido>0))return;
+    const texto=`R$ ${brl(vencido)} em recebimentos vencidos`;
+    aviso.style.display='';
+    aviso.title=texto;
+    aviso.setAttribute('aria-label',texto);
+  }catch{}
+}
 async function carregarRecebimentos(){
   await popularClientesRecebimento();
   await carregarRegistrosAuxiliares();
@@ -926,6 +961,11 @@ async function carregarRecebimentos(){
     if(contagem)contagem.textContent=`${Number(summary.total_count||0).toLocaleString('pt-BR')} lançamento(s) no filtro · ${Number(summary.received_count||0).toLocaleString('pt-BR')} já recebido(s)`;
     qs('#rec-list').innerHTML=recebimentos.length?recebimentos.map(renderRecebimento).join(''):'<div class="empty-state">Nenhum recebimento para o filtro selecionado.</div>';
   }catch(error){qs('#rec-list').innerHTML=`<div class="empty-state">${esc(error.message)}</div>`}
+  // O aviso do menu vem do resumo SEM filtro, então não dá para aproveitar o
+  // `summary` acima: quem acabou de filtrar por um cliente não pode ver o menu
+  // dizer que a empresa inteira está em dia. Aqui é o lugar porque é depois de
+  // marcar recebido, cancelar ou agendar que o número muda.
+  atualizarAlertaFinanceiro();
 }
 /* ---------- relatórios do filtro atual (20/08/2026) ---------------------- */
 // Relatório sai do MESMO recorte que está na tela. Um relatório que ignora o

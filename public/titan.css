@@ -176,8 +176,11 @@ html.impersonating .sidebar,html.impersonating .topbar{top:var(--imp-h,38px)}
 .sb-nav .sb-link[disabled]{display:none}
 /* O grupo "Integrações" tinha 4 itens e TODOS estão desativados — sem esta
    regra sobraria um expansor que abre vazio. Financeiro continua visível
-   porque ainda tem Recebimentos e DASN-SIMEI de verdade. */
-#integracoes-menu,#integracoes-menu-trigger{display:none!important}
+   porque ainda tem Recebimentos e DASN-SIMEI de verdade.
+   O CABEÇALHO da seção ficou de fora quando a regra foi escrita: sumiam o
+   expansor e os itens, e o rótulo "INTEGRAÇÕES" continuava lá, colado em
+   "CONFIGURAÇÕES" — dois títulos empilhados sem nada entre eles. */
+#integracoes-menu,#integracoes-menu-trigger,#integracoes-menu-sec{display:none!important}
 .admin-sidebar{display:none}
 .portal-admin .user-sidebar{display:none!important}
 .portal-admin .admin-sidebar{display:block}
@@ -186,7 +189,12 @@ html.impersonating .sidebar,html.impersonating .topbar{top:var(--imp-h,38px)}
 .sb-submenu .sb-link{padding:7px 8px;font-size:12px}
 .sb-chevron{margin-left:auto;font-size:11px;color:#5f708c;transition:transform .15s}
 .sb-link.expanded .sb-chevron{transform:rotate(90deg)}
-.nav-alert{margin-left:auto;color:var(--gold);font-size:11px;font-weight:800}
+/* Sem margin-left:auto. O ⚠ e o chevron do grupo eram DOIS auto concorrendo
+   no mesmo flex: o espaço livre se dividia entre os dois e o aviso parava no
+   meio do botão, fora do alinhamento de qualquer outro item do menu. O auto
+   é do chevron, que existe em todo grupo; o ⚠ é um selo do rótulo e fica
+   junto dele — e, escondido, não muda nada do que já havia. */
+.nav-alert{color:var(--gold);font-size:11px;font-weight:800}
 .sb-foot{padding:12px;border-top:1px solid var(--line-dark)}
 
 .topbar{
