@@ -730,7 +730,7 @@ function go(v,el,limpar){
   if(v==='recebimentos')carregarRecebimentos();
   if(v==='financeiro')carregarBilling();
   if(v==='dasn')carregarDasn();
-  if(v==='emitente'){qs('#c-pw').value='';carregarCertificado();carregarMeuPlano();carregarMeuContrato();carregarDistratoLicenca();carregarStatusImportacao()}
+  if(v==='emitente'){qs('#c-pw').value='';carregarCertificado();carregarMeuPlano();carregarMeuContrato();carregarTermoDoParceiro();carregarDistratoLicenca();carregarStatusImportacao()}
   if(v==='logs')carregarLogsApi();
 }
 
@@ -4436,6 +4436,31 @@ async function aceitarContrato(){
   try{await api('/api/contract/accept',{method:'POST'});await carregarMeuContrato()}catch(error){alert(error.message)}
 }
 
+// Termo de Disponibilização e Uso entre a empresa e o parceiro que revendeu a
+// licença (21/08/2026). O texto vem do servidor já preenchido com os dados das
+// duas partes — o cliente lê o contrato dele, não um modelo com lacunas.
+async function carregarTermoDoParceiro(){
+  const card=qs('#partner-term-card'),box=qs('#partner-term-box');if(!card||!box)return;
+  try{
+    const dados=await api('/api/contract/partner-term');
+    if(!dados.term){card.style.display='none';return}
+    const termo=dados.term;
+    card.style.display='';
+    qs('#partner-term-pill').textContent='v'+termo.version;
+    qs('#partner-term-pill').className='pill right '+(termo.pending?'p-warn':'p-ok');
+    const texto=`<div class="alert a-info" style="max-height:260px;overflow:auto;white-space:pre-wrap;font-size:13px;line-height:1.6;margin:0 0 12px">${esc(termo.body)}</div>`;
+    box.innerHTML=termo.pending
+      ?`<div class="alert a-warn"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div>Sua licença do TITAN NFS-e foi disponibilizada por <b>${esc(termo.partnerName)}</b>. Leia e aceite o termo que rege esse uso.</div></div>
+        ${texto}
+        <button class="btn btn-a" type="button" onclick="aceitarTermoDoParceiro()">Li e concordo com o Termo de Disponibilização</button>`
+      :`<div class="alert a-ok"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><div>Você aceitou o termo com <b>${esc(termo.partnerName)}</b> em ${formatarDataNovidade(termo.acceptedAt)}.</div></div>
+        ${texto}`;
+  }catch{card.style.display='none'}
+}
+async function aceitarTermoDoParceiro(){
+  try{await api('/api/contract/partner-term/accept',{method:'POST'});await carregarTermoDoParceiro()}catch(error){alert(error.message)}
+}
+
 // Distrato da licença revendida por parceiro (21/08/2026): o parceiro pede,
 // a empresa decide. Enquanto ela não aceita, nada muda — a emissão continua
 // e a licença segue presa ao parceiro. Aceitar encerra a emissão na hora e
@@ -4451,7 +4476,7 @@ async function carregarDistratoLicenca(){
     box.innerHTML=`<div class="alert a-warn"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div><b>${esc(pedido.partner_name)}</b> pediu o encerramento da licença desta empresa em ${formatarDataNovidade(pedido.requested_at)}.</div></div>
       <div class="field"><label>Plano</label><div>${esc(pedido.plan_name||'—')} · mensalidade atual R$ ${brl(Number(pedido.resale_price_cents||0)/100)}</div></div>
       ${pedido.reason?`<div class="field"><label>Motivo informado</label><div style="white-space:pre-wrap">${esc(pedido.reason)}</div></div>`:''}
-      <div class="alert a-info">Ao concordar, a emissão de NFS-e desta empresa é encerrada imediatamente. As notas já emitidas e todo o histórico continuam disponíveis. Enquanto você não responder, nada muda.</div>
+      <div class="alert a-info">É o encerramento do Termo de Disponibilização que você aceitou com este parceiro (cláusula 17 — encerramento do vínculo). Ao concordar, a emissão de NFS-e desta empresa é encerrada imediatamente. As notas já emitidas e todo o histórico continuam disponíveis, e são seus. Enquanto você não responder, nada muda.</div>
       <div class="acts" style="justify-content:flex-start"><button class="btn btn-a" type="button" onclick="responderDistrato('${pedido.id}',true)">Concordo com o distrato</button><button class="btn" type="button" onclick="responderDistrato('${pedido.id}',false)">Não concordo</button></div>`;
   }catch{card.style.display='none'}
 }
@@ -4857,7 +4882,7 @@ function masterTab(tab,button){
   qsa('[data-master-tab]').forEach(item=>item.classList.toggle('active',item.dataset.masterTab===tab));
   if(button)button.classList.add('active');
   if(tab==='inscricoes')carregarMasterInscricoes();
-  if(tab==='parceiros'){carregarPedidosLicencaMaster();carregarCobrancasLicencaMaster();}
+  if(tab==='parceiros'){carregarPedidosLicencaMaster();carregarCobrancasLicencaMaster();carregarDocumentosDeParceria();}
   if(tab==='logs')carregarMasterLogs();
   if(tab==='config'){carregarConfiguracoesMaster();carregarContaMaster();}
   // A aba do Martyn (20/08/2026) precisa de carregarConfiguracoesMaster() também:
@@ -5611,6 +5636,54 @@ async function carregarContratoMaster(){
     if(atual&&!qs('#contract-body').dataset.dirty)qs('#contract-body').value=atual.body;
     box.innerHTML=contractVersionsHistorico.map(v=>`<tr><td><b>v${v.major}.${v.minor}</b></td><td>${formatarDataNovidade(v.created_at)}</td><td>${esc(v.created_by_name||'—')}</td><td>${v.acceptances_count}</td></tr>`).join('')||'<tr><td colspan="4" class="empty-state">Nenhuma versão publicada.</td></tr>';
   }catch(error){box.innerHTML=`<tr><td colspan="4"><div class="empty-state">${esc(error.message)}</div></td></tr>`}
+}
+// Os dois documentos da parceria (21/08/2026). Mesmo fluxo do contrato do
+// cliente logo acima, em tabelas separadas: partes diferentes, aceites
+// diferentes, e o texto de um não pode ir parar no outro.
+let partnerContractHistorico=[],partnerTermHistorico=[];
+async function carregarDocumentosDeParceria(){
+  const contrato=qs('#partner-contract-history'),termo=qs('#partner-term-history');
+  if(!contrato||!termo)return;
+  try{
+    partnerContractHistorico=await api('/api/master/partner-contract-versions');
+    const atual=partnerContractHistorico[0];
+    qs('#partner-contract-pill').textContent=atual?('v'+atual.major+'.'+atual.minor):'—';
+    if(atual&&!qs('#partner-contract-body').dataset.dirty)qs('#partner-contract-body').value=atual.body;
+    contrato.innerHTML=partnerContractHistorico.map(v=>`<tr><td><b>v${v.major}.${v.minor}</b></td><td>${formatarDataNovidade(v.created_at)}</td><td>${esc(v.created_by_name||'—')}</td><td>${v.acceptances_count}</td></tr>`).join('')||'<tr><td colspan="4" class="empty-state">Nenhuma versão publicada.</td></tr>';
+  }catch(error){contrato.innerHTML=`<tr><td colspan="4"><div class="empty-state">${esc(error.message)}</div></td></tr>`}
+  try{
+    partnerTermHistorico=await api('/api/master/partner-client-term-versions');
+    const atual=partnerTermHistorico[0];
+    qs('#partner-term-master-pill').textContent=atual?('v'+atual.major+'.'+atual.minor):'—';
+    if(atual&&!qs('#partner-term-body').dataset.dirty)qs('#partner-term-body').value=atual.body;
+    termo.innerHTML=partnerTermHistorico.map(v=>`<tr><td><b>v${v.major}.${v.minor}</b></td><td>${formatarDataNovidade(v.created_at)}</td><td>${esc(v.created_by_name||'—')}</td><td>${v.acceptances_count}</td></tr>`).join('')||'<tr><td colspan="4" class="empty-state">Nenhuma versão publicada.</td></tr>';
+  }catch(error){termo.innerHTML=`<tr><td colspan="4"><div class="empty-state">${esc(error.message)}</div></td></tr>`}
+}
+async function publicarVersaoContratoParceiro(bump){
+  const body=qs('#partner-contract-body').value.trim();
+  if(body.length<20){alert('O texto do contrato precisa ter conteúdo suficiente.');return}
+  const atual=partnerContractHistorico[0];
+  const proxima=atual?(bump==='major'?(atual.major+1)+'.0':atual.major+'.'+(atual.minor+1)):'1.0';
+  if(!await titanConfirm(`Publicar a versão ${proxima} do Contrato de Parceria? Todo parceiro precisará aceitar de novo antes de comprar licença ou liberar assinatura.`,'Publicar contrato de parceria'))return;
+  try{
+    await api('/api/master/partner-contract-versions',{method:'POST',body:JSON.stringify({body,bump})});
+    delete qs('#partner-contract-body').dataset.dirty;
+    await carregarDocumentosDeParceria();
+    alert('Versão '+proxima+' publicada.');
+  }catch(error){alert(error.message)}
+}
+async function publicarVersaoTermoParceiro(bump){
+  const body=qs('#partner-term-body').value.trim();
+  if(body.length<20){alert('O texto do termo precisa ter conteúdo suficiente.');return}
+  const atual=partnerTermHistorico[0];
+  const proxima=atual?(bump==='major'?(atual.major+1)+'.0':atual.major+'.'+(atual.minor+1)):'1.0';
+  if(!await titanConfirm(`Publicar a versão ${proxima} do Termo de Disponibilização? Vale para as licenças liberadas a partir de agora — quem já aceitou continua com a versão que assinou.`,'Publicar termo'))return;
+  try{
+    await api('/api/master/partner-client-term-versions',{method:'POST',body:JSON.stringify({body,bump})});
+    delete qs('#partner-term-body').dataset.dirty;
+    await carregarDocumentosDeParceria();
+    alert('Versão '+proxima+' publicada.');
+  }catch(error){alert(error.message)}
 }
 async function publicarVersaoContrato(bump){
   const body=qs('#contract-body').value.trim();

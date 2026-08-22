@@ -1002,6 +1002,43 @@ test("o Portal do Parceiro usa o mesmo menu lateral dos outros portais, e não u
   assert.doesNotMatch(sidebar,/disabled|em breve/);
 });
 
+test("Contrato de Parceria: aceite obrigatório bloqueia o portal do parceiro até concordar",async()=>{
+  // Pedido do usuário (21/08/2026): o contrato TITAN↔parceiro é aceito dentro
+  // do portal. A trava de verdade é do servidor (403 PARTNER_CONTRACT_PENDING
+  // em routes/partner.ts) — esta tela é a porta por onde ele aceita.
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/<div class="contrato-bloqueio" id="contrato-bloqueio" role="dialog" aria-modal="true"/);
+  assert.match(html,/buscarApiParceiro\('\/api\/partner\/contract'\)/);
+  assert.match(html,/chamarApiParceiro\('\/api\/partner\/contract\/accept',\{method:'POST'\}\)/);
+  assert.match(html,/qs\('#contrato-bloqueio'\)\.classList\.add\('on'\)/);
+  assert.match(html,/data-partner-tab="contrato"/);
+  // O termo do cliente é OUTRO documento — a tela do parceiro diz isso, para
+  // ninguém confundir o que assinou com o que o cliente assina.
+  assert.match(html,/Termo de Disponibilização<\/b> que vale entre você e cada cliente é outro documento/);
+});
+
+test("Termo de Disponibilização: o cliente lê e aceita no portal dele, preenchido com as duas partes",async()=>{
+  const html=await lerPortal();
+  assert.match(html,/<div class="card" id="partner-term-card" style="display:none">/);
+  assert.match(html,/api\('\/api\/contract\/partner-term'\)/);
+  assert.match(html,/api\('\/api\/contract\/partner-term\/accept',\{method:'POST'\}\)/);
+  assert.match(html,/Sua licença do TITAN NFS-e foi disponibilizada por/);
+  // O distrato encerra justamente esse termo, e a tela cita a cláusula.
+  assert.match(html,/encerramento do Termo de Disponibilização que você aceitou com este parceiro \(cláusula 17/);
+});
+
+test("Master edita os dois documentos da parceria em tabelas separadas",async()=>{
+  const html=await lerPortal();
+  assert.match(html,/id="partner-contract-body"/);
+  assert.match(html,/id="partner-term-body"/);
+  assert.match(html,/api\('\/api\/master\/partner-contract-versions'\)/);
+  assert.match(html,/api\('\/api\/master\/partner-client-term-versions'\)/);
+  // Os marcadores do modelo precisam estar documentados na própria tela —
+  // publicar um termo sem eles deixaria o cliente lendo lacunas em branco.
+  assert.match(html,/\{\{CLIENTE_CNPJ\}\}/);
+  assert.match(html,/\{\{MENSALIDADE\}\}/);
+});
+
 test("tarja amarela fixa no topo avisa que o portal é do parceiro",async()=>{
   const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
   assert.match(html,/<div id="partner-banner" role="status">/);
@@ -1023,7 +1060,7 @@ test("seletor de empresa ativa abre o portal do cliente numa sessão de parceiro
 test("partnerTab troca a seção visível e recarrega os dados da aba escolhida",async()=>{
   const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
   // Mais abas de parceiro entraram desde então (licenças, perfil, novidades).
-  assert.match(html,/const PARTNER_LOADERS=\{painel:carregarPainel,carteira:carregarCarteira,licencas:carregarAdminLicencas,comprar:carregarComprar,pedidos:carregarPedidos,cobrancas:carregarCobrancas,comissoes:carregarComissoes,creditos:carregarCreditos,financeiro:carregarFinanceiro,perfil:carregarPerfilParceiro,config:carregarPerfilParceiro,novidades:carregarNovidadesParceiro\};/);
+  assert.match(html,/const PARTNER_LOADERS=\{contrato:carregarContratoParceria,painel:carregarPainel,carteira:carregarCarteira,licencas:carregarAdminLicencas,comprar:carregarComprar,pedidos:carregarPedidos,cobrancas:carregarCobrancas,comissoes:carregarComissoes,creditos:carregarCreditos,financeiro:carregarFinanceiro,perfil:carregarPerfilParceiro,config:carregarPerfilParceiro,novidades:carregarNovidadesParceiro\};/);
   assert.match(html,/function partnerTab\(nome,botao\)\{/);
   // Mostrar/esconder pela classe .on é o que titan.css já faz com .view em
   // todos os portais — style.display inline era invenção só desta tela.

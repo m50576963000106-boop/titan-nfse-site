@@ -48,6 +48,17 @@
     .novidade p{margin-top:5px;white-space:pre-wrap;font-size:13px}
     .sb-badge{margin-left:auto;min-width:16px;height:16px;padding:0 4px;border-radius:100px;background:var(--err);color:#fff;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center}
     .sb-badge.on{display:inline-flex}
+    /* Bloqueio de aceite do Contrato de Parceria: cobre o portal inteiro até
+       o parceiro concordar. Não é só visual — o servidor recusa qualquer
+       escrita antes do aceite (routes/partner.ts). */
+    .contrato-bloqueio{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(11,22,41,.72)}
+    .contrato-bloqueio.on{display:flex}
+    .contrato-caixa{width:min(760px,100%);max-height:88vh;display:flex;flex-direction:column;background:var(--paper);border-radius:14px;overflow:hidden;box-shadow:0 30px 70px rgba(11,22,41,.4)}
+    .contrato-caixa header{padding:18px 22px;background:var(--navy);color:#fff}
+    .contrato-caixa header h2{font-size:17px}
+    .contrato-caixa header p{margin-top:4px;color:#a9b8d1;font-size:12.5px}
+    .contrato-texto{flex:1;overflow:auto;padding:18px 22px;white-space:pre-wrap;font-size:13px;line-height:1.6;background:#fff}
+    .contrato-rodape{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     @media(max-width:760px){
       main{padding-top:calc(58px + var(--partner-banner-h,36px))}
       .top-user-copy{display:none}
@@ -62,6 +73,21 @@
 
 <div id="partner-banner" role="status">
   <span>⬥ Você está no <b>Portal do Parceiro</b> — <span id="partner-banner-name">carteira de parceiro TITAN</span>.<span class="banner-extra"> As empresas listadas aqui são da sua carteira comercial.</span></span>
+</div>
+
+<div class="contrato-bloqueio" id="contrato-bloqueio" role="dialog" aria-modal="true" aria-labelledby="contrato-bloqueio-titulo">
+  <div class="contrato-caixa">
+    <header>
+      <h2 id="contrato-bloqueio-titulo">Contrato de Parceria</h2>
+      <p>Leia e aceite para continuar usando o Portal do Parceiro. Enquanto isso, o portal fica só para consulta.</p>
+    </header>
+    <div class="contrato-texto" id="contrato-bloqueio-texto">Carregando o contrato...</div>
+    <div class="contrato-rodape">
+      <button class="btn btn-a" type="button" id="contrato-bloqueio-aceitar" onclick="aceitarContratoParceria()">Li e concordo com o Contrato de Parceria</button>
+      <button class="btn" type="button" onclick="sair()">Sair</button>
+      <span class="form-status" id="contrato-bloqueio-status" role="status"></span>
+    </div>
+  </div>
 </div>
 
 <aside class="sidebar" id="sb">
@@ -90,6 +116,7 @@
     <button class="sb-link" type="button" data-partner-tab="novidades" onclick="partnerTab('novidades',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2ZM18 16V11a6 6 0 1 0-12 0v5l-2 2h16z"/></svg>Novidades<span class="sb-badge" id="novidades-badge">0</span></button>
 
     <div class="sb-sec">Configurações</div>
+    <button class="sb-link" type="button" data-partner-tab="contrato" onclick="partnerTab('contrato',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg>Contrato de parceria<span class="sb-badge" id="contrato-badge">!</span></button>
     <button class="sb-link" type="button" data-partner-tab="config" onclick="partnerTab('config',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>Configurações</button>
     <button class="sb-link" type="button" id="partner-logout"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17l5-5-5-5M15 12H3M15 3h6v18h-6"/></svg>Sair</button>
   </nav>
@@ -323,6 +350,16 @@
       <div id="novidades-status" class="partner-status">Carregando...</div>
       <div id="novidades-list" style="display:none"></div>
     </div></div>
+  </section>
+
+  <!-- ---------- CONTRATO DE PARCERIA ---------- -->
+  <section class="view" id="partner-view-contrato">
+    <div class="page-h"><h1>Contrato de parceria</h1><p>O instrumento entre a TITAN e você. É diferente do termo que você assina com cada cliente da sua carteira.</p></div>
+    <div class="card">
+      <div class="card-h"><div><h3 id="contrato-titulo">Contrato de Parceria e Licença de Uso do TITAN NFS-e</h3><p id="contrato-subtitulo">Carregando...</p></div><span class="pill p-gold right" id="contrato-pill">—</span></div>
+      <div class="card-b" id="contrato-corpo"><div class="partner-status">Carregando...</div></div>
+    </div>
+    <div class="alert a-info" style="margin-top:14px">O <b>Termo de Disponibilização</b> que vale entre você e cada cliente é outro documento: ele aparece no portal do cliente quando você libera a assinatura, já preenchido com os dados de vocês dois, e é lá que o cliente aceita — e também é ele que embasa o distrato.</div>
   </section>
 
   <!-- ---------- CONFIGURAÇÕES ---------- -->
@@ -1037,8 +1074,74 @@
     }
   }
 
+  /* ---------- CONTRATO DE PARCERIA ---------- */
+  // Aceite eletrônico (21/08/2026): sem ele o portal fica em modo leitura. O
+  // servidor devolve 403 PARTNER_CONTRACT_PENDING em qualquer escrita, então
+  // o bloqueio da tela é conveniência, não a trava de verdade.
+  let CONTRATO_PARCERIA=null;
+  async function carregarContratoParceria(){
+    const corpo=qs('#contrato-corpo');
+    try{
+      const dados=await buscarApiParceiro('/api/partner/contract');
+      CONTRATO_PARCERIA=dados;
+      if(!dados.current){
+        corpo.innerHTML='<div class="partner-status">Nenhuma versão do contrato foi publicada ainda.</div>';
+        qs('#contrato-pill').textContent='—';qs('#contrato-subtitulo').textContent='Nada a aceitar por enquanto.';
+        return dados;
+      }
+      const emDia=dados.acceptance&&dados.acceptance.current;
+      qs('#contrato-titulo').textContent=dados.current.title;
+      qs('#contrato-pill').textContent='v'+dados.current.version;
+      qs('#contrato-pill').className='pill right '+(emDia?'p-ok':'p-warn');
+      qs('#contrato-subtitulo').textContent=emDia
+        ?`Aceito na versão ${dados.acceptance.version} em ${formatarData(dados.acceptance.acceptedAt)}.`
+        :(dados.acceptance?`Uma versão nova (${dados.current.version}) foi publicada e ainda não foi aceita.`:'Ainda não aceito.');
+      corpo.innerHTML=`<div class="contrato-texto" style="max-height:420px;border:1px solid var(--line);border-radius:9px">${esc(dados.current.body)}</div>
+        <div class="acts" style="justify-content:flex-start;margin-top:14px">
+          ${emDia?'<button class="btn btn-s" type="button" onclick="baixarContratoParceria()">Baixar contrato (PDF)</button>':'<button class="btn btn-a" type="button" onclick="aceitarContratoParceria()">Li e concordo com o Contrato de Parceria</button>'}
+        </div>
+        <div class="form-status" id="contrato-status" role="status"></div>`;
+      qs('#contrato-badge').classList.toggle('on',!emDia);
+      return dados;
+    }catch(error){
+      if(error.message==='SEM_SESSAO')return mostrarErroSessao(qs('#partner-status'));
+      corpo.innerHTML=`<div class="partner-status err">${esc(error.message)}</div>`;
+    }
+  }
+  async function conferirAceiteDoContrato(){
+    const dados=CONTRATO_PARCERIA||await carregarContratoParceria();
+    if(!dados?.current)return;
+    const emDia=dados.acceptance&&dados.acceptance.current;
+    qs('#contrato-badge').classList.toggle('on',!emDia);
+    if(emDia)return;
+    qs('#contrato-bloqueio-texto').textContent=dados.current.body;
+    qs('#contrato-bloqueio').classList.add('on');
+  }
+  async function aceitarContratoParceria(){
+    const status=qs('#contrato-bloqueio-status');
+    status.className='form-status';status.textContent='Registrando o aceite...';
+    try{
+      await chamarApiParceiro('/api/partner/contract/accept',{method:'POST'});
+      qs('#contrato-bloqueio').classList.remove('on');
+      CONTRATO_PARCERIA=null;
+      await carregarContratoParceria();
+      status.textContent='';
+    }catch(error){status.className='form-status err';status.textContent=error.message}
+  }
+  async function baixarContratoParceria(){
+    const token=tokenDeSessaoParceiro();
+    if(!token)return;
+    try{
+      const resposta=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/partner/contract/pdf',{headers:{Authorization:'Bearer '+token}});
+      if(!resposta.ok)throw new Error('Não foi possível gerar o PDF agora.');
+      const blob=await resposta.blob(),url=URL.createObjectURL(blob),aba=window.open(url,'_blank');
+      if(!aba){const link=document.createElement('a');link.href=url;link.download='contrato-de-parceria-titan-nfse.pdf';link.click()}
+      setTimeout(()=>URL.revokeObjectURL(url),120000);
+    }catch(error){avisar('contrato-status',error.message,'err')}
+  }
+
   /* ---------- NAVEGAÇÃO ---------- */
-  const PARTNER_LOADERS={painel:carregarPainel,carteira:carregarCarteira,licencas:carregarAdminLicencas,comprar:carregarComprar,pedidos:carregarPedidos,cobrancas:carregarCobrancas,comissoes:carregarComissoes,creditos:carregarCreditos,financeiro:carregarFinanceiro,perfil:carregarPerfilParceiro,config:carregarPerfilParceiro,novidades:carregarNovidadesParceiro};
+  const PARTNER_LOADERS={contrato:carregarContratoParceria,painel:carregarPainel,carteira:carregarCarteira,licencas:carregarAdminLicencas,comprar:carregarComprar,pedidos:carregarPedidos,cobrancas:carregarCobrancas,comissoes:carregarComissoes,creditos:carregarCreditos,financeiro:carregarFinanceiro,perfil:carregarPerfilParceiro,config:carregarPerfilParceiro,novidades:carregarNovidadesParceiro};
   function partnerTab(nome,botao){
     document.querySelectorAll('.view').forEach(secao=>{secao.classList.toggle('on',secao.id==='partner-view-'+nome)});
     document.querySelectorAll('.sb-link').forEach(link=>{link.classList.remove('active');link.removeAttribute('aria-current')});
@@ -1051,6 +1154,7 @@
   carregarCarteira();
   carregarPainel();
   atualizarBadgeNovidadesParceiro();
+  conferirAceiteDoContrato();
 </script>
 </body>
 </html>
