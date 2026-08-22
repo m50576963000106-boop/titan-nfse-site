@@ -768,9 +768,9 @@
         const desconto=cheio>Number(pedido.unit_cost_cents)?`<br><span class="hint">unitário ${reais(pedido.unit_cost_cents)} (tabela ${reais(cheio)})</span>`:'';
         const acoes=pedido.status==='pending'
           ? (pedido.open_charge_id
-              ? `<button class="btn btn-s" type="button" onclick="mostrarPagamento('${pedido.id}')">Como pagar</button>`
-              : `<button class="btn btn-s" type="button" onclick="editarPedido('${pedido.id}',${Number(pedido.quantity||1)})">Editar</button>
-                 <button class="btn btn-s" type="button" onclick="mostrarPagamento('${pedido.id}')">Como pagar</button>
+              ? `<button class="btn btn-p btn-s" type="button" onclick="pagarPedido('${pedido.id}')">Pagar</button>`
+              : `<button class="btn btn-p btn-s" type="button" onclick="pagarPedido('${pedido.id}')">Pagar</button>
+                 <button class="btn btn-s" type="button" onclick="editarPedido('${pedido.id}',${Number(pedido.quantity||1)})">Editar</button>
                  <button class="btn btn-s" type="button" onclick="cancelarPedido('${pedido.id}')">Cancelar pedido</button>`)
           : '<span class="hint">—</span>';
         return `<tr>
@@ -808,25 +808,51 @@
       await carregarPedidos();
     }catch(error){avisar('pedidos-acao',error.message,'err')}
   }
-  // Pagamento (21/08/2026): ainda não há gateway ligado para o parceiro — a
-  // confirmação é manual pelo TITAN, mesma situação da cobrança do cliente
-  // final. Em vez de um botão "Pagar" que não paga nada, a tela diz com todas
-  // as letras o que acontece e o que ele precisa fazer.
-  function mostrarPagamento(orderId){
+  // Pagamento por Pix (21/08/2026): o pedido vira boleto híbrido do Sicredi,
+  // que já nasce com QR Code — o mesmo texto serve de copia-e-cola e de QR.
+  // Assim que o banco avisa o pagamento, o saldo entra sozinho (webhook em
+  // routes/billing.ts); nada aqui depende de alguém confirmar na mão.
+  // Clicar "Pagar" de novo devolve a MESMA cobrança, nunca uma segunda.
+  async function pagarPedido(orderId){
+    avisar('pedidos-acao','Gerando a cobrança no banco...');
+    try{
+      const cobranca=await chamarApiParceiro('/api/partner/licenses/orders/'+orderId+'/pay',{method:'POST'});
+      avisar('pedidos-acao',cobranca.reused?'Esta é a cobrança que já estava aberta para o pedido.':'Cobrança gerada.','ok');
+      mostrarPagamento(orderId,cobranca);
+      await carregarPedidos();
+    }catch(error){
+      avisar('pedidos-acao',error.message,'err');
+      // Sem gateway configurado ou sem CNPJ no cadastro, o caminho continua
+      // sendo o manual — a tela explica em vez de deixar o parceiro no vácuo.
+      mostrarPagamento(orderId,null,error.message);
+    }
+  }
+  function mostrarPagamento(orderId,cobranca,erro){
     const card=qs('#pedido-pagamento-card');
-    qs('#pedido-pagamento-corpo').innerHTML=`
-      <p>O pedido <span class="mono">${esc(String(orderId).slice(0,8))}</span> está <b>aguardando pagamento</b>.</p>
+    const cabecalho=`<p>Pedido <span class="mono">${esc(String(orderId).slice(0,8))}</span> — <b>aguardando pagamento</b>.</p>`;
+    const corpo=cobranca?`
+      <div class="field"><label for="pix-copia-cola">Pix copia e cola</label><div class="input-action"><input class="inp mono" id="pix-copia-cola" readonly value="${esc(cobranca.pixCopyPaste||'')}"><button class="btn btn-s" type="button" onclick="copiarPix()">Copiar</button></div><div class="hint">Vence em ${formatarData(cobranca.dueAt)} · ${reais(cobranca.amountCents)}</div></div>
+      ${cobranca.boletoLinhaDigitavel?`<div class="field"><label for="linha-digitavel">Linha digitável do boleto</label><input class="inp mono" id="linha-digitavel" readonly value="${esc(cobranca.boletoLinhaDigitavel)}"></div>`:''}
+      <div class="alert a-info">É a mesma cobrança nos dois formatos. Assim que o banco confirmar o pagamento, as licenças entram no seu saldo e a nota fiscal do TITAN é emitida no seu CNPJ automaticamente.</div>`
+      :`
+      <div class="alert a-warn">${esc(erro||'Não foi possível gerar a cobrança agora.')}</div>
       <ol class="hint" style="margin:10px 0 0 18px;line-height:1.9">
         <li>O TITAN emite a cobrança e a nota fiscal da licença no CNPJ/CPF do seu cadastro.</li>
         <li>A cobrança aparece na aba <b>Cobranças</b> assim que for emitida.</li>
-        <li>Assim que o pagamento é confirmado, as licenças entram no seu saldo automaticamente.</li>
-      </ol>
+        <li>Confirmado o pagamento, as licenças entram no seu saldo.</li>
+      </ol>`;
+    qs('#pedido-pagamento-corpo').innerHTML=cabecalho+corpo+`
       <div class="acts" style="justify-content:flex-start;margin-top:14px">
         <button class="btn btn-s" type="button" onclick="partnerTab('cobrancas',document.querySelector('[data-partner-tab=&quot;cobrancas&quot;]'))">Ver cobranças</button>
         <button class="btn btn-s" type="button" onclick="partnerTab('suporte',document.querySelector('[data-partner-tab=&quot;suporte&quot;]'))">Falar com o suporte</button>
         <button class="btn btn-s" type="button" onclick="document.querySelector('#pedido-pagamento-card').style.display='none'">Fechar</button>
       </div>`;
     card.style.display='';card.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  function copiarPix(){
+    const campo=qs('#pix-copia-cola');if(!campo?.value)return;
+    campo.select();
+    navigator.clipboard?.writeText(campo.value).then(()=>avisar('pedidos-acao','Código Pix copiado.','ok')).catch(()=>{});
   }
 
   /* ---------- COBRANÇAS ---------- */
@@ -838,11 +864,14 @@
       const cobrancas=dados.charges||[];
       corpo.innerHTML=cobrancas.length?cobrancas.map(cobranca=>{
         const [classe,rotulo]=COBRANCA_STATUS[cobranca.status]||['p-off',cobranca.status];
+        const pix=cobranca.pix_copy_paste&&['pending','overdue'].includes(cobranca.status)
+          ?`<br><span class="hint mono" style="word-break:break-all">${esc(cobranca.pix_copy_paste)}</span>`
+          :'';
         return `<tr>
           <td data-th="Empresa">${cobranca.company_name?esc(cobranca.company_name):'<span class="hint">Cobrança inicial (pedido)</span>'}</td>
           <td data-th="Valor">${reais(cobranca.amount_cents)}</td>
           <td data-th="Vencimento">${formatarData(cobranca.due_at)}</td>
-          <td data-th="Status"><span class="pill ${classe}">${rotulo}</span></td>
+          <td data-th="Status"><span class="pill ${classe}">${rotulo}</span>${pix}</td>
         </tr>`;
       }).join(''):'<tr><td colspan="4" class="partner-status">Nenhuma cobrança ainda.</td></tr>';
     }catch(error){
