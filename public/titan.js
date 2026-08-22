@@ -138,6 +138,25 @@ const PORTAL_FIRST=PORTAL_MODE==='first';
 const PORTAL_RESET=PORTAL_MODE==='reset';
 const PORTAL_CNPJ=normalizarDocumento(PORTAL_QUERY.get('tenant')||(cnpjComFormatoValido(PORTAL_PATH)?PORTAL_PATH:''));
 document.body.classList.toggle('portal-admin',PORTAL_ADMIN);
+// Quem entra por CNPJ e quem entra por e-mail sao papeis diferentes (regra do
+// dono do produto, 22/08/2026): cliente pelo CNPJ da empresa; master e parceiro
+// pelo e-mail. A API ja separava assim — o caminho por e-mail so aceita master,
+// parceiro ou atendente, e o caminho por CNPJ so aceita nao-master. A TELA e que
+// mostrava os dois campos para todo mundo: o cliente via um campo de e-mail que
+// nao ia a lugar nenhum, e o master via um CNPJ que era ignorado no envio.
+// Feito por CSS, e nao por style inline, para nao piscar o campo errado antes de
+// o script rodar — e sem !important, para os fluxos de convite continuarem
+// podendo mostrar ou esconder o que precisarem.
+(function ajustarLoginAoPapel(){
+  const sub=document.getElementById('login-sub');
+  if(sub)sub.textContent=PORTAL_ADMIN
+    ?'Informe seu e-mail e sua senha para entrar na gestão.'
+    :'Informe o CNPJ da empresa e sua senha para entrar no ambiente fiscal liberado.';
+  // O link de contexto NAO e mexido aqui: quem cuida dele e o
+  // redirecionamento de login unico (redirecionarParaLoginUnico), que leva o
+  // parametro `login` para a landing decidir qual gaveta abrir. Mexer no href
+  // por aqui atropelaria esse fluxo.
+})();
 document.body.classList.toggle('portal-help',PORTAL_HELP);
 document.body.classList.toggle('portal-first',PORTAL_FIRST);
 function redirecionarParaLoginUnico(){

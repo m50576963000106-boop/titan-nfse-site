@@ -40,12 +40,12 @@
     </div>
     <div class="onboard-step">Acesso ao emissor</div>
     <div class="login-h">Acessar o TITAN NFS-e</div>
-    <div class="login-sub">Informe o CNPJ da empresa e sua senha para entrar no ambiente fiscal liberado.</div>
-    <div class="login-field">
+    <div class="login-sub" id="login-sub">Informe o CNPJ da empresa e sua senha para entrar no ambiente fiscal liberado.</div>
+    <div class="login-field" id="li-cnpj-wrap">
       <label for="li-cnpj">CNPJ da empresa</label>
       <input id="li-cnpj" type="text" autocapitalize="characters" maxlength="18" placeholder="AA.AAA.AAA/AAAA-99" autocomplete="off" oninput="mascararCnpjLogin(this)">
     </div>
-    <div class="login-field">
+    <div class="login-field" id="li-mail-wrap">
       <label for="li-mail">E-mail</label>
       <input id="li-mail" class="inp" type="email" placeholder="voce@empresa.com.br" autocomplete="username">
     </div>

@@ -2257,3 +2257,23 @@ test("o aceite de convite nao quebra quando a conta ja existe", async()=>{
     assert.match(trecho.slice(guarda,sessao), /return;/, "o ramo sem token tem que sair da funcao, nao seguir para a sessao");
   }
 });
+
+test("cliente entra pelo CNPJ, master e parceiro pelo e-mail", async()=>{
+  // Regra do dono do produto (22/08/2026). A API ja separava assim: o caminho
+  // por e-mail so aceita master, parceiro ou atendente; o caminho por CNPJ so
+  // aceita nao-master. Era a TELA que mostrava os dois campos para todo mundo —
+  // o cliente preenchia um e-mail que nao ia a lugar nenhum, e o master um CNPJ
+  // que o envio ignorava.
+  const html=await lerPortal();
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  assert.match(html, /<div class="login-field" id="li-cnpj-wrap">/);
+  assert.match(html, /<div class="login-field" id="li-mail-wrap">/);
+  // Escondido por CSS, e nao por style inline: sem isso o campo errado pisca na
+  // tela antes de o script rodar.
+  assert.match(css, /body:not\(\.portal-admin\) #li-mail-wrap\{display:none\}/);
+  assert.match(css, /\.portal-admin #li-cnpj-wrap\{display:none\}/);
+  // Sem !important: os fluxos de convite mexem nestes campos por style inline e
+  // precisam continuar vencendo a regra.
+  assert.doesNotMatch(css, /#li-mail-wrap\{display:none!important\}/);
+  assert.doesNotMatch(css, /#li-cnpj-wrap\{display:none!important\}/);
+});

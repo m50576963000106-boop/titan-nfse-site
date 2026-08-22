@@ -1089,3 +1089,12 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
      largura da tela, senão nasceria cortada pela lateral. */
   .busca-res{position:fixed;left:12px;right:12px;top:60px;min-width:0}
 }
+
+/* Login por papel (22/08/2026): cliente entra pelo CNPJ da empresa, master e
+   parceiro pelo e-mail. Sem isto a tela mostrava os dois campos para todo mundo,
+   e o campo que nao vale para aquele papel era simplesmente ignorado no envio —
+   o usuario preenchia e nao entendia por que nao entrava. Sem !important de
+   proposito: os fluxos de convite mexem nestes campos por style inline e
+   precisam continuar vencendo. */
+body:not(.portal-admin) #li-mail-wrap{display:none}
+.portal-admin #li-cnpj-wrap{display:none}
