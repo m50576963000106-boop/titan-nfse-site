@@ -673,7 +673,29 @@ function fecharMenuLateral(){alternarMenuLateral(false)}
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&qs('#sb')?.classList.contains('open'))fecharMenuLateral()});
 function abrirComercial(kind,button){go('comercial',button);novoComercial(kind);}
 function abrirGestao(tab){const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');if(!access.user?.isMaster){moduloIndisponivel('Usuários e permissões — acesso exclusivo do gestor');return}const suffix=tab?`?tab=${encodeURIComponent(tab)}`:'';window.open('/admin'+suffix,'_blank','noopener')}
-function sairPortal(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);sessionStorage.removeItem(STORAGE_SESSION);sessionStorage.removeItem(STORAGE_IMPERSONATING);localStorage.removeItem(STORAGE_EMPRESA);localStorage.removeItem(STORAGE_USUARIO);liberarTravaEmpresa();location.reload()}
+// Sair leva de volta para a PAGINA INICIAL, e nao para a tela de login de
+// dentro do portal (decisao do dono do produto, 22/08/2026: o login e um so,
+// e fica na pagina inicial).
+//
+// Antes daqui saia um location.reload(), e o destino ficava por conta de
+// redirecionarParaLoginUnico() adivinhar: em /dashboard dava certo, mas se
+// tivesse sobrado ?invite= ou ?partner-invite= na URL aquele redirecionamento
+// desiste de proposito — e a tela de login de dentro do portal reaparecia,
+// justamente depois de a pessoa ter pedido para sair.
+//
+// window.top porque o portal pode estar dentro de um iframe (a raiz embute
+// nfs.html); um location.href aqui trocaria so o quadro, deixando a pessoa
+// "deslogada" dentro de uma casca ainda logada.
+//
+// Vai para a raiz limpa, sem query: qualquer parametro herdado (convite,
+// tenant, next) recolocaria a pessoa no fluxo do qual ela acabou de sair.
+function sairPortal(){
+  sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_COMPANY_ID);
+  sessionStorage.removeItem(STORAGE_SESSION);sessionStorage.removeItem(STORAGE_IMPERSONATING);
+  localStorage.removeItem(STORAGE_EMPRESA);localStorage.removeItem(STORAGE_USUARIO);
+  liberarTravaEmpresa();
+  (window.top||window).location.replace('/');
+}
 // Faixa da sessão administrativa (POST /master/companies/:id/session): a
 // sessionStorage é por aba, então só a aba aberta por abrirEmpresaEmissao
 // carrega STORAGE_IMPERSONATING — o painel Master original, em outra aba,
