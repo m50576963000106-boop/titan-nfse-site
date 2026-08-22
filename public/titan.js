@@ -28,6 +28,25 @@ const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;'
  * navegador decodifica o HTML antes do JS ler a string.
  */
 const escAttr=value=>esc(String(value??'').replaceAll('\\','\\\\').replaceAll("'","\\'"));
+/**
+ * Irmão do escAttr para o outro contexto: valor que entra em código dentro de
+ * um <script> que este arquivo MONTA (a barra do DANFSe). Ali a etapa de HTML
+ * do escAttr não só é desnecessária como atrapalha — o conteúdo de <script> é
+ * texto cru, o navegador não decodifica entidade nenhuma ali dentro, então
+ * "TINTAS A & B" chegava ao nome do arquivo como "TINTAS A &amp; B.pdf".
+ *
+ * Devolve o literal JS COMPLETO, aspas incluídas, em vez de um pedaço para
+ * colar entre aspas escritas à mão: era exatamente a aspa escrita à mão que
+ * "Sant'Ana" fechava antes da hora, deixando os botões da nota mortos. Sem
+ * aspa no chamador não há aspa para fechar.
+ *
+ * O "<" sai como escape < pelo mesmo motivo de o literal morar dentro de
+ * um bloco de script: uma tag de fechamento no meio do texto encerra o bloco
+ * pelo parser de HTML, por mais bem formado que o JS esteja — e aí a razão
+ * social vira código na aba do DANFSe, que é aberta inclusive em sessão de
+ * suporte, onde a permissão é total.
+ */
+const escJs=value=>JSON.stringify(String(value??'')).replaceAll('<','\\u003C');
 let systemDialogResolve=null;
 function titanDialog({title='Aviso do TITAN',subtitle='Mensagem do sistema',label='Mensagem',message='',summary='Confira os detalhes abaixo.',variant='info',mode='alert',okLabel='OK',cancelLabel='Cancelar',defaultValue=''}={}){
   return new Promise(resolve=>{
@@ -3527,8 +3546,15 @@ async function abrirDanfse(id,numero){
         '<iframe sandbox="allow-scripts" id="danfseFrame" srcdoc="'+esc(html)+'"></iframe>'+
       '</div>'+
       '<script>'+
-        'function baixarXml(){window.opener.postMessage({titan:\'baixarXml\',invoiceId:\''+id+'\',numero:\''+esc(numero||'')+'\'},\'*\');}'+
-        'function baixarPdf(){window.opener.postMessage({titan:\'baixarPdf\',invoiceId:\''+id+'\',numero:\''+esc(numero||'')+'\',empresa:\''+esc(empresa||'')+'\'},\'*\');}'+
+        // escJs, e não esc(): aqui o valor entra em CÓDIGO, não em HTML.
+        // esc() deixava a aspa simples passar, e razão social de cliente
+        // é o lugar onde ela aparece ("Sant'Ana", "D'Angelo") — a aspa fechava
+        // a string antes da hora e os dois botões morriam em silêncio em TODAS
+        // as notas daquele cliente. O escJs já devolve as aspas, por isso elas
+        // sumiram daqui: aspa que o chamador não escreve é aspa que o dado não
+        // tem como fechar.
+        'function baixarXml(){window.opener.postMessage({titan:\'baixarXml\',invoiceId:'+escJs(id)+',numero:'+escJs(numero||'')+'},\'*\');}'+
+        'function baixarPdf(){window.opener.postMessage({titan:\'baixarPdf\',invoiceId:'+escJs(id)+',numero:'+escJs(numero||'')+',empresa:'+escJs(empresa||'')+'},\'*\');}'+
       '<\/script>';
     if(tab){tab.document.open();tab.document.write(wrapperHtml);tab.document.close();}
     else{

@@ -125,8 +125,41 @@ test("DANFSe abre isolado num iframe sandbox, nunca escrito direto na mesma orig
   assert.match(fn,/function baixarPdf\(\)\{window\.opener\.postMessage\(\{titan:\\'baixarPdf\\',invoiceId:/);
   // número da NFS-e viaja junto pro nome do arquivo ter sentido mesmo se o
   // Content-Disposition do servidor falhar por algum motivo
-  assert.match(fn,/numero:\\''\+esc\(numero\|\|''\)\+'\\'/);
-  assert.match(fn,/empresa:\\''\+esc\(empresa\|\|''\)\+'\\'/);
+  //
+  // Estas três linhas montam CÓDIGO, não HTML: o valor cai dentro de um bloco
+  // de script que a própria função escreve. esc() era o escape errado para
+  // esse lugar e deixava a aspa simples passar — "Sant'Ana" fechava a string
+  // do argumento e matava os dois botões, em silêncio, em todas as notas do
+  // cliente. escJs devolve o literal inteiro (aspas incluídas), por isso as
+  // aspas escritas à mão sumiram: é o chamador não ter aspa que impede o dado
+  // de fechar uma.
+  assert.match(fn,/numero:'\+escJs\(numero\|\|''\)\+'/);
+  assert.match(fn,/empresa:'\+escJs\(empresa\|\|''\)\+'/);
+  assert.doesNotMatch(fn,/\\''\+esc\((numero|empresa|id)/,"esc() aqui volta a quebrar em apóstrofo e a vazar &amp; pro nome do arquivo");
+});
+
+test("escJs serializa valor que vai virar código, incluindo apóstrofo e razão social inteira",async()=>{
+  // Regressão do caso Sant'Ana (22/08/2026). O helper é a correção; se ele
+  // deixar de ser um literal JS completo e seguro, os botões do DANFSe voltam
+  // a morrer sem ninguém ver — a falha é silenciosa por natureza.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const escJs=new Function("value","return ("+js.match(/const escJs=([^;]+);/)[1]+")(value)");
+  // Um literal JS de verdade: dá para avaliar de volta e recuperar o original,
+  // com o apóstrofo no lugar. Razão social é nome legal em documento fiscal —
+  // "SantAna" ou "Sant Ana" seria falsificar o dado, não corrigir o bug.
+  for(const valor of ["Sant'Ana & Cia","D'Angelo","TINTAS A & B","aspa \" e barra \\\\","Comum Ltda"]){
+    assert.equal(new Function("return "+escJs(valor))(), valor, `escJs precisa preservar ${valor} byte a byte`);
+  }
+  // O "<" não pode sobrar cru: o literal mora dentro de um bloco de script, e
+  // a tag de fechamento encerra o bloco pelo parser de HTML por mais válido
+  // que o JS esteja. Aí a razão social vira código na aba do DANFSe.
+  const perigoso=escJs("</scr"+"ipt><img src=x onerror=alert(1)>");
+  assert.doesNotMatch(perigoso,/</,"nenhum < pode sobrar cru num valor que entra em bloco de script");
+  assert.equal(new Function("return "+perigoso)(), "</scr"+"ipt><img src=x onerror=alert(1)>","neutralizar o < não pode alterar o texto que o navegador lê de volta");
+  // null/undefined viram string vazia em vez de "null"/"undefined" no nome do
+  // arquivo — mesmo contrato do esc() e do escAttr() vizinhos.
+  assert.equal(escJs(null),'""');
+  assert.equal(escJs(undefined),'""');
 });
 
 test("isola as rotas do master e de cada CNPJ",async()=>{
