@@ -2691,3 +2691,25 @@ test("DASN: os tres totais do ano ficam no corpo do card e vem somados do servid
   assert.match(js, /Number\(consolidacao\.notasDoTitan\|\|0\)/);
   assert.doesNotMatch(js, /meses\.reduce\(\(s,m\)=>s\+Number\(m\.porOrigem/);
 });
+
+test("desfazer recebimento e uma acao propria, confirmada, e mostra a data do recebimento", async()=>{
+  // Pedido do dono do produto (22/08/2026): "eu poder desfazer essa coisa,
+  // desfazer os recebimentos". Marcar recebido era via de mao unica.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  // Rota propria na API, e nao mais um mudarStatusRecebimento: pelo PATCH de
+  // status o received_at ficaria gravado, e remarcar depois recuperaria a data
+  // velha pelo coalesce do servidor.
+  assert.match(js, /\/undo-receipt'?,\{method:'POST'\}/);
+  assert.doesNotMatch(js, /mudarStatusRecebimento\('\$\{item\.id\}','scheduled'\)/);
+  const inicio=js.indexOf("async function desfazerRecebimento(");
+  assert.ok(inicio!==-1, "a acao precisa existir");
+  const corpo=js.slice(inicio, inicio+1200);
+  const confirma=corpo.indexOf("titanConfirm"), chama=corpo.indexOf("/undo-receipt");
+  assert.ok(confirma!==-1 && confirma<chama, "mexe em dinheiro registrado: confirma ANTES de chamar o servidor");
+  // A lista precisa dizer QUANDO foi recebido, senao o filtro "Recebidos" nao
+  // da o que conferir e escolher qual desfazer vira adivinhacao.
+  assert.match(js, /recebido em <b>\$\{esc\(recebidoEm\)\}<\/b>/);
+  // received_at e instante UTC: fatiar o texto mostraria o dia errado das 21h
+  // a meia-noite. Tem que passar pelo fuso de Brasilia.
+  assert.match(js, /function dataHoraBR\(valor\)\{[^}]*America\/Sao_Paulo/);
+});

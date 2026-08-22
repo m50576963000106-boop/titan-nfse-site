@@ -1082,6 +1082,13 @@ function ordenarRecebimentos(lista){
  */
 function soData(valor){return String(valor??'').slice(0,10)}
 function dataBR(valor){const d=soData(valor);return /^\d{4}-\d{2}-\d{2}$/.test(d)?new Date(d+'T00:00:00').toLocaleDateString('pt-BR'):'sem data'}
+/**
+ * Dia de um INSTANTE gravado pelo servidor (received_at, charged_at) lido no
+ * fuso de Brasília — não dá pra fatiar o texto ISO como soData() faz: ele vem
+ * em UTC, e das 21h à meia-noite o dia UTC já é o de amanhã. Mesmo fuso de
+ * dataBrasil(), a única definição de "hoje" que o portal usa.
+ */
+function dataHoraBR(valor){if(!valor)return'';const d=new Date(valor);return Number.isNaN(d.valueOf())?'':d.toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'})}
 function renderRecebimento(item){
   const due=dataBR(item.due_date),amount='R$ '+brl(Number(item.amount||0));
   const status={draft:['p-off','Rascunho'],scheduled:['p-gold','Agendado'],to_charge:['p-gold','A cobrar'],charged:['p-off','Cobrado'],received:['p-ok','Recebido'],overdue:['p-off','Vencido'],cancelled:['p-off','Cancelado']}[item.status]||['p-off',item.status];
@@ -1089,6 +1096,15 @@ function renderRecebimento(item){
   const collection={not_sent:'cobrança não enviada',review_pending:'cobrança para revisar',queued:'cobrança na fila',sent:'cobrança registrada',failed:'cobrança falhou',answered:'cliente respondeu',waived:'cobrança dispensada'}[item.collection_status]||'cobrança não informada';
   const cobrar=(item.status==='scheduled'||item.status==='to_charge')&&item.collection_status!=='sent'?`<button class="btn btn-s" type="button" onclick="revisarCobrancaRecebimento('${item.id}')">Revisar cobrança</button>`:'';
   const receber=item.status!=='received'&&item.status!=='cancelled'?`<button class="btn btn-s" type="button" onclick="mudarStatusRecebimento('${item.id}','received')">Marcar recebido</button>`:'';
+  // Desfazer (pedido do dono do produto, 22/08/2026): marcar recebido era via
+  // de mão única — errou o lançamento, não tinha volta. Rota própria na API
+  // (POST .../undo-receipt), não um segundo mudarStatusRecebimento: voltar
+  // pelo PATCH de status deixaria received_at gravado, e marcar recebido de
+  // novo depois reaproveitaria a data velha pelo coalesce.
+  const desfazer=item.status==='received'?`<button class="btn btn-s" type="button" title="Volta o lançamento ao estado anterior. A NFS-e e o histórico de cobrança não mudam." onclick="desfazerRecebimento('${item.id}')">Desfazer recebimento</button>`:'';
+  // Sem a data do recebimento, a lista filtrada por "Recebidos" não dá o que
+  // conferir: todo item fica igual, e escolher qual desfazer vira adivinhação.
+  const recebidoEm=item.status==='received'&&item.received_at?dataHoraBR(item.received_at):'';
   // Previsto de contrato recorrente (20/08/2026): a linha existe desde o
   // cadastro do contrato, para o valor entrar em "a receber" antes da nota.
   const previsto=Boolean(item.invoice_recurrence_id)&&!item.invoice_id;
@@ -1112,8 +1128,8 @@ function renderRecebimento(item){
       <b style="white-space:nowrap">${amount}</b><span class="pill ${status[0]}">${status[1]}</span>${gerado}
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px">
-      <span class="hint" style="flex:1;min-width:170px">vence <b>${due}</b>${meta?' · '+esc(meta):''} · ${esc(collection)} · ${esc(fiscalTexto)}${item.notes?' · '+esc(item.notes):''}</span>
-      ${cobrar}${receber}${emitir}
+      <span class="hint" style="flex:1;min-width:170px">vence <b>${due}</b>${recebidoEm?` · recebido em <b>${esc(recebidoEm)}</b>`:''}${meta?' · '+esc(meta):''} · ${esc(collection)} · ${esc(fiscalTexto)}${item.notes?' · '+esc(item.notes):''}</span>
+      ${cobrar}${receber}${desfazer}${emitir}
     </div></div>`;
 }
 /**
@@ -1170,6 +1186,21 @@ async function salvarRecebimento(){
 }
 async function mudarStatusRecebimento(id,status,channel){
   try{await api('/api/workspace/receivables/'+id+'/status',{method:'PATCH',body:JSON.stringify({status,chargeChannel:channel})});await carregarRecebimentos()}catch(error){alert(error.message)}
+}
+/**
+ * Desfazer um recebimento marcado por engano (pedido do dono do produto,
+ * 22/08/2026). Confirmação obrigatória porque mexe em dinheiro já registrado:
+ * o valor sai do total recebido e volta para "a receber". O servidor guarda
+ * quem desfez e quando (audit_logs), e não encosta na NFS-e nem no histórico
+ * de cobrança — por isso a confirmação diz isso com todas as letras, em vez de
+ * deixar o usuário supor que vai perder a nota junto.
+ */
+async function desfazerRecebimento(id){
+  const item=recebimentos.find(r=>r.id===id);if(!item)return;
+  const quando=item.received_at?` em ${dataHoraBR(item.received_at)}`:'';
+  const aviso=item.invoice_id?'\n\nA NFS-e já emitida continua válida — só a baixa financeira é desfeita.':'';
+  if(!await titanConfirm(`Desfazer o recebimento de ${item.customer_name}${quando}?\n\nR$ ${brl(Number(item.amount||0))} volta a ficar em aberto e sai do total recebido. O lançamento e o histórico de cobrança continuam onde estão, e quem desfez fica registrado.${aviso}`,'Desfazer recebimento','err'))return;
+  try{await api('/api/workspace/receivables/'+id+'/undo-receipt',{method:'POST'});await carregarRecebimentos()}catch(error){alert(error.message)}
 }
 async function revisarCobrancaRecebimento(id){
   const item=recebimentos.find(r=>r.id===id);if(!item)return;
