@@ -2238,3 +2238,22 @@ test("Reenviar por e-mail some quando a empresa não tem a ferramenta no plano",
   // versão dele que possa divergir.
   assert.match(js, /acessoVigente=\{user,permissions,features\}/);
 });
+
+test("o aceite de convite nao quebra quando a conta ja existe", async()=>{
+  // 22/08/2026: a API parou de trocar a senha e de devolver sessao quando o
+  // e-mail do convite ja tem conta — era assim que um parceiro tomava a conta
+  // de qualquer usuario. A tela precisava acompanhar: sem este ramo,
+  // accepted.user vem indefinido, o codigo estoura num TypeError e o cliente
+  // le "falhou" logo depois de o vinculo ter sido criado com sucesso.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const aceites=[...js.matchAll(/const accepted=await api\('\/api\/auth\/(partner-)?invitations\//g)];
+  assert.equal(aceites.length, 2, "existem dois aceites: o do cliente e o do parceiro");
+  for(const m of aceites){
+    const trecho=js.slice(m.index, m.index+1400);
+    const guarda=trecho.indexOf("accepted.requiresLogin||!accepted.token");
+    const sessao=trecho.indexOf("salvarSessaoLocal");
+    assert.ok(guarda!==-1, "cada aceite precisa tratar a resposta sem token");
+    assert.ok(guarda<sessao, "a guarda tem que vir ANTES de montar a sessao — depois nao adianta, ja estourou");
+    assert.match(trecho.slice(guarda,sessao), /return;/, "o ramo sem token tem que sair da funcao, nao seguir para a sessao");
+  }
+});

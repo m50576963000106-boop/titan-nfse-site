@@ -5957,6 +5957,21 @@ async function aceitarConvite(token){
   if(password!==confirmation){alert('A confirmação não confere. Digite a mesma senha nos dois campos.');return}
   try{
     const accepted=await api('/api/auth/invitations/'+encodeURIComponent(token)+'/accept',{method:'POST',body:JSON.stringify({password,confirmation})});
+    // Conta que JA existia: desde 22/08/2026 a API nao troca a senha nem
+    // devolve sessao nesse caso — ela so cria o vinculo com a empresa nova. E
+    // proposital: o aceite sobrescrevia a senha de quem ja tinha conta, e um
+    // parceiro conseguia tomar a conta de qualquer usuario mandando convite
+    // para o e-mail dele. Sem este ramo, `accepted.user` vem indefinido e a
+    // tela estoura num TypeError — o vinculo dava certo e o cliente lia
+    // "falhou".
+    if(accepted.requiresLogin||!accepted.token){
+      qs('#li-pw').value='';qs('#li-pw-confirm').value='';
+      if(accepted.email)qs('#li-mail').value=accepted.email;
+      history.replaceState({},'',location.pathname);
+      alert(accepted.message||'Pronto! Esta empresa foi liberada para a sua conta. Entre com a senha que voce ja usa — ela nao mudou.');
+      location.reload();
+      return;
+    }
     salvarSessaoLocal([[STORAGE_TOKEN,accepted.token],[STORAGE_COMPANY_ID,accepted.companyId],[STORAGE_SESSION,JSON.stringify({user:accepted.user,companies:accepted.companies||[]})]]);
     localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:accepted.user.name,email:accepted.user.email,cnpj:accepted.companies?.[0]?.federal_tax_id||PORTAL_CNPJ}));history.replaceState({},'',location.pathname);
     await carregarEmpresaServidor();await carregarNotasServidor();aplicarAcesso({user:accepted.user,companies:accepted.companies});qs('#login').classList.add('hide');qs('#app').classList.add('on');carregarEstado();render();PORTAL_HELP?(go('ajuda',qs('.user-sidebar .sb-link[onclick*="ajuda"]')),setTimeout(()=>supOpen(),80)):go('painel',qs('.sb-link[onclick*="painel"]'));
@@ -5991,6 +6006,16 @@ async function aceitarConviteParceiro(token){
   if(password!==confirmation){alert('A confirmação não confere. Digite a mesma senha nos dois campos.');return}
   try{
     const accepted=await api('/api/auth/partner-invitations/'+encodeURIComponent(token)+'/accept',{method:'POST',body:JSON.stringify({password,confirmation})});
+    // Mesmo motivo do aceite de cliente acima: conta pre-existente recebe o
+    // vinculo de parceiro, nunca senha nova nem sessao pronta.
+    if(accepted.requiresLogin||!accepted.token){
+      qs('#li-pw').value='';qs('#li-pw-confirm').value='';
+      if(accepted.email)qs('#li-mail').value=accepted.email;
+      history.replaceState({},'',location.pathname);
+      alert(accepted.message||'Pronto! Seu acesso de parceiro foi liberado. Entre com a senha que voce ja usa — ela nao mudou.');
+      location.reload();
+      return;
+    }
     salvarSessaoLocal([[STORAGE_TOKEN,accepted.token],[STORAGE_SESSION,JSON.stringify({user:accepted.user,companies:[]})]]);
     window.top.location.href='/parceiro';
   }catch(error){alert(error.message)}
