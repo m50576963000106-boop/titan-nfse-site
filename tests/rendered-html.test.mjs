@@ -2042,3 +2042,131 @@ test("escolher o município na lista alinha cidade e UF com ele", async()=>{
   // A busca por CEP continua conservadora: preenche o vazio, oferece o resto.
   assert.match(js, /if\(!atual\|\|forcar\)\{el\.value=valor;return\}/);
 });
+
+/**
+ * Auditoria de navegação e acesso do portal do cliente (21/08/2026).
+ *
+ * Seis defeitos, todos da mesma família: a tela existia, a função existia, e o
+ * caminho até ela não. O que os testes abaixo travam é o CAMINHO — botão no
+ * lugar certo, destino que existe de verdade, grupo que não abre vazio.
+ */
+test("o botão Sair fica FORA da barra do Master, no rodapé comum da lateral", async()=>{
+  // Ele morava dentro da .admin-sidebar, que o CSS esconde de quem não é
+  // master: o cliente só saía fechando a aba, o que em computador
+  // compartilhado deixa a sessão viva para o próximo que sentar.
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  const barraMaster=html.slice(html.indexOf('class="sb-nav admin-sidebar"'), html.indexOf('class="sb-foot"'));
+  assert.ok(!barraMaster.includes('onclick="sairPortal()"'),
+    "Sair dentro da admin-sidebar é invisível para o cliente — foi exatamente o defeito");
+  const rodape=html.slice(html.indexOf('class="sb-foot"'), html.indexOf("</aside>"));
+  assert.match(rodape, /data-restrito-ok onclick="sairPortal\(\)"/,
+    "o rodapé é comum às duas barras: é o único lugar que serve para cliente, cliente bloqueado e master");
+  // data-restrito-ok preservado: é o que mantém o botão de pé em conta
+  // bloqueada, pela regra de CSS que esconde todo sb-link sem o atributo.
+  assert.match(css, /body\.conta-restrita \.sb-link:not\(\[data-restrito-ok\]\)/);
+});
+
+test("existe um item de menu de pagamento, logo ABAIXO de Ajuda / Martyn", async()=>{
+  // A tela "Cobranças TITAN" já existia inteira e nenhum item de menu levava
+  // até ela — só um atalho que aparecia depois de 80% da cota, escondido
+  // dentro de Emitir NFS-e, que é justamente o que o modo restrito bloqueia.
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const menu=html.slice(html.indexOf('class="sb-nav user-sidebar"'), html.indexOf('class="sb-nav admin-sidebar"'));
+  const ajuda=menu.indexOf("Ajuda / Martyn");
+  const pagamento=menu.indexOf("go('financeiro',this)");
+  assert.ok(ajuda>0, "Ajuda / Martyn é a âncora pedida pelo dono do produto");
+  assert.ok(pagamento>ajuda, "o pedido foi literal: a aba de pagamento fica ABAIXO de Ajuda/Martyn");
+  // Precisa sobreviver ao modo restrito: é a única porta de saída da
+  // inadimplência, e sem data-restrito-ok o CSS a esconderia junto com o resto.
+  assert.match(menu, /data-restrito-ok onclick="go\('financeiro',this\)"/);
+  // A faixa de aviso também precisa levar até lá — avisar do bloqueio sem
+  // oferecer a saída é o que prendia o cliente.
+  assert.match(html, /Regularizar<\/button>/);
+  assert.ok(html.indexOf("Pagamento não identificado. Acesso restrito") < html.indexOf("Regularizar</button>"));
+  // A tela de destino tem que existir de verdade.
+  assert.ok(html.includes('id="v-financeiro"'));
+});
+
+test("grupo de menu sem nenhum filho visível some junto com o expansor", async()=>{
+  // "Financeiro" exigia só a permissão `financial` (que todo cliente tem), mas
+  // os filhos dependem de recurso do plano: em plano novo, sem Recebimentos e
+  // sem DASN-SIMEI, o submenu abria sem uma linha sequer.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  assert.match(js, /function esconderGruposSemFilhoVisivel\(\)/);
+  const inicio=js.indexOf("function esconderGruposSemFilhoVisivel()");
+  const fn=js.slice(inicio, js.indexOf("\n}", inicio));
+  // Solução geral: varre TODO .sb-submenu, não trata Financeiro por id — é o
+  // que faz valer também para grupos que ainda nem existem.
+  assert.match(fn, /qsa\('\.sb-submenu'\)/, "tratar um grupo por id deixaria o próximo defeito igual acontecer de novo");
+  assert.doesNotMatch(fn, /financeiro-menu/, "nome de grupo fixo aqui seria a solução particular, não a geral");
+  // O expansor tem que sumir junto: submenu escondido com o botão de pé
+  // continua sendo um botão que abre o nada.
+  assert.match(fn, /gatilho\.style\.display=vazio\?'none':''/);
+  // Item desativado não conta como filho — o CSS já o esconde, e contá-lo
+  // manteria de pé exatamente o expansor vazio que a função existe pra tirar.
+  assert.match(fn, /!item\.disabled&&item\.style\.display!=='none'/);
+  // Só faz sentido DEPOIS do controle de acesso: é ele que decide quem sumiu.
+  const aplicacao=js.indexOf("qsa('[data-permission],[data-feature]').forEach");
+  assert.ok(aplicacao>0 && aplicacao < js.indexOf("esconderGruposSemFilhoVisivel();"),
+    "rodar antes de aplicar o acesso leria a tela cheia e nunca esconderia nada");
+});
+
+test("go() não esvazia a tela quando o destino não existe", async()=>{
+  // go('cert') apagava a área de conteúdo inteira: a linha que limpa o .on de
+  // todas as views rodava primeiro e o qs('#v-cert') seguinte estourava em
+  // null. É o conserto que impede o PRÓXIMO destino errado de virar tela branca.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const inicio=js.indexOf("function go(v,el,limpar)");
+  const fn=js.slice(inicio, js.indexOf("\n}", inicio));
+  const guarda=fn.indexOf("const alvo=qs('#v-'+v)");
+  const limpeza=fn.indexOf("qsa('.view').forEach");
+  assert.ok(guarda>0 && limpeza>0);
+  assert.ok(guarda<limpeza, "conferir DEPOIS de limpar as views já deixou a tela vazia — a ordem é o conserto");
+  assert.match(fn, /if\(!alvo\)\{console\.error/, "sumir em silêncio faz o próximo destino errado custar a mesma caçada");
+  // E o destino fantasma some: o certificado mora em Configurações.
+  assert.doesNotMatch(js, /go\('cert'/);
+  assert.doesNotMatch(js, /,'cert'\]\]/, "nenhum botão do Martyn pode apontar para a tela que nunca existiu");
+  assert.match(js, /\['Ir para Certificado A1','emitente'\]/);
+  assert.match(js, /\['Ir para Certificado digital','emitente'\]/);
+});
+
+test("a busca do topo abre o item que ela mesma prometeu abrir", async()=>{
+  // Ela dizia "Pressione Enter para abrir Orçamentos" e o Enter respondia
+  // "Nenhum módulo correspondente foi encontrado": o destino era deduzido do
+  // texto do onclick com go('...'), forma que 29 dos 42 itens não têm
+  // (abrirComercial, masterTab, alternarGrupoMenu).
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const inicio=js.indexOf("function buscarNoPortal(value)");
+  const busca=js.slice(inicio, js.indexOf("\n}", inicio));
+  assert.match(busca, /buscaPortalItem=match/, "guardar o ELEMENTO é o que dispensa adivinhar o destino");
+  assert.ok(!busca.includes("match(/go\\('"), "deduzir o destino pelo texto do onclick é a causa do defeito");
+  // Apelido que não casa cai na busca por texto em vez de desistir — era o
+  // apelido de 'orçamento' que atrapalhava: sem ele o texto do botão achava.
+  assert.match(busca, /\|\|\(query&&links\.find\(el=>supNorm\(el\.textContent\)\.includes\(supNorm\(query\)\)\)\)/);
+  assert.ok(!busca.includes("['certificado','cert']"), "apelido apontando para tela inexistente é o mesmo defeito do botão do Martyn");
+  assert.ok(busca.includes("['orçamento','orçamentos']"), "o apelido passou a apontar para o RÓTULO do menu, que é o que a busca casa");
+  // Enter dispara o clique no próprio item: é o onclick dele que sabe se a
+  // tela abre por go(), abrirComercial(), masterTab() ou alternarGrupoMenu().
+  const inicioEnter=js.indexOf("function abrirResultadoBusca()");
+  const enter=js.slice(inicioEnter, js.indexOf("\n}", inicioEnter));
+  assert.match(enter, /item\.click\(\);return/);
+  assert.ok(enter.indexOf("item.click()") < enter.indexOf("Nenhum módulo correspondente"),
+    "o alerta de 'não achei' não pode passar na frente de um item que já foi encontrado");
+});
+
+test("Reenviar por e-mail some quando a empresa não tem a ferramenta no plano", async()=>{
+  // Pedido do dono do produto: "essa função só fica ativa se no plano tiver
+  // marcado como habilitado. Caso não esteja, não fica aparecendo."
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  assert.match(js, /data-feature="invoice_email" onclick="reenviarEmailNota/,
+    "o mecanismo data-feature já existe no portal — o botão só não usava");
+  // A tabela é redesenhada a cada filtro, muito depois de aplicarAcesso(): sem
+  // reaplicar no trecho novo o botão reaparece a cada redesenho.
+  const render=js.slice(js.indexOf("function renderTabelaNotas(lista)"), js.indexOf("\nasync function imprimirNotas"));
+  assert.match(render, /aplicarAcessoEm\(tbody\)/);
+  assert.match(js, /function aplicarAcessoEm\(raiz\)/);
+  // O trecho novo tem que ler o MESMO acesso do login, não uma segunda
+  // versão dele que possa divergir.
+  assert.match(js, /acessoVigente=\{user,permissions,features\}/);
+});

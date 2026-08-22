@@ -187,16 +187,36 @@ async function fetchSeguro(url,options={},timeoutMs=45000){
   finally{clearTimeout(timer)}
 }
 
-let buscaPortalView='';
+// Guarda o PRÓPRIO botão de menu encontrado, não o nome da tela (21/08/2026).
+// A versão anterior lia o destino de dentro do onclick com /go\('([^']+)'/ e
+// só 13 dos 42 itens têm essa forma: Orçamentos é abrirComercial('quote',this),
+// o painel do Master é masterTab('clientes',this), os grupos são
+// alternarGrupoMenu(...). Para os outros 29 o campo dizia "Pressione Enter para
+// abrir X" e o Enter respondia "Nenhum módulo correspondente foi encontrado" —
+// prometia e não cumpria. Com o elemento em mãos basta clicar nele: o próprio
+// onclick do botão sabe para onde ir, seja qual for a função que ele chama.
+let buscaPortalItem=null;
 function buscarNoPortal(value){
   const input=qs('#global-search'),query=String(value||'').trim().toLocaleLowerCase('pt-BR');
-  buscaPortalView='';
+  buscaPortalItem=null;
   if(!input)return;
-  const aliases=[['nota','notas'],['nfse','emitir'],['emissão','emitir'],['emissao','emitir'],['cliente','clientes'],['tomador','clientes'],['orçamento','comercial'],['orcamento','comercial'],['ordem','comercial'],['meus serviços','servicos'],['meus servicos','servicos'],['serviço','servicos'],['servico','servicos'],['certificado','cert'],['importar','emitente'],['empresa','emitente'],['emitente','emitente'],['ajuda','ajuda'],['martyn','ajuda'],['suporte','ajuda'],['master','master']];
+  // Apelido = o que a pessoa digita -> o RÓTULO do item de menu que responde
+  // por ele. Antes apontavam para nome interno de tela, o que só funcionava
+  // para os itens que chamam go() — e 'certificado' apontava para 'cert', tela
+  // que nunca existiu (mesmo destino fantasma do botão do Martyn).
+  const aliases=[['nota','notas emitidas'],['nfse','emitir'],['emissão','emitir'],['emissao','emitir'],['cliente','clientes'],['tomador','clientes'],['orçamento','orçamentos'],['orcamento','orçamentos'],['ordem','ordens de serviço'],['meus serviços','meus serviços'],['meus servicos','meus serviços'],['serviço','meus serviços'],['servico','meus serviços'],['certificado','configurações'],['importar','configurações'],['empresa','configurações'],['emitente','configurações'],['pagamento','pagamento'],['cobrança','pagamento'],['cobranca','pagamento'],['boleto','pagamento'],['pix','pagamento'],['ajuda','ajuda'],['martyn','ajuda'],['suporte','ajuda'],['sair','sair'],['master','gestão por cnpj']];
   const alias=aliases.find(([term])=>query.includes(term));
-  const links=[...qsa('.sb-link')].filter(el=>getComputedStyle(el).display!=='none');
-  const match=alias?links.find(el=>(el.getAttribute('onclick')||'').includes(`go('${alias[1]}'`)):links.find(el=>supNorm(el.textContent).includes(supNorm(query)));
-  if(match){buscaPortalView=(match.getAttribute('onclick')||'').match(/go\('([^']+)'/)?.[1]||'';input.title=`Pressione Enter para abrir ${match.textContent.trim()}`;}
+  // Item desativado sai da lista junto com o que o acesso escondeu: oferecer
+  // "Enter para abrir" algo que o cliente não pode abrir é a mesma promessa
+  // quebrada em outra roupa.
+  const links=qsa('.sb-link').filter(el=>!el.disabled&&getComputedStyle(el).display!=='none');
+  // Apelido que não casa CAI na busca por texto em vez de desistir. Era esse o
+  // caso de "orçamento": o apelido ATRAPALHAVA — sem ele o texto do próprio
+  // botão já respondia, com ele a busca terminava em "nenhum módulo".
+  const match=(alias&&links.find(el=>supNorm(el.textContent).includes(supNorm(alias[1]))))
+    ||(query&&links.find(el=>supNorm(el.textContent).includes(supNorm(query))))
+    ||null;
+  if(match){buscaPortalItem=match;input.title=`Pressione Enter para abrir ${match.textContent.trim()}`;}
   else input.title=query.length>1?'Nenhum módulo encontrado':'';
   // Até 21/08/2026 a função acabava aqui: o placeholder prometia "cliente ou
   // nota" e ela só sabia achar item de menu. Quem digitava o número da nota ou
@@ -206,15 +226,19 @@ function buscarNoPortal(value){
 function abrirResultadoBusca(){
   const input=qs('#global-search'),caixa=qs('#busca-res');
   const temResultados=caixa&&caixa.classList.contains('on')&&caixa.querySelector('button');
-  if(buscaPortalView){const el=[...qsa('.sb-link')].find(b=>(b.getAttribute('onclick')||'').includes(`go('${buscaPortalView}'`));go(buscaPortalView,el);}
+  // Clica no próprio item de menu achado, em vez de deduzir o destino: é o
+  // onclick dele que sabe se a tela abre por go(), abrirComercial(),
+  // masterTab() ou alternarGrupoMenu(). Limpa o campo ANTES do clique porque o
+  // handler do item pode trocar de tela e reentrar aqui.
+  if(buscaPortalItem){const item=buscaPortalItem;buscaPortalItem=null;fecharBuscaDoPainel();if(input){input.value='';input.title='';}item.click();return}
   // Sem módulo, mas com nota ou cliente na lista, o Enter abre o primeiro
   // resultado. Antes disto o alerta "nenhum módulo correspondente" aparecia por
   // cima de uma lista cheia de achados — dizendo que não havia o que já estava
   // na tela.
-  else if(temResultados){temResultados.click();return}
-  else if(input?.value.trim())mostrarNotificacoes('Nenhum módulo correspondente foi encontrado.');
+  if(temResultados){temResultados.click();return}
+  if(input?.value.trim())mostrarNotificacoes('Nenhum módulo correspondente foi encontrado.');
   fecharBuscaDoPainel();
-  if(input){input.value='';input.title='';}buscaPortalView='';
+  if(input){input.value='';input.title='';}buscaPortalItem=null;
 }
 function mostrarNotificacoes(message){
   if(message){alert(message);return}
@@ -513,6 +537,55 @@ function abrirRedefinicao(event){
 }
 function limparFalhaLogin(){const box=qs('#login-error');if(box){box.style.display='none';box.innerHTML='';}qs('#li-pw')?.focus();}
 function entrar(){iniciarCadastro()}
+// Último acesso calculado por aplicarAcesso(). Existe para que um pedaço de
+// tela montado DEPOIS do login (tabela que o portal redesenha a cada filtro)
+// receba exatamente o mesmo controle, sem reler a sessão e sem risco de
+// divergir dela.
+let acessoVigente={user:{},permissions:[],features:['portal_emission']};
+function aplicarRegraDeAcessoNoElemento(el,user,permissions,features){
+  const okPermissao=!el.dataset.permission||user.isMaster||el.dataset.permission.split(',').some(p=>permissions.includes(p));
+  const okFeature=!el.dataset.feature||user.isMaster||features.includes(el.dataset.feature);
+  el.style.display=(okPermissao&&okFeature)?'':'none';
+}
+/**
+ * Aplica o controle de acesso num trecho recém-montado.
+ *
+ * aplicarAcesso() roda uma vez, na entrada. Tudo que o portal desenha depois
+ * (a tabela de Notas emitidas é redesenhada a cada filtro) nasceria com os
+ * botões todos visíveis — inclusive os de ferramenta que a empresa não
+ * contratou, que é o caso do "Reenviar por e-mail".
+ */
+function aplicarAcessoEm(raiz){
+  if(!raiz)return;
+  qsa('[data-permission],[data-feature]',raiz).forEach(el=>aplicarRegraDeAcessoNoElemento(el,acessoVigente.user,acessoVigente.permissions,acessoVigente.features));
+}
+/**
+ * Grupo de menu que ficou sem nenhum filho visível some, junto com o expansor.
+ *
+ * O caso concreto: "Financeiro" exige só a permissão `financial`, que todo
+ * cliente tem — mas os filhos dependem de recursos do plano. Em plano novo,
+ * sem Recebimentos e sem DASN-SIMEI (o estado padrão), o grupo abria vazio.
+ *
+ * Resolvido lendo o RESULTADO do controle de acesso, e não marcando as
+ * features no botão do grupo: a marcação teria que ser refeita à mão a cada
+ * item novo e ficaria errada silenciosamente no dia em que um item mudasse de
+ * plano. Assim vale para Financeiro, para Integrações e para todo grupo que
+ * ainda nem existe — que é o mesmo motivo de a checagem morar aqui e não numa
+ * regra de CSS por id.
+ *
+ * Item `disabled` não conta como filho: o CSS já o esconde
+ * (.sb-nav .sb-link[disabled]), então contá-lo manteria de pé exatamente o
+ * expansor vazio que esta função existe para tirar.
+ */
+function esconderGruposSemFilhoVisivel(){
+  qsa('.sb-submenu').forEach(menu=>{
+    const vazio=!qsa('.sb-link',menu).some(item=>!item.disabled&&item.style.display!=='none');
+    const gatilho=qsa('.sb-link').find(botao=>(botao.getAttribute('onclick')||'').includes(`alternarGrupoMenu('${menu.id}'`));
+    menu.style.display=vazio?'none':'';
+    if(gatilho)gatilho.style.display=vazio?'none':'';
+    if(vazio){menu.classList.remove('on');gatilho?.classList.remove('expanded');}
+  });
+}
 function aplicarAcesso(login){
   const access=login||JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}'),user=access.user||{};
   qs('#master-menu').style.display=user.isMaster?'block':'none';
@@ -523,12 +596,12 @@ function aplicarAcesso(login){
   // se passar nas duas quando as duas se aplicam. Uma única passagem evita que
   // uma pise no resultado da outra no mesmo botão (ex.: Notas recorrentes tem
   // data-permission="emit" e data-feature="invoice_recurrences" juntos).
-  qsa('[data-permission],[data-feature]').forEach(el=>{
-    const okPermissao=!el.dataset.permission||user.isMaster||el.dataset.permission.split(',').some(p=>permissions.includes(p));
-    const okFeature=!el.dataset.feature||user.isMaster||features.includes(el.dataset.feature);
-    el.style.display=(okPermissao&&okFeature)?(el.tagName==='DIV'?'':''):'none';
-  });
+  acessoVigente={user,permissions,features};
+  qsa('[data-permission],[data-feature]').forEach(el=>aplicarRegraDeAcessoNoElemento(el,user,permissions,features));
   qsa('[data-master-only]').forEach(el=>el.style.display=user.isMaster?'flex':'none');
+  // Depois do controle de acesso, nunca antes: o que decide se um grupo ficou
+  // vazio é justamente o que acabou de ser escondido.
+  esconderGruposSemFilhoVisivel();
   conferirMenuDoCliente(user);
   if(access.companies?.length){
     const visible=PORTAL_CNPJ?access.companies.filter(c=>normalizarDocumento(c.federal_tax_id)===PORTAL_CNPJ):access.companies;
@@ -617,8 +690,19 @@ function go(v,el,limpar){
     const access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}');
     if(!access.user?.isMaster){alert('Esta área é exclusiva do administrador master.');return}
   }
+  // Blindagem (21/08/2026): destino que não existe não pode apagar a tela.
+  // Antes, a linha que limpa o .on de TODAS as views rodava primeiro e o
+  // qs('#v-'+v) seguinte estourava em null — resultado: área de conteúdo
+  // vazia, sem erro visível, e só voltava clicando no menu. Foi o que o botão
+  // do Martyn (destino 'cert', tela que nunca existiu) fazia. Abortar ANTES de
+  // limpar é o comportamento seguro: quem clicou continua exatamente onde
+  // estava, que é sempre melhor do que lugar nenhum. O console.error existe
+  // porque destino errado é bug nosso, não do cliente — falhar em silêncio
+  // faria o PRÓXIMO destino errado custar a mesma caçada que este custou.
+  const alvo=qs('#v-'+v);
+  if(!alvo){console.error(`titan: go('${v}') ignorado — não existe a tela #v-${v}. A navegação foi cancelada para não esvaziar a área de conteúdo.`);return}
   qsa('.view').forEach(x=>x.classList.remove('on'));
-  qs('#v-'+v).classList.add('on');
+  alvo.classList.add('on');
   qsa('.sb-link').forEach(x=>x.classList.remove('active'));
   if(el)el.classList.add('active');
   fecharMenuLateral();
@@ -966,7 +1050,7 @@ async function avisarLimiteDoPlano(){
   try{
     const data=await api('/api/invoices/consumption');
     if(!data.plan||!data.warning){box.style.display='none';return}
-    texto.innerHTML=`Você já usou <b>${data.used} de ${data.plan.limit}</b> notas do ${esc(data.plan.name)} este mês (${Math.round(data.used/data.plan.limit*100)}%). <button class="btn btn-s" type="button" onclick="go('financeiro',qs('.sb-link[onclick*=&quot;financeiro&quot;]'))">Ver plano e ferramentas avulsas</button>`;
+    texto.innerHTML=`Você já usou <b>${data.used} de ${data.plan.limit}</b> notas do ${esc(data.plan.name)} este mês (${Math.round(data.used/data.plan.limit*100)}%). <button class="btn btn-s" type="button" onclick="go('financeiro',qs('#sb-pagamento'))">Ver plano e ferramentas avulsas</button>`;
     box.style.display='';
   }catch{box.style.display='none'}
 }
@@ -2577,11 +2661,15 @@ function renderTabelaNotas(lista){
           <button class="ico-btn" title="Baixar XML" onclick="baixarXml('${x.id}','${escAttr(x.n)}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
           <button class="ico-btn" title="Abrir DANFSe em PDF" onclick="abrirDanfse('${x.id}','${escAttr(x.n)}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg></button>
           <button class="ico-btn" title="Sincronizar situação com a Sefin" onclick="sincronizarNota('${x.id}')" ${!x.key?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg></button>
-          <button class="btn btn-s" type="button" onclick="reenviarEmailNota('${x.id}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}>Reenviar por e-mail</button>
+          <button class="btn btn-s" type="button" data-feature="invoice_email" onclick="reenviarEmailNota('${x.id}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}>Reenviar por e-mail</button>
           <button class="ico-btn danger" title="Cancelar nota" onclick="abrirCancelamento('${x.id}','${escAttr(x.n)}')" ${x.st!=='ok'?'disabled style="opacity:.3"':''}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></button>
         </div>
       </td>
     </tr>`).join('');
+  // A tabela é redesenhada a cada filtro, muito depois de aplicarAcesso() ter
+  // rodado — sem esta linha o "Reenviar por e-mail" reapareceria a cada
+  // redesenho, mesmo na empresa que não contratou a ferramenta.
+  aplicarAcessoEm(tbody);
 }
 async function imprimirNotas(){
   const month=qs('#nt-competencia')?.value||'';
@@ -5901,7 +5989,11 @@ const supTopics=[
   act:[['Analisar minha conta','diag'],['Rever emissão','emitir']]},
  {id:'certificado',chip:'Certificado A1',kw:['certificado','a1','pfx','p12','assinatura digital','senha do certificado','vencido','expirado','icp'],
   a:()=>`No Portal Web, alguns contribuintes conseguem entrar por Gov.br ou credenciais próprias. Na <b>integração automatizada do TITAN</b>, o A1 (.pfx/.p12) identifica a empresa, assina a DPS e faz a comunicação segura. O arquivo fica criptografado e é usado somente no backend da empresa ativa.`,
-  act:[['Ir para Certificado digital','cert']]},
+  // 'emitente', não 'cert': a tela #v-cert nunca existiu — o card Certificado
+  // A1 mora dentro de Configurações (#v-emitente). Clicar aqui apagava a área
+  // de conteúdo inteira (go() removia .on de todas as views e estourava ao
+  // procurar a que não existe), e só voltava clicando no menu.
+  act:[['Ir para Certificado digital','emitente']]},
  {id:'cancelar',chip:'Cancelar nota',kw:['cancel','anular','estornar','tornar sem efeito','substituir nota'],
   a:()=>`Cancelamento e substituição são <b>eventos oficiais</b>. A possibilidade, o prazo e a necessidade de análise fiscal dependem dos parâmetros cadastrados pelo município e das regras nacionais aplicáveis. No TITAN, somente uma nota autorizada oferece a ação de cancelamento; informe um motivo claro e aguarde a autorização da Sefin.${supFonte(SUP_OFICIAL.docs,'Guia oficial do Emissor')}`,
   act:[['Abrir Notas emitidas','notas']]},
@@ -6109,7 +6201,7 @@ function supAnalisar(){
     }catch(e){certLine='<div class="sup-diag"><span class="d d-off"></span><span>Não consegui checar o certificado agora.</span></div>';}
     let next;
     if(!emp||!emp.rs)next='<div style="margin-top:8px">Próximo passo: cadastrar a empresa.</div>'+supActs([['Ir para Emitente','emitente']]);
-    else if(certLine.indexOf('d-warn')>-1||certLine.indexOf('d-err')>-1)next='<div style="margin-top:8px">Próximo passo: acertar o certificado A1.</div>'+supActs([['Ir para Certificado A1','cert']]);
+    else if(certLine.indexOf('d-warn')>-1||certLine.indexOf('d-err')>-1)next='<div style="margin-top:8px">Próximo passo: acertar o certificado A1.</div>'+supActs([['Ir para Certificado A1','emitente']]);
     else if(c.err>0)next='<div style="margin-top:8px">Próximo passo: revisar as notas rejeitadas.</div>'+supActs([['Abrir Notas emitidas','notas']]);
     else next='<div style="margin-top:8px">Tudo pronto para emitir. 👍</div>'+supActs([['Abrir emissão','emitir']]);
     if(holder){holder.innerHTML='<b>Diagnóstico da conta</b>'+rows.join('')+certLine+next;supScroll();}
