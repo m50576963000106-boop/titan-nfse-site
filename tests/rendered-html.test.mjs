@@ -1944,3 +1944,46 @@ test("escolher um serviço na emissão não apaga o xInfComp já digitado", asyn
   assert.ok(html.includes('id="s-info-compl-perfil"'), "sem esse aviso a troca viraria surpresa silenciosa");
   assert.match(html, /onclick="usarInfoComplementaresDoPerfil\(\)"/);
 });
+
+test("o CEP preenche endereço e código IBGE nos dois lugares, com uma função só", async()=>{
+  // O código IBGE é obrigatório na DPS e era digitado à mão — sete dígitos em
+  // que um erro não falha alto: gera nota para o município errado, ou rejeição
+  // na Sefin. Quem preenche é a busca por CEP, na emissão E no cadastro de
+  // cliente, pela MESMA função: dois caminhos separados envelheceriam
+  // diferente, e o campo que sumisse de um deles reapareceria como endereço
+  // faltando na nota (src/nfse/xml.ts descarta o grupo inteiro em silêncio).
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(js, /api\('\/api\/locations\/cep\/'\+cep\)/, "a busca vai para a rota autenticada da API, nao direto ao provedor");
+  assert.match(js, /emissao:\{cep:'t-cep',logradouro:'t-end',bairro:'t-bairro',cidade:'t-cidade',uf:'t-uf',ibge:'t-municipio'/);
+  assert.match(js, /cliente:\{cep:'cl-cep',linhaEndereco:'cl-end',cidade:'cl-cidade',uf:'cl-uf',ibge:'cl-mun'/);
+  // Uma função de busca, um mapa de campos por tela — nao duas cópias.
+  assert.equal((js.match(/async function buscarEnderecoPorCep\(/g)||[]).length, 1);
+  assert.ok(html.includes('id="t-cep-status"')&&html.includes('id="cl-cep-status"'), "sem retorno na tela a busca parece nao ter acontecido");
+});
+
+test("a busca por CEP não sobrescreve campo já digitado nem fura a trava do tomador", async()=>{
+  // Mesma decisão de aplicarInfoComplementaresDoPerfil: preenche o vazio,
+  // e onde ja ha conteudo diferente mostra as duas versoes com um botao.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(js, /if\(!atual\|\|forcar\)\{el\.value=valor;return\}/, "so preenche quando o campo esta vazio (ou quando o operador escolheu trocar)");
+  assert.match(js, /conflitos\.push\(chave\);pendente\[chave\]=valor/);
+  assert.ok(html.includes('id="t-cep-conflito"')&&html.includes('id="cl-cep-conflito"'), "sem o aviso a troca viraria surpresa silenciosa");
+  assert.match(html, /onclick="usarEnderecoDoCep\('emissao'\)"/);
+  assert.match(html, /onclick="usarEnderecoDoCep\('cliente'\)"/);
+  // CAMPOS_TOMADOR_TRAVAVEIS deixa os campos readOnly quando vieram de um
+  // cadastro: o endereco da nota tem que continuar igual ao cadastro oficial.
+  assert.match(js, /if\(el\.readOnly\|\|el\.disabled\)return;/);
+  assert.match(js, /if\(!campo\|\|campo\.readOnly\|\|campo\.disabled\)return;/);
+});
+
+test("falha na consulta de CEP não trava a digitação manual", async()=>{
+  // O portal inteiro funcionava sem esta busca ate hoje; um provedor gratuito
+  // fora do ar nao pode ser motivo para ninguem conseguir emitir nota.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const fn=js.slice(js.indexOf("async function buscarEnderecoPorCep"),js.indexOf("Object.keys(ESCOPOS_CEP)"));
+  assert.match(fn, /Preencha o endereço à mão/);
+  assert.doesNotMatch(fn, /\.disabled=true/, "nenhum campo do endereco pode ser desabilitado pela busca");
+  assert.doesNotMatch(fn, /\.value=''/, "falha na busca nao apaga o que ja estava digitado");
+});

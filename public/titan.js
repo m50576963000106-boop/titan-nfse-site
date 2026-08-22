@@ -1176,6 +1176,119 @@ function atualizarResumoEnderecoTomador(){
   const linha2=[qs('#t-bairro')?.value,[qs('#t-cidade')?.value,qs('#t-uf')?.value].filter(Boolean).join('/')].filter(Boolean).join(' — ');
   el.textContent=[linha1,linha2].filter(Boolean).join(' · ')||'Endereço ainda não informado.';
 }
+/* ---------- busca de endereço por CEP (21/08/2026) ----------------------- */
+/**
+ * Tomador pessoa física não tem CNPJ de onde puxar cadastro: até aqui o
+ * operador digitava CEP, logradouro, número, bairro, cidade, UF e o CÓDIGO
+ * IBGE do município — sete dígitos que ninguém sabe de cabeça e que a DPS
+ * exige. Digitado à mão é a fonte perfeita de erro mudo: um dígito trocado
+ * emite para o município errado, ou é rejeitado na Sefin. E no servidor
+ * (src/nfse/xml.ts) o endereço do tomador só entra no XML se município, CEP,
+ * logradouro, número e bairro estiverem TODOS preenchidos — falta um e o grupo
+ * inteiro é descartado em silêncio, e a nota sai sem endereço. Ou seja: isto
+ * não é conveniência, é o que faz o endereço chegar na nota.
+ *
+ * UMA função para os dois lugares (emissão e cadastro de cliente). O que muda
+ * entre eles é só o mapa de campos — inclusive o fato de o cadastro não ter
+ * logradouro e bairro separados, e sim uma linha de endereço só.
+ */
+const ESCOPOS_CEP={
+  emissao:{cep:'t-cep',logradouro:'t-end',bairro:'t-bairro',cidade:'t-cidade',uf:'t-uf',ibge:'t-municipio',status:'t-cep-status',conflito:'t-cep-conflito',conflitoTexto:'t-cep-conflito-texto',depois:()=>atualizarResumoEnderecoTomador()},
+  cliente:{cep:'cl-cep',linhaEndereco:'cl-end',cidade:'cl-cidade',uf:'cl-uf',ibge:'cl-mun',status:'cl-cep-status',conflito:'cl-cep-conflito',conflitoTexto:'cl-cep-conflito-texto'}
+};
+const ROTULOS_CEP={logradouro:'Logradouro',bairro:'Bairro',linhaEndereco:'Endereço',cidade:'Município',uf:'UF',ibge:'Código IBGE'};
+const cepBuscaTimer={},cepEmBusca={},cepJaBuscado={},cepPendente={};
+
+function valoresDoCep(escopo,dados){
+  const valores={};
+  // Cadastro de cliente guarda o endereço numa linha só; a busca devolve
+  // logradouro e bairro separados e o número continua sendo do operador.
+  if(escopo.linhaEndereco)valores.linhaEndereco=[dados.street,dados.district].filter(Boolean).join(', ');
+  else{valores.logradouro=dados.street||'';valores.bairro=dados.district||'';}
+  valores.cidade=dados.city||'';valores.uf=dados.state||'';valores.ibge=dados.municipalityCode||'';
+  return valores;
+}
+/**
+ * Preenche o que está VAZIO e nunca sobrescreve o que o operador digitou:
+ * mesma decisão que este projeto acabou de tomar nas informações
+ * complementares (aplicarInfoComplementaresDoPerfil). O valor digitado à mão é
+ * o único que não está guardado em lugar nenhum — e num endereço a diferença
+ * costuma ser proposital (nome antigo do logradouro, distrito que a base dos
+ * Correios ainda não tem). Onde há divergência, mostra as duas versões e o
+ * botão: a troca é escolha dele, não surpresa.
+ */
+function aplicarValoresDoCep(nome,valores,forcar){
+  const escopo=ESCOPOS_CEP[nome],conflitos=[],pendente={};
+  Object.keys(valores).forEach(chave=>{
+    const id=escopo[chave];if(!id)return;
+    const el=qs('#'+id),valor=valores[chave];
+    if(!el||!valor)return;
+    // Trava do tomador (CAMPOS_TOMADOR_TRAVAVEIS): quando os campos vieram de
+    // um cliente cadastrado eles ficam readOnly, e o endereço da nota tem que
+    // continuar idêntico ao cadastro oficial — a busca por CEP não passa por
+    // cima da trava, nem "só neste campo".
+    if(el.readOnly||el.disabled)return;
+    const atual=(el.value||'').trim();
+    if(!atual||forcar){el.value=valor;return}
+    if(atual.toLocaleUpperCase('pt-BR')!==valor.toLocaleUpperCase('pt-BR')){conflitos.push(chave);pendente[chave]=valor}
+  });
+  if(escopo.depois)escopo.depois();
+  return{conflitos,pendente};
+}
+function mostrarConflitoCep(nome,conflitos,pendente){
+  const escopo=ESCOPOS_CEP[nome],box=qs('#'+escopo.conflito),texto=qs('#'+escopo.conflitoTexto);
+  cepPendente[nome]=pendente;
+  if(!box)return;
+  if(!conflitos.length){box.style.display='none';return}
+  if(texto)texto.innerHTML='Mantivemos o que você já tinha digitado. O CEP trouxe '+conflitos.map(chave=>`<b>${esc(ROTULOS_CEP[chave])}</b>: ${esc(pendente[chave])}`).join(' · ')+'.';
+  box.style.display='flex';
+}
+function usarEnderecoDoCep(nome){
+  aplicarValoresDoCep(nome,cepPendente[nome]||{},true);
+  const box=qs('#'+ESCOPOS_CEP[nome].conflito);if(box)box.style.display='none';
+}
+/**
+ * Dispara ao completar os 8 dígitos, não no blur. O campo fica no meio do
+ * bloco de endereço e a pessoa segue digitando logradouro e número logo
+ * abaixo: esperar o foco sair significaria preencher POR CIMA do caminho dela,
+ * enquanto no celular (teclado numérico) o blur às vezes só acontece quando o
+ * formulário inteiro já foi preenchido à mão. O blur fica como rede de
+ * segurança para colar/autopreencher, e cepJaBuscado evita a busca repetida.
+ */
+function agendarBuscaCep(nome){
+  clearTimeout(cepBuscaTimer[nome]);
+  cepBuscaTimer[nome]=setTimeout(()=>buscarEnderecoPorCep(nome),300);
+}
+async function buscarEnderecoPorCep(nome){
+  const escopo=ESCOPOS_CEP[nome];if(!escopo)return;
+  const campo=qs('#'+escopo.cep);if(!campo||campo.readOnly||campo.disabled)return;
+  const status=qs('#'+escopo.status),conflito=qs('#'+escopo.conflito),cep=(campo.value||'').replace(/\D/g,'');
+  if(cep.length!==8){cepJaBuscado[nome]='';if(status)status.textContent='';if(conflito)conflito.style.display='none';return}
+  if(cepEmBusca[nome]||cepJaBuscado[nome]===cep)return;
+  cepEmBusca[nome]=true;
+  if(conflito)conflito.style.display='none';
+  if(status)status.textContent='Buscando endereço do CEP...';
+  try{
+    const dados=await api('/api/locations/cep/'+cep);
+    // Só marca como buscado quando deu certo: se falhou, sair do campo tenta
+    // de novo em vez de deixar o operador preso na mensagem de erro.
+    cepJaBuscado[nome]=cep;
+    const {conflitos,pendente}=aplicarValoresDoCep(nome,valoresDoCep(escopo,dados));
+    mostrarConflitoCep(nome,conflitos,pendente);
+    if(status)status.textContent=dados.municipalityCodeNotice||`Endereço preenchido pelo CEP — código IBGE ${dados.municipalityCode}.`;
+  }catch(error){
+    // Falha na busca não pode travar a digitação manual: nada é apagado, nenhum
+    // campo é desabilitado, e a mensagem diz que dá pra seguir à mão — que é
+    // exatamente como o portal funcionava antes desta busca existir.
+    if(status)status.textContent=(error.message||'Não foi possível consultar o CEP.')+' Preencha o endereço à mão.';
+  }finally{cepEmBusca[nome]=false}
+}
+Object.keys(ESCOPOS_CEP).forEach(nome=>{
+  const campo=qs('#'+ESCOPOS_CEP[nome].cep);if(!campo)return;
+  campo.addEventListener('input',()=>agendarBuscaCep(nome));
+  campo.addEventListener('blur',()=>buscarEnderecoPorCep(nome));
+});
+
 function preencherCliente(cliente){
   clienteAtualEmissao=cliente?.id?cliente:null;
   qs('#t-doc').value=cliente.tax_id||'';
