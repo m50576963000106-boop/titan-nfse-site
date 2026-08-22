@@ -2128,6 +2128,55 @@ test("PDF e XML só aparecem na atividade quando existe documento", async()=>{
   assert.match(trecho, /baixarXml\(/);
 });
 
+test("a busca do topo não oferece ao cliente as telas do Master", async()=>{
+  // O cliente digitava "planos", "parceiros" ou "logs" e o campo prometia abrir
+  // a tela administrativa. O Enter disparava e o servidor recusava com 403 —
+  // acesso nunca houve; o defeito é a promessa quebrada.
+  //
+  // A causa: getComputedStyle devolve o display do ELEMENTO, não o do pai, e as
+  // duas superfícies do Master são escondidas pelo contêiner. Os botões lá
+  // dentro tinham display próprio normal e passavam pelo filtro.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const i=js.indexOf("function buscarNoPortal(value)");
+  const trecho=js.slice(i, js.indexOf("\n}", i));
+  assert.match(trecho,/const ehMaster=Boolean\(JSON\.parse\(sessionStorage\.getItem\(STORAGE_SESSION\)\|\|'\{\}'\)\.user\?\.isMaster\)/);
+  assert.match(trecho,/ehMaster\|\|!el\.closest\('#master-menu,\.admin-sidebar'\)/);
+  // O corte é por PAPEL, não por o botão estar renderizado — e isso é
+  // deliberado: item de grupo recolhido (.sb-submenu sem .on) também tem o pai
+  // em display:none, e Recebimentos/DASN precisam continuar sendo achados com o
+  // grupo Financeiro fechado, que é justamente para o que a busca serve.
+  assert.match(trecho,/getComputedStyle\(el\)\.display!=='none'/,"o filtro por botão escondido individualmente continua valendo");
+  assert.doesNotMatch(trecho,/offsetParent|checkVisibility|getClientRects/,"checagem de renderização aqui derrubaria item de grupo recolhido");
+  // O seletor só vale enquanto as duas superfícies forem as únicas do Master.
+  // Botão administrativo fora delas escaparia do corte em silêncio.
+  const inicio=html.indexOf('id="master-menu"'),fim=html.indexOf('<div class="sb-foot">');
+  assert.ok(inicio>0&&fim>inicio);
+  const fora=[...html.matchAll(/data-master-tab=/g)].filter(m=>m.index<inicio||m.index>fim);
+  assert.equal(fora.length,0,"todo botão do Master tem de morar em #master-menu ou .admin-sidebar — é o que o filtro da busca reconhece");
+});
+
+test("trocar de aba do Master exige ser Master, igual à navegação normal", async()=>{
+  // masterTab() era a única porta da administração sem porteiro: go() confere,
+  // ela não conferia. O servidor recusa toda rota de Master com 403, então não
+  // havia acesso a dar — mas dava para abrir o esqueleto das telas e ficar
+  // olhando card vazio de erro sem entender que aquilo não é seu.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const i=js.indexOf("function masterTab(tab,button)");
+  const corpo=js.slice(i, js.indexOf("\n}", i));
+  assert.match(corpo,/if\(!JSON\.parse\(sessionStorage\.getItem\(STORAGE_SESSION\)\|\|'\{\}'\)\.user\?\.isMaster\)\{/);
+  // Mesma frase de go('master'): duas portas para a mesma área não podem
+  // explicar a recusa com palavras diferentes.
+  const mensagem="Esta área é exclusiva do administrador master.";
+  assert.ok(corpo.includes(mensagem),"a guarda precisa dizer o mesmo que go('master')");
+  const gi=js.indexOf("function go(v,el,limpar)");
+  assert.ok(js.slice(gi, js.indexOf("\n}", gi)).includes(mensagem));
+  // A guarda vem ANTES de qualquer efeito: sair no meio deixaria as abas
+  // meio trocadas, que é pior do que não trocar.
+  assert.ok(corpo.indexOf(mensagem) < corpo.indexOf("qsa('.master-panel')"),
+    "a recusa tem de acontecer antes de mexer nos painéis");
+});
+
 test("a busca do topo cumpre o que o placeholder promete: nota e cliente, não só menu", async()=>{
   // Ela prometia "módulo, cliente ou nota" e só sabia navegar no menu. Quem
   // digitava o número da nota não recebia nada e concluía que o portal não tinha.

@@ -247,7 +247,31 @@ function buscarNoPortal(value){
   // Item desativado sai da lista junto com o que o acesso escondeu: oferecer
   // "Enter para abrir" algo que o cliente não pode abrir é a mesma promessa
   // quebrada em outra roupa.
-  const links=qsa('.sb-link').filter(el=>!el.disabled&&getComputedStyle(el).display!=='none');
+  //
+  // A checagem de display cobre o que aplicarAcesso() escondeu botão a botão
+  // (style inline no próprio elemento), mas NÃO cobre as telas do Master:
+  // getComputedStyle devolve o display do elemento, não o do pai — e as duas
+  // superfícies do Master estão escondidas pelo CONTÊINER (#master-menu leva
+  // style="display:none" e .admin-sidebar leva display:none no CSS). Os botões
+  // lá dentro continuavam com display próprio normal e entravam na busca: o
+  // cliente digitava "planos", "parceiros" ou "logs" e o campo prometia abrir a
+  // tela administrativa. O Enter disparava e o servidor recusava com 403 —
+  // acesso nunca houve, mas a promessa quebrada é o defeito.
+  //
+  // O corte é por PAPEL, e não por o botão estar renderizado, de propósito:
+  // item dentro de grupo recolhido (.sb-submenu sem .on) também está com o pai
+  // em display:none, e Recebimentos/DASN precisam continuar acháveis com o
+  // grupo Financeiro fechado — é o que a busca serve para resolver.
+  //
+  // Só o administrador master vê as duas superfícies. Parceiro que abre uma
+  // empresa da carteira dele entra com sessão de operação daquele CNPJ
+  // (isMaster falso), então recebe o mesmo menu do cliente, que é o que ele
+  // pode de fato operar ali.
+  const ehMaster=Boolean(JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}').user?.isMaster);
+  const links=qsa('.sb-link').filter(el=>
+    !el.disabled&&getComputedStyle(el).display!=='none'
+    &&(ehMaster||!el.closest('#master-menu,.admin-sidebar'))
+  );
   // Apelido que não casa CAI na busca por texto em vez de desistir. Era esse o
   // caso de "orçamento": o apelido ATRAPALHAVA — sem ele o texto do próprio
   // botão já respondia, com ele a busca terminava em "nenhum módulo".
@@ -5316,6 +5340,16 @@ async function selecionarEmpresaAdmin(companyId){
 qs('#admin-company-switch')?.addEventListener('click',event=>event.stopPropagation());document.addEventListener('click',fecharSeletorEmpresaAdmin);document.addEventListener('keydown',event=>{if(event.key==='Escape')fecharSeletorEmpresaAdmin()});
 
 function masterTab(tab,button){
+  // Mesma guarda que go('master') já faz, com a mesma frase: esta função troca
+  // de aba DENTRO da área do Master e não conferia nada, então era a única
+  // porta da administração sem porteiro. O servidor recusa toda rota de Master
+  // com 403 — não havia acesso a dar —, mas quem chegasse aqui abria o
+  // esqueleto das telas administrativas e ficava olhando cards vazios de erro,
+  // sem entender que aquilo simplesmente não é dele.
+  if(!JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}').user?.isMaster){
+    alert('Esta área é exclusiva do administrador master.');
+    return;
+  }
   if(tab==='usuarios')tab='clientes';
   qsa('.master-panel').forEach(panel=>panel.classList.toggle('active',panel.id===`master-panel-${tab}`));
   qsa('[data-master-tab]').forEach(item=>item.classList.toggle('active',item.dataset.masterTab===tab));
