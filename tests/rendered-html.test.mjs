@@ -2630,3 +2630,15 @@ test("erro de validação da API sai em português, com o nome do campo da tela"
   assert.match(fn, /if\(!conhecido\)return/);
   assert.match(fn, /item\?\.message/);
 });
+
+test("os cartoes de contrato do Master existem uma vez so", async()=>{
+  // 22/08/2026: os dois cartoes estavam escritos DUAS vezes no HTML, criando
+  // ids duplicados. qs() devolve sempre o primeiro, entao a segunda copia nunca
+  // recebia texto nenhum — e publicar por ela gravaria o contrato VAZIO, com
+  // todo parceiro caindo em modo leitura ate aceitar um documento em branco.
+  const html=await lerPortal();
+  for(const id of ["partner-contract-body","partner-term-body","partner-contract-pill","partner-term-master-pill","partner-contract-history","partner-term-history"]){
+    const vezes=html.split(`id="${id}"`).length-1;
+    assert.equal(vezes, 1, `id ${id} aparece ${vezes}x — id repetido faz qs() pegar so o primeiro`);
+  }
+});
