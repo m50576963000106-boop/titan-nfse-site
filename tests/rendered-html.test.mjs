@@ -2577,3 +2577,56 @@ test("Logs da API tem item de menu, com a permissão que a rota exige", async ()
   assert.match(js, /if\(v==='logs'\)carregarLogsApi\(\);/);
   assert.match(js, /api\('\/api\/invoices\/logs'\)/);
 });
+
+test("nenhum rótulo aponta para campo de outro bloco", async () => {
+  // O do modal "Cancelar NFS-e" apontava para o CNPJ de OUTRO modal: tocar no
+  // texto não marcava a confirmação, e sobrava só o quadradinho de ~13px.
+  const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  assert.match(html, /<label for="cancel-confirm"[^>]*><input id="cancel-confirm"/);
+  const errados = [];
+  for (const m of html.matchAll(/<label\b[^>]*\bfor="([^"]+)"[^>]*>[\s\S]*?<\/label>/g)) {
+    const dentro = [...m[0].matchAll(/<(?:input|select|textarea)\b[^>]*\bid="([^"]+)"/g)].map((x) => x[1]);
+    if (dentro.length && !dentro.includes(m[1])) errados.push(`${m[1]} -> ${dentro.join(",")}`);
+  }
+  assert.deepEqual(errados, [], `rótulo apontando para o campo errado: ${errados.join(" | ")}`);
+  // Rótulo de selo, imagem ou espaçador não empresta o `for` do campo vizinho.
+  for (const orfao of ['mm-geral', 'mm-portal', 'mm-zap', 'plan-code">&nbsp;', 'set-pix-enabled">Prévia', 's-mun"', 'e-mun"']) {
+    assert.ok(!html.includes(`<label for="${orfao}`), `rótulo ainda aponta para ${orfao}`);
+  }
+});
+
+test("a importação do DASN diz quantos meses entraram, e avisa quando não entrou nenhum", async () => {
+  // A rota nunca devolveu `mensagem`: o alert caía SEMPRE no texto fixo, com
+  // doze meses gravados ou com zero.
+  const js = await readFile(resolve(root, "public/titan.js"), "utf8");
+  assert.doesNotMatch(js, /alert\(r\?\.mensagem/);
+  const importar = js.slice(js.indexOf("async function importarDasnDoPortal()"), js.indexOf("async function baixarDasnPdf()"));
+  assert.doesNotMatch(importar, /Importação concluída para/, "o texto fixo que aparecia com zero mês gravado");
+  const fn = js.slice(js.indexOf("function resumoImportacaoDasn("), js.indexOf("async function importarDasnDoPortal()"));
+  for (const campo of ["mesesGravados", "totalGravado", "ignoradosPorDuplicidade", "ignoradosPorNaoSerPrestador", "ignoradosSemValor"]) {
+    assert.match(fn, new RegExp(`r\\?\\.${campo}`), `${campo} vem da rota e estava sendo jogado fora`);
+  }
+  assert.match(fn, /Nenhum mês de \$\{ano\} foi gravado/);
+  assert.match(fn, /Nenhum documento de \$\{ano\} foi encontrado no Portal Nacional/);
+  // Bloco que fica na tela, não alerta que some no OK.
+  const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  assert.match(html, /<div id="dasn-import-result"/);
+  assert.match(js, /qs\('#dasn-import-result'\)/);
+});
+
+test("erro de validação da API sai em português, com o nome do campo da tela", async () => {
+  // "postalCode: String must contain exactly 8 character(s)" numa tela em
+  // português. A API é de outro repositório; a tradução mora aqui.
+  const js = await readFile(resolve(root, "public/titan.js"), "utf8");
+  assert.doesNotMatch(js, /\$\{item\.field\|\|'campo'\}: \$\{item\.message\}/);
+  assert.match(js, /data\.details\.map\(descreverErroDeCampo\)/);
+  const mapa = js.slice(js.indexOf("const CAMPOS_API_PT="), js.indexOf("function descreverErroDeCampo"));
+  assert.match(mapa, /postalCode:\['CEP'/);
+  assert.match(mapa, /municipalityCode:\['Código IBGE do município'/);
+  assert.match(mapa, /taxId:\['CPF\/CNPJ'/);
+  // Campo desconhecido continua saindo cru: traduzir errado esconde qual campo
+  // de fato barrou o cadastro.
+  const fn = js.slice(js.indexOf("function descreverErroDeCampo"), js.indexOf("async function api(path"));
+  assert.match(fn, /if\(!conhecido\)return/);
+  assert.match(fn, /item\?\.message/);
+});

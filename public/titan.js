@@ -295,6 +295,50 @@ async function atualizarBadgeNovidades(){
   }catch{}
 }
 
+/**
+ * Erro de validação do servidor em português, com o nome do campo que o
+ * operador vê na tela.
+ *
+ * O servidor devolve `details:[{field,message}]` montado a partir do Zod, e o
+ * Zod fala inglês com o nome INTERNO do campo — "postalCode: String must
+ * contain exactly 8 character(s)" numa tela toda em português, dita para quem
+ * está cadastrando um cliente e digitou o CEP com 7 dígitos. Como a API é de
+ * outro repositório (e a mesma mensagem serve rotas que não são desta tela),
+ * a tradução é feita aqui.
+ *
+ * Só traduz o que reconhece. Campo desconhecido continua saindo cru: uma
+ * mensagem feia é ruim, mas uma mensagem traduzida ERRADA esconde qual campo
+ * de fato barrou o cadastro.
+ */
+const CAMPOS_API_PT={
+  postalCode:['CEP','informe os 8 dígitos, sem depender do traço (ex.: 80010-000).'],
+  municipalityCode:['Código IBGE do município','são 7 dígitos. Digite o nome da cidade no campo de busca para preencher sozinho.'],
+  taxId:['CPF/CNPJ','confira o número digitado — o dígito verificador não confere.'],
+  federalTaxId:['CNPJ da empresa','confira o número digitado — o dígito verificador não confere.'],
+  state:['UF','use a sigla de duas letras (ex.: PR).'],
+  legalName:['Razão social','obrigatória, com pelo menos 2 caracteres.'],
+  tradeName:['Nome fantasia',''],
+  email:['E-mail','endereço inválido (ex.: nome@empresa.com.br).'],
+  emailAlt:['E-mail alternativo','endereço inválido (ex.: nome@empresa.com.br).'],
+  accountantEmail:['E-mail do contador','endereço inválido (ex.: nome@empresa.com.br).'],
+  phone:['Telefone',''],
+  street:['Logradouro',''],
+  number:['Número',''],
+  complement:['Complemento',''],
+  district:['Bairro',''],
+  city:['Cidade',''],
+  address:['Endereço',''],
+  municipalRegistration:['Inscrição municipal','']
+};
+function descreverErroDeCampo(item){
+  const campo=String(item?.field||'');
+  // O caminho do Zod vem com pontos ("borrower.postalCode"); o que interessa
+  // é a última parte, que é o nome do campo em si.
+  const conhecido=CAMPOS_API_PT[campo]||CAMPOS_API_PT[campo.split('.').pop()];
+  if(!conhecido)return `${campo||'campo'}: ${item?.message||'valor inválido'}`;
+  const [rotulo,ajuda]=conhecido;
+  return `${rotulo}: ${ajuda||'valor inválido.'}`;
+}
 async function api(path,options={}){
   if(!API_URL)throw new Error('O servidor seguro ainda não foi vinculado a este endereço.');
   const token=sessionStorage.getItem(STORAGE_TOKEN);
@@ -305,7 +349,7 @@ async function api(path,options={}){
   });
   const data=await response.json().catch(()=>({}));
   if(!response.ok){
-    const details=Array.isArray(data.details)?data.details.map(item=>`${item.field||'campo'}: ${item.message}`).join('; '):'';
+    const details=Array.isArray(data.details)?data.details.map(descreverErroDeCampo).join(' '):'';
     const error=new Error(details||data.error||data.message||'Falha de comunicação com o servidor.');error.status=response.status;error.code=data.code;throw error;
   }
   return data;
@@ -1235,14 +1279,60 @@ async function removerDasnManual(year,month){
   try{await api('/api/dasn/manual',{method:'POST',body:JSON.stringify({year,month,amount:0,notes:'Lançamento manual zerado pelo usuário.'})});await carregarDasn()}
   catch(error){alert(error.message)}
 }
+/**
+ * Texto do resultado de POST /api/dasn/importar-portal.
+ *
+ * A rota nunca devolveu campo `mensagem`: o `r?.mensagem||...` que estava aqui
+ * caía SEMPRE no texto fixo "Importação concluída para 2026", tendo gravado
+ * doze meses ou nenhum. E ela devolve tudo o que faltava dizer —
+ * `mesesGravados`, `totalGravado` e os três contadores de descarte
+ * (`ignoradosPorDuplicidade`, `ignoradosPorNaoSerPrestador`,
+ * `ignoradosSemValor`, ver src/dasn/receita-do-portal.ts na API).
+ *
+ * Zero meses é o caso que mais importava e era o mais escondido: cada motivo
+ * de descarte aponta para uma AÇÃO diferente (nota já contada como emitida
+ * aqui, documento em que a empresa é tomadora, XML sem valor ou sem
+ * competência), e nenhum descarte com nenhum mês significa que a busca no
+ * Portal ainda não trouxe documento nenhum — problema de certificado, não de
+ * DASN.
+ */
+function resumoImportacaoDasn(r,ano){
+  const meses=Number(r?.mesesGravados||0),total=Number(r?.totalGravado||0);
+  const dupl=Number(r?.ignoradosPorDuplicidade||0);
+  const naoPrestador=Number(r?.ignoradosPorNaoSerPrestador||0);
+  const semValor=Number(r?.ignoradosSemValor||0);
+  const descartes=[];
+  if(dupl)descartes.push(`${dupl} já contada(s) como nota emitida pelo TITAN`);
+  if(naoPrestador)descartes.push(`${naoPrestador} em que a empresa é tomadora, não prestadora`);
+  if(semValor)descartes.push(`${semValor} sem valor ou sem competência no XML`);
+  const rodape=descartes.length?`<br>Documentos ignorados: ${esc(descartes.join('; '))}.`:'';
+  if(meses>0)return{
+    variante:'a-ok',
+    html:`<b>${meses} mês(es) de ${ano} gravado(s), somando R$ ${brl(total)}.</b> Os valores substituíram o que havia como origem "Portal" — o que você lançou à mão e o que o TITAN emitiu continuam intactos.${rodape}`
+  };
+  if(descartes.length)return{
+    variante:'a-warn',
+    html:`<b>Nenhum mês de ${ano} foi gravado.</b> Documentos foram encontrados, mas todos foram descartados.${rodape}`
+  };
+  return{
+    variante:'a-warn',
+    html:`<b>Nenhum documento de ${ano} foi encontrado no Portal Nacional.</b> A apuração lê o que a busca do Portal já trouxe para a base local — se ela nunca rodou, ou se o certificado não está válido, não há o que apurar. Rode "Buscar dados do Portal Nacional" em Configurações antes de tentar de novo.`
+  };
+}
 async function importarDasnDoPortal(){
-  const btn=qs('#dasn-import-btn'),year=Number(qs('#dasn-year').value)||new Date().getFullYear();
+  const btn=qs('#dasn-import-btn'),caixa=qs('#dasn-import-result');
+  const year=Number(qs('#dasn-year').value)||new Date().getFullYear();
   if(btn)btn.disabled=true;
+  if(caixa){caixa.style.display='';caixa.innerHTML='<div class="hint">Apurando no Portal Nacional...</div>';}
   try{
     const r=await api('/api/dasn/importar-portal',{method:'POST',body:JSON.stringify({year})});
     await carregarDasn();
-    alert(r?.mensagem||`Importação concluída para ${year}.`);
-  }catch(error){alert(error.message)}
+    const resumo=resumoImportacaoDasn(r,year);
+    if(caixa)caixa.innerHTML=`<div class="alert ${resumo.variante}"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><div>${resumo.html}</div></div>`;
+  }catch(error){
+    if(caixa)caixa.innerHTML=`<div class="alert a-err"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div><b>A importação não foi concluída.</b><br>${esc(error.message)}</div></div>`;
+    else alert(error.message);
+  }
   finally{if(btn)btn.disabled=false}
 }
 async function baixarDasnPdf(){
