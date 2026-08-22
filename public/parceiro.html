@@ -223,7 +223,7 @@
       <div class="card-b">
         <div id="licencas-uso-status" class="partner-status">Carregando licenças...</div>
         <div class="table-wrap"><table id="licencas-uso-table" class="tbl-cards-mobile" style="display:none">
-          <thead><tr><th>Empresa</th><th>Plano</th><th>Custo</th><th>Revenda</th><th>Margem</th><th>Situação</th><th>Ações</th></tr></thead>
+          <thead><tr><th>Empresa</th><th>Plano</th><th>Custo</th><th>Revenda</th><th>Margem</th><th>Situação</th><th>Termo do cliente</th><th>Ações</th></tr></thead>
           <tbody id="licencas-uso-rows"></tbody>
         </table></div>
         <div class="form-status" id="licencas-uso-acao" role="status"></div>
@@ -685,6 +685,12 @@
         const [classe,rotulo]=LICENCA_SITUACAO[linha.status]||['p-off',linha.status];
         const margem=Number(linha.resale_price_cents||0)-Number(linha.unit_cost_cents||0);
         const bloqueio=linha.license_blocked?'<br><span class="pill p-err">Bloqueada por atraso</span>':'';
+        // O termo entre parceiro e cliente é aceito no portal DO CLIENTE — o
+        // parceiro só acompanha. Enquanto pendente, o vínculo existe na
+        // prática mas não está formalizado por escrito com aquele cliente.
+        const termo=linha.term_accepted_at
+          ?`<span class="pill p-ok">Aceito</span><br><span class="hint">${formatarData(linha.term_accepted_at)}</span>`
+          :'<span class="pill p-warn">Aguardando o cliente</span>';
         const distrato=linha.termination_status==='pending'
           ?`<br><span class="pill p-warn">Distrato aguardando o cliente</span>`
           :'';
@@ -703,6 +709,7 @@
           <td data-th="Revenda">${reais(linha.resale_price_cents)}</td>
           <td data-th="Margem">${reais(margem)}</td>
           <td data-th="Situação"><span class="pill ${classe}">${rotulo}</span>${bloqueio}${distrato}</td>
+          <td data-th="Termo do cliente">${termo}</td>
           <td data-th="Ações"><div class="acts">${acoes}</div></td>
         </tr>`;
       }).join('');
