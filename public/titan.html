@@ -1081,8 +1081,20 @@
             <div class="hint" style="margin-top:8px">O lápis (✎) de cada mês traz o <b>ajuste manual</b> daquele mês para o formulário acima, não o total — o total é a soma das origens.</div>
           </div></div>
         </div>
-        <div class="card"><div class="card-h"><h2>Resumo anual — <span id="dasn-ano-label">—</span></h2><span id="dasn-total" class="pill p-gold">R$ 0,00</span></div>
+        <div class="card"><div class="card-h"><h2>Resumo anual — <span id="dasn-ano-label">—</span></h2></div>
           <div class="card-b">
+            <!-- Os três totais do pedido do dono (21/08/2026): "valor anual, o
+                 total do ano. E o total ali que tem no notas emitidas." Saíram
+                 da pílula do canto para o corpo do card porque é o número que
+                 vai para a declaração, e o que o TITAN emitiu não aparecia em
+                 lugar nenhum. Todos vêm somados do servidor
+                 (consolidacao.porOrigem): somar os meses aqui faria o número
+                 depender de a lista ter chegado inteira. -->
+            <div class="dasn-totais">
+              <div class="kpi"><div class="lbl">Receita bruta do ano</div><div class="val" id="dasn-total">R$ 0,00</div><div class="delta">Soma das quatro origens.</div></div>
+              <div class="kpi"><div class="lbl">Emitido pelo TITAN</div><div class="val" id="dasn-total-titan">R$ 0,00</div><div class="delta" id="dasn-total-titan-notas">Nenhuma nota emitida aqui.</div></div>
+              <div class="kpi"><div class="lbl">Importado do Portal</div><div class="val" id="dasn-total-portal">R$ 0,00</div><div class="delta" id="dasn-total-outros">Ajustes manuais: R$ 0,00</div></div>
+            </div>
             <div id="dasn-aviso" class="hint" style="display:none;margin-bottom:10px"></div>
             <div class="tbl-scroll"><table class="tbl-cards-mobile">
               <thead><tr><th>Mês</th><th style="text-align:right">Receita bruta (R$)</th><th>Situação</th><th>Fonte</th><th style="text-align:right">Ações</th></tr></thead>

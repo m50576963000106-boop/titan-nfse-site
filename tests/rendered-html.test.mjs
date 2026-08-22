@@ -2672,3 +2672,22 @@ test("DASN: a situacao do mes sai do dado, nao de valor maior que zero", async()
   assert.match(js, /notas>0\)return `<span class="pill p-ok"/);
   assert.match(js, /Não apurada<\/span>'/, "sem dado, a tela nao afirma situacao nenhuma");
 });
+
+test("DASN: os tres totais do ano ficam no corpo do card e vem somados do servidor", async()=>{
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  for(const id of ["dasn-total","dasn-total-titan","dasn-total-titan-notas","dasn-total-portal","dasn-total-outros"]){
+    assert.match(html, new RegExp(`id="${id}"`), `${id} sumiu da faixa de totais`);
+  }
+  assert.match(html, /<div class="lbl">Receita bruta do ano<\/div>/);
+  assert.match(html, /<div class="lbl">Emitido pelo TITAN<\/div>/);
+  assert.match(html, /<div class="lbl">Importado do Portal<\/div>/);
+  assert.doesNotMatch(html, /<span id="dasn-total" class="pill p-gold">/,
+    "o total do ano era uma pilula do tamanho de um rotulo; e o numero da declaracao");
+  // Somado no servidor: `consolidacao.porOrigem` e `notasDoTitan`. Refazer a
+  // conta no navegador a partir de `meses` daria numero errado no dia em que a
+  // lista chegasse filtrada.
+  assert.match(js, /origens=consolidacao\.porOrigem\|\|\{\}/);
+  assert.match(js, /Number\(consolidacao\.notasDoTitan\|\|0\)/);
+  assert.doesNotMatch(js, /meses\.reduce\(\(s,m\)=>s\+Number\(m\.porOrigem/);
+});

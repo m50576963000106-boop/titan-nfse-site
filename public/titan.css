@@ -1143,3 +1143,12 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
    precisam continuar vencendo. */
 body:not(.portal-admin) #li-mail-wrap{display:none}
 .portal-admin #li-cnpj-wrap{display:none}
+
+/* Faixa de totais do DASN-SIMEI (22/08/2026). O card vive em meia largura da
+   grade `g2`, e `.g3` só quebra em 900px: três colunas fixas cortariam
+   "R$ 128.450,00" no meio no desktop. auto-fit resolve pela largura real do
+   card, e o valor desce um ponto porque aqui são três números lado a lado, não
+   um KPI solto de dashboard. */
+.dasn-totais{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:12px}
+.dasn-totais .kpi{padding:12px 13px}
+.dasn-totais .val{font-size:20px}

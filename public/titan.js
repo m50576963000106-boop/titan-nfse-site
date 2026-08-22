@@ -1241,7 +1241,17 @@ async function carregarDasn(){
   const corpo=qs('#dasn-list');
   try{
     const data=await api('/api/dasn?year='+encodeURIComponent(year.value));
+    const consolidacao=data.consolidacao||{},origens=consolidacao.porOrigem||{};
+    // Os três totais do topo do card. Todos vêm somados pelo servidor: refazer
+    // a conta aqui a partir de `meses` daria o número certo hoje e um número
+    // errado no dia em que a lista chegar filtrada ou paginada.
     qs('#dasn-total').textContent='R$ '+brl(Number(data.total||0));
+    const elTitan=qs('#dasn-total-titan');if(elTitan)elTitan.textContent='R$ '+brl(Number(origens.titan||0));
+    const notasAno=Number(consolidacao.notasDoTitan||0),elNotas=qs('#dasn-total-titan-notas');
+    if(elNotas)elNotas.textContent=notasAno?`${notasAno} nota${notasAno>1?'s':''} autorizada${notasAno>1?'s':''} no ano.`:'Nenhuma nota emitida aqui neste ano.';
+    const elPortal=qs('#dasn-total-portal');if(elPortal)elPortal.textContent='R$ '+brl(Number(origens.portal||0));
+    const elOutros=qs('#dasn-total-outros'),xmlExterno=Number(origens.external_xml||0);
+    if(elOutros)elOutros.textContent=`Ajustes manuais: R$ ${brl(Number(origens.manual||0))}`+(xmlExterno?` · XML externo: R$ ${brl(xmlExterno)}`:'');
     const rotulo=qs('#dasn-ano-label');if(rotulo)rotulo.textContent=String(data.year||year.value);
     // O aviso do backend existe para o número não enganar quem declara: sem
     // certificado o Portal não devolve a receita anterior ao cadastro, e o
@@ -1250,7 +1260,7 @@ async function carregarDasn(){
     if(aviso){aviso.style.display=textoAviso?'':'none';aviso.textContent=textoAviso}
     // Os 12 meses SEMPRE, inclusive os vazios: quem declara precisa enxergar
     // o que ainda falta preencher, não só o que já tem valor.
-    const meses=data.consolidacao?.meses||[];
+    const meses=consolidacao.meses||[];
     corpo.innerHTML=DASN_MESES.map((nome,i)=>{
       const m=meses.find(x=>Number(x.mes)===i+1)||{total:0,porOrigem:{}};
       const valor=Number(m.total||0);
