@@ -1255,14 +1255,24 @@ function fonteDoMes(porOrigem){
 }
 // A situação que a tela SABE dizer, e só ela. A consolidação filtra
 // status='authorized' ao somar as notas emitidas aqui (consolidacao.ts), então
-// "4 autorizadas" é fato verificável. O que veio do Portal ou de ajuste manual
-// não tem situação apurada por este sistema — antes a tela escrevia "Ativa"
-// sempre que o valor era maior que zero, o que fazia um mês inteiro de
-// lançamento manual aparecer como nota ativa que nunca existiu.
+// "4 autorizadas" é fato verificável. Antes a tela escrevia "Ativa" sempre que
+// o valor era maior que zero, o que fazia um mês inteiro de lançamento manual
+// aparecer como nota ativa que nunca existiu.
+//
+// 22/08/2026: o mês que veio SÓ do Portal deixou de ser "Não apurada". A
+// apuração passou a cruzar cada nota com os eventos de cancelamento e de
+// substituição antes de somar (receita-do-portal.ts na API), então dizer que a
+// situação não é apurada virou mentira — e é justamente a pergunta do dono
+// ("tem que estar com a situação válida"). Mês que mistura Portal com ajuste
+// manual ou XML externo continua "Não apurada": a parte lançada à mão não tem
+// situação nenhuma, e afirmar pelo conjunto seria afirmar demais.
 function situacaoDoMes(m){
   const notas=Number(m?.notasDoTitan||0);
   if(notas>0)return `<span class="pill p-ok" title="${notas} nota(s) emitida(s) pelo TITAN e autorizada(s) neste mês. Cancelada não entra na receita.">${notas} autorizada${notas>1?'s':''}</span>`;
-  if(Number(m?.total||0)>0)return '<span class="hint" title="O valor deste mês veio do Portal Nacional ou de ajuste manual — não é nota emitida aqui, e a situação dela não é apurada por este sistema.">Não apurada</span>';
+  const o=m?.porOrigem||{};
+  if(Number(o.portal)>0&&!Number(o.manual)&&!Number(o.external_xml))
+    return '<span class="pill p-ok" title="Valor apurado nos documentos do Portal Nacional: nota cancelada e nota substituída ficaram de fora da soma.">Apurada no Portal</span>';
+  if(Number(m?.total||0)>0)return '<span class="hint" title="Este mês tem valor lançado à mão ou de XML externo — esse valor não tem situação apurada por este sistema.">Não apurada</span>';
   return '<span class="hint">—</span>';
 }
 async function carregarDasn(){
@@ -1362,23 +1372,61 @@ async function removerDasnManual(year,month){
  * Portal ainda não trouxe documento nenhum — problema de certificado, não de
  * DASN.
  */
+/**
+ * O que a apuração viu e NÃO soube resolver sozinha — nada disso é descarte, e
+ * por isso não entra na linha de "Documentos ignorados".
+ *
+ * 1. Substituída sem a substituta na base: a nota antiga CONTINUA somando,
+ *    porque descartar as duas apagaria receita que existiu. O total pode estar
+ *    alto, e quem declara precisa saber disso antes de transmitir.
+ * 2. Cancelada no Portal que o TITAN ainda tem como autorizada: o valor dela
+ *    entra pela origem "Emitido pelo TITAN", que a importação do Portal não
+ *    reescreve. É o número mais perigoso da tela, e some se ninguém avisar.
+ * 3. Tipo de documento que o sistema não conhece: os valores dele seguem sendo
+ *    apurados como sempre, mas o dono precisa ver que existe algo aqui que a
+ *    regra não classifica — em vez de descobrir pelo total errado.
+ */
+function avisosImportacaoDasn(r){
+  const avisos=[];
+  const semSubstituta=Number(r?.substituidasSemSubstituta||0);
+  const canceladasNoTitan=Number(r?.canceladasQueSeguemComoNotaDoTitan||0);
+  const tipos=Array.isArray(r?.tiposDeDocumentoNaoReconhecidos)?r.tiposDeDocumentoNaoReconhecidos:[];
+  if(semSubstituta)avisos.push(`Atenção: ${semSubstituta} nota(s) substituída(s) continuaram contando porque a nota substituta não veio na busca do Portal. Rode "Buscar dados do Portal Nacional" em Configurações e importe de novo — até lá, o total pode estar acima do real.`);
+  if(canceladasNoTitan)avisos.push(`Atenção: ${canceladasNoTitan} nota(s) emitida(s) aqui foram canceladas no Portal, mas continuam como autorizadas no TITAN e ainda somam em "Emitido pelo TITAN". Confira a situação delas em Notas emitidas.`);
+  if(tipos.length)avisos.push(`O Portal trouxe documento(s) de tipo que o sistema ainda não classifica (${tipos.join(', ')}). Eles continuaram sendo apurados como antes — vale conferir o mês em que aparecem.`);
+  return avisos;
+}
 function resumoImportacaoDasn(r,ano){
   const meses=Number(r?.mesesGravados||0),total=Number(r?.totalGravado||0);
   const dupl=Number(r?.ignoradosPorDuplicidade||0);
   const naoPrestador=Number(r?.ignoradosPorNaoSerPrestador||0);
   const semValor=Number(r?.ignoradosSemValor||0);
+  const canceladas=Number(r?.ignoradosPorCancelamento||0);
+  const substituidas=Number(r?.ignoradosPorSubstituicao||0);
   const descartes=[];
+  // Cancelada e substituída aparecem PRIMEIRO e separadas: são os dois
+  // descartes que mexem no valor da declaração, e o motivo de cada um é
+  // diferente — cancelada é receita que não existiu, substituída é receita que
+  // está na nota substituta. Num contador só, o dono lê um número e não sabe
+  // qual dos dois aconteceu.
+  if(canceladas)descartes.push(`${canceladas} cancelada(s) no Portal — receita que não existiu`);
+  if(substituidas)descartes.push(`${substituidas} substituída(s) — a receita está na nota que substituiu`);
   if(dupl)descartes.push(`${dupl} já contada(s) como nota emitida pelo TITAN`);
   if(naoPrestador)descartes.push(`${naoPrestador} em que a empresa é tomadora, não prestadora`);
   if(semValor)descartes.push(`${semValor} sem valor ou sem competência no XML`);
   const rodape=descartes.length?`<br>Documentos ignorados: ${esc(descartes.join('; '))}.`:'';
+  // O que a apuração NÃO conseguiu resolver sozinha. Não é descarte: é receita
+  // que continua somando e pode estar alta, ou documento que o sistema não
+  // sabe ler. Sai em linha própria para não se misturar com o que foi ignorado.
+  const alertas=avisosImportacaoDasn(r);
+  const rodapeAlertas=alertas.length?`<br>${alertas.map(esc).join('<br>')}`:'';
   if(meses>0)return{
-    variante:'a-ok',
-    html:`<b>${meses} mês(es) de ${ano} gravado(s), somando R$ ${brl(total)}.</b> Os valores substituíram o que havia como origem "Portal" — o que você lançou à mão e o que o TITAN emitiu continuam intactos.${rodape}`
+    variante:alertas.length?'a-warn':'a-ok',
+    html:`<b>${meses} mês(es) de ${ano} gravado(s), somando R$ ${brl(total)}.</b> Os valores substituíram o que havia como origem "Portal" — o que você lançou à mão e o que o TITAN emitiu continuam intactos.${rodape}${rodapeAlertas}`
   };
-  if(descartes.length)return{
+  if(descartes.length||alertas.length)return{
     variante:'a-warn',
-    html:`<b>Nenhum mês de ${ano} foi gravado.</b> Documentos foram encontrados, mas todos foram descartados.${rodape}`
+    html:`<b>Nenhum mês de ${ano} foi gravado.</b> Documentos foram encontrados, mas todos foram descartados.${rodape}${rodapeAlertas}`
   };
   return{
     variante:'a-warn',

@@ -2673,6 +2673,41 @@ test("DASN: a situacao do mes sai do dado, nao de valor maior que zero", async()
   assert.match(js, /Não apurada<\/span>'/, "sem dado, a tela nao afirma situacao nenhuma");
 });
 
+/**
+ * 22/08/2026, pedido do dono: "ignora substituída e cancelada". Nota cancelada
+ * ou substituída sair da soma muda o valor da declaracao — e um mes que encolhe
+ * sem explicacao e como nasce o proximo "cortou em marco". Os dois descartes
+ * chegam separados na resposta da rota (a API tem contadores distintos porque
+ * os motivos sao distintos: cancelada e receita que nao existiu, substituida e
+ * receita que esta na nota substituta) e precisam chegar separados a tela.
+ */
+test("DASN: a importacao diz quantas foram canceladas e quantas foram substituidas", async()=>{
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const fn=js.slice(js.indexOf("function resumoImportacaoDasn("), js.indexOf("async function importarDasnDoPortal()"));
+  assert.match(fn, /r\?\.ignoradosPorCancelamento/, "sem isto, o mes encolhe e ninguem sabe por que");
+  assert.match(fn, /r\?\.ignoradosPorSubstituicao/);
+  assert.match(fn, /cancelada\(s\) no Portal/);
+  assert.match(fn, /substitu[íi]da\(s\)/);
+  // Num contador so, o dono le um numero e nao sabe qual dos dois aconteceu.
+  assert.notEqual(fn.indexOf("ignoradosPorCancelamento"), fn.indexOf("ignoradosPorSubstituicao"));
+});
+
+test("DASN: o que a apuracao nao resolveu sozinha vira AVISO, nao descarte silencioso", async()=>{
+  // Substituida sem a substituta na base CONTINUA contando (descartar as duas
+  // apagaria receita real), cancelada no Portal que o TITAN ainda tem como
+  // autorizada segue somando pela origem 'titan', e tipo de documento
+  // desconhecido segue sendo apurado. Nenhum dos tres pode passar calado.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const fn=js.slice(js.indexOf("function avisosImportacaoDasn("), js.indexOf("function resumoImportacaoDasn("));
+  assert.ok(fn.length>0, "avisosImportacaoDasn sumiu");
+  for(const campo of ["substituidasSemSubstituta","canceladasQueSeguemComoNotaDoTitan","tiposDeDocumentoNaoReconhecidos"]){
+    assert.match(fn, new RegExp(`r\\?\\.${campo}`), `${campo} vem da rota e estava sendo jogado fora`);
+  }
+  // Reusa o bloco de resumo que a tela ja tem, em vez de um terceiro lugar.
+  assert.match(js, /const alertas=avisosImportacaoDasn\(r\)/);
+  assert.match(js, /qs\('#dasn-import-result'\)/);
+});
+
 test("DASN: os tres totais do ano ficam no corpo do card e vem somados do servidor", async()=>{
   const html=await readFile(resolve(root,"public/titan.html"),"utf8");
   const js=await readFile(resolve(root,"public/titan.js"),"utf8");
