@@ -5,9 +5,9 @@
 // "E-mail administrativo ou senha inválidos.". martyn-api-titan ainda roda com
 // NFSE_ENV=restricted, que emite nota marcada SEM VALIDADE JURÍDICA.
 //
-// Homologação (21/08/2026): o portal de teste (homolog.titanbackoffice.com.br)
-// fala com a API de teste. O padrão continua sendo produção — qualquer host
-// que não esteja no mapa se comporta exatamente como antes desta mudança.
-window.TITAN_API_URL = window.TITAN_API_URL || ({
-  "homolog.titanbackoffice.com.br": "https://titan-nfse-api-homolog.onrender.com"
-}[location.hostname] || "https://titan-nfse-api.onrender.com");
+// Houve um mapa de host→API aqui (21/08/2026) para o portal de homologação
+// falar com a API de homologação. O ambiente foi DESLIGADO em 22/08/2026 por
+// decisão do dono do produto, e o mapa saiu junto: endereço de serviço que não
+// existe mais é a pior espécie de comentário — quem lê depois acha que ainda
+// há um segundo ambiente para onde apontar, e vai procurar por ele.
+window.TITAN_API_URL = window.TITAN_API_URL || "https://titan-nfse-api.onrender.com";

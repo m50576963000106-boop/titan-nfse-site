@@ -45,16 +45,12 @@ const CANONICAL_ORIGIN = "https://nfse.titanbackoffice.com.br";
 // martyn/entrega-nota-whatsapp.ts no titan-nfse-api). /api/whatsapp/download/
 // é o formato antigo (token longo); mantido só para os links já mandados a
 // clientes continuarem abrindo dentro da janela de validade deles.
-// Homologação (21/08/2026): um segundo par site+API, isolado, para a bateria
-// de testes antes do lançamento. O host que atendeu o pedido decide qual API
-// responde — assim o link de download do Martyn de homologação não vai buscar
-// o arquivo na API de produção. Host desconhecido cai em produção, que é o
-// comportamento de sempre.
-const API_POR_HOST: Record<string, string> = {
-  "homolog.titanbackoffice.com.br": "https://titan-nfse-api-homolog.onrender.com"
-};
-const API_ORIGIN_PADRAO = "https://titan-nfse-api.onrender.com";
-const apiOrigin = (hostname: string): string => API_POR_HOST[hostname] ?? API_ORIGIN_PADRAO;
+//
+// Este destino já foi escolhido pelo host que atendeu o pedido, por causa do
+// par site+API de homologação (21/08/2026). O ambiente foi desligado em
+// 22/08/2026 e a escolha voltou a ser uma constante: com um backend só, o mapa
+// virava indireção que não decide nada e ainda sugeria um segundo ambiente.
+const API_ORIGIN = "https://titan-nfse-api.onrender.com";
 const DOWNLOAD_PATH_PREFIXES = ["/n/", "/api/whatsapp/download/"];
 
 function mapLegacyPath(pathname: string): string {
@@ -80,7 +76,7 @@ const worker = {
     // Link de download de nota (XML/ZIP) mandado pelo Martyn: repassa para a
     // API real, sem redirecionar — o cliente nunca vê o domínio do Render.
     if (DOWNLOAD_PATH_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) {
-      const target = new URL(url.pathname + url.search, apiOrigin(url.hostname));
+      const target = new URL(url.pathname + url.search, API_ORIGIN);
       return fetch(new Request(target, request));
     }
 
@@ -148,8 +144,10 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data:",
-  // Os dois backends nossos: produção e homologação. Nenhum host de terceiro.
-  "connect-src 'self' https://titan-nfse-api.onrender.com https://titan-nfse-api-homolog.onrender.com",
+  // Só o backend nosso. A API de homologação saiu daqui em 22/08/2026, junto
+  // com o ambiente: origem liberada no connect-src é permissão para mandar dado
+  // fiscal para fora, e não se deixa permissão de pé para host que não existe.
+  "connect-src 'self' https://titan-nfse-api.onrender.com",
   "frame-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
