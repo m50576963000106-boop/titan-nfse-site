@@ -6287,16 +6287,10 @@ function cancelarEdicaoParceiroMaster(){
 // exatamente o relato do usuário.
 async function redefinirSenhaParceiroMaster(id){
   const partner=masterData?.partners.find(item=>item.id===id);
-  if(!await titanConfirm(`Gerar um link temporário (30 minutos) para ${partner?.nickname||'este parceiro'} criar uma senha nova? O link anterior, se houver, deixa de valer.`,'Redefinir senha do parceiro'))return;
+  if(!await titanConfirm(`Enviar para o e-mail cadastrado de ${partner?.nickname||'este parceiro'} um link temporário (30 minutos) para ele criar uma senha nova? O link anterior, se houver, deixa de valer — e não aparece aqui, vai só para a caixa de entrada dele.`,'Redefinir senha do parceiro'))return;
   try{
     const resultado=await api('/api/master/partners/'+id+'/password-reset',{method:'POST'});
-    const link=location.origin+resultado.resetPath;
-    const painel=qs('#master-reset-link-panel');
-    if(painel){
-      painel.style.display='';
-      painel.innerHTML=`<b>Link de redefinição para ${esc(partner?.nickname||'o parceiro')}</b> (${esc(resultado.email||'')}) — vale ${resultado.expiresInMinutes} minutos e só pode ser usado uma vez.<div class="input-action" style="margin-top:8px"><input class="inp mono" readonly value="${esc(link)}" onclick="this.select()"><button class="btn btn-s" type="button" onclick="navigator.clipboard?.writeText('${esc(link)}')">Copiar</button></div>`;
-      painel.scrollIntoView({behavior:'smooth',block:'nearest'});
-    }else alert('Link de redefinição ('+resultado.expiresInMinutes+' min): '+link);
+    mostrarEnvioDeRedefinicao(resultado.email,resultado.expiresInMinutes,`Link de redefinição enviado para ${partner?.nickname||'o parceiro'}`);
   }catch(error){alert(error.message)}
 }
 async function alternarStatusParceiroMaster(id){
@@ -6482,29 +6476,35 @@ async function salvarAcesso(userId,companyId,active){
     renderMasterClients();
   }catch(error){alert(error.message)}
 }
+// Regra do dono (22/08/2026): "o link vai 100% por e-mail, para o e-mail
+// cadastrado". Até aqui o link voltava na resposta e esta tela o mostrava com
+// botão de copiar — ou seja, quem opera o backoffice entrava na conta do
+// cliente sem passar pelo cliente. O servidor deixou de devolver o link
+// (routes/master.ts), então não há o que mostrar aqui: só a confirmação de
+// envio e para onde ela foi.
 async function gerarRedefinicaoSenha(userId,companyId){
-  if(!await titanConfirm('Um link de redefinição de senha será gerado. Qualquer pessoa que abrir esse link poderá definir uma nova senha para este usuário — compartilhe só com quem deve receber.','Gerar link de redefinição de senha'))return;
+  if(!await titanConfirm('Vamos enviar um link de redefinição de senha para o e-mail cadastrado deste usuário. O link não aparece aqui: quem escolhe a senha nova é ele, e ainda precisa confirmar com um código no WhatsApp cadastrado da empresa.','Enviar link de redefinição de senha'))return;
   try{
     const result=await api('/api/master/users/'+userId+'/password-reset',{method:'POST',body:JSON.stringify({companyId})});
-    const link=new URL(result.resetPath,location.origin).href;
-    mostrarLinkRedefinicao(link,result.expiresInMinutes);
-    await copiarTextoSeguro(link,qs('#master-reset-copy'));
+    mostrarEnvioDeRedefinicao(result.email,result.expiresInMinutes);
   }catch(error){alert(error.message)}
 }
-function mostrarLinkRedefinicao(link,minutes){
+function mostrarEnvioDeRedefinicao(destino,minutes,titulo){
   const box=qs('#master-reset-link-panel');if(!box)return;
   box.style.display='block';
-  box.innerHTML=`<b>Link de redefinição gerado</b><br><span>Válido por ${minutes} minutos. O usuário define a nova senha e depois entra direto com e-mail ou CNPJ, sem abrir o perfil Master.</span><textarea id="master-reset-link-value" class="inp mono" rows="2" readonly style="margin-top:8px">${esc(link)}</textarea><div class="acts" style="margin-top:8px"><button id="master-reset-copy" class="btn btn-s" type="button" onclick="copiarTextoSeguro(qs('#master-reset-link-value').value,this)">Copiar link</button><a class="btn btn-s" href="${esc(link)}" target="_blank" rel="noopener">Abrir redefinição</a></div><div id="master-reset-copy-hint" class="hint">O link também ficou selecionável no campo acima.</div>`;
-  const field=qs('#master-reset-link-value');if(field){field.focus();field.select();}
+  box.innerHTML=`<b>${esc(titulo||'Link de redefinição enviado por e-mail')}</b><br><span>Enviado para <b>${esc(destino||'o e-mail cadastrado')}</b>. Vale ${minutes} minutos e serve uma vez só. O link não aparece nesta tela de propósito — quem redefine a senha é o dono da conta, pela caixa de entrada dele.</span>`;
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+// Os avisos por id (#master-reset-copy-hint, #master-reset-link-value) saíram
+// em 22/08/2026 junto com o painel do link de redefinição: aqueles elementos
+// deixaram de existir, e ramo que nunca roda é ramo que engana quem lê. O que
+// sobrou serve a quem ainda chama esta função — o link de convite do Master.
 async function copiarTextoSeguro(value,button){
   try{
     await navigator.clipboard.writeText(value);
     if(button){const original=button.textContent;button.textContent='Copiado';window.setTimeout(()=>button.textContent=original,1400)}
-    const hint=qs('#master-reset-copy-hint');if(hint)hint.textContent='Link copiado para a área de transferência.';
   }catch{
-    const field=qs('#master-reset-link-value');if(field){field.focus();field.select();}
-    const hint=qs('#master-reset-copy-hint');if(hint)hint.textContent='Copie manualmente pelo campo acima; o navegador bloqueou a cópia automática.';
+    if(button){const original=button.textContent;button.textContent='Copie manualmente';window.setTimeout(()=>button.textContent=original,2400)}
   }
 }
 

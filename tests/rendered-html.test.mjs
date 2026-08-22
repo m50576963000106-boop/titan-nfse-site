@@ -436,7 +436,12 @@ test("entrega catalogo NBS, redefinicao dedicada e contatos comerciais",async()=
   assert.match(html,/function alternarSenha/);
   assert.match(html,/Link temporário necessário/);
   assert.match(html,/copiarTextoSeguro/);
-  assert.match(html,/Abrir redefinição/);
+  // "Abrir redefinição" saiu em 22/08/2026 junto com o link na tela do Master:
+  // o link passou a ir 100% por e-mail, então não existe mais botão para abrir
+  // a redefinição de outra pessoa daqui. O que fica no lugar é a confirmação
+  // de envio.
+  assert.doesNotMatch(html,/Abrir redefinição/);
+  assert.match(html,/Link de redefinição enviado por e-mail/);
   assert.match(html,/Definir senha/);
   assert.match(html,/id="e-email"/);
   assert.match(html,/id="e-phone"/);
@@ -513,7 +518,10 @@ test("protege e otimiza login e redefinicao de senha no front",async()=>{
   assert.match(html,/else if\(PORTAL_RESET\)\{prepararRedefinicao\(PORTAL_QUERY\.get\('token'\)\);\}/);
   assert.match(html,/Dados de acesso inválidos/);
   assert.match(html,/master-reset-link-panel/);
-  assert.match(html,/Link de redefinição gerado/);
+  assert.match(html,/function mostrarEnvioDeRedefinicao/);
+  // O link não pode voltar a aparecer para quem gerou: nem lido da resposta
+  // (`result.resetPath`), nem montado a partir de location.origin.
+  assert.doesNotMatch(html,/resetPath/);
   assert.match(html,/senha do Master não é redefinida por CNPJ/);
   assert.match(html,/gerarRedefinicaoSenha\('\$\{u\.id\}','\$\{c\.id\}'\)/);
   assert.match(html,/CNPJ da empresa:/);
