@@ -10,7 +10,17 @@
   --line-dark:#25385a;
   --ink:#0b1629;
   --ink-2:#4a5568;
-  --ink-3:#8b8f99;
+  /* Texto de apoio (hint, eyebrow, foot-note, rótulo de KPI) — 47 usos.
+     Estava em #8b8f99: 2,94:1 sobre o creme da página, longe dos 4,5:1 que a
+     WCAG pede para texto normal, e é justamente o texto que EXPLICA o campo.
+     #6b7280, o cinza que resolve na maioria dos casos, ainda para em 4,39:1
+     sobre o creme (passa só sobre o branco do cartão); #676d7a passa nos dois
+     fundos que o portal usa de fato — 4,70:1 no creme e 5,17:1 no branco. */
+  --ink-3:#676d7a;
+  /* O mesmo cinza de antes, mas para os pontinhos e barras de estado neutro
+     ("desligado"/"sem dado"), onde a cor é FUNDO e não texto: escurecê-los
+     junto faria o estado neutro parecer mais grave que o de alerta. */
+  --dot-off:#8b8f99;
   --ok:#1f7a4c;
   --ok-bg:#e8f4ed;
   --warn:#a8751a;
@@ -493,7 +503,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
   transition:background .2s,border-color .2s;
 }
 .dot svg{width:8px;height:8px;color:var(--navy);opacity:0}
-.stage-t{font-size:12.5px;font-weight:500;color:#5f6f8a;transition:color .2s}
+.stage-t{font-size:12.5px;font-weight:500;color:#7d8ba5;transition:color .2s}
 .stage-d{
   font-family:var(--mono);font-size:10px;color:#4a5a75;margin-top:2px;
   display:block;letter-spacing:-.02em;word-break:break-all;
@@ -517,7 +527,12 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .journey-card .card-h{padding:7px 11px;min-height:32px}
 .journey-card .card-h h2{font-size:11px;text-transform:uppercase;letter-spacing:.06em}
 .journey-card .card-b{padding:7px 9px 8px}
-.pipe{display:flex;align-items:flex-start;gap:0;padding:5px;background:var(--navy);overflow-x:auto}.stage{display:flex;flex:1;min-width:62px;flex-direction:column;align-items:center;gap:2px;padding:0 3px;text-align:center}.stage::before{display:none}.stage:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 11px);right:calc(-50% + 11px);top:5px;height:1px;background:var(--line-dark)}.dot{width:9px;height:9px}.dot svg{width:6px;height:6px}.stage-t{font-size:8px;line-height:1.15;min-height:10px}.stage-d{display:none}.stage-ms{min-height:0;font-size:8px;line-height:1}.pipe-detail{min-height:16px;margin-top:4px;padding:3px 7px;border-radius:var(--r);background:#f6f4ef;color:var(--ink-2);font:8.5px var(--mono);line-height:1.3}.stage:hover .stage-t,.stage:focus .stage-t{color:var(--cream)}
+/* "Trajeto da nota" na horizontal (primeiro cartão de Emitir NFS-e). O corpo
+   estava em 8px cinza sobre azul-marinho — menor que os 10px que a MESMA
+   etapa recebe na regra de celular mais abaixo, o que já denunciava que os
+   8px eram aperto de layout, não escolha. Não havia aperto: são 6 etapas em
+   flex:1 dentro de um cartão de ~1030px, ou seja ~170px por etapa. */
+.pipe{display:flex;align-items:flex-start;gap:0;padding:5px;background:var(--navy);overflow-x:auto}.stage{display:flex;flex:1;min-width:62px;flex-direction:column;align-items:center;gap:2px;padding:0 3px;text-align:center}.stage::before{display:none}.stage:not(:last-child)::after{content:'';position:absolute;left:calc(50% + 11px);right:calc(-50% + 11px);top:5px;height:1px;background:var(--line-dark)}.dot{width:9px;height:9px}.dot svg{width:6px;height:6px}.stage-t{font-size:10.5px;line-height:1.2;min-height:13px}.stage-d{display:none}.stage-ms{min-height:0;font-size:9.5px;line-height:1.1;color:#7d8ba5}.pipe-detail{min-height:16px;margin-top:4px;padding:4px 7px;border-radius:var(--r);background:#f6f4ef;color:var(--ink-2);font:11px var(--mono);line-height:1.35}.stage:hover .stage-t,.stage:focus .stage-t{color:var(--cream)}
 
 .result{margin-top:14px;padding:16px;border-radius:var(--r);border:1px solid}
 .result.ok{background:var(--ok-bg);border-color:#bfdccb}
@@ -560,7 +575,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .pf-sec ul{margin:0;padding-left:18px}.pf-sec li{margin:3px 0;line-height:1.5}
 .pf-dec{display:flex;align-items:flex-start;gap:8px;margin:5px 0;line-height:1.5}
 .pf-dec .d{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none}
-.pf-dec .d-ok{background:var(--ok)}.pf-dec .d-warn{background:var(--warn)}.pf-dec .d-err{background:var(--err)}.pf-dec .d-off{background:var(--ink-3)}
+.pf-dec .d-ok{background:var(--ok)}.pf-dec .d-warn{background:var(--warn)}.pf-dec .d-err{background:var(--err)}.pf-dec .d-off{background:var(--dot-off)}
 .pf-q{padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--cream);margin-bottom:8px}
 .pf-q-topic{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:4px}
 .pf-q-prompt{color:var(--ink);line-height:1.5;margin-bottom:9px}
@@ -690,12 +705,12 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .sb-foot{padding:14px 16px;background:#091322}
 .sidebar-health{padding:11px 12px;border:1px solid var(--line-dark);border-radius:9px;background:var(--navy-1);margin-bottom:11px}
 .sidebar-health-top{display:flex;align-items:center;gap:8px;color:#d7deea;font-size:11px;font-weight:650}
-.sidebar-health-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);box-shadow:0 0 0 3px rgba(139,143,153,.12)}
+.sidebar-health-dot{width:8px;height:8px;border-radius:50%;background:var(--dot-off);box-shadow:0 0 0 3px rgba(139,143,153,.12)}
 .sidebar-health-dot.ok{background:var(--ok);box-shadow:0 0 0 3px rgba(31,122,76,.18)}
 .sidebar-health-dot.warn{background:var(--warn);box-shadow:0 0 0 3px rgba(168,117,26,.18)}
 .sidebar-health-info{display:block;margin:5px 0 8px;color:#7787a1;font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sidebar-health-bar{height:3px;border-radius:3px;background:#263754;overflow:hidden}
-.sidebar-health-bar i{display:block;width:16%;height:100%;background:var(--ink-3);transition:width .25s,background .25s}
+.sidebar-health-bar i{display:block;width:16%;height:100%;background:var(--dot-off);transition:width .25s,background .25s}
 .topbar{left:258px;height:72px;padding:0 24px;gap:10px;background:rgba(245,244,239,.95)}
 main{margin-left:258px;padding-top:72px}
 /* Achado 12/08/2026 (relato do usuário: "info aparece só descendo a página,
@@ -758,7 +773,7 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
 .selo-dot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--ok)}
 .dash-selo.is-warn .selo-dot{background:var(--warn)}
 .dash-selo.is-err .selo-dot{background:var(--err)}
-.dash-selo.is-off .selo-dot{background:var(--ink-3)}
+.dash-selo.is-off .selo-dot{background:var(--dot-off)}
 
 /* Faixa larga de competência */
 .comp-band{display:flex;flex-wrap:wrap;align-items:center;gap:0;padding:12px 14px;margin-bottom:16px}
@@ -817,7 +832,7 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
 .activity-list{padding:2px 16px 10px}
 /* 5 colunas: bolinha · texto · quando · PDF/XML · ⋮ */
 .activity-row{display:grid;grid-template-columns:9px minmax(0,1fr) auto auto auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #f0eee6}
-.activity-row:last-child{border:none}.activity-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3)}.activity-dot.ok{background:var(--ok)}.activity-dot.err{background:var(--err)}.activity-dot.warn{background:var(--warn)}
+.activity-row:last-child{border:none}.activity-dot{width:8px;height:8px;border-radius:50%;background:var(--dot-off)}.activity-dot.ok{background:var(--ok)}.activity-dot.err{background:var(--err)}.activity-dot.warn{background:var(--warn)}
 .activity-copy{min-width:0}
 .activity-copy b{display:block;font-size:11px}.activity-copy span{display:block;font-size:9.8px;color:var(--ink-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .activity-value{font-size:10px;font-weight:700;white-space:nowrap;color:var(--ink-2)}
@@ -981,7 +996,7 @@ html.impersonating main{padding-top:calc(72px + var(--imp-h,38px))}
 .sup-act button:hover{background:var(--navy-2)}
 .sup-diag{display:flex;align-items:flex-start;gap:8px;margin:5px 0;font-size:12.5px}
 .sup-diag .d{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none}
-.sup-diag .d-ok{background:var(--ok)}.sup-diag .d-warn{background:var(--warn)}.sup-diag .d-err{background:var(--err)}.sup-diag .d-off{background:var(--ink-3)}
+.sup-diag .d-ok{background:var(--ok)}.sup-diag .d-warn{background:var(--warn)}.sup-diag .d-err{background:var(--err)}.sup-diag .d-off{background:var(--dot-off)}
 .sup-chips{padding:10px 12px 2px;display:flex;flex-wrap:wrap;gap:6px;background:var(--cream);max-height:96px;overflow-y:auto}
 .sup-chip{padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:var(--paper);font-size:12px;font-weight:600;color:var(--ink-2)}
 .sup-chip:hover{border-color:var(--gold);color:var(--ink)}

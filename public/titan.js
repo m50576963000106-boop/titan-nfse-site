@@ -1234,12 +1234,12 @@ async function carregarLogsApi(){
     const logs=data.logs||[];
     pill.className='pill right '+(logs.length?'p-ok':'p-off');
     pill.textContent=`${logs.length} requisiç${logs.length===1?'ão':'ões'}`;
-    if(!logs.length){body.innerHTML='<pre class="mono" style="color:#66768f;font-size:11px;line-height:1.85;overflow-x:auto;white-space:pre">Aguardando a primeira integração.\nNenhuma requisição foi enviada à Sefin Nacional nas últimas 24h.</pre>';return}
+    if(!logs.length){body.innerHTML='<pre class="mono" style="color:#7d8ba5;font-size:11px;line-height:1.85;overflow-x:auto;white-space:pre">Aguardando a primeira integração.\nNenhuma requisição foi enviada à Sefin Nacional nas últimas 24h.</pre>';return}
     body.innerHTML=logs.map(log=>{
       const quando=new Date(log.quando).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
       const status=logApiStatusInfo(log.status);
       const identificador=log.nfseNumber?`nNFSe ${esc(log.nfseNumber)}`:`DPS ${esc(log.dpsNumber??'—')}`;
-      const corpo=(rotulo,info)=>info?.corpo?`<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--brand);font-size:12px">${rotulo}${info.truncado?' (truncado)':''}</summary><pre class="mono" style="color:#66768f;font-size:11px;line-height:1.6;overflow-x:auto;white-space:pre-wrap;margin-top:4px">${esc(info.corpo)}</pre></details>`:'';
+      const corpo=(rotulo,info)=>info?.corpo?`<details style="margin-top:6px"><summary style="cursor:pointer;font-size:12px">${rotulo}${info.truncado?' (truncado)':''}</summary><pre class="mono" style="color:#7d8ba5;font-size:11px;line-height:1.6;overflow-x:auto;white-space:pre-wrap;margin-top:4px">${esc(info.corpo)}</pre></details>`:'';
       return `<div class="draft-item">
         <b>${quando} · ${logApiTipoLabel(log.tipo)} · ${identificador}</b>
         <span><span class="pill ${status.classe}">${status.texto}</span> · ${logApiOrigemLabel(log.origem)}${log.resumo?' · '+esc(log.resumo):''}</span>

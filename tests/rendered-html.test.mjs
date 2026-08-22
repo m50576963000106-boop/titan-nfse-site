@@ -2413,3 +2413,75 @@ test("cliente entra pelo CNPJ, master e parceiro pelo e-mail", async()=>{
   assert.doesNotMatch(css, /#li-mail-wrap\{display:none!important\}/);
   assert.doesNotMatch(css, /#li-cnpj-wrap\{display:none!important\}/);
 });
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Auditoria de tela de 22/08/2026 — treze defeitos.
+   Cada teste abaixo trava UM deles no ponto exato em que ele voltaria a
+   acontecer, e não no sintoma.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+test("as métricas de Recebimentos usam a classe que existe no CSS", async () => {
+  // "metric" nunca teve regra: os cinco números saíam sem estilo nenhum, com o
+  // rótulo colado no valor ("A receber (em aberto)R$ 0,00"). O desenho certo é
+  // o .kpi, que ficou órfão quando o Painel virou .dash-stat.
+  const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  const css = await readFile(resolve(root, "public/titan.css"), "utf8");
+  assert.doesNotMatch(html, /class="metric"/, "classe sem CSS nenhum");
+  for (const id of ["rec-open", "rec-overdue", "rec-month", "rec-total", "rec-nfse"]) {
+    assert.match(html, new RegExp(`<div class="kpi"><div class="lbl">[^<]+</div><div class="val" id="${id}">`));
+  }
+  assert.match(css, /\.kpi\{background:var\(--paper\)/);
+  assert.match(css, /\.kpi \.lbl\{/);
+  assert.match(css, /\.kpi \.val\{/);
+});
+
+test("nenhuma classe do HTML/JS fica sem regra no CSS", async () => {
+  // O caso .kpi/metric só existiu porque nada avisava. Isto avisa: classe
+  // escrita na marcação sem nenhuma regra correspondente é, quase sempre, um
+  // rename que deixou o CSS para trás.
+  const [html, js, css] = await Promise.all([
+    readFile(resolve(root, "public/titan.html"), "utf8"),
+    readFile(resolve(root, "public/titan.js"), "utf8"),
+    readFile(resolve(root, "public/titan.css"), "utf8")
+  ]);
+  const comRegra = new Set([...css.matchAll(/\.([A-Za-z][\w-]*)/g)].map((m) => m[1]));
+  // Classes que existem só como gancho de seletor do JS, ou dentro do HTML da
+  // janela do DANFSe (que leva o próprio <style>), e de propósito não têm
+  // desenho no titan.css.
+  const semDesenho = new Set(["comm-tab-panel", "help-faq-card", "required-mark", "section-title", "btn-pri", "btn-sec"]);
+  const usadas = new Set();
+  for (const fonte of [html, js]) {
+    for (const m of fonte.matchAll(/class=["']([^"'${}]+)["']/g)) {
+      for (const c of m[1].trim().split(/\s+/)) if (c) usadas.add(c);
+    }
+  }
+  const orfas = [...usadas].filter((c) => !comRegra.has(c) && !semDesenho.has(c)).sort();
+  assert.deepEqual(orfas, [], `classes sem CSS: ${orfas.join(", ")}`);
+});
+
+test("o cinza de texto de apoio passa dos 4,5:1 e os pontinhos de estado continuam claros", async () => {
+  const css = await readFile(resolve(root, "public/titan.css"), "utf8");
+  assert.doesNotMatch(css, /--ink-3:#8b8f99/, "2,94:1 sobre o creme da página");
+  assert.match(css, /--ink-3:#676d7a/);
+  // Os 6 usos em que a variável é FUNDO, não texto: escurecê-los junto faria o
+  // estado neutro parecer mais grave que o de alerta.
+  assert.match(css, /--dot-off:#8b8f99/);
+  assert.equal((css.match(/background:var\(--dot-off\)/g) || []).length, 6);
+  assert.doesNotMatch(css, /background:var\(--ink-3\)/);
+  // Sobre fundo ESCURO o conserto é o contrário: clarear.
+  assert.doesNotMatch(css, /\.stage-t\{font-size:12\.5px;font-weight:500;color:#5f6f8a/);
+  const html = await readFile(resolve(root, "public/titan.html"), "utf8");
+  const js = await readFile(resolve(root, "public/titan.js"), "utf8");
+  assert.doesNotMatch(html, /color:#66768f/, "cinza escrito à mão sobre azul-marinho: 3,92:1");
+  assert.doesNotMatch(js, /color:#66768f/);
+});
+
+test("o Trajeto da nota não é menor no desktop do que no celular", async () => {
+  const css = await readFile(resolve(root, "public/titan.css"), "utf8");
+  const compacto = css.slice(css.indexOf(".pipe{display:flex"));
+  const desktop = Number(/\.stage-t\{font-size:([\d.]+)px/.exec(compacto)[1]);
+  const celular = Number(/\.stage-t\{font-size:([\d.]+)px;line-height:1\.25\}/.exec(css)[1]);
+  assert.ok(desktop >= 10.5, `o texto da etapa estava em ${desktop}px`);
+  assert.ok(desktop >= celular, "o desktop não pode ter letra menor que o celular");
+  assert.doesNotMatch(compacto.slice(0, 900), /font-size:8px/);
+});

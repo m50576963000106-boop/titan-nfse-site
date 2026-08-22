@@ -281,7 +281,11 @@
         <div class="cgsn-days" style="font-size:34px"><span id="cd-num">47</span><span>dias restantes</span></div>
         <div class="cgsn-txt">
           <h3>Emissor Nacional para ME e EPP do Simples</h3>
-          <p>A partir de <b style="color:#c9a84c">1º de setembro de 2026</b>, a emissão será feita exclusivamente pelo padrão nacional. <span style="color:#66768f">Consulte a situação do certificado e do cadastro para manter a carteira pronta.</span></p>
+          <!-- Cinza escrito à mão sobre o azul-marinho do contador: aqui o
+               conserto de contraste é CLAREAR, ao contrário do --ink-3 (que é
+               texto sobre fundo claro). #66768f dava 3,92:1; #7d8ba5, o cinza
+               que o próprio bloco já usa em .cgsn-days span, dá 5,26:1. -->
+          <p>A partir de <b style="color:#c9a84c">1º de setembro de 2026</b>, a emissão será feita exclusivamente pelo padrão nacional. <span style="color:#7d8ba5">Consulte a situação do certificado e do cadastro para manter a carteira pronta.</span></p>
         </div>
       </div>
 
@@ -977,12 +981,19 @@
            trazendo métricas conforme o filtro". Os números agora vêm do MESMO
            recorte da lista — antes o resumo era sempre da empresa inteira, e
            filtrar mudava a lista sem mudar número nenhum. -->
+      <!-- .kpi/.lbl/.val, e não a classe "metric": "metric" nunca existiu no
+           CSS. O desenho que estes cinco números precisam (cartão branco,
+           rótulo em versalete, valor grande tabular) é o do .kpi, que ficou
+           órfão quando o Painel foi redesenhado e passou a usar .dash-stat —
+           o CSS ficou, o HTML foi embora, e quem escreveu esta tela depois
+           inventou um nome novo. Sem estilo nenhum, o resultado na tela era
+           "A receber (em aberto)R$ 0,00", rótulo colado no valor. -->
       <div class="grid g4">
-        <div class="metric"><small>A receber (em aberto)</small><b id="rec-open">R$ 0,00</b></div>
-        <div class="metric"><small>Vencidos</small><b id="rec-overdue">R$ 0,00</b></div>
-        <div class="metric"><small>Recebidos</small><b id="rec-month">R$ 0,00</b></div>
-        <div class="metric"><small>Total no filtro</small><b id="rec-total">R$ 0,00</b></div>
-        <div class="metric"><small>NFS-e pendente</small><b id="rec-nfse">0</b></div>
+        <div class="kpi"><div class="lbl">A receber (em aberto)</div><div class="val" id="rec-open">R$ 0,00</div></div>
+        <div class="kpi"><div class="lbl">Vencidos</div><div class="val" id="rec-overdue">R$ 0,00</div></div>
+        <div class="kpi"><div class="lbl">Recebidos</div><div class="val" id="rec-month">R$ 0,00</div></div>
+        <div class="kpi"><div class="lbl">Total no filtro</div><div class="val" id="rec-total">R$ 0,00</div></div>
+        <div class="kpi"><div class="lbl">NFS-e pendente</div><div class="val" id="rec-nfse">0</div></div>
       </div>
       <div class="hint" id="rec-contagem" style="margin-top:6px">—</div>
       <div class="card" id="rec-report" style="display:none;margin-top:14px"><div class="card-h"><h2>Relatórios do filtro atual</h2><button class="btn btn-s" type="button" onclick="exportarRecebimentosCsv()">Exportar CSV</button></div><div class="card-b" id="rec-report-body"></div></div>
@@ -1168,7 +1179,7 @@
           <span id="logs-count" class="pill p-off right">0 requisições</span>
         </div>
         <div id="logs-body" class="card-b" style="background:var(--navy);border-radius:0 0 var(--r) var(--r);padding:14px">
-          <pre class="mono" style="color:#66768f;font-size:11px;line-height:1.85;overflow-x:auto;white-space:pre">Carregando...</pre>
+          <pre class="mono" style="color:#7d8ba5;font-size:11px;line-height:1.85;overflow-x:auto;white-space:pre">Carregando...</pre>
         </div>
       </div>
       <div class="alert a-info" style="margin-top:14px">
