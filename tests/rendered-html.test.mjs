@@ -1880,3 +1880,67 @@ test("REGRA: host desconhecido continua sendo rebatido para produção", async()
   assert.match(guarda, /window\.top\.location\.replace\('https:\/\/nfse\.titanbackoffice\.com\.br'/,
     "o destino do rebate continua sendo produção, e continua sendo window.top (quebra o embed)");
 });
+
+
+test("Meus serviços tem o campo de informações complementares, com contador e aviso", async()=>{
+  // Pedido do dono do produto (21/08/2026): o campo existia só na emissão. No
+  // cadastro ele precisa vir com o mesmo teto de 2000, o contador e — o ponto
+  // do pedido — o aviso de caractere proibido com botão para retirar.
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html, /id="cad-info-compl"[^>]*maxlength="2000"/, "o teto do xInfComp e 2000, igual ao da emissao");
+  assert.match(html, /oninput="conferirInfoComplementares\('cad-info-compl'\)"/);
+  assert.ok(html.includes('id="cad-info-compl-count"'), "sem contador o usuario nao ve quanto falta pro limite");
+  assert.ok(html.includes('id="cad-info-compl-aviso"'), "sem o aviso ao vivo o erro so aparece ao salvar");
+  assert.match(html, /onclick="corrigirInfoComplementares\('cad-info-compl'\)"/, "o aviso precisa do botao que retira tudo de uma vez");
+  // A emissão passou a usar a MESMA função — se voltar a contar caractere na
+  // mão, o aviso da emissão para de existir sem ninguém perceber.
+  assert.match(html, /oninput="conferirInfoComplementares\('s-info-compl'\)"/);
+  assert.ok(html.includes('id="s-info-compl-aviso"'));
+});
+
+test("a regra do xInfComp bloqueia quebra/controle e libera & e acento", async()=>{
+  // Executa a função real do portal, não uma cópia: se a regra mudar em
+  // titan.js, é aqui que aparece.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const inicio=js.indexOf("const INFO_COMPL_QUEBRA=");
+  const fim=js.indexOf("function mensagemInfoComplementares");
+  assert.ok(inicio>0&&fim>inicio, "a regra saiu de titan.js ou mudou de nome");
+  const analisar=new Function(js.slice(inicio,fim)+"\nreturn analisarInfoComplementares;")();
+
+  assert.equal(analisar("Contrato 123\nParcela 4\nVenc 10").problema, "2 quebras de linha");
+  assert.equal(analisar("Contrato 123\r\nParcela 4").quebras, 1, "\r\n e UMA quebra, nao duas");
+  assert.match(analisar("Pedido\t4821").problema, /1 tabulação/);
+  assert.match(analisar("Pedido \x07 4821\x00").problema, /2 caracteres de controle/);
+  assert.match(analisar("Pedido \x7F").problema, /1 caractere de controle/);
+
+  // O que NAO pode ser bloqueado: o backend ja escapa & < > " ' (xmlEscape),
+  // e acento/cedilha sao Latin-1 normais em portugues.
+  assert.equal(analisar('Pedido & Contrato <2026> "ok" — atenção à manutenção').problema, null);
+
+  // O botao "Retirar automaticamente" troca quebra por espaco simples, sem
+  // colar a ultima palavra de uma linha na primeira da seguinte.
+  assert.equal(analisar("Contrato 123\nParcela 4\x00").limpo, "Contrato 123 Parcela 4");
+});
+
+test("salvar e emitir ficam bloqueados enquanto houver caractere proibido", async()=>{
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  // Cadastro: para antes do POST, com a frase do que sobrou.
+  assert.match(js, /const infoCompl=conferirInfoComplementares\('cad-info-compl'\);\s*\n\s*if\(infoCompl&&infoCompl\.problema\)\{alert\(mensagemInfoComplementares\(infoCompl\.problema\)\)/);
+  // Emissão: mesma checagem dentro de montarPayloadEmissao, com foco no campo.
+  assert.match(js, /if\(infoCompl&&infoCompl\.problema\) return \{ok:false,msg:mensagemInfoComplementares\(infoCompl\.problema\),foco:'#s-info-compl'\}/);
+  // O cadastro leva o campo ao backend e volta dele na edição.
+  assert.match(js, /additionalInfo:qs\('#cad-info-compl'\)\.value\.trim\(\)\|\|undefined/);
+  assert.match(js, /qs\('#cad-info-compl'\)\.value=item\.additional_info\|\|''/);
+});
+
+test("escolher um serviço na emissão não apaga o xInfComp já digitado", async()=>{
+  // Decisão registrada em aplicarInfoComplementaresDoPerfil: a descrição pode
+  // ser sobrescrita (ela volta do cadastro), este campo não — é onde entra o
+  // dado daquela nota, que não está guardado em lugar nenhum.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(js, /aplicarInfoComplementaresDoPerfil\(item\);/, "aplicarPerfilServico precisa chamar o pre-preenchimento");
+  assert.match(js, /if\(!campo\.value\.trim\(\)\)\{campo\.value=padrao;/, "so preenche quando o campo esta vazio");
+  assert.ok(html.includes('id="s-info-compl-perfil"'), "sem esse aviso a troca viraria surpresa silenciosa");
+  assert.match(html, /onclick="usarInfoComplementaresDoPerfil\(\)"/);
+});

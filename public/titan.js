@@ -1842,8 +1842,65 @@ function atualizarCompetenciaFiscal(){
   else hint.textContent='Campo obrigatório da DPS. A data usa o fuso de Brasília.';
 }
 
+/**
+ * Regra de conteúdo das informações complementares (xInfComp) — UMA função
+ * para o cadastro de serviço e para a emissão. Barrar num lugar e liberar no
+ * outro seria proteger o lugar errado: é da emissão que a nota sai.
+ *
+ * A regra é NOSSA, derivada do formato XML, não citação do manual: no Anexo I
+ * do Portal Nacional o xInfComp aparece só como entrada estrutural, sem regra
+ * de conteúdo publicada. Bloqueamos:
+ *  - quebra de linha e tabulação, porque o campo é de linha única no leiaute
+ *    (é a "regra de quebra de linha" que o dono do produto pediu);
+ *  - caractere de controle, que é INVÁLIDO em XML 1.0 — um só torna o
+ *    documento impossível de parsear, e a rejeição só apareceria na Sefin,
+ *    depois de assinar e transmitir.
+ *
+ * E de propósito NÃO bloqueamos & < > " ' (o backend já escapa todos em
+ * xmlEscape; proibi-los cortaria texto legítimo como "Pedido & Contrato") nem
+ * acento e cedilha, que são normais em português.
+ *
+ * O mesmo texto e a mesma contagem existem no backend
+ * (src/nfse/info-complementar.ts) — a tela avisa antes, mas ela não é a única
+ * porta que grava um serviço ou emite uma nota.
+ */
+const INFO_COMPL_QUEBRA=/\r\n|[\r\n]/g,INFO_COMPL_TAB=/\t/g;
+// \x09 (tab), \x0A (LF) e \x0D (CR) ficam fora desta faixa porque já são
+// contados acima — o usuário reconhece "quebra de linha", não "U+000A".
+const INFO_COMPL_CONTROLE=/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g;
+function analisarInfoComplementares(valor){
+  const texto=String(valor||'');
+  const quebras=(texto.match(INFO_COMPL_QUEBRA)||[]).length,tabulacoes=(texto.match(INFO_COMPL_TAB)||[]).length,controles=(texto.match(INFO_COMPL_CONTROLE)||[]).length;
+  // Quebra e tabulação viram UM espaço em vez de sumir: apagá-las colaria a
+  // última palavra de uma linha na primeira da seguinte.
+  const limpo=texto.replace(INFO_COMPL_QUEBRA,' ').replace(INFO_COMPL_TAB,' ').replace(INFO_COMPL_CONTROLE,'').replace(/ {2,}/g,' ').trim();
+  const contar=(n,um,varios)=>n+' '+(n===1?um:varios),partes=[];
+  if(quebras)partes.push(contar(quebras,'quebra de linha','quebras de linha'));
+  if(tabulacoes)partes.push(contar(tabulacoes,'tabulação','tabulações'));
+  if(controles)partes.push(contar(controles,'caractere de controle','caracteres de controle'));
+  return {quebras,tabulacoes,controles,limpo,problema:partes.length?partes.join(' e '):null};
+}
+function mensagemInfoComplementares(problema){return 'As informações complementares não podem ter '+problema+'. Retire antes de salvar — o texto precisa ficar em uma linha só.'}
+/** Atualiza contador e aviso ao vivo do campo, e devolve a análise pra quem for salvar. */
+function conferirInfoComplementares(id){
+  const campo=qs('#'+id);if(!campo)return null;
+  const analise=analisarInfoComplementares(campo.value);
+  const contador=qs('#'+id+'-count');if(contador)contador.textContent=campo.value.length;
+  const aviso=qs('#'+id+'-aviso'),texto=qs('#'+id+'-aviso-texto');
+  if(aviso){aviso.style.display=analise.problema?'flex':'none';if(texto)texto.textContent=analise.problema?mensagemInfoComplementares(analise.problema):''}
+  return analise;
+}
+function corrigirInfoComplementares(id){
+  const campo=qs('#'+id);if(!campo)return;
+  campo.value=analisarInfoComplementares(campo.value).limpo;
+  conferirInfoComplementares(id);campo.focus();
+}
+
 function limparFormularioServico(){
-  ['cad-id','cad-name','cad-type','cad-search','cad-nbs-search','cad-desc','cad-mun-code','cad-rate','cad-cst','cad-default-amount'].forEach(id=>qs('#'+id).value='');
+  ['cad-id','cad-name','cad-type','cad-search','cad-nbs-search','cad-desc','cad-info-compl','cad-mun-code','cad-rate','cad-cst','cad-default-amount'].forEach(id=>qs('#'+id).value='');
+  // Zera contador e esconde o aviso de caractere proibido junto com o valor —
+  // senão o aviso do cadastro anterior seguia na tela no formulário limpo.
+  qs('#cad-desc-count').textContent='0';conferirInfoComplementares('cad-info-compl');
   ['ibscbs-cst','ibscbs-classtrib','indop'].forEach(limparCombo);
   ['cad-ibscbs-indfinal','cad-ibscbs-tpoper'].forEach(id=>{const el=qs('#'+id);if(el)el.value=''});
   qs('#cad-nbs').innerHTML='<option value="">Pesquise o catálogo NBS</option>';
@@ -1874,7 +1931,7 @@ function selecionarCodigoCadastro(){
 
 function editarPerfilServico(id){
   const item=perfisServico.find(profile=>profile.id===id);if(!item)return;
-  qs('#cad-id').value=item.id;qs('#cad-name').value=item.name;qs('#cad-type').value=item.service_type;qs('#cad-desc').value=item.description;qs('#cad-desc-count').textContent=(item.description||'').length;qs('#cad-mun-code').value=item.municipal_code||'';definirNbsSelecionado('cad-nbs',item.nbs_code,item.name);qs('#cad-rate').value=item.iss_rate==null?'':String(item.iss_rate).replace('.',',');
+  qs('#cad-id').value=item.id;qs('#cad-name').value=item.name;qs('#cad-type').value=item.service_type;qs('#cad-desc').value=item.description;qs('#cad-desc-count').textContent=(item.description||'').length;qs('#cad-info-compl').value=item.additional_info||'';conferirInfoComplementares('cad-info-compl');qs('#cad-mun-code').value=item.municipal_code||'';definirNbsSelecionado('cad-nbs',item.nbs_code,item.name);qs('#cad-rate').value=item.iss_rate==null?'':String(item.iss_rate).replace('.',',');
   qs('#cad-trib-iss').value=item.iss_taxation;qs('#cad-ret-iss').value=item.iss_withholding;qs('#cad-cst').value=item.pis_cofins_cst||'';qs('#cad-ret-pc').value=item.pis_cofins_withholding||'';
   qs('#cad-pc-base').value=String(item.pis_cofins_base||0).replace('.',',');qs('#cad-pis-rate').value=String(item.pis_rate||0).replace('.',',');qs('#cad-cofins-rate').value=String(item.cofins_rate||0).replace('.',',');qs('#cad-pis-amount').value=String(item.pis_amount||0).replace('.',',');qs('#cad-cofins-amount').value=String(item.cofins_amount||0).replace('.',',');
   qs('#cad-default-amount').value=String(item.default_amount||0).replace('.',',');qs('#cad-cp').value=String(item.ret_cp||0).replace('.',',');
@@ -1920,8 +1977,12 @@ async function salvarPerfilServico(){
   const tipo=qs('#cad-ret-pc').value;
   const reteve=tipo!==''&&tipo!=='0';
   const ibscbsCst=qs('#cad-ibscbs-cst').value.trim(),ibscbsClassTrib=qs('#cad-ibscbs-classtrib').value.trim();
-  const payload={id:qs('#cad-id').value||undefined,name:qs('#cad-name').value.trim(),serviceType:qs('#cad-type').value.trim(),defaultAmount:dinheiro(qs('#cad-default-amount').value),nationalCode:qs('#cad-code').value,description:qs('#cad-desc').value.trim(),municipalCode:qs('#cad-mun-code').value.trim()||undefined,nbsCode:qs('#cad-nbs').value.replace(/\D/g,'')||undefined,issTaxation:qs('#cad-trib-iss').value,issWithholding:qs('#cad-ret-iss').value,issRate:rate?dinheiro(rate):undefined,pisCofinsCst:cst||undefined,pisCofinsWithholding:tipo||undefined,pisCofinsBase:reteve?dinheiro(qs('#cad-pc-base').value):undefined,pisRate:reteve?dinheiro(qs('#cad-pis-rate').value):undefined,cofinsRate:reteve?dinheiro(qs('#cad-cofins-rate').value):undefined,pisAmount:reteve?dinheiro(qs('#cad-pis-amount').value):undefined,cofinsAmount:reteve?dinheiro(qs('#cad-cofins-amount').value):undefined,retCp:dinheiro(qs('#cad-cp').value),retIrrf:dinheiro(qs('#cad-irrf').value),retCsll:reteve?dinheiro(qs('#cad-csll').value):0,ibscbsCst:ibscbsCst||undefined,ibscbsClassTrib:ibscbsClassTrib||undefined,ibscbsIndFinal:qs('#cad-ibscbs-indfinal').value===''?undefined:qs('#cad-ibscbs-indfinal').value==='true',ibscbsCindOp:qs('#cad-ibscbs-indop').value||undefined,ibscbsTpOper:qs('#cad-ibscbs-tpoper').value||undefined};
+  const payload={id:qs('#cad-id').value||undefined,name:qs('#cad-name').value.trim(),serviceType:qs('#cad-type').value.trim(),defaultAmount:dinheiro(qs('#cad-default-amount').value),nationalCode:qs('#cad-code').value,description:qs('#cad-desc').value.trim(),additionalInfo:qs('#cad-info-compl').value.trim()||undefined,municipalCode:qs('#cad-mun-code').value.trim()||undefined,nbsCode:qs('#cad-nbs').value.replace(/\D/g,'')||undefined,issTaxation:qs('#cad-trib-iss').value,issWithholding:qs('#cad-ret-iss').value,issRate:rate?dinheiro(rate):undefined,pisCofinsCst:cst||undefined,pisCofinsWithholding:tipo||undefined,pisCofinsBase:reteve?dinheiro(qs('#cad-pc-base').value):undefined,pisRate:reteve?dinheiro(qs('#cad-pis-rate').value):undefined,cofinsRate:reteve?dinheiro(qs('#cad-cofins-rate').value):undefined,pisAmount:reteve?dinheiro(qs('#cad-pis-amount').value):undefined,cofinsAmount:reteve?dinheiro(qs('#cad-cofins-amount').value):undefined,retCp:dinheiro(qs('#cad-cp').value),retIrrf:dinheiro(qs('#cad-irrf').value),retCsll:reteve?dinheiro(qs('#cad-csll').value):0,ibscbsCst:ibscbsCst||undefined,ibscbsClassTrib:ibscbsClassTrib||undefined,ibscbsIndFinal:qs('#cad-ibscbs-indfinal').value===''?undefined:qs('#cad-ibscbs-indfinal').value==='true',ibscbsCindOp:qs('#cad-ibscbs-indop').value||undefined,ibscbsTpOper:qs('#cad-ibscbs-tpoper').value||undefined};
   if(!payload.name||!payload.serviceType||!payload.nationalCode||!payload.description||!payload.nbsCode){alert('Informe nome, tipo, código nacional, descrição e NBS.');return}
+  // Mesma regra que o backend aplica (infoComplementarSchema): avisada aqui
+  // com o texto exato do que sobrou, em vez de deixar o POST voltar 400.
+  const infoCompl=conferirInfoComplementares('cad-info-compl');
+  if(infoCompl&&infoCompl.problema){alert(mensagemInfoComplementares(infoCompl.problema));qs('#cad-info-compl').focus();return}
   if(payload.municipalCode&&!/^\d{1,3}$/.test(payload.municipalCode)){alert('O código municipal, quando usado, deve conter de 1 a 3 dígitos.');return}
   if(payload.nbsCode&&!/^\d{9}$/.test(payload.nbsCode)){alert('O código NBS deve conter exatamente 9 dígitos.');return}
   if((ibscbsCst&&!ibscbsClassTrib)||(ibscbsClassTrib&&!ibscbsCst)){alert('Informe CST e cClassTrib do IBS/CBS juntos, ou deixe os dois em branco.');return}
@@ -1954,7 +2015,32 @@ function aplicarPerfilServico(){
   composicaoItens=valorPadrao>0?[{description:descricaoCompleta,quantity:1,unitAmount:valorPadrao,profileId:item.id,ctn:item.national_code,nbs:item.nbs_code}]:[];
   qs('#s-pc-base').value=String(item.pis_cofins_base||0).replace('.',',');qs('#s-pis-rate').value=String(item.pis_rate||0).replace('.',',');qs('#s-cofins-rate').value=String(item.cofins_rate||0).replace('.',',');qs('#s-pis-amount').value=String(item.pis_amount||0).replace('.',',');qs('#s-cofins-amount').value=String(item.cofins_amount||0).replace('.',',');
   qs('#s-ret-cp').value=String(item.ret_cp||0).replace('.',',');qs('#s-ret-irrf-tipo').value=Number(item.ret_irrf||0)>0?'1':'0';qs('#s-irrf-base').value='0,00';qs('#s-irrf-rate').value='1,50';qs('#s-ret-irrf').value=String(item.ret_irrf||0).replace('.',',');qs('#s-ret-csll').value=String(item.ret_csll||0).replace('.',',');lerParametros();
+  aplicarInfoComplementaresDoPerfil(item);
   atualizarRetencaoPisCofins('s');atualizarRetencaoIrrf('s');atualizarComposicao();atualizarCamposEspeciais();travarRetencoes(true);atualizarResumoCtnNbs(item);atualizarCardIbscbsEmissao(item);
+}
+/**
+ * Informações complementares do cadastro chegando na emissão. A descrição
+ * logo acima é sobrescrita sem cerimônia, mas aqui a decisão é OUTRA de
+ * propósito: este campo é justamente onde entra o dado daquela nota
+ * específica (número do pedido, medição, competência do contrato), digitado à
+ * mão minutos antes de escolher o serviço. Sobrescrever apagaria a única
+ * informação que não está guardada em lugar nenhum — a descrição, se sumir,
+ * volta do próprio cadastro.
+ *
+ * Então: preenche quando o campo está vazio; quando já tem texto do operador,
+ * mantém o dele e oferece o do cadastro num aviso com botão, para a troca ser
+ * escolha dele e não surpresa.
+ */
+function aplicarInfoComplementaresDoPerfil(item){
+  const campo=qs('#s-info-compl');if(!campo)return;
+  const aviso=qs('#s-info-compl-perfil'),padrao=((item&&item.additional_info)||'').slice(0,2000);
+  if(!campo.value.trim()){campo.value=padrao;if(aviso)aviso.style.display='none'}
+  else if(aviso){aviso.style.display=padrao&&campo.value.trim()!==padrao?'flex':'none';aviso.dataset.padrao=padrao}
+  conferirInfoComplementares('s-info-compl');
+}
+function usarInfoComplementaresDoPerfil(){
+  const aviso=qs('#s-info-compl-perfil');if(!aviso)return;
+  qs('#s-info-compl').value=aviso.dataset.padrao||'';aviso.style.display='none';conferirInfoComplementares('s-info-compl');
 }
 // Achado 12/08/2026 (pedido do usuário): a tela de emissão não tinha nenhuma
 // UI pro grupo IBSCBS — só herdava CST/cClassTrib do cadastro do serviço em
@@ -2973,6 +3059,11 @@ async function montarPayloadEmissao(){
   if(!payload.competenceDate||!payload.borrower.name||!payload.borrower.taxId||!payload.service.nationalTaxCode||!payload.service.description||!Number.isFinite(valor)||valor<=0) return {ok:false,msg:'Preencha competência, tomador, CPF/CNPJ, código nacional, descrição e valor do serviço.'};
   if(!/^\d{11}$/.test(documento)&&!cnpjComFormatoValido(documento)) return {ok:false,msg:'O CPF deve ter 11 dígitos ou o CNPJ deve ter 14 caracteres válidos.',foco:'#t-doc'};
   if(!/^\d{9}$/.test(nbs)) return {ok:false,msg:'O código NBS é obrigatório e deve conter exatamente 9 dígitos.',foco:'#s-nbs'};
+  // Mesma regra do cadastro (analisarInfoComplementares) e do backend: aqui é
+  // o último ponto antes do XML, e é o único caminho de emissão em que o
+  // usuário digita o xInfComp à mão.
+  const infoCompl=conferirInfoComplementares('s-info-compl');
+  if(infoCompl&&infoCompl.problema) return {ok:false,msg:mensagemInfoComplementares(infoCompl.problema),foco:'#s-info-compl'};
   if(payload.service.serviceCategory==='construction'||payload.service.nationalTaxCode.startsWith('07')){if(!/^\d{12}$/.test(payload.service.cno||'')) return {ok:false,msg:'O serviço de construção civil exige um CNO válido de 12 dígitos.',foco:'#s-cno'};}
   if(payload.service.serviceCategory==='event'&&(!payload.service.eventCode||!payload.service.eventLocation)) return {ok:false,msg:'Informe o código e o local do evento antes de transmitir.'};
   if(qs('#t-mail').value&&!qs('#t-mail').checkValidity()) return {ok:false,msg:'Informe um e-mail válido para o tomador.',foco:'#t-mail'};
@@ -3155,7 +3246,7 @@ function renderPreflight(pf){
 // IBS/CBS saíram daqui em 19/08/2026 junto com o card da emissão: viraram
 // cadastro do serviço, não rascunho de nota.
 function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{name:qs('#t-nome').value,taxId:qs('#t-doc').value,email:qs('#t-mail').value,phone:qs('#t-zap').value,municipalityCode:qs('#t-municipio').value,postalCode:qs('#t-cep').value,street:qs('#t-end').value,number:qs('#t-num').value,district:qs('#t-bairro').value,complement:qs('#t-comp').value,city:qs('#t-cidade').value,state:qs('#t-uf').value},service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,nbsCode:qs('#s-nbs').value,description:qs('#s-desc').value,amount:qs('#s-val').value,additionalItems:composicaoItens,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value,eventCode:qs('#s-event-code')?.value,eventLocation:qs('#s-event-location')?.value,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,pisCofinsCst:qs('#s-cst').value,pisCofinsWithholding:qs('#s-ret-pc').value,pisCofinsBase:qs('#s-pc-base').value,pisRate:qs('#s-pis-rate').value,cofinsRate:qs('#s-cofins-rate').value,pisAmount:qs('#s-pis-amount').value,cofinsAmount:qs('#s-cofins-amount').value,retCp:qs('#s-ret-cp').value,retIrrf:qs('#s-ret-irrf').value,retCsll:qs('#s-ret-csll').value,infoComplementares:qs('#s-info-compl')?.value}}}
-function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-cidade').value=b.city||'';qs('#t-uf').value=b.state||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';composicaoItens=Array.isArray(s.additionalItems)?s.additionalItems.map(item=>({description:item.description,quantity:Number(item.quantity??1),unitAmount:Number(item.unitAmount??item.amount??0),profileId:item.profileId,ctn:item.ctn,nbs:item.nbs})):[];qs('#s-category').value=s.serviceCategory||'other';qs('#s-cno').value=s.cno||'';qs('#s-event-code').value=s.eventCode||'';qs('#s-event-location').value=s.eventLocation||'';atualizarCamposEspeciais();atualizarComposicao();qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');travarRetencoes(true);lerParametros();if(qs('#s-info-compl')){qs('#s-info-compl').value=s.infoComplementares||'';qs('#s-info-compl-count').textContent=(s.infoComplementares||'').length}completarCadastroRascunho();}
+function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-cidade').value=b.city||'';qs('#t-uf').value=b.state||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';composicaoItens=Array.isArray(s.additionalItems)?s.additionalItems.map(item=>({description:item.description,quantity:Number(item.quantity??1),unitAmount:Number(item.unitAmount??item.amount??0),profileId:item.profileId,ctn:item.ctn,nbs:item.nbs})):[];qs('#s-category').value=s.serviceCategory||'other';qs('#s-cno').value=s.cno||'';qs('#s-event-code').value=s.eventCode||'';qs('#s-event-location').value=s.eventLocation||'';atualizarCamposEspeciais();atualizarComposicao();qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');travarRetencoes(true);lerParametros();if(qs('#s-info-compl')){qs('#s-info-compl').value=s.infoComplementares||'';conferirInfoComplementares('s-info-compl')}completarCadastroRascunho();}
 let rascunhos=[];
 let rascunhoTimer;
 function filtrarRascunhos(){clearTimeout(rascunhoTimer);rascunhoTimer=setTimeout(carregarRascunhos,250);}
