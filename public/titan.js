@@ -405,8 +405,16 @@ function aplicarModoRestrito(restrita){
 function selecionarDestinoPortal(access){
   const user=access.user||{},companies=access.companies||[];
   if(PORTAL_ADMIN){
-    if(!user.isMaster)throw new Error('Este endereço é exclusivo do administrador master.');
-    if(companies[0]?.id)salvarSessaoLocal([[STORAGE_COMPANY_ID,companies[0].id]]);
+    // Achado 22/08/2026 (relato do usuário: "não consegui logar com a senha
+    // cadastrada"): o PARCEIRO entra pelo MESMO campo de e-mail e senha do
+    // admin — é o que a landing (nfs.html) já fazia e o que foi pedido em
+    // letra. Aqui, porém, qualquer conta sem is_master levava
+    // "Este endereço é exclusivo do administrador master" DEPOIS de o servidor
+    // ter autenticado com sucesso: da cadeira do parceiro, senha certa e porta
+    // fechada são a mesma coisa. Agora o login vale e o destino é o portal
+    // dele; só quem não é nem Master nem Parceiro continua barrado.
+    if(!user.isMaster&&!user.isPartner)throw new Error('Este endereço é do administrador master ou de um parceiro cadastrado.');
+    if(user.isMaster&&companies[0]?.id)salvarSessaoLocal([[STORAGE_COMPANY_ID,companies[0].id]]);
     return;
   }
   if(PORTAL_CNPJ){
@@ -493,6 +501,10 @@ async function iniciarCadastro(){
     }
     salvarSessaoLocal(paresSessao);
     localStorage.setItem(STORAGE_USUARIO,JSON.stringify({nome:login.user?.name||'',email:login.user?.email||email,cnpj}));
+    // Parceiro autenticado por este mesmo campo não tem Gestão Master para
+    // abrir: o lugar dele é /parceiro. window.top porque esta tela roda dentro
+    // de um iframe (mesmo motivo de sair() em parceiro.html).
+    if(login.user?.isPartner&&!login.user?.isMaster){window.top.location.href='/parceiro';return}
     // O Master não precisa abrir uma empresa para autenticar. Evite três
     // consultas operacionais antes de mostrar a Gestão Master; elas ficavam
     // perceptíveis sobretudo no primeiro acesso após o servidor acordar.
@@ -504,7 +516,7 @@ async function iniciarCadastro(){
   }catch(error){
     definirCarregandoLogin(false);
     if(error?.status===401){
-      mostrarErroLogin('Dados de acesso inválidos. Confira o CNPJ e a senha individual. Se precisar, peça um link temporário de redefinição para criar uma senha exclusiva e entrar direto.');
+      mostrarErroLogin(PORTAL_ADMIN?'E-mail ou senha inválidos. Este acesso é o do administrador master e o do parceiro — se você é parceiro e não lembra a senha, peça ao TITAN um link de redefinição.':'Dados de acesso inválidos. Confira o CNPJ e a senha individual. Se precisar, peça um link temporário de redefinição para criar uma senha exclusiva e entrar direto.');
       qs('#li-pw')?.focus();
       return;
     }
@@ -541,6 +553,10 @@ async function entrarComSessaoSalva(){
   let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{return false}
   if(!access.user?.email)return false;
   try{selecionarDestinoPortal(access)}catch{limparSessaoLocal();return false}
+  // Parceiro com sessão salva que volta a este endereço (F5, ou o atalho
+  // "Sou administrador master ou parceiro") vai para o portal dele em vez de
+  // ter a sessão apagada — antes de 22/08/2026 este if o deslogava calado.
+  if(PORTAL_ADMIN&&!access.user?.isMaster&&access.user?.isPartner){window.top.location.href='/parceiro';return true}
   if(PORTAL_ADMIN&&!access.user?.isMaster){limparSessaoLocal();return false}
   if(PORTAL_CNPJ&&access.user?.isMaster){limparSessaoLocal();return false}
   if(!PORTAL_ADMIN){carregarAmbiente().catch(()=>{});await carregarEmpresaServidor();await carregarNotasServidor();carregarServicos().catch(()=>{})}
@@ -5541,7 +5557,7 @@ function renderMasterPartners(){const box=qs('#master-partners');if(!box||!maste
     ?`${esc(p.email)}<br>${PARTNER_INVITE_LABEL[inviteStatus]||PARTNER_INVITE_LABEL.none}${inviteStatus!=='accepted'?` <button class="btn btn-s" type="button" style="padding:3px 8px;font-size:11.5px" onclick="enviarConviteParceiroMaster('${p.id}')">${inviteStatus==='pending'?'Reenviar':'Enviar'} convite</button>`:''}`
     :'<span class="hint">Sem e-mail cadastrado</span>';
   const cnpjCell=p.federal_tax_id?`<span class="mono">${esc(formatarCnpj(p.federal_tax_id))}</span>`:'<span class="pill p-warn" title="Necessário para liberar licenças cobradas">Sem CNPJ/CPF</span>';
-  return `<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${cnpjCell}</td><td>${conviteCell}</td><td>${brl(Number(p.commission_percent||0))}%</td><td>${brl(Number(p.license_discount_percent||0))}%</td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td><td><div class="acts"><button class="btn btn-s" type="button" onclick="editarParceiroMaster('${p.id}')">Editar</button><button class="btn btn-s" type="button" onclick="alternarStatusParceiroMaster('${p.id}')">${p.active?'Suspender':'Ativar'}</button></div></td></tr>`;
+  return `<tr><td>${esc(p.name)}</td><td><b>${esc(p.nickname)}</b></td><td>${cnpjCell}</td><td>${conviteCell}</td><td>${brl(Number(p.commission_percent||0))}%</td><td>${brl(Number(p.license_discount_percent||0))}%</td><td>${p.users||0}</td><td><span class="pill ${p.active?'p-ok':'p-off'}">${p.active?'Ativo':'Suspenso'}</span></td><td><div class="acts"><button class="btn btn-s" type="button" onclick="editarParceiroMaster('${p.id}')">Editar</button><button class="btn btn-s" type="button" onclick="redefinirSenhaParceiroMaster('${p.id}')" ${p.login_email?'':'disabled title="Este parceiro ainda não tem acesso criado — envie o convite primeiro."'}>Redefinir senha</button><button class="btn btn-s" type="button" onclick="alternarStatusParceiroMaster('${p.id}')">${p.active?'Suspender':'Ativar'}</button></div></td></tr>`;
 }).join('')||'<tr><td colspan="8">Nenhum parceiro cadastrado.</td></tr>'}
 async function enviarConviteParceiroMaster(id){
   const partner=masterData?.partners.find(item=>item.id===id);if(!partner)return;
@@ -5774,6 +5790,24 @@ function cancelarEdicaoParceiroMaster(){
   qs('#partner-id').value='';qs('#partner-id').dataset.active='';
   qs('#partner-name').value='';qs('#partner-nickname').value='';qs('#partner-email').value='';qs('#partner-cnpj').value='';qs('#partner-commission').value='';qs('#partner-discount').value='';
   qs('#partner-save').textContent='Cadastrar parceiro';qs('#partner-cancel').style.display='none';
+}
+// Redefinir a senha do login do parceiro (22/08/2026). Antes disso não havia
+// caminho nenhum: a rota de reset é por CNPJ e o parceiro não tem vínculo de
+// empresa, então quem perdia a senha ficava trancado do lado de fora — foi
+// exatamente o relato do usuário.
+async function redefinirSenhaParceiroMaster(id){
+  const partner=masterData?.partners.find(item=>item.id===id);
+  if(!await titanConfirm(`Gerar um link temporário (30 minutos) para ${partner?.nickname||'este parceiro'} criar uma senha nova? O link anterior, se houver, deixa de valer.`,'Redefinir senha do parceiro'))return;
+  try{
+    const resultado=await api('/api/master/partners/'+id+'/password-reset',{method:'POST'});
+    const link=location.origin+resultado.resetPath;
+    const painel=qs('#master-reset-link-panel');
+    if(painel){
+      painel.style.display='';
+      painel.innerHTML=`<b>Link de redefinição para ${esc(partner?.nickname||'o parceiro')}</b> (${esc(resultado.email||'')}) — vale ${resultado.expiresInMinutes} minutos e só pode ser usado uma vez.<div class="input-action" style="margin-top:8px"><input class="inp mono" readonly value="${esc(link)}" onclick="this.select()"><button class="btn btn-s" type="button" onclick="navigator.clipboard?.writeText('${esc(link)}')">Copiar</button></div>`;
+      painel.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }else alert('Link de redefinição ('+resultado.expiresInMinutes+' min): '+link);
+  }catch(error){alert(error.message)}
 }
 async function alternarStatusParceiroMaster(id){
   const partner=masterData?.partners.find(item=>item.id===id);if(!partner)return;
@@ -6029,9 +6063,22 @@ async function prepararConviteParceiro(){
   try{
     const invite=await api('/api/auth/partner-invitations/'+encodeURIComponent(token));
     qs('.onboard-step').textContent='Convite de acesso';
+    qs('#li-mail').value=invite.email;qs('#li-mail').closest('.login-field').style.display='none';
+    // Achado 22/08/2026: quando já existe conta com este e-mail, o aceite NÃO
+    // troca a senha (um convite não pode sequestrar conta). A tela pedia
+    // "crie sua senha" do mesmo jeito, e a pessoa saía convencida de ter
+    // cadastrado uma senha que nunca existiu — e depois não conseguia entrar.
+    if(invite.accountExists){
+      qs('.login-h').textContent='Liberar seu acesso de parceiro';
+      qs('.login-sub').textContent=`Já existe uma conta com o e-mail ${invite.email}. O convite libera o Portal do Parceiro (${invite.partnerName}) para ela — sua senha continua a mesma, o convite não altera senha de conta existente.`;
+      qs('#li-pw').closest('.login-field').style.display='none';
+      const confirmWrapExistente=qs('#li-reset-confirm-wrap');if(confirmWrapExistente)confirmWrapExistente.style.display='none';
+      const campoCnpj=qs('#li-cnpj');if(campoCnpj)campoCnpj.closest('.login-field').style.display='none';
+      const botao=qs('#login-action');botao.textContent='Liberar meu acesso de parceiro';botao.onclick=()=>aceitarConviteParceiro(token,true);
+      return;
+    }
     qs('.login-h').textContent='Criar sua senha de parceiro';
     qs('.login-sub').textContent=`Você foi convidado para o Portal do Parceiro TITAN NFS-e (${invite.partnerName}).`;
-    qs('#li-mail').value=invite.email;qs('#li-mail').closest('.login-field').style.display='none';
     qs('#li-pw').placeholder='Crie sua senha';qs('#li-pw').autocomplete='new-password';
     const senhaLabel=qs('label[for="li-pw"]');if(senhaLabel)senhaLabel.textContent='Crie sua senha';
     const confirmWrap=qs('#li-reset-confirm-wrap');if(confirmWrap)confirmWrap.style.display='block';
@@ -6041,10 +6088,17 @@ async function prepararConviteParceiro(){
     const button=qs('#login-action');button.textContent='Aceitar convite e entrar';button.onclick=()=>aceitarConviteParceiro(token);
   }catch(error){qs('.login-sub').textContent=error.message;qs('#login-action').disabled=true}
 }
-async function aceitarConviteParceiro(token){
-  const password=qs('#li-pw').value,confirmation=qs('#li-pw-confirm').value;
-  if(password.length<10||confirmation.length<10){alert('Crie sua senha e confirme com pelo menos 10 caracteres.');return}
-  if(password!==confirmation){alert('A confirmação não confere. Digite a mesma senha nos dois campos.');return}
+async function aceitarConviteParceiro(token,contaExistente){
+  // Conta que já existe não digita senha nenhuma (os campos nem aparecem): o
+  // aceite só carimba o vínculo de parceiro. O corpo continua exigido pela
+  // API, então vai um valor descartável — o servidor ignora a senha nesse
+  // caminho, justamente para não sobrescrever a que a pessoa já usa.
+  const password=contaExistente?'convite-conta-existente':qs('#li-pw').value;
+  const confirmation=contaExistente?password:qs('#li-pw-confirm').value;
+  if(!contaExistente){
+    if(password.length<10||confirmation.length<10){alert('Crie sua senha e confirme com pelo menos 10 caracteres.');return}
+    if(password!==confirmation){alert('A confirmação não confere. Digite a mesma senha nos dois campos.');return}
+  }
   try{
     const accepted=await api('/api/auth/partner-invitations/'+encodeURIComponent(token)+'/accept',{method:'POST',body:JSON.stringify({password,confirmation})});
     // Mesmo motivo do aceite de cliente acima: conta pre-existente recebe o
@@ -6062,6 +6116,7 @@ async function aceitarConviteParceiro(token){
   }catch(error){alert(error.message)}
 }
 
+let ehParceiroNaRedefinicao=false;
 async function prepararRedefinicao(token){
   qs('#login').classList.add('hide');qs('#reset-screen').classList.add('on');
   const action=qs('#reset-action'),hint=qs('#reset-hint'),account=qs('#reset-account'),password=qs('#reset-password'),confirmation=qs('#reset-password-confirm');
@@ -6070,8 +6125,18 @@ async function prepararRedefinicao(token){
   removerParametroSensivel('token');
   try{
     const info=await api('/api/auth/password-resets/'+encodeURIComponent(normalizedToken));
-    account.innerHTML=`<b>CNPJ da empresa:</b> ${esc(formatarCnpj(info.federalTaxId||''))}<br><b>Empresa:</b> ${esc(info.tradeName||info.legalName||'Empresa TITAN')}<br><b>Usuário autorizado:</b> ${esc(info.userName||'Operador')}`;
-    hint.textContent='Acesso temporário de uso único para esta empresa. Defina uma senha individual com pelo menos 10 caracteres e depois entre pelo CNPJ.';password.disabled=false;confirmation.disabled=false;action.disabled=false;action.onclick=()=>confirmarRedefinicao(normalizedToken);password.focus();
+    // O mesmo link serve empresa e parceiro (22/08/2026). Quem é parceiro não
+    // tem CNPJ de empresa para mostrar aqui, e volta para o login por e-mail,
+    // não pelo CNPJ — dizer "entre pelo CNPJ" mandaria a pessoa para a porta
+    // errada logo depois de acertar a senha.
+    ehParceiroNaRedefinicao=Boolean(info.partnerName);
+    account.innerHTML=ehParceiroNaRedefinicao
+      ?`<b>Parceiro:</b> ${esc(info.partnerName)}<br><b>Usuário autorizado:</b> ${esc(info.userName||'Parceiro')}`
+      :`<b>CNPJ da empresa:</b> ${esc(formatarCnpj(info.federalTaxId||''))}<br><b>Empresa:</b> ${esc(info.tradeName||info.legalName||'Empresa TITAN')}<br><b>Usuário autorizado:</b> ${esc(info.userName||'Operador')}`;
+    hint.textContent=ehParceiroNaRedefinicao
+      ?'Acesso temporário de uso único. Defina uma senha com pelo menos 10 caracteres e depois entre com o seu e-mail.'
+      :'Acesso temporário de uso único para esta empresa. Defina uma senha individual com pelo menos 10 caracteres e depois entre pelo CNPJ.';
+    password.disabled=false;confirmation.disabled=false;action.disabled=false;action.onclick=()=>confirmarRedefinicao(normalizedToken);password.focus();
   }catch(error){account.textContent='Não foi possível validar este link.';hint.textContent=error.message;hint.classList.add('error');action.disabled=true}
 }
 async function confirmarRedefinicao(token){
@@ -6080,7 +6145,7 @@ async function confirmarRedefinicao(token){
   if(password.length<10){hint.textContent='A nova senha precisa ter pelo menos 10 caracteres.';hint.classList.add('error');return}
   if(password!==confirmation){hint.textContent='A confirmação não confere. Digite a mesma senha nos dois campos.';hint.classList.add('error');return}
   action.disabled=true;action.textContent='Salvando...';
-  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password,confirmation})});hint.textContent='Senha definida com sucesso. Redirecionando para o login...';hint.classList.add('ok');window.setTimeout(()=>window.top.location.href='/?login=client',700)}catch(error){hint.textContent=error.message;hint.classList.add('error');action.disabled=false;action.textContent='Definir senha'}
+  try{await api('/api/auth/password-resets/'+encodeURIComponent(token)+'/confirm',{method:'POST',body:JSON.stringify({password,confirmation})});hint.textContent='Senha definida com sucesso. Redirecionando para o login...';hint.classList.add('ok');window.setTimeout(()=>window.top.location.href=ehParceiroNaRedefinicao?'/?login=admin':'/?login=client',700)}catch(error){hint.textContent=error.message;hint.classList.add('error');action.disabled=false;action.textContent='Definir senha'}
 }
 function alternarSenha(id,button){const input=qs('#'+id);if(!input)return;const visible=input.type==='password';input.type=visible?'text':'password';button.setAttribute('aria-pressed',String(visible));button.setAttribute('aria-label',visible?'Ocultar senha':'Mostrar senha')}
 ['reset-password','reset-password-confirm'].forEach(id=>qs('#'+id)?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!qs('#reset-action')?.disabled){e.preventDefault();qs('#reset-action').click()}}));
@@ -6131,7 +6196,7 @@ if(PORTAL_FIRST&&!temConvite){
   qs('#login-action').disabled=true;qs('#login-action').textContent='Aguardando convite';
   qs('#login-context-link').textContent='Voltar ao acesso do cliente';qs('#login-context-link').href='/?login=client';ocultarCampoEmailLogin();
 }else if(PORTAL_RESET){prepararRedefinicao(PORTAL_QUERY.get('token'));}
-else if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Acesso exclusivo do gestor master — entre com e-mail e senha.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/?login=client';if(!temConvite)ocultarCampoCnpjLogin();}
+else if(PORTAL_ADMIN){qs('.login-h').textContent='Administração TITAN';qs('.login-sub').textContent='Administrador master ou parceiro — entre com o mesmo e-mail e senha; cada um cai no seu ambiente.';qs('#login-context-link').textContent='Sou cliente';qs('#login-context-link').href='/?login=client';if(!temConvite)ocultarCampoCnpjLogin();}
 else if(!temConvite){ocultarCampoEmailLogin();qs('.login-sub').textContent='Entre com o CNPJ da empresa e sua senha individual exclusiva.';if(PORTAL_CNPJ){qs('#li-cnpj').value=formatarCnpj(PORTAL_CNPJ);qs('#li-cnpj').readOnly=true;qs('.login-sub').textContent=`Informe sua senha individual exclusiva para acessar o CNPJ ${formatarCnpj(PORTAL_CNPJ)}.`;}}
 entrarComSessaoSalva().catch(error=>mostrarErroLogin(error.message)).finally(()=>document.documentElement.classList.remove('titan-boot-auth'));
 

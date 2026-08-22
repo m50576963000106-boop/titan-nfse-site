@@ -1002,6 +1002,44 @@ test("o Portal do Parceiro usa o mesmo menu lateral dos outros portais, e não u
   assert.doesNotMatch(sidebar,/disabled|em breve/);
 });
 
+test("o parceiro entra pelo MESMO campo de login do admin e cai no portal dele",async()=>{
+  // Relato do usuário (22/08/2026): "não consegui logar com a senha
+  // cadastrada". O servidor autenticava, mas a TELA do endereço de admin
+  // barrava qualquer conta sem is_master — da cadeira do parceiro, senha
+  // certa e porta fechada são a mesma coisa.
+  const html=await lerPortal();
+  assert.match(html,/if\(!user\.isMaster&&!user\.isPartner\)throw new Error\('Este endereço é do administrador master ou de um parceiro cadastrado\.'\)/);
+  assert.doesNotMatch(html,/if\(!user\.isMaster\)throw new Error\('Este endereço é exclusivo do administrador master\.'\)/);
+  assert.match(html,/if\(login\.user\?\.isPartner&&!login\.user\?\.isMaster\)\{window\.top\.location\.href='\/parceiro';return\}/);
+  // Sessão já salva (F5) não pode deslogar o parceiro calado.
+  assert.match(html,/if\(PORTAL_ADMIN&&!access\.user\?\.isMaster&&access\.user\?\.isPartner\)\{window\.top\.location\.href='\/parceiro';return true\}/);
+  // E a porta precisa dizer que também é dele.
+  assert.match(html,/Sou administrador master ou parceiro/);
+  const landing=await readFile(resolve(root,"public/nfs.html"),"utf8");
+  assert.match(landing,/<h3>Master ou Parceiro<\/h3>/);
+});
+
+test("parceiro sem senha tem caminho de volta: Master gera o link e a tela de redefinição o reconhece",async()=>{
+  const html=await lerPortal();
+  assert.match(html,/api\('\/api\/master\/partners\/'\+id\+'\/password-reset',\{method:'POST'\}\)/);
+  assert.match(html,/onclick="redefinirSenhaParceiroMaster\('\$\{p\.id\}'\)"/);
+  // Sem acesso criado, o botão não promete o que não pode cumprir.
+  assert.match(html,/p\.login_email\?'':'disabled title="Este parceiro ainda não tem acesso criado — envie o convite primeiro\."'/);
+  // A tela de redefinição fala de parceria, não de CNPJ, e devolve ao login certo.
+  assert.match(html,/ehParceiroNaRedefinicao=Boolean\(info\.partnerName\)/);
+  assert.match(html,/window\.top\.location\.href=ehParceiroNaRedefinicao\?'\/\?login=admin':'\/\?login=client'/);
+});
+
+test("convite de parceiro para e-mail que já tem conta não pede senha nova",async()=>{
+  // O aceite NÃO troca a senha de conta existente (de propósito). Pedir
+  // "crie sua senha" assim mesmo é o que fazia a pessoa sair achando que
+  // tinha cadastrado uma senha que nunca existiu.
+  const html=await lerPortal();
+  assert.match(html,/if\(invite\.accountExists\)\{/);
+  assert.match(html,/sua senha continua a mesma, o convite não altera senha de conta existente/);
+  assert.match(html,/botao\.textContent='Liberar meu acesso de parceiro'/);
+});
+
 test("Contrato de Parceria: aceite obrigatório bloqueia o portal do parceiro até concordar",async()=>{
   // Pedido do usuário (21/08/2026): o contrato TITAN↔parceiro é aceito dentro
   // do portal. A trava de verdade é do servidor (403 PARTNER_CONTRACT_PENDING
