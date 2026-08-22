@@ -1987,3 +1987,58 @@ test("falha na consulta de CEP não trava a digitação manual", async()=>{
   assert.doesNotMatch(fn, /\.disabled=true/, "nenhum campo do endereco pode ser desabilitado pela busca");
   assert.doesNotMatch(fn, /\.value=''/, "falha na busca nao apaga o que ja estava digitado");
 });
+
+test("o código IBGE do município vira busca por nome, com a UF sempre à vista", async()=>{
+  // Pedido do dono do produto: digitar o nome da cidade, escolher na lista, e
+  // o campo passar a valer o código. O valor real mora num input escondido —
+  // o XML continua recebendo o número, o operador enxerga "Curitiba/PR".
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(html, /<input id="t-municipio" type="hidden"/, "o codigo continua indo pro payload por este campo");
+  assert.match(html, /<input id="cl-mun" type="hidden"/);
+  assert.match(html, /id="t-municipio-search"[^>]*oninput="pesquisarCombo\('municipio-tomador'\)"[^>]*onfocus="pesquisarCombo\('municipio-tomador'\)"/);
+  assert.match(html, /id="cl-mun-search"[^>]*oninput="pesquisarCombo\('municipio-cliente'\)"/);
+  assert.ok(html.includes('id="t-municipio-results"')&&html.includes('id="cl-mun-results"'));
+  // Reaproveita o componente que ja existia (CST/cClassTrib/cIndOp), nao um terceiro jeito.
+  assert.match(js, /registrarComboMunicipio\('municipio-tomador','t-municipio','t-uf'/);
+  assert.match(js, /registrarComboMunicipio\('municipio-cliente','cl-mun','cl-uf'/);
+  assert.match(js, /carregarMunicipiosCatalogo\(\);return municipiosOrdenadosPorUf\(idUf\)/, "mesma fonte de /api/locations/municipalities usada pelo municipio de incidencia");
+  // Cidades homonimas em UF diferentes ("Bom Jesus", "Santa Maria", "Bonito"):
+  // sem a UF no rotulo, o operador escolhe a errada e a nota sai pro municipio
+  // errado — o defeito que este campo veio matar.
+  assert.match(js, /rotulo:row=>`\$\{row\.name\}\/\$\{row\.state\} — \$\{row\.code\}`/);
+  assert.match(js, /linha:row=>`<b>\$\{esc\(row\.name\)\}\/\$\{esc\(row\.state\)\}<\/b>/);
+  // A UF que o CEP trouxe sobe as candidatas certas; nunca esconde as outras.
+  assert.match(js, /return municipiosCatalogo\.slice\(\)\.sort\(\(a,b\)=>\(b\.state===uf\)-\(a\.state===uf\)\)/);
+  assert.match(js, /if\(!\/\^\[A-Z\]\{2\}\$\/\.test\(uf\)\)return municipiosCatalogo;/);
+});
+
+test("o município do tomador continua preso quando o tomador vem de cadastro", async()=>{
+  // readOnly impede digitar, mas nao impede clicar numa opcao da lista — e o
+  // clique gravaria no campo oculto por cima da trava.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  assert.match(js, /const CAMPOS_TOMADOR_TRAVAVEIS=\[[^\]]*'t-municipio','t-municipio-search'/);
+  assert.match(js, /if\(input\.readOnly\|\|input\.disabled\)\{box\.classList\.remove\('on'\);return\}/);
+  // A busca por CEP e todo mundo que repoe um municipio salvo passam pelo
+  // combo, senao o campo visivel abre vazio com o codigo escondido atras.
+  assert.match(js, /if\(escopo\.comboIbge\)exibirComboPorValor\(escopo\.comboIbge,qs\('#'\+escopo\.ibge\)\?\.value\|\|''\)/);
+  assert.match(js, /exibirComboPorValor\('municipio-tomador',cliente\.municipality_code\|\|''\)/);
+  assert.match(js, /exibirComboPorValor\('municipio-tomador',b\.municipalityCode\|\|''\)/);
+  assert.match(js, /exibirComboPorValor\('municipio-cliente',cliente\.municipality_code\|\|''\)/);
+  assert.match(js, /limparCombo\('municipio-cliente'\)/, "cadastro novo nao pode abrir com o rotulo do cliente anterior");
+});
+
+test("escolher o município na lista alinha cidade e UF com ele", async()=>{
+  // Achado na conferencia ao vivo: com a UF em SC e "Santa Maria/RS" escolhida
+  // na lista, a DPS sairia com municipalityCode de um estado e state de outro.
+  // Aqui a regra e o OPOSTO da busca por CEP, de proposito: o CEP preenche
+  // sozinho no meio da digitacao e por isso nao sobrescreve nada sem avisar;
+  // clicar numa opcao que diz "/RS" com todas as letras e declaracao explicita.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  assert.match(js, /function alinharCidadeUfAoMunicipio\(row,idCidade,idUf\)/);
+  assert.match(js, /if\(el&&!el\.readOnly&&!el\.disabled\)el\.value=valor;/, "alinha inclusive por cima — so a trava do tomador barra");
+  assert.match(js, /alinharCidadeUfAoMunicipio\(row,'t-cidade','t-uf'\);atualizarResumoEnderecoTomador\(\)/);
+  assert.match(js, /alinharCidadeUfAoMunicipio\(row,'cl-cidade','cl-uf'\)/);
+  // A busca por CEP continua conservadora: preenche o vazio, oferece o resto.
+  assert.match(js, /if\(!atual\|\|forcar\)\{el\.value=valor;return\}/);
+});

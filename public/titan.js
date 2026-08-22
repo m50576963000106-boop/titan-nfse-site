@@ -1150,7 +1150,11 @@ let clienteAtualEmissao=null;
 let buscaClienteTimer;
 const origemCliente={portal_nacional:'Portal Nacional',cnpj_api:'BrasilAPI',emission_history:'Histórico de notas',manual:'Cadastro manual'};
 
-const CAMPOS_TOMADOR_TRAVAVEIS=['t-nome','t-tipo','t-cidade','t-uf','t-cep','t-municipio','t-end','t-num','t-bairro','t-comp'];
+// 't-municipio-search' entrou junto com 't-municipio' em 21/08/2026, quando o
+// código IBGE virou combo: o valor mora no campo oculto, mas quem o operador
+// enxerga e opera é o campo de busca — travar só o oculto deixaria a lista
+// aberta para escolher outro município por cima da trava.
+const CAMPOS_TOMADOR_TRAVAVEIS=['t-nome','t-tipo','t-cidade','t-uf','t-cep','t-municipio','t-municipio-search','t-end','t-num','t-bairro','t-comp'];
 let tomadorTravadoDoc='';
 function travarTomador(locked){
   CAMPOS_TOMADOR_TRAVAVEIS.forEach(id=>{
@@ -1193,8 +1197,8 @@ function atualizarResumoEnderecoTomador(){
  * logradouro e bairro separados, e sim uma linha de endereço só.
  */
 const ESCOPOS_CEP={
-  emissao:{cep:'t-cep',logradouro:'t-end',bairro:'t-bairro',cidade:'t-cidade',uf:'t-uf',ibge:'t-municipio',status:'t-cep-status',conflito:'t-cep-conflito',conflitoTexto:'t-cep-conflito-texto',depois:()=>atualizarResumoEnderecoTomador()},
-  cliente:{cep:'cl-cep',linhaEndereco:'cl-end',cidade:'cl-cidade',uf:'cl-uf',ibge:'cl-mun',status:'cl-cep-status',conflito:'cl-cep-conflito',conflitoTexto:'cl-cep-conflito-texto'}
+  emissao:{cep:'t-cep',logradouro:'t-end',bairro:'t-bairro',cidade:'t-cidade',uf:'t-uf',ibge:'t-municipio',comboIbge:'municipio-tomador',status:'t-cep-status',conflito:'t-cep-conflito',conflitoTexto:'t-cep-conflito-texto',depois:()=>atualizarResumoEnderecoTomador()},
+  cliente:{cep:'cl-cep',linhaEndereco:'cl-end',cidade:'cl-cidade',uf:'cl-uf',ibge:'cl-mun',comboIbge:'municipio-cliente',status:'cl-cep-status',conflito:'cl-cep-conflito',conflitoTexto:'cl-cep-conflito-texto'}
 };
 const ROTULOS_CEP={logradouro:'Logradouro',bairro:'Bairro',linhaEndereco:'Endereço',cidade:'Município',uf:'UF',ibge:'Código IBGE'};
 const cepBuscaTimer={},cepEmBusca={},cepJaBuscado={},cepPendente={};
@@ -1232,6 +1236,10 @@ function aplicarValoresDoCep(nome,valores,forcar){
     if(!atual||forcar){el.value=valor;return}
     if(atual.toLocaleUpperCase('pt-BR')!==valor.toLocaleUpperCase('pt-BR')){conflitos.push(chave);pendente[chave]=valor}
   });
+  // O código IBGE mora num campo oculto desde que virou combo: o laço acima
+  // grava o valor, e é isto que faz a tela mostrar "Curitiba/PR — 4106902" em
+  // vez de deixar o campo visível vazio com o código escondido atrás dele.
+  if(escopo.comboIbge)exibirComboPorValor(escopo.comboIbge,qs('#'+escopo.ibge)?.value||'');
   if(escopo.depois)escopo.depois();
   return{conflitos,pendente};
 }
@@ -1299,7 +1307,7 @@ function preencherCliente(cliente){
   qs('#t-cidade').value=cliente.city||cliente.municipality||'';
   qs('#t-uf').value=cliente.state||'';
   qs('#t-cep').value=cliente.postal_code||'';
-  qs('#t-municipio').value=cliente.municipality_code||'';
+  exibirComboPorValor('municipio-tomador',cliente.municipality_code||'');
   qs('#t-end').value=cliente.street||'';
   qs('#t-num').value=cliente.number||'';
   qs('#t-bairro').value=cliente.district||'';
@@ -1403,6 +1411,12 @@ async function pesquisarCombo(nome){
   const cfg=COMBOS_BUSCA[nome];if(!cfg)return;
   const input=qs('#'+cfg.busca),box=qs('#'+cfg.resultados),hidden=qs('#'+cfg.alvo);
   if(!input||!box)return;
+  // Campo travado não abre a lista. readOnly sozinho impede DIGITAR, mas não
+  // impede clicar numa opção — e clicar gravaria no campo oculto por cima da
+  // trava. É o furo que apareceu quando o município do tomador virou combo:
+  // CAMPOS_TOMADOR_TRAVAVEIS trava o endereço vindo de um cliente cadastrado
+  // justamente para a nota não divergir do cadastro oficial.
+  if(input.readOnly||input.disabled){box.classList.remove('on');return}
   const term=termoCombo(input);
   // Digitar por cima de uma escolha anterior desfaz a escolha: o valor guardado
   // não pode contradizer o que está escrito na tela.
@@ -1441,6 +1455,68 @@ function limparCombo(nome){const cfg=COMBOS_BUSCA[nome];if(cfg)aplicarValorCombo
 document.addEventListener('click',event=>{
   qsa('.municipality-results.on').forEach(box=>{if(!box.parentElement?.contains(event.target))box.classList.remove('on')});
 });
+
+/* ---------- município do tomador e do cliente: nome na tela, código no XML ----
+ * Pedido do dono do produto (21/08/2026): "os campos de código IBGE do
+ * município devem estar liberados para digitar o nome e embaixo aparecer. Na
+ * sequência o campo é substituído pelo código IBGE."
+ *
+ * Reaproveita o componente acima, e NÃO o pesquisarMunicipio de #s-mun-search,
+ * de propósito: aquele é o município de INCIDÊNCIA do serviço e carrega
+ * efeitos que não valem aqui — selecionarMunicipio chama checarHabilitacao() e
+ * lerParametros(), que decidem se a EMPRESA pode emitir naquele município. O
+ * endereço do tomador não tem nada com isso: tomador em cidade não conveniada
+ * não impede nota nenhuma, e disparar aquela checagem aqui acenderia alerta de
+ * habilitação por causa do endereço do cliente. A FONTE dos dados é a mesma
+ * dos dois — carregarMunicipiosCatalogo(), sobre /api/locations/municipalities,
+ * que é o catálogo municipal que a API já mantém atualizado.
+ */
+function municipiosOrdenadosPorUf(idUf){
+  const uf=(qs('#'+idUf)?.value||'').trim().toLocaleUpperCase('pt-BR');
+  // Homônimo em estado diferente é a armadilha desta lista — há várias "Bom
+  // Jesus", "Santa Maria", "Bonito". Escolher a errada gera nota para o
+  // município errado, que é exatamente o defeito que este campo veio matar.
+  // Por isso o rótulo SEMPRE traz a UF, e a UF que o CEP já preencheu sobe as
+  // candidatas certas para o topo. Sobe, não filtra: UF vazia ou digitada
+  // errada não pode esconder o município que a pessoa está procurando.
+  if(!/^[A-Z]{2}$/.test(uf))return municipiosCatalogo;
+  return municipiosCatalogo.slice().sort((a,b)=>(b.state===uf)-(a.state===uf));
+}
+/**
+ * Escolher na lista alinha cidade e UF com o município escolhido — inclusive
+ * por cima do que já estava lá, e aqui a regra é OUTRA que a da busca por CEP
+ * de propósito.
+ *
+ * O CEP preenche sozinho, no meio da digitação, e por isso não sobrescreve
+ * nada sem avisar. Isto aqui é o operador clicando numa opção que diz
+ * "Santa Maria/RS" com todas as letras: é declaração explícita de qual
+ * município é esse, não preenchimento automático. Deixar a UF antiga seria
+ * pior que sobrescrever — sairia uma DPS com municipalityCode de um estado e
+ * state de outro, e o par contraditório é justamente o erro mudo que este
+ * campo veio matar (foi o que apareceu na conferência ao vivo: escolher
+ * Santa Maria/RS com a UF em SC).
+ *
+ * A trava do tomador continua acima de tudo: campo travado não é tocado.
+ */
+function alinharCidadeUfAoMunicipio(row,idCidade,idUf){
+  if(!row)return;
+  [[idCidade,row.name],[idUf,row.state]].forEach(([id,valor])=>{
+    const el=qs('#'+id);
+    if(el&&!el.readOnly&&!el.disabled)el.value=valor;
+  });
+}
+function registrarComboMunicipio(nome,alvo,idUf,aoSelecionar){
+  return registrarComboBusca({
+    nome,busca:alvo+'-search',alvo,resultados:alvo+'-results',
+    carregar:async()=>{await carregarMunicipiosCatalogo();return municipiosOrdenadosPorUf(idUf)},
+    chave:row=>row.code,codigos:row=>[row.code],termos:row=>[row.name,row.state],
+    rotulo:row=>`${row.name}/${row.state} — ${row.code}`,
+    linha:row=>`<b>${esc(row.name)}/${esc(row.state)}</b><br><span class="mono">${esc(row.code)}</span>`,
+    vazio:'Nenhum município encontrado.',limite:40,aoSelecionar
+  });
+}
+registrarComboMunicipio('municipio-tomador','t-municipio','t-uf',row=>{alinharCidadeUfAoMunicipio(row,'t-cidade','t-uf');atualizarResumoEnderecoTomador()});
+registrarComboMunicipio('municipio-cliente','cl-mun','cl-uf',row=>alinharCidadeUfAoMunicipio(row,'cl-cidade','cl-uf'));
 
 /* ---------- cIndOp (Anexo VII IndOp IBSCBS) ---------- */
 let indOpCatalogo=[];
@@ -1641,7 +1717,11 @@ async function completarCadastroRascunho(){
     const setIf=(id,val)=>{const el=qs(id);if(el&&!String(el.value||'').trim()&&val)el.value=String(val);};
     setIf('#t-nome',c.legal_name||c.trade_name);setIf('#t-mail',c.email);setIf('#t-zap',c.phone);
     setIf('#t-cidade',c.city||c.municipality);setIf('#t-uf',c.state);
-    setIf('#t-cep',c.postal_code);setIf('#t-end',c.street);setIf('#t-num',c.number);setIf('#t-bairro',c.district);setIf('#t-comp',c.complement);setIf('#t-municipio',c.municipality_code);
+    setIf('#t-cep',c.postal_code);setIf('#t-end',c.street);setIf('#t-num',c.number);setIf('#t-bairro',c.district);setIf('#t-comp',c.complement);
+    // Campo oculto do combo: gravar o código não basta, o nome do município
+    // precisa aparecer — senão o rascunho reabre com o campo visível vazio e
+    // parece que o município se perdeu.
+    if(!(qs('#t-municipio')?.value||'').trim()&&c.municipality_code)exibirComboPorValor('municipio-tomador',c.municipality_code);
     lerParametros();
   }catch(e){}
 }
@@ -3359,7 +3439,7 @@ function renderPreflight(pf){
 // IBS/CBS saíram daqui em 19/08/2026 junto com o card da emissão: viraram
 // cadastro do serviço, não rascunho de nota.
 function dadosRascunho(){return {competenceDate:qs('#s-comp').value,borrower:{name:qs('#t-nome').value,taxId:qs('#t-doc').value,email:qs('#t-mail').value,phone:qs('#t-zap').value,municipalityCode:qs('#t-municipio').value,postalCode:qs('#t-cep').value,street:qs('#t-end').value,number:qs('#t-num').value,district:qs('#t-bairro').value,complement:qs('#t-comp').value,city:qs('#t-cidade').value,state:qs('#t-uf').value},service:{municipalityCode:qs('#s-mun').value,nationalTaxCode:qs('#s-cod').value,nbsCode:qs('#s-nbs').value,description:qs('#s-desc').value,amount:qs('#s-val').value,additionalItems:composicaoItens,serviceCategory:qs('#s-category')?.value||'other',cno:qs('#s-cno')?.value,eventCode:qs('#s-event-code')?.value,eventLocation:qs('#s-event-location')?.value,issTaxation:qs('#s-trib-iss').value,issWithholding:qs('#s-ret-iss').value,pisCofinsCst:qs('#s-cst').value,pisCofinsWithholding:qs('#s-ret-pc').value,pisCofinsBase:qs('#s-pc-base').value,pisRate:qs('#s-pis-rate').value,cofinsRate:qs('#s-cofins-rate').value,pisAmount:qs('#s-pis-amount').value,cofinsAmount:qs('#s-cofins-amount').value,retCp:qs('#s-ret-cp').value,retIrrf:qs('#s-ret-irrf').value,retCsll:qs('#s-ret-csll').value,infoComplementares:qs('#s-info-compl')?.value}}}
-function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-cidade').value=b.city||'';qs('#t-uf').value=b.state||'';qs('#t-municipio').value=b.municipalityCode||'';qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';composicaoItens=Array.isArray(s.additionalItems)?s.additionalItems.map(item=>({description:item.description,quantity:Number(item.quantity??1),unitAmount:Number(item.unitAmount??item.amount??0),profileId:item.profileId,ctn:item.ctn,nbs:item.nbs})):[];qs('#s-category').value=s.serviceCategory||'other';qs('#s-cno').value=s.cno||'';qs('#s-event-code').value=s.eventCode||'';qs('#s-event-location').value=s.eventLocation||'';atualizarCamposEspeciais();atualizarComposicao();qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');travarRetencoes(true);lerParametros();if(qs('#s-info-compl')){qs('#s-info-compl').value=s.infoComplementares||'';conferirInfoComplementares('s-info-compl')}completarCadastroRascunho();}
+function aplicarRascunho(payload){const b=payload.borrower||{},s=payload.service||{};qs('#s-comp').value=payload.competenceDate||'';qs('#t-nome').value=b.name||'';qs('#t-doc').value=b.taxId||'';qs('#t-mail').value=b.email||'';qs('#t-zap').value=b.phone||'';qs('#t-cidade').value=b.city||'';qs('#t-uf').value=b.state||'';exibirComboPorValor('municipio-tomador',b.municipalityCode||'');qs('#t-cep').value=b.postalCode||'';qs('#t-end').value=b.street||'';qs('#t-num').value=b.number||'';qs('#t-bairro').value=b.district||'';qs('#t-comp').value=b.complement||'';qs('#s-mun').value=s.municipalityCode||qs('#s-mun').value;exibirMunicipioPorCodigo('s',qs('#s-mun').value);if(s.nationalTaxCode)qs('#s-cod').value=s.nationalTaxCode;definirNbsSelecionado('s-nbs',s.nbsCode);qs('#s-desc').value=s.description||'';composicaoItens=Array.isArray(s.additionalItems)?s.additionalItems.map(item=>({description:item.description,quantity:Number(item.quantity??1),unitAmount:Number(item.unitAmount??item.amount??0),profileId:item.profileId,ctn:item.ctn,nbs:item.nbs})):[];qs('#s-category').value=s.serviceCategory||'other';qs('#s-cno').value=s.cno||'';qs('#s-event-code').value=s.eventCode||'';qs('#s-event-location').value=s.eventLocation||'';atualizarCamposEspeciais();atualizarComposicao();qs('#s-trib-iss').value=s.issTaxation||'1';qs('#s-ret-iss').value=s.issWithholding||'1';qs('#s-cst').value=s.pisCofinsCst||'';qs('#s-ret-pc').value=s.pisCofinsWithholding||'';qs('#s-pc-base').value=s.pisCofinsBase||'0,00';qs('#s-pis-rate').value=s.pisRate||'0,00';qs('#s-cofins-rate').value=s.cofinsRate||'0,00';qs('#s-pis-amount').value=s.pisAmount||'0,00';qs('#s-cofins-amount').value=s.cofinsAmount||'0,00';qs('#s-ret-cp').value=s.retCp||'0,00';qs('#s-ret-irrf').value=s.retIrrf||'0,00';qs('#s-ret-csll').value=s.retCsll||'0,00';atualizarRetencaoPisCofins('s');travarRetencoes(true);lerParametros();if(qs('#s-info-compl')){qs('#s-info-compl').value=s.infoComplementares||'';conferirInfoComplementares('s-info-compl')}completarCadastroRascunho();}
 let rascunhos=[];
 let rascunhoTimer;
 function filtrarRascunhos(){clearTimeout(rascunhoTimer);rascunhoTimer=setTimeout(carregarRascunhos,250);}
@@ -3399,7 +3479,7 @@ async function marcarRascunhoConvertidoSeAplicavel(invoiceId){
 
 /* ---------- cadastro de clientes ---------- */
 let clientesCadastro=[];
-function preencherClienteCadastro(cliente){qs('#cl-doc').value=cliente.tax_id||'';qs('#cl-nome').value=cliente.legal_name||'';qs('#cl-mail').value=cliente.email||'';qs('#cl-mail-alt').value=cliente.email_alt||'';qs('#cl-fone').value=cliente.phone||'';qs('#cl-end').value=cliente.address||'';qs('#cl-cidade').value=cliente.city||cliente.municipality||'';qs('#cl-uf').value=cliente.state||'';qs('#cl-mun').value=cliente.municipality_code||'';qs('#cl-cep').value=cliente.postal_code||'';}
+function preencherClienteCadastro(cliente){qs('#cl-doc').value=cliente.tax_id||'';qs('#cl-nome').value=cliente.legal_name||'';qs('#cl-mail').value=cliente.email||'';qs('#cl-mail-alt').value=cliente.email_alt||'';qs('#cl-fone').value=cliente.phone||'';qs('#cl-end').value=cliente.address||'';qs('#cl-cidade').value=cliente.city||cliente.municipality||'';qs('#cl-uf').value=cliente.state||'';exibirComboPorValor('municipio-cliente',cliente.municipality_code||'');qs('#cl-cep').value=cliente.postal_code||'';}
 async function consultarClienteCadastro(){const cnpj=normalizarDocumento(qs('#cl-doc').value);if(!cnpjComFormatoValido(cnpj)){alert('A consulta pública exige um CNPJ com 14 caracteres válidos.');return}try{preencherClienteCadastro(await api('/api/customers/cnpj/'+cnpj))}catch(error){alert(error.message)}}
 async function salvarCliente(){const taxId=normalizarDocumento(qs('#cl-doc').value),legalName=qs('#cl-nome').value.trim();if(!taxId||!legalName){alert('Informe nome e CPF/CNPJ do cliente.');return}if(salvandoCliente)return;salvandoCliente=true;qs('#cli-save-btn').disabled=true;try{await api('/api/customers',{method:'POST',body:JSON.stringify({taxId,legalName,email:qs('#cl-mail').value.trim()||undefined,emailAlt:qs('#cl-mail-alt').value.trim()||undefined,phone:qs('#cl-fone').value.trim()||undefined,address:qs('#cl-end').value.trim()||undefined,city:qs('#cl-cidade').value.trim()||undefined,state:qs('#cl-uf').value.trim().toUpperCase()||undefined,postalCode:qs('#cl-cep').value.replace(/\D/g,'')||undefined,municipalityCode:qs('#cl-mun').value.replace(/\D/g,'')||undefined})});fecharModalCliente();await carregarClientesCadastro();alert('Cliente salvo.') }catch(error){alert(error.message)}finally{salvandoCliente=false;qs('#cli-save-btn').disabled=false}}
 let clienteBuscaTimer;
@@ -3434,6 +3514,12 @@ async function carregarClientesCadastro(){
 }
 function novoClienteCadastro(){
   ['cl-doc','cl-nome','cl-mail','cl-mail-alt','cl-fone','cl-end','cl-cidade','cl-uf','cl-mun','cl-cep'].forEach(id=>{const el=qs('#'+id);if(el)el.value=''});
+  // O campo oculto do combo zera no laço acima, mas o campo visível guarda o
+  // rótulo da escolha anterior: sem isto, o próximo cadastro abriria com o
+  // nome de uma cidade que não vale mais para ele. O mesmo para o retorno da
+  // busca por CEP — aviso de divergência de um cliente não pode sobrar na tela
+  // do seguinte.
+  limparCombo('municipio-cliente');const avisoCep=qs('#cl-cep-conflito');if(avisoCep)avisoCep.style.display='none';const statusCep=qs('#cl-cep-status');if(statusCep)statusCep.textContent='';
   qs('#cliente-modal-title').textContent='Novo cliente';
   abrirModalCliente();
 }
