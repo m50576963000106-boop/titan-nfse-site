@@ -1113,6 +1113,46 @@ test("o link de convite de parceiro atravessa a rota e chega ao portal",async()=
   assert.match(js,/const token=new URLSearchParams\(location\.search\)\.get\('partner-invite'\)/);
 });
 
+test("token de uso único sai das DUAS molduras, e sai na abertura da tela",async()=>{
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  // O portal roda em iframe: limpar só a moldura de dentro deixava ?token= /
+  // ?invite= na barra de endereços e mandava a visita inteira, com token, para
+  // o histórico do navegador.
+  assert.match(js,/limpar\(window\);/);
+  assert.match(js,/if\(window\.top&&window\.top!==window\)limpar\(window\.top\)/);
+  // history.state, não {}: o estado é da navegação, não do parâmetro.
+  assert.match(js,/janela\.history\.replaceState\(janela\.history\.state,''/);
+  assert.doesNotMatch(js,/function removerParametroSensivel[\s\S]{0,400}replaceState\(\{\}/);
+  // Na ABERTURA das três telas, não só no aceite: entre abrir e clicar, a
+  // pessoa lê, troca de aba e tira print com o token na barra.
+  assert.match(js,/if\(!token\)return;\n  \/\/[\s\S]{0,400}removerParametroSensivel\('invite'\);/);
+  assert.match(js,/removerParametroSensivel\('partner-invite'\);/);
+  assert.match(js,/removerParametroSensivel\('token'\);/);
+  // Consequência obrigatória da limpeza na abertura: quem pergunta "veio
+  // convite?" DEPOIS dela tem de olhar o snapshot da URL de abertura. Reler
+  // location.search veria a URL já limpa — a sessão salva entraria por cima da
+  // tela de convite, e o login se remontaria por cima do que ela armou.
+  assert.doesNotMatch(js,/new URLSearchParams\(location\.search\)\.get\('invite'\)\|\|/);
+  assert.match(js,/if\(PORTAL_FIRST\|\|PORTAL_RESET\|\|PORTAL_QUERY\.get\('invite'\)\|\|PORTAL_QUERY\.get\('partner-invite'\)\)return false/);
+  assert.match(js,/const temConvite=!!PORTAL_QUERY\.get\('invite'\)\|\|!!PORTAL_QUERY\.get\('partner-invite'\)/);
+  // PORTAL_QUERY tem de continuar sendo lido UMA vez, no carregamento — é isso
+  // que faz dele um retrato de antes de qualquer limpeza.
+  assert.match(js,/^const PORTAL_QUERY=new URLSearchParams\(location\.search\);$/m);
+});
+
+test("o aceite de convite continua derrubando a query INTEIRA antes de recarregar",async()=>{
+  // Contraponto do teste acima, e o motivo de ele não ter trocado estes três
+  // pontos por removerParametroSensivel(): aqui o que precisa cair junto é o
+  // portal=first/reset da URL. Trocar por uma limpeza cirúrgica preservaria o
+  // modo, e o reload logo abaixo cairia na tela de "Aguardando convite" com o
+  // botão desabilitado — na cara de quem acabou de aceitar o convite com
+  // sucesso.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const aceites=[...js.matchAll(/history\.replaceState\(\{\},'',location\.pathname\)/g)];
+  assert.equal(aceites.length,3,"os três pontos do aceite continuam limpando a query inteira");
+  assert.match(js,/history\.replaceState\(\{\},'',location\.pathname\);\n      alert\(accepted\.message/);
+});
+
 test("Contrato de Parceria: aceite obrigatório bloqueia o portal do parceiro até concordar",async()=>{
   // Pedido do usuário (21/08/2026): o contrato TITAN↔parceiro é aceito dentro
   // do portal. A trava de verdade é do servidor (403 PARTNER_CONTRACT_PENDING

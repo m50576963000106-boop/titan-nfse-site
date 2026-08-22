@@ -527,7 +527,34 @@ function mascararDocumento(el){
 }
 function definirCarregandoLogin(loading,label='Entrando...'){const button=qs('#login-action');if(!button)return;button.disabled=loading;if(loading){button.dataset.originalText=button.textContent;button.textContent=label}else if(button.dataset.originalText){button.textContent=button.dataset.originalText;delete button.dataset.originalText}}
 function mostrarErroLogin(message){const box=qs('#login-error');if(!box)return;box.style.display='block';box.textContent=message}
-function removerParametroSensivel(name){const url=new URL(location.href);if(!url.searchParams.has(name))return;url.searchParams.delete(name);history.replaceState({},'',url.pathname+(url.search?url.search:'')+url.hash)}
+/**
+ * Tira um parâmetro de uso único (token de redefinição, convite) da URL.
+ *
+ * Limpava só a moldura de DENTRO. Como o portal roda num iframe, a barra de
+ * endereços é a moldura de FORA — e era ela que continuava exibindo ?token= /
+ * ?invite= na tela e mandando a visita inteira, com token, para o histórico do
+ * navegador. Limpar por dentro e deixar à mostra por fora era fazer metade do
+ * trabalho e parecer feito.
+ *
+ * Passa o history.state em vez de {}: o estado é da navegação, não do
+ * parâmetro, e trocá-lo por objeto vazio apagaria a posição de quem estava
+ * ali antes só porque um token saiu da URL.
+ *
+ * O try/catch cobre o portal aberto fora do iframe (window.top é o próprio
+ * quadro, e a limpeza de fora não tem o que fazer) e o caso teórico de a
+ * moldura de fora ser de outra origem — aí o navegador recusa, e recusar é o
+ * comportamento certo.
+ */
+function removerParametroSensivel(name){
+  const limpar=janela=>{
+    const url=new URL(janela.location.href);
+    if(!url.searchParams.has(name))return;
+    url.searchParams.delete(name);
+    janela.history.replaceState(janela.history.state,'',url.pathname+url.search+url.hash);
+  };
+  limpar(window);
+  try{if(window.top&&window.top!==window)limpar(window.top)}catch{}
+}
 async function iniciarCadastro(){
   limparFalhaLogin();
   const cnpj=PORTAL_CNPJ||normalizarDocumento(qs('#li-cnpj').value);
@@ -611,7 +638,13 @@ function abrirAreaAutenticada(access){
   }
 }
 async function entrarComSessaoSalva(){
-  if(PORTAL_FIRST||PORTAL_RESET||new URLSearchParams(location.search).get('invite')||new URLSearchParams(location.search).get('partner-invite'))return false;
+  // PORTAL_QUERY, e não uma leitura nova de location.search: desde 22/08/2026 a
+  // tela de convite apaga o token da URL assim que ABRE, para ele não ficar na
+  // barra de endereços nem no histórico. Reler aqui veria a URL já limpa, esta
+  // guarda deixaria de valer e a sessão salva entraria por cima da tela de
+  // convite que a pessoa acabou de abrir. O snapshot é de antes de qualquer
+  // limpeza, então continua respondendo o que respondia.
+  if(PORTAL_FIRST||PORTAL_RESET||PORTAL_QUERY.get('invite')||PORTAL_QUERY.get('partner-invite'))return false;
   const token=sessionStorage.getItem(STORAGE_TOKEN);
   if(!token)return false;
   let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{return false}
@@ -6444,6 +6477,11 @@ async function copiarTextoSeguro(value,button){
 async function prepararConvite(){
   const token=new URLSearchParams(location.search).get('invite');
   if(!token)return;
+  // Sai da URL na ABERTURA, não só no aceite: entre abrir o convite e clicar
+  // no botão a pessoa lê a tela, troca de aba, tira print — e nesse tempo todo
+  // o token ficava na barra de endereços e ia para o histórico. O aceite
+  // continua usando a variável acima, que já foi lida.
+  removerParametroSensivel('invite');
   try{
     const invite=await api('/api/auth/invitations/'+encodeURIComponent(token));
     qs('.onboard-step').textContent='Convite de acesso';
@@ -6495,6 +6533,7 @@ async function aceitarConvite(token){
 async function prepararConviteParceiro(){
   const token=new URLSearchParams(location.search).get('partner-invite');
   if(!token)return;
+  removerParametroSensivel('partner-invite'); // mesmo motivo do convite de cliente acima
   try{
     const invite=await api('/api/auth/partner-invitations/'+encodeURIComponent(token));
     qs('.onboard-step').textContent='Convite de acesso';
@@ -6622,7 +6661,11 @@ prepararConvite();
 prepararConviteParceiro();
 faixaImpersonacao();
 const handoffGestor=lerHandoffGestor();if(handoffGestor)entrarViaGestor(handoffGestor);
-const temConvite=!!new URLSearchParams(location.search).get('invite')||!!new URLSearchParams(location.search).get('partner-invite');
+// Mesmo motivo de entrarComSessaoSalva(): a tela de convite já apagou o token
+// da URL neste ponto. Quem responde "veio convite?" tem de ser o snapshot da
+// URL de abertura, senão o convite ativo passa a valer como ausente e a tela
+// de login se remonta por cima da que prepararConvite() acabou de armar.
+const temConvite=!!PORTAL_QUERY.get('invite')||!!PORTAL_QUERY.get('partner-invite');
 function ocultarCampoCnpjLogin(){qs('#li-cnpj')?.closest('.login-field')?.style.setProperty('display','none');}
 function ocultarCampoEmailLogin(){qs('#li-mail')?.closest('.login-field')?.style.setProperty('display','none');}
 if(PORTAL_FIRST&&!temConvite){
