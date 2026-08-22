@@ -25,7 +25,6 @@
     #partner-banner{position:fixed;top:0;left:0;right:0;z-index:150;background:var(--gold);color:var(--navy);font:700 12.5px/1.4 Inter,Arial,sans-serif;text-align:center;padding:9px 14px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
     #partner-banner b{font-weight:800}
     .sidebar,.topbar{top:var(--partner-banner-h,36px)}
-    .sidebar{padding-bottom:var(--partner-banner-h,36px)}
     main{padding-top:calc(58px + var(--partner-banner-h,36px))}
     /* O seletor de empresa ativa nasce escondido no titan.css (só o painel
        Master o mostrava). Aqui ele é peça central: é por ele que o parceiro
@@ -52,13 +51,17 @@
     @media(max-width:760px){
       main{padding-top:calc(58px + var(--partner-banner-h,36px))}
       .top-user-copy{display:none}
+      /* Em tela estreita a tarja quebrava em duas linhas e comia 72px do alto
+         do conteúdo. O aviso essencial ("você está no Portal do Parceiro" e
+         de quem é a carteira) cabe em uma linha; o resto sai. */
+      .banner-extra{display:none}
     }
   </style>
 </head>
 <body class="portal-parceiro">
 
 <div id="partner-banner" role="status">
-  <span>⬥ Você está no <b>Portal do Parceiro</b> — <span id="partner-banner-name">carteira de parceiro TITAN</span>. As empresas listadas aqui são da sua carteira comercial.</span>
+  <span>⬥ Você está no <b>Portal do Parceiro</b> — <span id="partner-banner-name">carteira de parceiro TITAN</span>.<span class="banner-extra"> As empresas listadas aqui são da sua carteira comercial.</span></span>
 </div>
 
 <aside class="sidebar" id="sb">
