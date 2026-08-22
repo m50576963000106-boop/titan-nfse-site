@@ -303,7 +303,7 @@
           <div class="card">
             <div class="dash-card-h">
               <div>
-                <h2>Faturamento por competência<span class="dash-info" tabindex="0" role="img" aria-label="Considera as notas ativas da competência: autorizadas menos canceladas."><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></span></h2>
+                <h2>Faturamento por competência<span class="dash-info" tabindex="0" role="img" aria-label="Considera as notas ativas da competência: autorizadas menos canceladas. As barras hachuradas são projeção dos contratos recorrentes ainda não emitidos, e não entram no faturamento."><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></span></h2>
                 <p id="dash-chart-sub">Últimos 6 meses</p>
               </div>
               <select class="dash-range" id="dash-chart-range" aria-label="Período do gráfico" onchange="chart()">
@@ -312,12 +312,14 @@
               </select>
             </div>
             <div class="dash-chart chart" id="chart"></div>
-            <!-- A legenda só cita a série de quantidade porque ela é desenhada
-                 de verdade (o ponto sobre cada barra). Legenda de série que não
-                 existe no gráfico é enfeite que o leitor tenta procurar. -->
+            <!-- A legenda só cita série que é desenhada de verdade (o ponto
+                 sobre cada barra; a hachura dos contratos recorrentes, desde
+                 22/08/2026). Legenda de série que não existe no gráfico é
+                 enfeite que o leitor tenta procurar. -->
             <div class="chart-legend">
               <span class="legend-item"><span class="legend-swatch legend-bar"></span>Faturamento (R$)</span>
               <span class="legend-item"><span class="legend-swatch legend-dot"></span>Quantidade de notas</span>
+              <span class="legend-item"><span class="legend-swatch legend-proj"></span>Projeção dos contratos recorrentes</span>
             </div>
           </div>
           <div class="card">

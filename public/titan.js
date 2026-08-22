@@ -2759,6 +2759,10 @@ function mesesDoGrafico(){
       return !Number.isNaN(dt.valueOf())&&`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`===key&&n.st!=='canc'&&n.st!=='err';
     });
     lista.push({
+      // A chave AAAA-MM viaja junto desde 22/08/2026: é por ela que a projeção
+      // dos contratos recorrentes descobre qual barra é o mês corrente (o que
+      // vira barra empilhada) e quais competências ainda não existem no eixo.
+      mes:key,
       rotulo:d.toLocaleDateString('pt-BR',{month:'short'}).replace('.',''),
       valor:servidor?Number(servidor.amount||0):locais.reduce((sum,n)=>sum+Number(n.v||0),0),
       qtd:servidor?Number(servidor.count||0):locais.length
@@ -2766,26 +2770,91 @@ function mesesDoGrafico(){
   }
   return lista;
 }
+/**
+ * A segunda série do gráfico: o que os contratos recorrentes ainda vão emitir
+ * (pedido do dono do produto, 22/08/2026: "traga também das projeções dos
+ * contratos recorrentes ali").
+ *
+ * Vem PRONTA do servidor, em campo próprio (GET /api/dashboard → projection),
+ * já cortada por competência passada e por horizonte de 3 meses — ver
+ * dashboard/projecao-recorrentes.ts na API. Aqui só se decide onde cada
+ * competência entra no eixo:
+ *   - competência que já está no eixo (o mês corrente) → empilha sobre o
+ *     sólido, porque parte dele já foi emitida e parte ainda vai disparar;
+ *   - competência posterior ao último mês fechado → barra nova, no fim.
+ *
+ * Nada disso soma no realizado: `valor` e `projetado` seguem separados até o
+ * desenho, e o rótulo de cada barra continua sendo o que a empresa faturou.
+ */
+function projecaoDoGrafico(realizados){
+  const projecao=dashboardStats?.projection||[];
+  const noEixo=new Map(),futuros=[];
+  if(!projecao.length)return{noEixo,futuros};
+  const jaNoEixo=new Set(realizados.map(m=>m.mes));
+  projecao.forEach(p=>{
+    const valor=Number(p.amount||0),qtd=Number(p.count||0);
+    if(!valor)return;
+    if(jaNoEixo.has(p.month)){noEixo.set(p.month,{valor,qtd});return}
+    const [ano,mes]=String(p.month||'').split('-').map(Number);
+    if(!ano||!mes)return;
+    futuros.push({mes:p.month,rotulo:new Date(ano,mes-1,1).toLocaleDateString('pt-BR',{month:'short'}).replace('.',''),valor:0,qtd:0,projetado:valor,qtdProjetada:qtd});
+  });
+  futuros.sort((a,b)=>String(a.mes).localeCompare(String(b.mes)));
+  return{noEixo,futuros};
+}
 function chart(){
   const alvo=qs('#chart');if(!alvo)return;
   const lista=mesesDoGrafico();
-  const sub=qs('#dash-chart-sub');if(sub)sub.textContent=`Últimos ${lista.length} meses`;
+  const {noEixo,futuros}=projecaoDoGrafico(lista);
+  const mesesProjetados=noEixo.size+futuros.length;
+  const sub=qs('#dash-chart-sub');
+  if(sub)sub.textContent=mesesProjetados?`Últimos ${lista.length} meses · projeção de ${mesesProjetados} ${mesesProjetados===1?'mês':'meses'}`:`Últimos ${lista.length} meses`;
   if(!lista.length){
     alvo.innerHTML='<div class="empty-state" style="width:100%;align-self:center">O gráfico aparecerá depois da primeira emissão de teste.</div>';
     return;
   }
-  const maxValor=Math.max(...lista.map(m=>m.valor),1)*1.12;
+  // O eixo é o realizado ESTENDIDO pelos meses futuros — as duas fatias na
+  // mesma escala, senão comparar barra fechada com barra projetada engana.
+  const barras=[
+    ...lista.map(m=>{const p=noEixo.get(m.mes);return{...m,projetado:p?p.valor:0,qtdProjetada:p?p.qtd:0}}),
+    ...futuros
+  ];
+  // A escala considera o TOPO da barra empilhada (emitido + previsto), senão o
+  // mês corrente estoura a área do gráfico assim que a projeção entra.
+  const maxValor=Math.max(...barras.map(m=>m.valor+m.projetado),1)*1.12;
   const maxQtd=Math.max(...lista.map(m=>m.qtd),1)*1.12;
-  alvo.innerHTML=lista.map((m,i)=>`
-    <div class="bar-wrap">
-      <div class="bar-plot">
-        <div class="bar ${i===lista.length-1?'last':''}" style="height:${(m.valor/maxValor*100).toFixed(1)}%">
+  // A marca de "hoje" separa o que já fechou do que ainda vai acontecer: cai
+  // na primeira barra do mês corrente em diante (o mês corrente é a barra
+  // empilhada; se não houver projeção nele, é a primeira barra futura).
+  // Sem projeção nenhuma não há o que separar, e a marca vira só um risco a
+  // mais numa tela que ninguém pediu para mudar.
+  const mesDeHoje=dataBrasil().slice(0,7);
+  const marca=mesesProjetados?barras.find(m=>String(m.mes||'')>=mesDeHoje)?.mes:null;
+  alvo.innerHTML=barras.map((m,i)=>{
+    const ehFuturo=i>=lista.length;
+    const alturaReal=m.valor/maxValor*100,alturaProj=m.projetado/maxValor*100;
+    // Mês futuro não tem barra sólida nem ponto de quantidade: nenhuma nota
+    // foi emitida ali, e desenhar zero sugeriria faturamento zerado.
+    const solido=ehFuturo?'':`<div class="bar ${i===lista.length-1?'last':''}" style="height:${alturaReal.toFixed(1)}%">
           <span class="bar-v">R$ ${brl(m.valor)}</span>
-        </div>
-        <span class="bar-n" style="bottom:${(m.qtd/maxQtd*100).toFixed(1)}%" title="${m.qtd} nota(s) em ${esc(m.rotulo)}"></span>
+        </div>`;
+    // Hachurada e empilhada: começa onde o sólido termina, então a altura
+    // total lê o esperado da competência e a base continua sendo só o emitido.
+    // O valor em texto só aparece quando a barra é 100% projeção — no mês
+    // corrente dois números colados em cima da mesma barra viram borrão, e o
+    // título do bloco já responde ao passar o mouse.
+    const projetado=m.projetado?`<div class="bar-proj" style="height:${alturaProj.toFixed(1)}%;bottom:${alturaReal.toFixed(1)}%" title="Projeção de ${m.qtdProjetada} nota(s) de contrato recorrente: R$ ${brl(m.projetado)}">
+          ${ehFuturo?`<span class="bar-v">R$ ${brl(m.projetado)}</span>`:''}
+        </div>`:'';
+    const ponto=ehFuturo?'':`<span class="bar-n" style="bottom:${(m.qtd/maxQtd*100).toFixed(1)}%" title="${m.qtd} nota(s) em ${esc(m.rotulo)}"></span>`;
+    return `
+    <div class="bar-wrap${m.mes&&m.mes===marca?' marca-hoje':''}">
+      <div class="bar-plot">
+        ${solido}${projetado}${ponto}
       </div>
       <span class="bar-l">${esc(m.rotulo)}</span>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 /* ---------- tabelas ---------- */

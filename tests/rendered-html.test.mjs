@@ -2713,3 +2713,25 @@ test("desfazer recebimento e uma acao propria, confirmada, e mostra a data do re
   // a meia-noite. Tem que passar pelo fuso de Brasilia.
   assert.match(js, /function dataHoraBR\(valor\)\{[^}]*America\/Sao_Paulo/);
 });
+
+test("a projecao dos contratos recorrentes e serie separada do faturamento realizado", async()=>{
+  // Pedido do dono do produto (22/08/2026): "traga tambem das projecoes dos
+  // contratos recorrentes ali". Projecao somada ao realizado viraria um numero
+  // que ninguem consegue conferir contra a lista de notas.
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  const html=await lerPortal();
+  // Campo proprio da resposta, nunca months.
+  assert.match(js, /dashboardStats\?\.projection\|\|\[\]/);
+  assert.match(js, /valor:servidor\?Number\(servidor\.amount\|\|0\)/, "o realizado continua saindo de months, intacto");
+  // Sólido e projetado sao somados so para a ESCALA do eixo, nunca no rotulo.
+  assert.match(js, /Math\.max\(\.\.\.barras\.map\(m=>m\.valor\+m\.projetado\),1\)/);
+  // Hachura, e nao cor cheia: o que ainda nao foi emitido nao pode se parecer
+  // com faturamento realizado a dois metros da tela.
+  assert.match(css, /\.dash-chart \.bar-proj\{[\s\S]*?repeating-linear-gradient/);
+  assert.match(css, /\.legend-proj\{[\s\S]*?repeating-linear-gradient/);
+  // Legenda propria — serie desenhada sem legenda e serie que o leitor nao sabe ler.
+  assert.match(html, /<span class="legend-swatch legend-proj"><\/span>Projeção dos contratos recorrentes/);
+  // Marca de "hoje" separando mes fechado de mes futuro.
+  assert.match(css, /\.dash-chart \.bar-wrap\.marca-hoje::after\{content:'hoje'/);
+});
