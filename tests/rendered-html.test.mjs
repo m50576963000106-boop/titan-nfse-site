@@ -2661,3 +2661,14 @@ test("DASN: o lapis leva o AJUSTE MANUAL do mes para o formulario, nunca o total
   assert.match(html, /<label for="dasn-amount">Ajuste manual do m[êe]s \(R\$\)<\/label>/);
   assert.match(html, /S[óo] o <b>ajuste manual<\/b> deste m[êe]s — <b>n[ãa]o<\/b> o total/);
 });
+
+test("DASN: a situacao do mes sai do dado, nao de valor maior que zero", async()=>{
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  assert.doesNotMatch(js, /temValor\?'<span class="pill p-ok">Ativa<\/span>'/,
+    "'Ativa' derivado do valor afirmava situacao de nota para mes que so tinha ajuste manual");
+  assert.match(js, /function situacaoDoMes\(m\)/);
+  // O unico caso em que a tela sabe a situacao: a consolidacao filtra
+  // status='authorized' ao somar as notas emitidas aqui.
+  assert.match(js, /notas>0\)return `<span class="pill p-ok"/);
+  assert.match(js, /Não apurada<\/span>'/, "sem dado, a tela nao afirma situacao nenhuma");
+});

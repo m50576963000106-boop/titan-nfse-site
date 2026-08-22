@@ -1222,6 +1222,18 @@ function fonteDoMes(porOrigem){
   if(Number(o.manual)>0)return 'Manual';
   return '—';
 }
+// A situação que a tela SABE dizer, e só ela. A consolidação filtra
+// status='authorized' ao somar as notas emitidas aqui (consolidacao.ts), então
+// "4 autorizadas" é fato verificável. O que veio do Portal ou de ajuste manual
+// não tem situação apurada por este sistema — antes a tela escrevia "Ativa"
+// sempre que o valor era maior que zero, o que fazia um mês inteiro de
+// lançamento manual aparecer como nota ativa que nunca existiu.
+function situacaoDoMes(m){
+  const notas=Number(m?.notasDoTitan||0);
+  if(notas>0)return `<span class="pill p-ok" title="${notas} nota(s) emitida(s) pelo TITAN e autorizada(s) neste mês. Cancelada não entra na receita.">${notas} autorizada${notas>1?'s':''}</span>`;
+  if(Number(m?.total||0)>0)return '<span class="hint" title="O valor deste mês veio do Portal Nacional ou de ajuste manual — não é nota emitida aqui, e a situação dela não é apurada por este sistema.">Não apurada</span>';
+  return '<span class="hint">—</span>';
+}
 async function carregarDasn(){
   const year=qs('#dasn-year');if(!year)return;
   if(!year.value)year.value=String(new Date().getFullYear());
@@ -1241,8 +1253,7 @@ async function carregarDasn(){
     const meses=data.consolidacao?.meses||[];
     corpo.innerHTML=DASN_MESES.map((nome,i)=>{
       const m=meses.find(x=>Number(x.mes)===i+1)||{total:0,porOrigem:{}};
-      const valor=Number(m.total||0),temValor=valor>0;
-      const situacao=temValor?'<span class="pill p-ok">Ativa</span>':'<span class="hint">—</span>';
+      const valor=Number(m.total||0);
       // O ✎ leva o AJUSTE MANUAL do mês, nunca o total: o total já inclui as
       // notas emitidas aqui e o que veio do Portal, e mandar isso de volta para
       // o lançamento manual era o que dobrava o mês a cada Salvar.
@@ -1251,7 +1262,7 @@ async function carregarDasn(){
       return `<tr>
         <td data-th="Mês">${nome}</td>
         <td class="r" data-th="Receita bruta">${brl(valor)}</td>
-        <td data-th="Situação">${situacao}</td>
+        <td data-th="Situação">${situacaoDoMes(m)}</td>
         <td data-th="Fonte">${esc(fonteDoMes(m.porOrigem))}</td>
         <td class="r" data-th="Ações"><div class="acts"><button class="ico-btn" title="Ajustar manualmente este mês" onclick="editarMesDasn(${i+1},${ajusteManual})">✎</button>${excluir}</div></td>
       </tr>`;
