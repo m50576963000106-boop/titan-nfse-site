@@ -48,7 +48,7 @@
         <div class="drawer-status" id="client-login-status" role="status"></div>
       </form>
       <form class="login-panel" id="client-verify-form" style="display:none">
-        <h3>Confirme este acesso</h3><p id="client-verify-hint">Mandamos um código de 6 dígitos pro seu e-mail cadastrado.</p>
+        <h3>Confirme este acesso</h3><p id="client-verify-hint">Mandamos um código de 6 dígitos pro seu e-mail cadastrado. Não chegou em 1 minuto? Verifique a caixa de spam ou lixo eletrônico.</p>
         <label for="client-verify-code">Código de 6 dígitos</label><input id="client-verify-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
         <button class="btn btn-gold" type="submit">Confirmar</button>
         <button class="btn" type="button" id="client-verify-back">Voltar</button>
@@ -481,7 +481,7 @@
     function fecharPainelVerificacao(){const painel=document.querySelector('#client-verify-form');if(painel)painel.style.display='none';if(pendingVerification?.formulario)pendingVerification.formulario.style.display='';pendingVerification=null}
     function abrirPainelVerificacao(formulario,verificationId,emailHint,aoConfirmar){
       pendingVerification={verificationId,aoConfirmar,formulario};
-      document.querySelector('#client-verify-hint').textContent='Mandamos um código de 6 dígitos pro e-mail '+(emailHint||'cadastrado')+'.';
+      document.querySelector('#client-verify-hint').textContent='Mandamos um código de 6 dígitos pro e-mail '+(emailHint||'cadastrado')+'. Não chegou em 1 minuto? Verifique a caixa de spam ou lixo eletrônico.';
       formulario.style.display='none';
       const painel=document.querySelector('#client-verify-form');painel.style.display='';
       document.querySelector('#client-verify-code').value='';document.querySelector('#client-verify-status').textContent='';
