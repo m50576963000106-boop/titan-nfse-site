@@ -4,574 +4,1021 @@
   <script>if(location.hostname!=='nfse.titanbackoffice.com.br')window.top.location.replace('https://nfse.titanbackoffice.com.br'+location.pathname+location.search+location.hash);</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="TITAN NFS-e: Portal do Parceiro — carteira, créditos, comissões e financeiro das empresas indicadas.">
+  <meta name="description" content="TITAN NFS-e: Portal do Parceiro — carteira, licenças, créditos, comissões e financeiro das empresas indicadas.">
   <meta name="robots" content="noindex, nofollow">
   <title>TITAN NFS-e — Portal do Parceiro</title>
   <link rel="icon" href="/icons/icon-192.png" type="image/png">
   <script src="/config.js"></script>
-  <link rel="stylesheet" href="/nfs.css">
+  <!-- Pedido do usuário (21/08/2026): "essa tela tem que seguir o mesmo
+       layout, os mesmos detalhes, de todos os outros portais — não é uma tela
+       nova, diferente, pra outra pessoa usar". Então o Portal do Parceiro
+       deixa de ter CSS próprio (nfs.css + topbar de abas) e passa a usar o
+       MESMO titan.css do portal do cliente e do painel Master: menu lateral
+       à esquerda (.sidebar/.sb-link), topbar com seletor de empresa ativa,
+       cards, tabelas e pills iguais. -->
+  <link rel="stylesheet" href="/titan.css">
   <style>
-    /* Fase G: Créditos (cota/uso de notas e funções contratadas), Comissões
-       (estimativa sobre a mensalidade do plano, % definido pelo Master em
-       master_partners.commission_percent) e Financeiro (mensalidade e status
-       de implantação) — primeira versão real, sem inventar número: tudo vem
-       do que já existe no cadastro (invoices, master_plans, companies) ou de
-       uma taxa que o próprio Master configura. Não há split de pagamento nem
-       lançamento financeiro automático ainda; o repasse continua manual. */
-    body{background:var(--cream)}
-    .partner-shell{max-width:960px;margin:0 auto;padding:32px 24px 64px}
-    .partner-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;background:var(--navy);color:#fff;flex-wrap:wrap}
-    .partner-topbar img{display:block;height:34px}
-    .partner-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-    .partner-nav-link{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid transparent;color:rgba(255,255,255,.7);font:inherit;font-size:13.5px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer}
-    .partner-nav-link.on{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.28)}
-    .partner-head{margin:28px 0 20px}
-    .partner-head h1{color:var(--navy);font-size:26px;letter-spacing:-.03em}
-    .partner-head p{margin-top:6px;color:var(--muted);font-size:14px}
-    .partner-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
-    .partner-summary{padding:14px 18px;font-size:13.5px;color:var(--ink,#1c2430);border-bottom:1px solid var(--line);background:#fbfaf7}
-    /* Achado da auditoria de 11/08/2026: tabelas sem scroll horizontal em
-       telas estreitas — nfs.css (carregado aqui) não define table-wrap como
-       titan.css já faz; reproduz a mesma regra localmente. */
-    .table-wrap{overflow:auto}
-    table{width:100%;border-collapse:collapse}
-    th,td{text-align:left;padding:13px 18px;font-size:13.5px;border-bottom:1px solid var(--line)}
-    th{background:#fbfaf7;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
-    tr:last-child td{border-bottom:0}
-    .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700}
-    .pill.on{background:#e5f3ea;color:var(--ok)}
-    .pill.off{background:#f5e4e1;color:#9b2226}
-    .tag{display:inline-flex;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;background:#eef1f6;color:var(--navy);margin:2px 4px 2px 0}
-    .partner-empty,.partner-error{padding:32px 18px;text-align:center;color:var(--muted);font-size:14px}
-    .partner-error{color:#9b2226}
-    .partner-error a{color:var(--gold-dark);font-weight:700}
-    .partner-form{padding:20px 22px;display:grid;gap:14px;max-width:420px}
-    .partner-form h3{color:var(--navy);font-size:15px}
-    .partner-form p.hint{color:var(--muted);font-size:12.5px;line-height:1.5;margin-top:-6px}
-    .partner-field label{display:block;margin-bottom:5px;color:var(--navy);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
-    .partner-field input,.partner-field textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;outline:none;font:inherit}
-    .partner-field textarea{resize:vertical;min-height:90px}
-    .partner-field input:focus,.partner-field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(231,150,69,.18)}
-    .partner-form-status{min-height:20px;font-size:12.5px;font-weight:650;white-space:pre-wrap}
-    .partner-form-status.err{color:#9b2226}
-    .partner-form-status.ok{color:var(--ok)}
-    .partner-divider{border:0;border-top:1px solid var(--line);margin:6px 0}
-    .partner-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;margin-left:6px;border-radius:999px;background:#9b2226;color:#fff;font-size:10px;font-weight:800}
-    .partner-novidade{padding:14px 0;border-bottom:1px solid var(--line)}
-    .partner-novidade:last-child{border-bottom:0}
-    .partner-novidade small{color:var(--muted)}
-    .partner-novidade p{margin-top:6px;white-space:pre-wrap;font-size:13.5px}
+    /* Tarja de parceiro: mesma mecânica da faixa de sessão administrativa do
+       titan.css (#impersonation-banner + --imp-h medido em JS), com a cor de
+       aviso do produto. Fica fixa acima de tudo para nunca deixar dúvida de
+       em qual portal a pessoa está. */
+    #partner-banner{position:fixed;top:0;left:0;right:0;z-index:150;background:var(--gold);color:var(--navy);font:700 12.5px/1.4 Inter,Arial,sans-serif;text-align:center;padding:9px 14px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+    #partner-banner b{font-weight:800}
+    .sidebar,.topbar{top:var(--partner-banner-h,36px)}
+    .sidebar{padding-bottom:var(--partner-banner-h,36px)}
+    main{padding-top:calc(58px + var(--partner-banner-h,36px))}
+    /* O seletor de empresa ativa nasce escondido no titan.css (só o painel
+       Master o mostrava). Aqui ele é peça central: é por ele que o parceiro
+       alterna entre os clientes da carteira. */
+    .portal-parceiro .admin-company-switch{display:block}
+    .portal-parceiro .tenant{display:none}
+    .top-user{display:flex;align-items:center;gap:9px;margin-left:12px}
+    .top-user-copy{text-align:right;line-height:1.25;max-width:150px;overflow:hidden}
+    .top-user-copy b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .top-user-copy small{display:block;font-size:10px;color:var(--ink-3)}
+    .partner-status{padding:26px 14px;text-align:center;color:var(--ink-3);font-size:13px}
+    .partner-status.err{color:var(--err)}
+    .partner-status.err a{color:var(--gold-dim);font-weight:700}
+    .form-status{min-height:19px;font-size:12.5px;font-weight:650;white-space:pre-wrap}
+    .form-status.err{color:var(--err)}
+    .form-status.ok{color:var(--ok)}
+    .tag{display:inline-flex;padding:2px 8px;border-radius:100px;font-size:10.5px;font-weight:600;background:#eef1f6;color:var(--navy);margin:2px 4px 2px 0}
+    .price-was{color:var(--ink-3);text-decoration:line-through;font-size:11.5px;display:block}
+    .novidade{padding:13px 0;border-bottom:1px solid var(--line)}
+    .novidade:last-child{border-bottom:0}
+    .novidade p{margin-top:5px;white-space:pre-wrap;font-size:13px}
+    .sb-badge{margin-left:auto;min-width:16px;height:16px;padding:0 4px;border-radius:100px;background:var(--err);color:#fff;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center}
+    .sb-badge.on{display:inline-flex}
+    @media(max-width:760px){
+      main{padding-top:calc(58px + var(--partner-banner-h,36px))}
+      .top-user-copy{display:none}
+    }
   </style>
 </head>
-<body>
-  <header class="partner-topbar">
-    <a href="/" aria-label="TITAN NFS-e"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></a>
-    <nav class="partner-nav" aria-label="Navegação do Portal do Parceiro">
-      <button class="partner-nav-link on" type="button" data-partner-tab="carteira" onclick="partnerTab('carteira',this)" aria-current="page">Carteira</button>
-      <button class="partner-nav-link" type="button" data-partner-tab="creditos" onclick="partnerTab('creditos',this)">Créditos</button>
-      <button class="partner-nav-link" type="button" data-partner-tab="comissoes" onclick="partnerTab('comissoes',this)">Comissões</button>
-      <button class="partner-nav-link" type="button" data-partner-tab="financeiro" onclick="partnerTab('financeiro',this)">Financeiro</button>
-      <button class="partner-nav-link" type="button" data-partner-tab="licencas" onclick="partnerTab('licencas',this)">Licenças</button>
-      <button class="partner-nav-link" type="button" data-partner-tab="indicar" onclick="partnerTab('indicar',this)">Indicar cliente</button>
-      <button class="partner-nav-link" type="button" data-partner-tab="suporte" onclick="partnerTab('suporte',this)">Suporte</button>
-      <button class="partner-nav-link" type="button" data-partner-tab="novidades" onclick="partnerTab('novidades',this)">Novidades<span class="partner-badge" id="novidades-badge" style="display:none">0</span></button>
-      <button class="partner-nav-link" type="button" data-partner-tab="perfil" onclick="partnerTab('perfil',this)">Perfil</button>
-    </nav>
-    <button class="btn" type="button" id="partner-logout">Sair</button>
-  </header>
+<body class="portal-parceiro">
 
-  <main class="partner-shell">
-    <div class="partner-head">
-      <h1>Portal do Parceiro</h1>
-      <p>Empresas da sua carteira comercial (companies.partner_id) e o que cada uma representa em cota, comissão e financeiro.</p>
+<div id="partner-banner" role="status">
+  <span>⬥ Você está no <b>Portal do Parceiro</b> — <span id="partner-banner-name">carteira de parceiro TITAN</span>. As empresas listadas aqui são da sua carteira comercial.</span>
+</div>
+
+<aside class="sidebar" id="sb">
+  <a class="sb-mark" href="/" target="_top" aria-label="Página inicial TITAN NFS-e"><span class="sb-logo"><img src="/titan-nfse-logo-transparent.png" alt="TITAN NFS-e"></span></a>
+  <nav class="sb-nav" aria-label="Navegação do Portal do Parceiro">
+    <div class="sb-sec">Visão geral</div>
+    <button class="sb-link active" type="button" data-partner-tab="painel" onclick="partnerTab('painel',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Painel</button>
+
+    <div class="sb-sec">Carteira</div>
+    <button class="sb-link" type="button" data-partner-tab="carteira" onclick="partnerTab('carteira',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20v-1.5A4.5 4.5 0 0 1 8.5 14h7a4.5 4.5 0 0 1 4.5 4.5V20M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>Gestão por CNPJ</button>
+    <button class="sb-link" type="button" data-partner-tab="indicar" onclick="partnerTab('indicar',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM19 8v6M22 11h-6"/></svg>Indicar cliente</button>
+
+    <div class="sb-sec">Licenças</div>
+    <button class="sb-link" type="button" data-partner-tab="licencas" onclick="partnerTab('licencas',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/></svg>Administração de licenças</button>
+    <button class="sb-link" type="button" data-partner-tab="comprar" onclick="partnerTab('comprar',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12zM6 6 5 3H2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>Comprar licenças</button>
+    <button class="sb-link" type="button" data-partner-tab="pedidos" onclick="partnerTab('pedidos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>Pedidos<span class="sb-badge" id="pedidos-badge">0</span></button>
+    <button class="sb-link" type="button" data-partner-tab="cobrancas" onclick="partnerTab('cobrancas',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Cobranças</button>
+
+    <div class="sb-sec">Financeiro</div>
+    <button class="sb-link" type="button" data-partner-tab="comissoes" onclick="partnerTab('comissoes',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg>Comissão e margem</button>
+    <button class="sb-link" type="button" data-partner-tab="creditos" onclick="partnerTab('creditos',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Créditos</button>
+    <button class="sb-link" type="button" data-partner-tab="financeiro" onclick="partnerTab('financeiro',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg>Financeiro</button>
+
+    <div class="sb-sec">Suporte</div>
+    <button class="sb-link" type="button" data-partner-tab="suporte" onclick="partnerTab('suporte',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Fale com o suporte</button>
+    <button class="sb-link" type="button" data-partner-tab="novidades" onclick="partnerTab('novidades',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2ZM18 16V11a6 6 0 1 0-12 0v5l-2 2h16z"/></svg>Novidades<span class="sb-badge" id="novidades-badge">0</span></button>
+
+    <div class="sb-sec">Configurações</div>
+    <button class="sb-link" type="button" data-partner-tab="config" onclick="partnerTab('config',this)"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>Configurações</button>
+    <button class="sb-link" type="button" id="partner-logout"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 17l5-5-5-5M15 12H3M15 3h6v18h-6"/></svg>Sair</button>
+  </nav>
+  <div class="sb-foot">
+    <div class="hint" style="font-size:10px;line-height:1.6">Portal do Parceiro<br><span class="mono" id="sb-partner-nickname" style="font-size:9px">carregando...</span></div>
+  </div>
+</aside>
+<div class="sidebar-backdrop" id="sb-backdrop" onclick="fecharMenuLateral()" aria-hidden="true"></div>
+
+<header class="topbar">
+  <button class="burger" id="sb-burger" type="button" onclick="alternarMenuLateral()" aria-label="Menu" aria-controls="sb" aria-expanded="false">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <!-- Empresa ativa (pedido do usuário, 21/08/2026): "ali em cima, na hora de
+       empresa ativa, ele também precisa ter aquela opção — pra ele poder
+       alternar entre os usuários, acompanhar". Mesmo componente do painel
+       Master; abrir uma empresa cria uma sessão de 20 minutos (o servidor
+       registra em auditoria quem entrou) numa aba nova. -->
+  <div class="admin-company-switch" id="admin-company-switch">
+    <button class="admin-company-trigger" id="admin-company-trigger" type="button" aria-expanded="false" onclick="alternarSeletorEmpresa(event)"><small>Empresa ativa (carteira)</small><b id="admin-company-current">Carregando empresas...</b></button>
+    <div class="admin-company-menu" id="admin-company-menu">
+      <input class="admin-company-search" id="admin-company-search" aria-label="Buscar empresa por nome ou CNPJ" placeholder="Buscar por nome ou CNPJ..." autocomplete="off" oninput="renderEmpresasSeletor()">
+      <div class="admin-company-options" id="admin-company-options"></div>
     </div>
+  </div>
+  <div class="top-user">
+    <div class="top-user-copy"><b id="top-user-name">Parceiro TITAN</b><small id="top-user-role">Acesso de parceiro</small></div>
+    <div class="avatar" id="avatar">--</div>
+  </div>
+</header>
 
-    <section class="partner-view" id="partner-view-carteira">
-      <div class="partner-card">
-        <div id="partner-status" class="partner-empty">Carregando carteira...</div>
-        <div class="table-wrap"><table id="partner-table" style="display:none">
-          <thead><tr><th>Empresa</th><th>CNPJ</th><th>Status de emissão</th><th>Assinatura</th><th>WhatsApp (vínculo)</th></tr></thead>
+<main>
+
+  <!-- ---------- PAINEL ---------- -->
+  <section class="view on" id="partner-view-painel">
+    <div class="page-h"><h1>Painel do parceiro</h1><p>Seu estoque de licenças, o que está em uso na carteira e o que ainda depende de pagamento.</p></div>
+    <div class="row r3" id="painel-cards">
+      <div class="card"><div class="card-b"><div class="hint">Licenças disponíveis</div><h2 id="painel-saldo" style="font-size:26px">—</h2><div class="hint" id="painel-saldo-detalhe">Estoque comprado e ainda não atribuído.</div></div></div>
+      <div class="card"><div class="card-b"><div class="hint">Licenças em uso</div><h2 id="painel-uso" style="font-size:26px">—</h2><div class="hint" id="painel-uso-detalhe">Ativas e suspensas somam o mesmo consumo.</div></div></div>
+      <div class="card"><div class="card-b"><div class="hint">Empresas na carteira</div><h2 id="painel-empresas" style="font-size:26px">—</h2><div class="hint">CNPJs vinculados a você.</div></div></div>
+    </div>
+    <div class="row r2" style="margin-top:14px">
+      <div class="card"><div class="card-b"><div class="hint">Margem estimada do mês</div><h2 id="painel-margem" style="font-size:26px">—</h2><div class="hint">Revenda menos o custo das licenças em uso.</div></div></div>
+      <div class="card"><div class="card-b"><div class="hint">Seu desconto de parceria</div><h2 id="painel-desconto" style="font-size:26px">—</h2><div class="hint">Redutor aplicado ao custo de cada licença que você compra.</div></div></div>
+    </div>
+    <div class="alert a-info" id="painel-pendencias" style="margin-top:16px;display:none"></div>
+  </section>
+
+  <!-- ---------- CARTEIRA (GESTÃO POR CNPJ) ---------- -->
+  <section class="view" id="partner-view-carteira">
+    <div class="page-h"><h1>Gestão por CNPJ</h1><p>As empresas da sua carteira comercial: situação de emissão, licença atribuída e acesso ao portal de cada cliente.</p></div>
+    <div class="card">
+      <div class="card-h"><div><h3>Clientes da carteira</h3><p id="carteira-resumo">Carregando...</p></div></div>
+      <div class="card-b">
+        <div id="partner-status" class="partner-status">Carregando carteira...</div>
+        <div class="table-wrap"><table id="partner-table" class="tbl-cards-mobile" style="display:none">
+          <thead><tr><th>Empresa</th><th>CNPJ</th><th>Status de emissão</th><th>Assinatura</th><th>WhatsApp (vínculo)</th><th>Ações</th></tr></thead>
           <tbody id="partner-rows"></tbody>
         </table></div>
-        <form class="partner-form" id="assinatura-form" style="display:none;border-top:1px solid var(--line)" onsubmit="event.preventDefault();confirmarLiberarAssinatura()">
-          <h3>Liberar assinatura — <span id="assinatura-empresa-nome"></span></h3>
-          <p class="hint">Consome 1 licença do seu saldo do plano escolhido e passa a valer o preço de revenda que você definir para este cliente.</p>
+      </div>
+    </div>
+    <div class="card" id="assinatura-card" style="display:none;margin-top:14px">
+      <div class="card-h"><div><h3>Liberar assinatura — <span id="assinatura-empresa-nome"></span></h3><p>Consome 1 licença do seu saldo e passa a valer o preço de revenda que você definir para este cliente.</p></div></div>
+      <div class="card-b">
+        <form onsubmit="event.preventDefault();confirmarLiberarAssinatura()">
           <input type="hidden" id="assinatura-company-id">
-          <div class="partner-field"><label for="assinatura-plano">Plano</label><select id="assinatura-plano"></select></div>
-          <div class="partner-field"><label for="assinatura-preco">Valor de revenda para este cliente (R$)</label><input id="assinatura-preco" inputmode="decimal" placeholder="Ex.: 150,00"></div>
-          <div class="flex wrap" style="gap:8px"><button class="btn btn-gold" type="submit">Confirmar</button><button class="btn" type="button" onclick="fecharLiberarAssinatura()">Cancelar</button></div>
-          <div class="partner-form-status" id="assinatura-status" role="status"></div>
+          <div class="row r2">
+            <div class="field"><label for="assinatura-plano">Plano</label><select id="assinatura-plano" class="inp"></select></div>
+            <div class="field"><label for="assinatura-preco">Valor de revenda para este cliente (R$)</label><input id="assinatura-preco" class="inp" inputmode="decimal" placeholder="Ex.: 150,00"></div>
+          </div>
+          <div class="acts" style="justify-content:flex-start"><button class="btn btn-p" type="submit">Confirmar</button><button class="btn" type="button" onclick="fecharLiberarAssinatura()">Cancelar</button></div>
+          <div class="form-status" id="assinatura-status" role="status"></div>
         </form>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="partner-view" id="partner-view-creditos" style="display:none">
-      <div class="partner-card">
-        <div id="creditos-status" class="partner-empty">Carregando créditos...</div>
-        <div class="table-wrap"><table id="creditos-table" style="display:none">
-          <thead><tr><th>Empresa</th><th>Plano</th><th>Cota de notas (mês corrente)</th><th>Funções contratadas</th></tr></thead>
-          <tbody id="creditos-rows"></tbody>
-        </table></div>
+  <!-- ---------- INDICAR CLIENTE ---------- -->
+  <section class="view" id="partner-view-indicar">
+    <div class="page-h"><h1>Indicar cliente</h1><p>Cadastra a empresa direto na sua carteira e envia o convite de acesso por e-mail.</p></div>
+    <div class="card">
+      <div class="card-h"><div><h3>Novo cliente</h3><p>Só funciona para CNPJ que ainda não está na plataforma. Se o CNPJ já existir, peça ao Master para vincular à sua carteira.</p></div></div>
+      <div class="card-b">
+        <form onsubmit="event.preventDefault();indicarClienteParceiro()">
+          <div class="row r3">
+            <div class="field"><label for="ind-cnpj">CNPJ</label><input id="ind-cnpj" class="inp" autocapitalize="characters" maxlength="18" placeholder="AA.AAA.AAA/AAAA-99"></div>
+            <div class="field"><label for="ind-email">E-mail do responsável</label><input id="ind-email" class="inp" type="email" placeholder="responsavel@empresa.com.br"></div>
+            <div class="field"><label for="ind-whatsapp">WhatsApp (opcional)</label><input id="ind-whatsapp" class="inp" placeholder="(00) 00000-0000" inputmode="tel"></div>
+          </div>
+          <button class="btn btn-p" type="submit">Enviar convite</button>
+          <div class="form-status" id="ind-status" role="status"></div>
+        </form>
+        <div class="alert a-info" style="margin-top:14px">A empresa entra sem emissão liberada e sem plano de avaliação. Ela passa a emitir quando você liberar uma assinatura com uma licença do seu saldo.</div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="partner-view" id="partner-view-comissoes" style="display:none">
-      <div class="partner-card">
-        <div id="comissoes-status" class="partner-empty">Carregando comissões...</div>
-        <div id="comissoes-summary" class="partner-summary" style="display:none"></div>
-        <div class="table-wrap"><table id="comissoes-table" style="display:none">
+  <!-- ---------- ADMINISTRAÇÃO DE LICENÇAS ---------- -->
+  <section class="view" id="partner-view-licencas">
+    <div class="page-h"><h1>Administração de licenças</h1><p>Cada licença atribuída, o que ela custa, por quanto está revendida e em que estado está.</p></div>
+    <div class="alert a-warn">Suspender para a emissão do cliente, mas a licença continua sendo consumida do seu saldo. O saldo só volta com o <b>distrato</b> — que precisa ser aceito pelo cliente dentro do portal dele.</div>
+    <div class="card">
+      <div class="card-h"><div><h3>Licenças em uso</h3><p id="licencas-uso-resumo">Carregando...</p></div><button class="btn btn-s" type="button" onclick="carregarAdminLicencas()">Atualizar</button></div>
+      <div class="card-b">
+        <div id="licencas-uso-status" class="partner-status">Carregando licenças...</div>
+        <div class="table-wrap"><table id="licencas-uso-table" class="tbl-cards-mobile" style="display:none">
+          <thead><tr><th>Empresa</th><th>Plano</th><th>Custo</th><th>Revenda</th><th>Margem</th><th>Situação</th><th>Ações</th></tr></thead>
+          <tbody id="licencas-uso-rows"></tbody>
+        </table></div>
+        <div class="form-status" id="licencas-uso-acao" role="status"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- COMPRAR LICENÇAS ---------- -->
+  <section class="view" id="partner-view-comprar">
+    <div class="page-h"><h1>Comprar licenças</h1><p>Estoque pré-pago, por plano. Cada licença vira uma assinatura que você libera para um cliente da carteira, pelo valor de revenda que escolher.</p></div>
+    <div class="alert a-info" id="comprar-desconto-aviso" style="display:none"></div>
+    <div class="card">
+      <div class="card-h"><div><h3>Planos disponíveis</h3><p>O custo abaixo já é o seu — com o desconto de parceria aplicado.</p></div></div>
+      <div class="card-b">
+        <div class="table-wrap"><table id="licencas-catalogo-table" class="tbl-cards-mobile">
+          <thead><tr><th>Plano</th><th>Custo da licença</th><th>Quantidade</th><th>Ações</th></tr></thead>
+          <tbody id="licencas-catalogo-rows"><tr><td colspan="4" class="partner-status">Carregando planos...</td></tr></tbody>
+        </table></div>
+        <div class="form-status" id="licencas-compra-status" role="status"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="card-h"><div><h3>Seu saldo</h3><p>Licenças compradas e ainda não atribuídas a nenhum cliente.</p></div></div>
+      <div class="card-b"><div class="table-wrap"><table id="licencas-saldo-table" class="tbl-cards-mobile">
+        <thead><tr><th>Plano</th><th>Licenças disponíveis</th></tr></thead>
+        <tbody id="licencas-saldo-rows"><tr><td colspan="2" class="partner-status">Nenhuma licença comprada ainda.</td></tr></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- PEDIDOS ---------- -->
+  <section class="view" id="partner-view-pedidos">
+    <div class="page-h"><h1>Pedidos de licença</h1><p>Enquanto o pedido está aguardando pagamento você pode adicionar mais licenças, editar ou cancelar.</p></div>
+    <div class="card">
+      <div class="card-h"><div><h3>Seus pedidos</h3><p id="pedidos-resumo">Carregando...</p></div><button class="btn btn-s" type="button" onclick="carregarPedidos()">Atualizar</button></div>
+      <div class="card-b">
+        <div class="table-wrap"><table id="licencas-pedidos-table" class="tbl-cards-mobile">
+          <thead><tr><th>Plano</th><th>Qtd.</th><th>Valor total</th><th>Status</th><th>Pedido em</th><th>Ações</th></tr></thead>
+          <tbody id="licencas-pedidos-rows"><tr><td colspan="6" class="partner-status">Carregando pedidos...</td></tr></tbody>
+        </table></div>
+        <div class="form-status" id="pedidos-acao" role="status"></div>
+      </div>
+    </div>
+    <div class="card" id="pedido-pagamento-card" style="display:none;margin-top:14px">
+      <div class="card-h"><div><h3>Pagamento do pedido</h3><p>Como concluir o pedido que está aguardando pagamento.</p></div></div>
+      <div class="card-b" id="pedido-pagamento-corpo"></div>
+    </div>
+  </section>
+
+  <!-- ---------- COBRANÇAS ---------- -->
+  <section class="view" id="partner-view-cobrancas">
+    <div class="page-h"><h1>Cobranças</h1><p>Cobrança inicial (na liberação do pedido) e recorrente, a cada 30 dias, por empresa em uso. A confirmação do pagamento é feita pelo TITAN — aqui é consulta.</p></div>
+    <div class="card">
+      <div class="card-h"><div><h3>Histórico de cobranças</h3></div><button class="btn btn-s" type="button" onclick="carregarCobrancas()">Atualizar</button></div>
+      <div class="card-b"><div class="table-wrap"><table id="licencas-cobrancas-table" class="tbl-cards-mobile">
+        <thead><tr><th>Empresa</th><th>Valor</th><th>Vencimento</th><th>Status</th></tr></thead>
+        <tbody id="licencas-cobrancas-rows"><tr><td colspan="4" class="partner-status">Carregando cobranças...</td></tr></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- COMISSÃO E MARGEM ---------- -->
+  <section class="view" id="partner-view-comissoes">
+    <div class="page-h"><h1>Comissão e margem</h1><p>Quanto cada cliente da carteira representa para você hoje.</p></div>
+    <div class="card">
+      <div class="card-h"><div><h3>Resultado por empresa</h3><p id="comissoes-summary">Carregando...</p></div></div>
+      <div class="card-b">
+        <div id="comissoes-status" class="partner-status">Carregando comissões...</div>
+        <div class="table-wrap"><table id="comissoes-table" class="tbl-cards-mobile" style="display:none">
           <thead><tr><th>Empresa</th><th>Modelo</th><th>Mensalidade cobrada do cliente</th><th>Sua margem</th></tr></thead>
           <tbody id="comissoes-rows"></tbody>
         </table></div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="partner-view" id="partner-view-financeiro" style="display:none">
-      <div class="partner-card">
-        <div id="financeiro-status" class="partner-empty">Carregando financeiro...</div>
-        <div class="table-wrap"><table id="financeiro-table" style="display:none">
+  <!-- ---------- CRÉDITOS ---------- -->
+  <section class="view" id="partner-view-creditos">
+    <div class="page-h"><h1>Créditos</h1><p>Cota de notas do mês corrente e funções contratadas por empresa da carteira.</p></div>
+    <div class="card">
+      <div class="card-h"><div><h3>Consumo por empresa</h3></div></div>
+      <div class="card-b">
+        <div id="creditos-status" class="partner-status">Carregando créditos...</div>
+        <div class="table-wrap"><table id="creditos-table" class="tbl-cards-mobile" style="display:none">
+          <thead><tr><th>Empresa</th><th>Plano</th><th>Cota de notas (mês corrente)</th><th>Funções contratadas</th></tr></thead>
+          <tbody id="creditos-rows"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- FINANCEIRO ---------- -->
+  <section class="view" id="partner-view-financeiro">
+    <div class="page-h"><h1>Financeiro</h1><p>Mensalidade vigente e status de implantação de cada empresa da carteira.</p></div>
+    <div class="card">
+      <div class="card-h"><div><h3>Mensalidades</h3></div></div>
+      <div class="card-b">
+        <div id="financeiro-status" class="partner-status">Carregando financeiro...</div>
+        <div class="table-wrap"><table id="financeiro-table" class="tbl-cards-mobile" style="display:none">
           <thead><tr><th>Empresa</th><th>Plano</th><th>Mensalidade</th><th>Implantação</th></tr></thead>
           <tbody id="financeiro-rows"></tbody>
         </table></div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="partner-view" id="partner-view-licencas" style="display:none">
-      <div class="partner-card">
-        <div style="padding:20px 22px 6px"><h3 style="color:var(--navy);font-size:15px">Comprar licenças</h3><p class="hint" style="margin-top:4px">Estoque pré-pago, por plano — cada licença comprada vira 1 assinatura que você pode liberar para um cliente da sua carteira, pelo valor de revenda que você escolher.</p></div>
-        <div class="table-wrap"><table id="licencas-catalogo-table">
-          <thead><tr><th>Plano</th><th>Custo da licença</th><th>Quantidade</th><th></th></tr></thead>
-          <tbody id="licencas-catalogo-rows"><tr><td colspan="4" class="partner-empty">Carregando planos...</td></tr></tbody>
-        </table></div>
-        <div class="partner-form-status" id="licencas-compra-status" role="status" style="padding:0 22px"></div>
-      </div>
-      <div class="partner-card" style="margin-top:16px">
-        <div class="card-h" style="padding:16px 22px 0"><h3 style="color:var(--navy);font-size:15px">Seu saldo</h3></div>
-        <div class="table-wrap"><table id="licencas-saldo-table">
-          <thead><tr><th>Plano</th><th>Licenças disponíveis</th></tr></thead>
-          <tbody id="licencas-saldo-rows"><tr><td colspan="2" class="partner-empty">Nenhuma licença comprada ainda.</td></tr></tbody>
-        </table></div>
-      </div>
-      <div class="partner-card" style="margin-top:16px">
-        <div class="card-h" style="padding:16px 22px 0"><h3 style="color:var(--navy);font-size:15px">Pedidos</h3></div>
-        <div class="table-wrap"><table id="licencas-pedidos-table">
-          <thead><tr><th>Plano</th><th>Qtd.</th><th>Valor total</th><th>Status</th><th>Pedido em</th></tr></thead>
-          <tbody id="licencas-pedidos-rows"><tr><td colspan="5" class="partner-empty">Nenhum pedido ainda.</td></tr></tbody>
-        </table></div>
-      </div>
-      <div class="partner-card" style="margin-top:16px">
-        <div class="card-h" style="padding:16px 22px 0"><h3 style="color:var(--navy);font-size:15px">Cobranças</h3><p class="hint" style="margin-top:4px">Cobrança inicial (na liberação do pedido) e recorrente, a cada 30 dias, por empresa em uso. Confirmação de pagamento é feita pelo TITAN — aqui é só consulta.</p></div>
-        <div class="table-wrap"><table id="licencas-cobrancas-table">
-          <thead><tr><th>Empresa</th><th>Valor</th><th>Vencimento</th><th>Status</th></tr></thead>
-          <tbody id="licencas-cobrancas-rows"><tr><td colspan="4" class="partner-empty">Nenhuma cobrança ainda.</td></tr></tbody>
-        </table></div>
-      </div>
-    </section>
+  <!-- ---------- SUPORTE ---------- -->
+  <section class="view" id="partner-view-suporte">
+    <div class="page-h"><h1>Fale com o suporte</h1><p>Sua mensagem chega direto para o time TITAN, com seu nome e e-mail de acesso já identificados.</p></div>
+    <div class="card"><div class="card-b">
+      <form onsubmit="event.preventDefault();enviarSuporteParceiro()">
+        <div class="field"><label for="sup-assunto">Assunto</label><input id="sup-assunto" class="inp" maxlength="160" placeholder="Ex.: Dúvida sobre comissão"></div>
+        <div class="field"><label for="sup-mensagem">Mensagem</label><textarea id="sup-mensagem" class="inp" rows="6" maxlength="4000" placeholder="Descreva o que você precisa"></textarea></div>
+        <button class="btn btn-p" type="submit">Enviar mensagem</button>
+        <div class="form-status" id="sup-status" role="status"></div>
+      </form>
+    </div></div>
+  </section>
 
-    <section class="partner-view" id="partner-view-indicar" style="display:none">
-      <div class="partner-card">
-        <form class="partner-form" onsubmit="event.preventDefault();indicarClienteParceiro()">
-          <h3>Indicar novo cliente</h3>
-          <p class="hint">Cadastra a empresa direto na sua carteira e envia o convite de acesso por e-mail — só funciona para um CNPJ que ainda não está na plataforma. Se o CNPJ já existir, peça ao Master para vincular à sua carteira.</p>
-          <div class="partner-field"><label for="ind-cnpj">CNPJ</label><input id="ind-cnpj" autocapitalize="characters" maxlength="18" placeholder="AA.AAA.AAA/AAAA-99"></div>
-          <div class="partner-field"><label for="ind-email">E-mail do responsável</label><input id="ind-email" type="email" placeholder="responsavel@empresa.com.br"></div>
-          <div class="partner-field"><label for="ind-whatsapp">WhatsApp (opcional)</label><input id="ind-whatsapp" placeholder="(00) 00000-0000" inputmode="tel"></div>
-          <button class="btn btn-gold" type="submit">Enviar convite</button>
-          <div class="partner-form-status" id="ind-status" role="status"></div>
-        </form>
-      </div>
-    </section>
+  <!-- ---------- NOVIDADES ---------- -->
+  <section class="view" id="partner-view-novidades">
+    <div class="page-h"><h1>Novidades</h1><p>O que mudou no produto.</p></div>
+    <div class="card"><div class="card-b">
+      <div id="novidades-status" class="partner-status">Carregando...</div>
+      <div id="novidades-list" style="display:none"></div>
+    </div></div>
+  </section>
 
-    <section class="partner-view" id="partner-view-suporte" style="display:none">
-      <div class="partner-card">
-        <form class="partner-form" onsubmit="event.preventDefault();enviarSuporteParceiro()">
-          <h3>Fale com o suporte</h3>
-          <p class="hint">Sua mensagem chega direto para o time TITAN, com seu nome e e-mail de acesso já identificados.</p>
-          <div class="partner-field"><label for="sup-assunto">Assunto</label><input id="sup-assunto" maxlength="160" placeholder="Ex.: Dúvida sobre comissão"></div>
-          <div class="partner-field"><label for="sup-mensagem">Mensagem</label><textarea id="sup-mensagem" maxlength="4000" placeholder="Descreva o que você precisa"></textarea></div>
-          <button class="btn btn-gold" type="submit">Enviar mensagem</button>
-          <div class="partner-form-status" id="sup-status" role="status"></div>
-        </form>
-      </div>
-    </section>
+  <!-- ---------- CONFIGURAÇÕES ---------- -->
+  <section class="view" id="partner-view-config">
+    <div class="page-h"><h1>Configurações</h1><p>Seus dados de acesso, o cadastro da parceria e as condições comerciais vigentes.</p></div>
 
-    <section class="partner-view" id="partner-view-novidades" style="display:none">
-      <div class="partner-card">
-        <div id="novidades-status" class="partner-empty">Carregando...</div>
-        <div id="novidades-list" style="display:none;padding:6px 22px"></div>
+    <div class="card">
+      <div class="card-h"><div><h3>Cadastro da parceria</h3><p>Definido pelo TITAN. Precisa mudar? Fale com o suporte.</p></div></div>
+      <div class="card-b">
+        <div class="row r3">
+          <div class="field"><label for="cfg-parceiro-nome">Parceiro</label><input id="cfg-parceiro-nome" class="inp" disabled></div>
+          <div class="field"><label for="cfg-parceiro-apelido">Apelido</label><input id="cfg-parceiro-apelido" class="inp" disabled></div>
+          <div class="field"><label for="cfg-parceiro-cnpj">CNPJ/CPF (tomador das notas de licença)</label><input id="cfg-parceiro-cnpj" class="inp" disabled></div>
+        </div>
+        <div class="row r2">
+          <div class="field"><label for="cfg-desconto">Desconto de parceria nas licenças</label><input id="cfg-desconto" class="inp" disabled><div class="hint">Redutor aplicado ao preço de tabela na hora de comprar e de renovar cada licença.</div></div>
+          <div class="field"><label for="cfg-comissao">Comissão (carteira legada)</label><input id="cfg-comissao" class="inp" disabled><div class="hint">Só vale para empresas antigas, ainda sem licença atribuída.</div></div>
+        </div>
+        <div class="alert a-info" id="cfg-cnpj-aviso" style="display:none">Sem CNPJ/CPF no cadastro, o TITAN não consegue emitir a nota fiscal das suas licenças. Peça ao suporte para completar o cadastro.</div>
       </div>
-    </section>
+    </div>
 
-    <section class="partner-view" id="partner-view-perfil" style="display:none">
-      <div class="partner-card">
-        <form class="partner-form" onsubmit="event.preventDefault();salvarPerfilParceiro()">
-          <h3>Seus dados</h3>
-          <div class="partner-field"><label for="perfil-nome">Nome</label><input id="perfil-nome"></div>
-          <div class="partner-field"><label>E-mail de acesso</label><input id="perfil-email" disabled></div>
+    <div class="card" style="margin-top:14px">
+      <div class="card-h"><div><h3>Seus dados de acesso</h3></div></div>
+      <div class="card-b">
+        <form onsubmit="event.preventDefault();salvarPerfilParceiro()">
+          <div class="row r2">
+            <div class="field"><label for="perfil-nome">Nome</label><input id="perfil-nome" class="inp"></div>
+            <div class="field"><label for="perfil-email">E-mail de acesso</label><input id="perfil-email" class="inp" disabled></div>
+          </div>
           <button class="btn" type="submit">Salvar nome</button>
-          <div class="partner-form-status" id="perfil-status" role="status"></div>
-        </form>
-        <hr class="partner-divider" style="margin:0 22px">
-        <form class="partner-form" onsubmit="event.preventDefault();trocarSenhaParceiro()">
-          <h3>Trocar senha</h3>
-          <div class="partner-field"><label for="senha-atual">Senha atual</label><input id="senha-atual" type="password" autocomplete="current-password"></div>
-          <div class="partner-field"><label for="senha-nova">Nova senha</label><input id="senha-nova" type="password" autocomplete="new-password" minlength="10" placeholder="Pelo menos 10 caracteres"></div>
-          <div class="partner-field"><label for="senha-confirma">Confirme a nova senha</label><input id="senha-confirma" type="password" autocomplete="new-password" minlength="10"></div>
-          <button class="btn" type="submit">Trocar senha</button>
-          <div class="partner-form-status" id="senha-status" role="status"></div>
+          <div class="form-status" id="perfil-status" role="status"></div>
         </form>
       </div>
-    </section>
-  </main>
+    </div>
 
-  <script>
-    const STORAGE_TOKEN='titan_nfse_session_v1',STORAGE_SESSION='titan_nfse_access_v1';
-    const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
-    const brl=n=>Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-    const dinheiro=value=>Number(String(value||'0').replace(/\./g,'').replace(',','.'))||0;
-    function formatarCnpj(value){
-      const digits=String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-      return digits.length===14?digits.replace(/^(.{2})(.{3})(.{3})(.{4})(\d{2})$/,'$1.$2.$3/$4-$5'):(value||'');
-    }
-    // Achado da auditoria de 11/08/2026: location.href navegava só o
-    // documento do IFRAME desta tela (cada tela do site roda dentro de um
-    // iframe que ocupa a viewport inteira — ver app/globals.css), deixando a
-    // URL do navegador (/parceiro) inconsistente com o conteúdo mostrado
-    // (a home institucional). window.top é o mesmo padrão de nfs.html/titan.html.
-    function sair(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_SESSION);window.top.location.href='/'}
-    document.querySelector('#partner-logout').addEventListener('click',sair);
+    <div class="card" style="margin-top:14px">
+      <div class="card-h"><div><h3>Trocar senha</h3></div></div>
+      <div class="card-b">
+        <form onsubmit="event.preventDefault();trocarSenhaParceiro()">
+          <div class="row r3">
+            <div class="field"><label for="senha-atual">Senha atual</label><input id="senha-atual" class="inp" type="password" autocomplete="current-password"></div>
+            <div class="field"><label for="senha-nova">Nova senha</label><input id="senha-nova" class="inp" type="password" autocomplete="new-password" minlength="10" placeholder="Pelo menos 10 caracteres"></div>
+            <div class="field"><label for="senha-confirma">Confirme a nova senha</label><input id="senha-confirma" class="inp" type="password" autocomplete="new-password" minlength="10"></div>
+          </div>
+          <button class="btn" type="submit">Trocar senha</button>
+          <div class="form-status" id="senha-status" role="status"></div>
+        </form>
+      </div>
+    </div>
+  </section>
 
-    // Sessão vem sempre do login por e-mail em nfs.html (mesmo formulário do
-    // Master) — esta tela não tem form de login próprio, só confere o que já
-    // foi salvo antes do redirecionamento para /parceiro.
-    function tokenDeSessaoParceiro(){
-      const token=sessionStorage.getItem(STORAGE_TOKEN);
-      let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{}
-      return token&&access.user?.isPartner?token:null;
-    }
-    async function buscarApiParceiro(caminho){
-      const token=tokenDeSessaoParceiro();
-      if(!token)throw new Error('SEM_SESSAO');
-      let response;
-      try{
-        response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+caminho,{headers:{Authorization:'Bearer '+token}});
-      }catch{
-        // Achado da auditoria de 11/08/2026: falha de rede (offline, DNS,
-        // CORS) subia crua até a tela como TypeError em inglês, quebrando o
-        // padrão PT-BR do resto da tela.
-        throw new Error('Não foi possível conectar. Verifique sua internet e tente novamente.');
-      }
-      // Achado da auditoria de 11/08/2026: sessão expirada no SERVIDOR (401)
-      // caía no branch genérico do catch de cada carregarX, sem o link
-      // "Entrar de novo" — só a ausência LOCAL de token acionava
-      // mostrarErroSessao. Reaproveita o mesmo sentinel 'SEM_SESSAO' pros
-      // dois casos, então nenhum caller precisa saber a diferença.
-      if(response.status===401)throw new Error('SEM_SESSAO');
-      const data=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(data.error||'Não foi possível carregar os dados.');
-      return data;
-    }
-    function mostrarErroSessao(status){
-      status.className='partner-error';
-      status.innerHTML='Sessão de parceiro não encontrada ou expirada. <a href="/">Entrar de novo</a>.';
-    }
+</main>
 
-let PARCEIRO_EMPRESAS=[],PARCEIRO_PLANOS=null;
-async function garantirPlanosParceiro(){
-  if(PARCEIRO_PLANOS)return PARCEIRO_PLANOS;
-  const data=await buscarApiParceiro('/api/partner/plans');
-  PARCEIRO_PLANOS=data.plans||[];
-  return PARCEIRO_PLANOS;
-}
-async function carregarCarteira(){
-      const status=document.querySelector('#partner-status'),tabela=document.querySelector('#partner-table'),corpo=document.querySelector('#partner-rows');
-      status.className='partner-empty';status.textContent='Carregando carteira...';tabela.style.display='none';
-      try{
-        const data=await buscarApiParceiro('/api/partner/companies');
-        const empresas=data.companies||[];
-        PARCEIRO_EMPRESAS=empresas;
-        if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
-        corpo.innerHTML=empresas.map(company=>{
-          const assinatura=company.resale_price_cents!=null
-            ?`R$ ${brl(Number(company.resale_price_cents)/100)}<br><button class="btn btn-s" type="button" style="padding:3px 8px;font-size:11.5px;margin-top:4px" onclick="abrirLiberarAssinatura('${company.id}')">Alterar</button>`
-            :`<span class="hint">Sem licença</span><br><button class="btn btn-s" type="button" style="padding:3px 8px;font-size:11.5px;margin-top:4px" onclick="abrirLiberarAssinatura('${company.id}')">Liberar assinatura</button>`;
-          return `<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td class="mono">${esc(formatarCnpj(company.federal_tax_id))}</td><td><span class="pill ${company.emission_enabled?'on':'off'}">${company.emission_enabled?'Emissão liberada':'Emissão suspensa'}</span></td><td>${assinatura}</td><td><div style="display:flex;gap:6px;align-items:center"><input class="inp" style="max-width:150px" id="zap-${company.id}" value="${esc(company.whatsapp_phone||'')}" placeholder="(00) 00000-0000" inputmode="tel"><button class="btn" type="button" style="padding:6px 10px;font-size:12px" onclick="salvarWhatsappParceiro('${company.id}')">Salvar</button></div></td></tr>`;
-        }).join('');
-        status.style.display='none';tabela.style.display='table';
-      }catch(error){
-        if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
-        status.className='partner-error';status.textContent=error.message;
-      }
-    }
+<script>
+  const STORAGE_TOKEN='titan_nfse_session_v1',STORAGE_SESSION='titan_nfse_access_v1';
+  const qs=seletor=>document.querySelector(seletor);
+  const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+  const brl=n=>Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const dinheiro=value=>Number(String(value||'0').replace(/\./g,'').replace(',','.'))||0;
+  const reais=cents=>'R$ '+brl(Number(cents||0)/100);
+  function formatarCnpj(value){
+    const digits=String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+    return digits.length===14?digits.replace(/^(.{2})(.{3})(.{3})(.{4})(\d{2})$/,'$1.$2.$3/$4-$5'):(value||'');
+  }
+  function formatarData(iso){return iso?new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}):'—'}
 
-    // "Liberar a assinatura" — pedido do usuário (16/08/2026): consome 1
-    // licença do saldo do plano escolhido e grava o preço de revenda que o
-    // PARCEIRO decide para aquele cliente, ativando a emissão.
-    async function abrirLiberarAssinatura(companyId){
-      const empresa=PARCEIRO_EMPRESAS.find(c=>c.id===companyId);if(!empresa)return;
-      const form=document.querySelector('#assinatura-form'),select=document.querySelector('#assinatura-plano');
-      document.querySelector('#assinatura-empresa-nome').textContent=empresa.trade_name||empresa.legal_name;
-      document.querySelector('#assinatura-company-id').value=companyId;
-      document.querySelector('#assinatura-status').textContent='';document.querySelector('#assinatura-status').className='partner-form-status';
-      try{
-        const planos=await garantirPlanosParceiro();
-        select.innerHTML=planos.map(p=>`<option value="${esc(p.code)}" ${p.code===empresa.plan_code?'selected':''}>${esc(p.name)} — custo da licença R$ ${brl(Number(p.price_cents||0)/100)}</option>`).join('')||'<option value="">Nenhum plano ativo</option>';
-      }catch(error){
-        document.querySelector('#assinatura-status').className='partner-form-status err';document.querySelector('#assinatura-status').textContent=error.message;
-      }
-      document.querySelector('#assinatura-preco').value=empresa.resale_price_cents!=null?String(Number(empresa.resale_price_cents)/100).replace('.',','):'';
-      form.style.display='grid';form.scrollIntoView({behavior:'smooth',block:'nearest'});
-    }
-    function fecharLiberarAssinatura(){
-      document.querySelector('#assinatura-form').style.display='none';
-    }
-    async function confirmarLiberarAssinatura(){
-      const status=document.querySelector('#assinatura-status');
-      const companyId=document.querySelector('#assinatura-company-id').value,planCode=document.querySelector('#assinatura-plano').value;
-      const resalePriceCents=Math.round(dinheiro(document.querySelector('#assinatura-preco').value)*100);
-      if(!planCode){status.className='partner-form-status err';status.textContent='Escolha um plano.';return}
-      if(resalePriceCents<=0){status.className='partner-form-status err';status.textContent='Informe o valor de revenda para este cliente.';return}
-      status.className='partner-form-status';status.textContent='Liberando...';
-      try{
-        await chamarApiParceiro('/api/partner/licenses/assign',{method:'POST',body:JSON.stringify({companyId,planCode,resalePriceCents})});
-        fecharLiberarAssinatura();
-        await carregarCarteira();
-        alert('Assinatura liberada. A emissão desta empresa já está ativa.');
-      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
-    }
+  // A tarja de parceiro empurra menu e topbar para baixo. Altura medida de
+  // verdade (o texto quebra em duas linhas em tela estreita), mesmo cuidado
+  // que titan.js já tem com a faixa de sessão administrativa.
+  function medirTarjaParceiro(){
+    const faixa=qs('#partner-banner');if(!faixa)return;
+    document.documentElement.style.setProperty('--partner-banner-h',faixa.offsetHeight+'px');
+  }
+  medirTarjaParceiro();
+  if(window.ResizeObserver)new ResizeObserver(medirTarjaParceiro).observe(qs('#partner-banner'));
+  else window.addEventListener('resize',medirTarjaParceiro);
 
-    async function carregarCreditos(){
-      const status=document.querySelector('#creditos-status'),tabela=document.querySelector('#creditos-table'),corpo=document.querySelector('#creditos-rows');
-      status.className='partner-empty';status.textContent='Carregando créditos...';tabela.style.display='none';
-      try{
-        const data=await buscarApiParceiro('/api/partner/creditos');
-        const empresas=data.companies||[];
-        if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
-        corpo.innerHTML=empresas.map(company=>{
-          const limite=Number(company.monthly_limit||0),uso=Number(company.monthly_used||0);
-          const pertoDoLimite=limite>0&&uso>=Math.ceil(limite*.8);
-          const cota=limite?`<span class="pill ${pertoDoLimite?'off':'on'}">${uso} / ${limite} notas</span>`:`${uso} notas`;
-          const funcoes=(company.features||[]).map(nome=>`<span class="tag">${esc(nome)}</span>`).join('')||'—';
-          return `<tr><td><b>${esc(company.trade_name||company.legal_name)}</b><br><span class="mono">${esc(formatarCnpj(company.federal_tax_id))}</span></td><td>${esc(company.plan_name||company.plan_code||'—')}</td><td>${cota}</td><td>${funcoes}</td></tr>`;
-        }).join('');
-        status.style.display='none';tabela.style.display='table';
-      }catch(error){
-        if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
-        status.className='partner-error';status.textContent=error.message;
-      }
-    }
+  // Menu lateral em tela estreita: mesmo comportamento (e mesmas classes) do
+  // portal do cliente — vira gaveta com fundo clicável.
+  function alternarMenuLateral(forcar){
+    const sb=qs('#sb');if(!sb)return;
+    const aberto=typeof forcar==='boolean'?forcar:!sb.classList.contains('open');
+    sb.classList.toggle('open',aberto);
+    qs('#sb-backdrop')?.classList.toggle('on',aberto);
+    qs('#sb-burger')?.setAttribute('aria-expanded',String(aberto));
+    document.body.classList.toggle('menu-aberto',aberto);
+  }
+  function fecharMenuLateral(){alternarMenuLateral(false)}
+  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&qs('#sb')?.classList.contains('open'))fecharMenuLateral()});
 
-    async function carregarComissoes(){
-      const status=document.querySelector('#comissoes-status'),tabela=document.querySelector('#comissoes-table'),corpo=document.querySelector('#comissoes-rows'),resumo=document.querySelector('#comissoes-summary');
-      status.className='partner-empty';status.textContent='Carregando comissões...';tabela.style.display='none';resumo.style.display='none';
-      try{
-        const data=await buscarApiParceiro('/api/partner/comissoes');
-        const empresas=data.companies||[];
-        resumo.style.display='block';
-        resumo.innerHTML=`Empresas liberadas por licença: sua margem é o valor de revenda menos o custo da licença. Empresas ainda no modelo antigo: comissão de <b>${brl(data.commissionPercent)}%</b> configurada pelo Master. Total do mês corrente: <b>R$ ${brl(Number(data.totalCents||0)/100)}</b>. Valor de visibilidade — o repasse continua manual.`;
-        if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa com emissão liberada na carteira ainda.';return}
-        corpo.innerHTML=empresas.map(company=>`<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td><span class="pill ${company.model==='licenca'?'on':'off'}">${company.model==='licenca'?'Licença':'Percentual (legado)'}</span></td><td>R$ ${brl(Number(company.price_cents||0)/100)}</td><td>R$ ${brl(Number(company.commission_cents||0)/100)}</td></tr>`).join('');
-        status.style.display='none';tabela.style.display='table';
-      }catch(error){
-        resumo.style.display='none';
-        if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
-        status.className='partner-error';status.textContent=error.message;
-      }
-    }
+  // Achado da auditoria de 11/08/2026: location.href navegava só o documento
+  // do IFRAME desta tela, deixando a URL do navegador inconsistente com o
+  // conteúdo. window.top é o mesmo padrão de nfs.html/titan.html.
+  function sair(){sessionStorage.removeItem(STORAGE_TOKEN);sessionStorage.removeItem(STORAGE_SESSION);window.top.location.href='/'}
+  qs('#partner-logout').addEventListener('click',sair);
 
-    // Estoque de licenças (fase de revenda, 16/08/2026): compra em lote, por
-    // plano, mensal e pré-paga. Fica pendente até o Master confirmar
-    // manualmente o pagamento (sem gateway de pagamento real integrado pro
-    // parceiro ainda) — só então o saldo abaixo aumenta.
-    const LICENCA_STATUS_LABEL={pending:['p-warn','Aguardando confirmação'],paid:['p-ok','Pago'],canceled:['p-off','Cancelado']};
-    const LICENCA_CHARGE_STATUS_LABEL_PARCEIRO={pending:['p-warn','Aguardando pagamento'],paid:['p-ok','Paga'],overdue:['p-err','Vencida'],canceled:['p-off','Cancelada']};
-    async function carregarLicencas(){
-      const catalogo=document.querySelector('#licencas-catalogo-rows'),saldo=document.querySelector('#licencas-saldo-rows'),pedidos=document.querySelector('#licencas-pedidos-rows'),cobrancas=document.querySelector('#licencas-cobrancas-rows');
-      try{
-        const [planos,dadosLicencas,dadosCobrancas]=await Promise.all([garantirPlanosParceiro(),buscarApiParceiro('/api/partner/licenses'),buscarApiParceiro('/api/partner/license-charges')]);
-        catalogo.innerHTML=planos.length?planos.map(p=>`<tr><td><b>${esc(p.name)}</b><br><span class="hint">${p.monthly_limit} notas/mês</span></td><td>R$ ${brl(Number(p.price_cents||0)/100)}</td><td><input class="inp" style="max-width:80px" type="number" min="1" value="1" id="qtd-${esc(p.code)}"></td><td><button class="btn btn-s" type="button" onclick="comprarLicencaParceiro('${esc(p.code)}')">Comprar</button></td></tr>`).join(''):'<tr><td colspan="4" class="partner-empty">Nenhum plano ativo no momento.</td></tr>';
-        const balances=dadosLicencas.balances||[];
-        saldo.innerHTML=balances.length?balances.map(b=>{
-          const plano=planos.find(p=>p.code===b.plan_code);
-          return `<tr><td>${esc(plano?.name||b.plan_code)}</td><td><b>${Number(b.available||0)}</b></td></tr>`;
-        }).join(''):'<tr><td colspan="2" class="partner-empty">Nenhuma licença comprada ainda.</td></tr>';
-        const orders=dadosLicencas.orders||[];
-        pedidos.innerHTML=orders.length?orders.map(o=>{
-          const plano=planos.find(p=>p.code===o.plan_code);
-          const [classe,rotulo]=LICENCA_STATUS_LABEL[o.status]||['p-off',o.status];
-          return `<tr><td>${esc(plano?.name||o.plan_code)}</td><td>${Number(o.quantity||0)}</td><td>R$ ${brl(Number(o.total_cents||0)/100)}</td><td><span class="pill ${classe}">${rotulo}</span></td><td>${formatarDataNovidadeParceiro(o.created_at)}</td></tr>`;
-        }).join(''):'<tr><td colspan="5" class="partner-empty">Nenhum pedido ainda.</td></tr>';
-        const charges=dadosCobrancas.charges||[];
-        cobrancas.innerHTML=charges.length?charges.map(c=>{
-          const [classe,rotulo]=LICENCA_CHARGE_STATUS_LABEL_PARCEIRO[c.status]||['p-off',c.status];
-          return `<tr><td>${c.company_name?esc(c.company_name):'<span class="hint">Cobrança inicial</span>'}</td><td>R$ ${brl(Number(c.amount_cents||0)/100)}</td><td>${formatarDataNovidadeParceiro(c.due_at)}</td><td><span class="pill ${classe}">${rotulo}</span></td></tr>`;
-        }).join(''):'<tr><td colspan="4" class="partner-empty">Nenhuma cobrança ainda.</td></tr>';
-      }catch(error){
-        catalogo.innerHTML=`<tr><td colspan="4" class="partner-empty">${esc(error.message)}</td></tr>`;
-      }
+  // Sessão vem sempre do login por e-mail em nfs.html (mesmo formulário do
+  // Master) — esta tela não tem form de login próprio, só confere o que já
+  // foi salvo antes do redirecionamento para /parceiro.
+  function tokenDeSessaoParceiro(){
+    const token=sessionStorage.getItem(STORAGE_TOKEN);
+    let access={};try{access=JSON.parse(sessionStorage.getItem(STORAGE_SESSION)||'{}')}catch{}
+    return token&&access.user?.isPartner?token:null;
+  }
+  async function buscarApiParceiro(caminho){
+    const token=tokenDeSessaoParceiro();
+    if(!token)throw new Error('SEM_SESSAO');
+    let response;
+    try{
+      response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+caminho,{headers:{Authorization:'Bearer '+token}});
+    }catch{
+      // Achado da auditoria de 11/08/2026: falha de rede (offline, DNS, CORS)
+      // subia crua até a tela como TypeError em inglês, quebrando o padrão
+      // PT-BR do resto da tela.
+      throw new Error('Não foi possível conectar. Verifique sua internet e tente novamente.');
     }
-    async function comprarLicencaParceiro(planCode){
-      const status=document.querySelector('#licencas-compra-status');
-      const input=document.querySelector('#qtd-'+planCode);
-      const quantity=Math.max(1,Math.round(Number(input?.value||1)));
-      status.className='partner-form-status';status.textContent='Enviando pedido...';
-      try{
-        const pedido=await chamarApiParceiro('/api/partner/licenses/orders',{method:'POST',body:JSON.stringify({planCode,quantity})});
-        status.className='partner-form-status ok';status.textContent=`Pedido de ${quantity} licença(s) enviado — R$ ${brl(pedido.totalCents/100)}. Aguardando o Master confirmar o pagamento.`;
-        await carregarLicencas();
-      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
+    // Achado da auditoria de 11/08/2026: sessão expirada no SERVIDOR (401)
+    // caía no branch genérico do catch de cada carregarX, sem o link
+    // "Entrar de novo" — só a ausência LOCAL de token acionava
+    // mostrarErroSessao. Reaproveita o mesmo sentinel 'SEM_SESSAO'.
+    if(response.status===401)throw new Error('SEM_SESSAO');
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.error||'Não foi possível carregar os dados.');
+    return data;
+  }
+  // Wrapper com método/corpo — buscarApiParceiro só faz GET. Mesma base de
+  // URL e mesmo tratamento de erro de rede.
+  async function chamarApiParceiro(caminho,options={}){
+    const token=tokenDeSessaoParceiro();
+    if(!token)throw new Error('SEM_SESSAO');
+    let response;
+    try{
+      response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+caminho,{...options,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token,...(options.headers||{})}});
+    }catch{
+      throw new Error('Não foi possível conectar. Verifique sua internet e tente novamente.');
     }
+    if(response.status===401)throw new Error('SEM_SESSAO');
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.error||'Não foi possível concluir a operação.');
+    return data;
+  }
+  function mostrarErroSessao(status){
+    status.className='partner-status err';
+    status.style.display='';
+    status.innerHTML='Sessão de parceiro não encontrada ou expirada. <a href="/">Entrar de novo</a>.';
+  }
+  function avisar(id,mensagem,tipo){
+    const alvo=qs('#'+id);if(!alvo)return;
+    alvo.className='form-status'+(tipo?' '+tipo:'');
+    alvo.textContent=mensagem;
+  }
 
-    const IMPLANTACAO_LABEL={self_service:'Autoimplantação',paid_pending:'Implantação paga — pendente',paid_active:'Implantação paga — ativa'};
-    async function carregarFinanceiro(){
-      const status=document.querySelector('#financeiro-status'),tabela=document.querySelector('#financeiro-table'),corpo=document.querySelector('#financeiro-rows');
-      status.className='partner-empty';status.textContent='Carregando financeiro...';tabela.style.display='none';
-      try{
-        const data=await buscarApiParceiro('/api/partner/financeiro');
-        const empresas=data.companies||[];
-        if(!empresas.length){status.className='partner-empty';status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
-        corpo.innerHTML=empresas.map(company=>{
-          const implantacao=IMPLANTACAO_LABEL[company.implementation_status]||'—';
-          const taxa=Number(company.implementation_fee_cents||0);
-          return `<tr><td><b>${esc(company.trade_name||company.legal_name)}</b></td><td>${esc(company.plan_name||company.plan_code||'—')}</td><td>R$ ${brl(Number(company.price_cents||0)/100)}</td><td>${esc(implantacao)}${taxa?` · taxa R$ ${brl(taxa/100)}`:''}</td></tr>`;
-        }).join('');
-        status.style.display='none';tabela.style.display='table';
-      }catch(error){
-        if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
-        status.className='partner-error';status.textContent=error.message;
-      }
-    }
+  let PARCEIRO_EMPRESAS=[],PARCEIRO_PLANOS=null,PARCEIRO_DESCONTO=0,EMPRESA_ATIVA=null;
+  async function garantirPlanosParceiro(){
+    if(PARCEIRO_PLANOS)return PARCEIRO_PLANOS;
+    const data=await buscarApiParceiro('/api/partner/plans');
+    PARCEIRO_PLANOS=data.plans||[];
+    PARCEIRO_DESCONTO=Number(data.discountPercent||0);
+    return PARCEIRO_PLANOS;
+  }
 
-    async function salvarWhatsappParceiro(companyId){
-      const token=tokenDeSessaoParceiro();
-      if(!token){alert('Sessão de parceiro não encontrada ou expirada.');return}
-      const valor=document.querySelector('#zap-'+companyId).value.trim();
-      try{
-        const response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+'/api/partner/companies/'+companyId+'/whatsapp',{
-          method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({whatsappPhone:valor||null})
-        });
-        const data=await response.json().catch(()=>({}));
-        if(!response.ok)throw new Error(data.error||'Não foi possível salvar.');
-        alert('WhatsApp salvo. Isso também decide quais empresas aparecem juntas no seletor "empresa ativa" da empresa.');
-      }catch(error){alert(error.message)}
-    }
-    // Wrapper com método/corpo — buscarApiParceiro só faz GET. Mesma base de
-    // URL e mesmo tratamento de erro de rede que salvarWhatsappParceiro já usava.
-    async function chamarApiParceiro(caminho,options={}){
-      const token=tokenDeSessaoParceiro();
-      if(!token)throw new Error('SEM_SESSAO');
-      let response;
-      try{
-        response=await fetch((window.TITAN_API_URL||'').replace(/\/$/,'')+caminho,{...options,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token,...(options.headers||{})}});
-      }catch{
-        throw new Error('Não foi possível conectar. Verifique sua internet e tente novamente.');
-      }
-      if(response.status===401)throw new Error('SEM_SESSAO');
-      const data=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(data.error||'Não foi possível concluir a operação.');
-      return data;
-    }
+  /* ---------- EMPRESA ATIVA (topo) ---------- */
+  function renderEmpresasSeletor(){
+    const busca=(qs('#admin-company-search')?.value||'').trim().toLowerCase();
+    const lista=PARCEIRO_EMPRESAS.filter(empresa=>{
+      if(!busca)return true;
+      return `${empresa.trade_name||''} ${empresa.legal_name||''} ${empresa.federal_tax_id||''}`.toLowerCase().includes(busca);
+    });
+    const opcoes=qs('#admin-company-options');
+    opcoes.innerHTML=lista.length?lista.map(empresa=>`<button class="admin-company-option${empresa.id===EMPRESA_ATIVA?' active':''}" type="button" onclick="selecionarEmpresaAtiva('${empresa.id}')"><b>${esc(empresa.trade_name||empresa.legal_name)}</b><span>${esc(formatarCnpj(empresa.federal_tax_id))} · ${empresa.emission_enabled?'emissão liberada':'emissão suspensa'}</span></button>`).join(''):'<div class="partner-status">Nenhuma empresa encontrada.</div>';
+    const selecionada=PARCEIRO_EMPRESAS.find(empresa=>empresa.id===EMPRESA_ATIVA);
+    qs('#admin-company-current').textContent=selecionada?(selecionada.trade_name||selecionada.legal_name):(PARCEIRO_EMPRESAS.length?'Selecione uma empresa':'Nenhuma empresa na carteira');
+  }
+  function alternarSeletorEmpresa(event){
+    event.stopPropagation();
+    const menu=qs('#admin-company-menu'),aberto=!menu.classList.contains('on');
+    menu.classList.toggle('on',aberto);
+    qs('#admin-company-trigger').setAttribute('aria-expanded',String(aberto));
+    if(aberto)qs('#admin-company-search').focus();
+  }
+  function fecharSeletorEmpresa(){qs('#admin-company-menu')?.classList.remove('on');qs('#admin-company-trigger')?.setAttribute('aria-expanded','false')}
+  document.addEventListener('click',event=>{if(!event.target.closest('#admin-company-switch'))fecharSeletorEmpresa()});
 
-    // Fase 2 (16/08/2026): perfil próprio do parceiro (nome + troca de senha)
-    // e indicação de cliente novo direto pela carteira, sem depender do Master.
-    async function carregarPerfilParceiro(){
-      const nome=document.querySelector('#perfil-nome'),email=document.querySelector('#perfil-email');
-      try{
-        const data=await chamarApiParceiro('/api/partner/profile',{method:'GET'});
-        nome.value=data.user?.name||'';email.value=data.user?.email||'';
-      }catch(error){
-        if(error.message==='SEM_SESSAO')return mostrarErroSessao(document.querySelector('#perfil-status'));
-        document.querySelector('#perfil-status').className='partner-form-status err';document.querySelector('#perfil-status').textContent=error.message;
-      }
+  // Abrir a empresa: o servidor devolve um token de 20 minutos com
+  // impersonatedBy registrado (POST /api/partner/companies/:id/session) e o
+  // portal do cliente é aberto numa aba nova via handoff — exatamente o mesmo
+  // caminho que o Master usa, então o parceiro vê a tela que o cliente vê.
+  async function selecionarEmpresaAtiva(companyId){
+    EMPRESA_ATIVA=companyId;fecharSeletorEmpresa();renderEmpresasSeletor();
+    await abrirPortalDoCliente(companyId);
+  }
+  async function abrirPortalDoCliente(companyId){
+    const novaAba=window.open('about:blank','_blank');
+    if(novaAba){novaAba.opener=null;novaAba.document.title='Abrindo empresa - TITAN NFS-e'}
+    try{
+      const resultado=await chamarApiParceiro('/api/partner/companies/'+companyId+'/session',{method:'POST'});
+      const bytes=new TextEncoder().encode(JSON.stringify(resultado));let binary='';bytes.forEach(byte=>binary+=String.fromCharCode(byte));
+      const handoff=btoa(binary),url='/dashboard#handoff='+encodeURIComponent(handoff);
+      if(novaAba)novaAba.location.replace(url);else alert('O navegador bloqueou a nova aba. Libere pop-ups para este site e tente novamente.');
+    }catch(error){
+      if(novaAba)novaAba.close();
+      alert(error.message==='SEM_SESSAO'?'Sessão de parceiro expirada. Entre de novo.':error.message);
     }
-    async function salvarPerfilParceiro(){
-      const status=document.querySelector('#perfil-status'),nome=document.querySelector('#perfil-nome').value.trim();
-      if(nome.length<2){status.className='partner-form-status err';status.textContent='Informe seu nome.';return}
-      status.className='partner-form-status';status.textContent='Salvando...';
-      try{
-        await chamarApiParceiro('/api/partner/profile',{method:'PUT',body:JSON.stringify({name:nome})});
-        status.className='partner-form-status ok';status.textContent='Nome salvo.';
-      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
-    }
-    async function trocarSenhaParceiro(){
-      const status=document.querySelector('#senha-status');
-      const atual=document.querySelector('#senha-atual').value,nova=document.querySelector('#senha-nova').value,confirmacao=document.querySelector('#senha-confirma').value;
-      if(nova.length<10){status.className='partner-form-status err';status.textContent='A nova senha precisa ter pelo menos 10 caracteres.';return}
-      if(nova!==confirmacao){status.className='partner-form-status err';status.textContent='A confirmação não confere.';return}
-      status.className='partner-form-status';status.textContent='Trocando...';
-      try{
-        await chamarApiParceiro('/api/partner/password',{method:'PUT',body:JSON.stringify({currentPassword:atual,newPassword:nova,confirmation:confirmacao})});
-        status.className='partner-form-status ok';status.textContent='Senha trocada com sucesso.';
-        document.querySelector('#senha-atual').value='';document.querySelector('#senha-nova').value='';document.querySelector('#senha-confirma').value='';
-      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
-    }
-    async function indicarClienteParceiro(){
-      const status=document.querySelector('#ind-status');
-      const federalTaxId=document.querySelector('#ind-cnpj').value.replace(/\D/g,''),email=document.querySelector('#ind-email').value.trim(),whatsappPhone=document.querySelector('#ind-whatsapp').value.trim();
-      if(federalTaxId.length!==14){status.className='partner-form-status err';status.textContent='Informe um CNPJ válido (14 dígitos).';return}
-      if(!email){status.className='partner-form-status err';status.textContent='Informe o e-mail do responsável.';return}
-      status.className='partner-form-status';status.textContent='Consultando CNPJ e enviando convite...';
-      try{
-        await chamarApiParceiro('/api/partner/invitations',{method:'POST',body:JSON.stringify({federalTaxId,email,whatsappPhone:whatsappPhone||undefined})});
-        status.className='partner-form-status ok';status.textContent=`Convite enviado para ${email}. A empresa já está na sua carteira.`;
-        document.querySelector('#ind-cnpj').value='';document.querySelector('#ind-email').value='';document.querySelector('#ind-whatsapp').value='';
-        carregarCarteira();
-      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
-    }
-    async function enviarSuporteParceiro(){
-      const status=document.querySelector('#sup-status');
-      const subject=document.querySelector('#sup-assunto').value.trim(),message=document.querySelector('#sup-mensagem').value.trim();
-      if(subject.length<3){status.className='partner-form-status err';status.textContent='Informe o assunto.';return}
-      if(message.length<10){status.className='partner-form-status err';status.textContent='Descreva sua mensagem com pelo menos 10 caracteres.';return}
-      status.className='partner-form-status';status.textContent='Enviando...';
-      try{
-        await chamarApiParceiro('/api/partner/support',{method:'POST',body:JSON.stringify({subject,message})});
-        status.className='partner-form-status ok';status.textContent='Mensagem enviada. O time TITAN responde pelo seu e-mail de acesso.';
-        document.querySelector('#sup-assunto').value='';document.querySelector('#sup-mensagem').value='';
-      }catch(error){status.className='partner-form-status err';status.textContent=error.message}
-    }
+  }
 
-    // Sino de notificações (achado da auditoria: "cliente tem, parceiro não")
-    // — mesmo endpoint GET/POST /api/announcements do portal do cliente
-    // (requireAuth, não requireCompany: já funciona pra qualquer usuário
-    // autenticado, inclusive login de parceiro). Aqui é uma aba, não um
-    // modal — parceiro.html não tem o sistema de modal do titan.html.
-    function formatarDataNovidadeParceiro(iso){return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})}
-    async function atualizarBadgeNovidadesParceiro(){
-      try{
-        const data=await chamarApiParceiro('/api/announcements',{method:'GET'});
-        const badge=document.querySelector('#novidades-badge');
-        if(!badge)return;
-        const n=Number(data.unreadCount||0);
-        badge.textContent=String(n);badge.style.display=n>0?'inline-flex':'none';
-      }catch{}
+  /* ---------- PAINEL ---------- */
+  async function carregarPainel(){
+    try{
+      const [licencas,atribuicoes,perfil]=await Promise.all([
+        buscarApiParceiro('/api/partner/licenses'),
+        buscarApiParceiro('/api/partner/licenses/assignments'),
+        buscarApiParceiro('/api/partner/profile')
+      ]);
+      await garantirPlanosParceiro().catch(()=>{});
+      const saldo=(licencas.balances||[]).reduce((total,linha)=>total+Number(linha.available||0),0);
+      const emUso=(atribuicoes.assignments||[]);
+      const ativas=emUso.filter(linha=>linha.status==='active').length,suspensas=emUso.filter(linha=>linha.status==='suspended').length;
+      const margem=emUso.reduce((total,linha)=>total+(Number(linha.resale_price_cents||0)-Number(linha.unit_cost_cents||0)),0);
+      qs('#painel-saldo').textContent=String(saldo);
+      qs('#painel-uso').textContent=String(emUso.length);
+      qs('#painel-uso-detalhe').textContent=`${ativas} ativa(s) · ${suspensas} suspensa(s) — as duas consomem saldo.`;
+      qs('#painel-empresas').textContent=String(perfil.summary?.empresas??'—');
+      qs('#painel-margem').textContent=reais(margem);
+      qs('#painel-desconto').textContent=`${brl(Number(perfil.partner?.license_discount_percent||0))}%`;
+      const pendentes=(licencas.orders||[]).filter(pedido=>pedido.status==='pending').length;
+      const distratos=emUso.filter(linha=>linha.termination_status==='pending').length;
+      const avisos=[];
+      if(pendentes)avisos.push(`${pendentes} pedido(s) aguardando pagamento.`);
+      if(distratos)avisos.push(`${distratos} distrato(s) aguardando o aceite do cliente.`);
+      if(!perfil.partner?.federal_tax_id)avisos.push('Seu cadastro está sem CNPJ/CPF — sem ele o TITAN não emite a nota das suas licenças.');
+      const painel=qs('#painel-pendencias');
+      painel.style.display=avisos.length?'':'none';
+      painel.innerHTML=avisos.map(aviso=>esc(aviso)).join('<br>');
+      const badge=qs('#pedidos-badge');badge.textContent=String(pendentes);badge.classList.toggle('on',pendentes>0);
+    }catch(error){
+      if(error.message==='SEM_SESSAO')return mostrarErroSessao(qs('#partner-status'));
+      const painel=qs('#painel-pendencias');painel.style.display='';painel.textContent=error.message;
     }
-    async function carregarNovidadesParceiro(){
-      const status=document.querySelector('#novidades-status'),lista=document.querySelector('#novidades-list');
-      status.className='partner-empty';status.textContent='Carregando...';lista.style.display='none';
-      try{
-        const data=await chamarApiParceiro('/api/announcements',{method:'GET'});
-        const itens=data.announcements||[];
-        if(!itens.length){status.className='partner-empty';status.textContent='Nenhuma novidade publicada ainda.';return}
-        lista.innerHTML=itens.map(item=>`<div class="partner-novidade"><b>${esc(item.title)}</b><br><small>${formatarDataNovidadeParceiro(item.published_at)}</small><p>${esc(item.body)}</p></div>`).join('');
-        status.style.display='none';lista.style.display='block';
-        await chamarApiParceiro('/api/announcements/seen',{method:'POST'});
-        const badge=document.querySelector('#novidades-badge');if(badge)badge.style.display='none';
-      }catch(error){
-        if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
-        status.className='partner-error';status.textContent=error.message;
-      }
-    }
-    const PARTNER_LOADERS={carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro,licencas:carregarLicencas,perfil:carregarPerfilParceiro,novidades:carregarNovidadesParceiro};
-    function partnerTab(nome,botao){
-      document.querySelectorAll('.partner-view').forEach(secao=>{secao.style.display=secao.id==='partner-view-'+nome?'block':'none'});
-      document.querySelectorAll('.partner-nav-link').forEach(link=>{link.classList.remove('on');link.removeAttribute('aria-current')});
-      botao.classList.add('on');botao.setAttribute('aria-current','page');
-      PARTNER_LOADERS[nome]?.();
-    }
+  }
 
-    carregarCarteira();
-    atualizarBadgeNovidadesParceiro();
-  </script>
+  /* ---------- CARTEIRA ---------- */
+  async function carregarCarteira(){
+    const status=qs('#partner-status'),tabela=qs('#partner-table'),corpo=qs('#partner-rows');
+    status.className='partner-status';status.style.display='';status.textContent='Carregando carteira...';tabela.style.display='none';
+    try{
+      const data=await buscarApiParceiro('/api/partner/companies');
+      const empresas=data.companies||[];
+      PARCEIRO_EMPRESAS=empresas;
+      renderEmpresasSeletor();
+      qs('#carteira-resumo').textContent=`${empresas.length} empresa(s) na carteira · ${empresas.filter(empresa=>empresa.emission_enabled).length} com emissão liberada`;
+      if(!empresas.length){status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
+      corpo.innerHTML=empresas.map(company=>{
+        const assinatura=company.resale_price_cents!=null
+          ?`${reais(company.resale_price_cents)}<br><button class="btn btn-s" type="button" onclick="abrirLiberarAssinatura('${company.id}')">Alterar preço</button>`
+          :`<span class="hint">Sem licença</span><br><button class="btn btn-s" type="button" onclick="abrirLiberarAssinatura('${company.id}')">Liberar assinatura</button>`;
+        return `<tr>
+          <td data-th="Empresa"><b>${esc(company.trade_name||company.legal_name)}</b></td>
+          <td data-th="CNPJ" class="mono">${esc(formatarCnpj(company.federal_tax_id))}</td>
+          <td data-th="Status de emissão"><span class="pill ${company.emission_enabled?'p-ok':'p-off'}">${company.emission_enabled?'Emissão liberada':'Emissão suspensa'}</span></td>
+          <td data-th="Assinatura">${assinatura}</td>
+          <td data-th="WhatsApp (vínculo)"><div class="input-action"><input class="inp" id="zap-${company.id}" value="${esc(company.whatsapp_phone||'')}" placeholder="(00) 00000-0000" inputmode="tel"><button class="btn btn-s" type="button" onclick="salvarWhatsappParceiro('${company.id}')">Salvar</button></div></td>
+          <td data-th="Ações"><div class="acts"><button class="btn btn-s" type="button" onclick="abrirPortalDoCliente('${company.id}')">Acessar portal</button></div></td>
+        </tr>`;
+      }).join('');
+      status.style.display='none';tabela.style.display='';
+    }catch(error){
+      if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
+      status.className='partner-status err';status.textContent=error.message;
+    }
+  }
+
+  // "Liberar a assinatura" — pedido do usuário (16/08/2026): consome 1 licença
+  // do saldo do plano escolhido e grava o preço de revenda que o PARCEIRO
+  // decide para aquele cliente, ativando a emissão.
+  async function abrirLiberarAssinatura(companyId){
+    const empresa=PARCEIRO_EMPRESAS.find(item=>item.id===companyId);if(!empresa)return;
+    const card=qs('#assinatura-card'),select=qs('#assinatura-plano');
+    qs('#assinatura-empresa-nome').textContent=empresa.trade_name||empresa.legal_name;
+    qs('#assinatura-company-id').value=companyId;
+    avisar('assinatura-status','');
+    try{
+      const planos=await garantirPlanosParceiro();
+      select.innerHTML=planos.map(plano=>`<option value="${esc(plano.code)}" ${plano.code===empresa.plan_code?'selected':''}>${esc(plano.name)} — custo da licença ${reais(plano.price_cents)}</option>`).join('')||'<option value="">Nenhum plano ativo</option>';
+    }catch(error){avisar('assinatura-status',error.message,'err')}
+    qs('#assinatura-preco').value=empresa.resale_price_cents!=null?String(Number(empresa.resale_price_cents)/100).replace('.',','):'';
+    card.style.display='';card.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  function fecharLiberarAssinatura(){qs('#assinatura-card').style.display='none'}
+  async function confirmarLiberarAssinatura(){
+    const companyId=qs('#assinatura-company-id').value,planCode=qs('#assinatura-plano').value;
+    const resalePriceCents=Math.round(dinheiro(qs('#assinatura-preco').value)*100);
+    if(!planCode)return avisar('assinatura-status','Escolha um plano.','err');
+    if(resalePriceCents<=0)return avisar('assinatura-status','Informe o valor de revenda para este cliente.','err');
+    avisar('assinatura-status','Liberando...');
+    try{
+      await chamarApiParceiro('/api/partner/licenses/assign',{method:'POST',body:JSON.stringify({companyId,planCode,resalePriceCents})});
+      fecharLiberarAssinatura();
+      await carregarCarteira();
+      avisar('assinatura-status','Assinatura liberada. A emissão desta empresa já está ativa.','ok');
+    }catch(error){avisar('assinatura-status',error.message,'err')}
+  }
+
+  async function salvarWhatsappParceiro(companyId){
+    const valor=qs('#zap-'+companyId).value.trim();
+    try{
+      await chamarApiParceiro('/api/partner/companies/'+companyId+'/whatsapp',{method:'PUT',body:JSON.stringify({whatsappPhone:valor||null})});
+      alert('WhatsApp salvo. Isso também decide quais empresas aparecem juntas no seletor "empresa ativa" da empresa.');
+    }catch(error){alert(error.message)}
+  }
+
+  /* ---------- ADMINISTRAÇÃO DE LICENÇAS ---------- */
+  const LICENCA_SITUACAO={active:['p-ok','Ativa'],suspended:['p-warn','Suspensa']};
+  async function carregarAdminLicencas(){
+    const status=qs('#licencas-uso-status'),tabela=qs('#licencas-uso-table'),corpo=qs('#licencas-uso-rows');
+    status.className='partner-status';status.style.display='';status.textContent='Carregando licenças...';tabela.style.display='none';
+    try{
+      const data=await buscarApiParceiro('/api/partner/licenses/assignments');
+      const linhas=data.assignments||[];
+      qs('#licencas-uso-resumo').textContent=`${linhas.length} licença(s) atribuída(s) · ${linhas.filter(linha=>linha.status==='suspended').length} suspensa(s)`;
+      if(!linhas.length){status.textContent='Nenhuma licença atribuída ainda. Compre licenças e libere a assinatura de um cliente da carteira.';return}
+      corpo.innerHTML=linhas.map(linha=>{
+        const [classe,rotulo]=LICENCA_SITUACAO[linha.status]||['p-off',linha.status];
+        const margem=Number(linha.resale_price_cents||0)-Number(linha.unit_cost_cents||0);
+        const bloqueio=linha.license_blocked?'<br><span class="pill p-err">Bloqueada por atraso</span>':'';
+        const distrato=linha.termination_status==='pending'
+          ?`<br><span class="pill p-warn">Distrato aguardando o cliente</span>`
+          :'';
+        const acoes=linha.termination_status==='pending'
+          ?`<button class="btn btn-s" type="button" onclick="cancelarDistrato('${linha.id}')">Cancelar distrato</button>`
+          :[
+            linha.status==='active'
+              ?`<button class="btn btn-s" type="button" onclick="suspenderLicenca('${linha.id}')">Suspender</button>`
+              :`<button class="btn btn-s" type="button" onclick="reativarLicenca('${linha.id}')">Reativar</button>`,
+            `<button class="btn btn-s" type="button" onclick="pedirDistrato('${linha.id}')">Pedir distrato</button>`
+          ].join('');
+        return `<tr>
+          <td data-th="Empresa"><b>${esc(linha.company_name)}</b><br><span class="mono hint">${esc(formatarCnpj(linha.federal_tax_id))}</span></td>
+          <td data-th="Plano">${esc(linha.plan_name||linha.plan_code)}</td>
+          <td data-th="Custo">${reais(linha.unit_cost_cents)}</td>
+          <td data-th="Revenda">${reais(linha.resale_price_cents)}</td>
+          <td data-th="Margem">${reais(margem)}</td>
+          <td data-th="Situação"><span class="pill ${classe}">${rotulo}</span>${bloqueio}${distrato}</td>
+          <td data-th="Ações"><div class="acts">${acoes}</div></td>
+        </tr>`;
+      }).join('');
+      status.style.display='none';tabela.style.display='';
+    }catch(error){
+      if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
+      status.className='partner-status err';status.textContent=error.message;
+    }
+  }
+  async function suspenderLicenca(assignmentId){
+    if(!confirm('Suspender esta licença? A emissão do cliente para na hora, mas a licença continua consumindo o seu saldo — só o distrato aceito pelo cliente devolve o saldo.'))return;
+    avisar('licencas-uso-acao','Suspendendo...');
+    try{
+      await chamarApiParceiro('/api/partner/licenses/assignments/'+assignmentId+'/suspend',{method:'POST'});
+      avisar('licencas-uso-acao','Licença suspensa.','ok');
+      await carregarAdminLicencas();
+    }catch(error){avisar('licencas-uso-acao',error.message,'err')}
+  }
+  async function reativarLicenca(assignmentId){
+    avisar('licencas-uso-acao','Reativando...');
+    try{
+      const resultado=await chamarApiParceiro('/api/partner/licenses/assignments/'+assignmentId+'/reactivate',{method:'POST'});
+      avisar('licencas-uso-acao',resultado.emissionEnabled?'Licença reativada e emissão liberada.':'Licença reativada, mas a empresa segue bloqueada por cobrança em atraso.',resultado.emissionEnabled?'ok':'err');
+      await carregarAdminLicencas();
+    }catch(error){avisar('licencas-uso-acao',error.message,'err')}
+  }
+  async function pedirDistrato(assignmentId){
+    const motivo=prompt('Motivo do distrato (o cliente vai ler isso no portal dele):','');
+    if(motivo===null)return;
+    avisar('licencas-uso-acao','Enviando o pedido de distrato...');
+    try{
+      await chamarApiParceiro('/api/partner/licenses/assignments/'+assignmentId+'/termination',{method:'POST',body:JSON.stringify({reason:motivo})});
+      avisar('licencas-uso-acao','Distrato enviado. A licença só volta para o seu saldo quando o cliente aceitar no portal dele.','ok');
+      await carregarAdminLicencas();
+    }catch(error){avisar('licencas-uso-acao',error.message,'err')}
+  }
+  async function cancelarDistrato(assignmentId){
+    avisar('licencas-uso-acao','Cancelando o distrato...');
+    try{
+      await chamarApiParceiro('/api/partner/licenses/assignments/'+assignmentId+'/termination',{method:'DELETE'});
+      avisar('licencas-uso-acao','Distrato cancelado.','ok');
+      await carregarAdminLicencas();
+    }catch(error){avisar('licencas-uso-acao',error.message,'err')}
+  }
+
+  /* ---------- COMPRAR LICENÇAS ---------- */
+  async function carregarComprar(){
+    const catalogo=qs('#licencas-catalogo-rows'),saldo=qs('#licencas-saldo-rows');
+    try{
+      const [planos,dados]=await Promise.all([garantirPlanosParceiro(),buscarApiParceiro('/api/partner/licenses')]);
+      const aviso=qs('#comprar-desconto-aviso');
+      if(PARCEIRO_DESCONTO>0){aviso.style.display='';aviso.innerHTML=`Seu desconto de parceria é de <b>${brl(PARCEIRO_DESCONTO)}%</b> — o custo abaixo já vem com ele aplicado, e a renovação de cada licença atribuída cobra esse mesmo valor.`}
+      else{aviso.style.display='none'}
+      catalogo.innerHTML=planos.length?planos.map(plano=>{
+        const cheio=Number(plano.list_price_cents||plano.price_cents);
+        const custo=Number(plano.price_cents);
+        const preco=cheio>custo?`<span class="price-was">${reais(cheio)}</span><b>${reais(custo)}</b>`:`<b>${reais(custo)}</b>`;
+        return `<tr>
+          <td data-th="Plano"><b>${esc(plano.name)}</b><br><span class="hint">${plano.monthly_limit} notas/mês</span></td>
+          <td data-th="Custo da licença">${preco}</td>
+          <td data-th="Quantidade"><input class="inp" type="number" min="1" value="1" id="qtd-${esc(plano.code)}"></td>
+          <td data-th="Ações"><div class="acts"><button class="btn btn-p btn-s" type="button" onclick="comprarLicencaParceiro('${esc(plano.code)}')">Comprar</button></div></td>
+        </tr>`;
+      }).join(''):'<tr><td colspan="4" class="partner-status">Nenhum plano disponível para revenda no momento.</td></tr>';
+      const balances=dados.balances||[];
+      saldo.innerHTML=balances.length?balances.map(linha=>{
+        const plano=planos.find(item=>item.code===linha.plan_code);
+        return `<tr><td data-th="Plano">${esc(plano?.name||linha.plan_code)}</td><td data-th="Licenças disponíveis"><b>${Number(linha.available||0)}</b></td></tr>`;
+      }).join(''):'<tr><td colspan="2" class="partner-status">Nenhuma licença comprada ainda.</td></tr>';
+    }catch(error){
+      catalogo.innerHTML=`<tr><td colspan="4" class="partner-status err">${esc(error.message)}</td></tr>`;
+    }
+  }
+  async function comprarLicencaParceiro(planCode){
+    const input=qs('#qtd-'+planCode);
+    const quantity=Math.max(1,Math.round(Number(input?.value||1)));
+    avisar('licencas-compra-status','Enviando pedido...');
+    try{
+      const pedido=await chamarApiParceiro('/api/partner/licenses/orders',{method:'POST',body:JSON.stringify({planCode,quantity})});
+      avisar('licencas-compra-status',`Pedido de ${quantity} licença(s) enviado — ${reais(pedido.totalCents)}. Ele fica em "aguardando pagamento" na aba Pedidos, onde você pode editar, cancelar ou ver como pagar.`,'ok');
+      await carregarComprar();
+      await carregarPedidos();
+    }catch(error){avisar('licencas-compra-status',error.message,'err')}
+  }
+
+  /* ---------- PEDIDOS ---------- */
+  const PEDIDO_STATUS={pending:['p-warn','Aguardando pagamento'],paid:['p-ok','Pago'],canceled:['p-off','Cancelado']};
+  async function carregarPedidos(){
+    const corpo=qs('#licencas-pedidos-rows');
+    try{
+      const [planos,dados]=await Promise.all([garantirPlanosParceiro(),buscarApiParceiro('/api/partner/licenses')]);
+      const pedidos=dados.orders||[];
+      const pendentes=pedidos.filter(pedido=>pedido.status==='pending').length;
+      qs('#pedidos-resumo').textContent=`${pedidos.length} pedido(s) · ${pendentes} aguardando pagamento`;
+      const badge=qs('#pedidos-badge');badge.textContent=String(pendentes);badge.classList.toggle('on',pendentes>0);
+      corpo.innerHTML=pedidos.length?pedidos.map(pedido=>{
+        const plano=planos.find(item=>item.code===pedido.plan_code);
+        const [classe,rotulo]=PEDIDO_STATUS[pedido.status]||['p-off',pedido.status];
+        const cheio=Number(pedido.list_unit_cost_cents||pedido.unit_cost_cents);
+        const desconto=cheio>Number(pedido.unit_cost_cents)?`<br><span class="hint">unitário ${reais(pedido.unit_cost_cents)} (tabela ${reais(cheio)})</span>`:'';
+        const acoes=pedido.status==='pending'
+          ? (pedido.open_charge_id
+              ? `<button class="btn btn-s" type="button" onclick="mostrarPagamento('${pedido.id}')">Como pagar</button>`
+              : `<button class="btn btn-s" type="button" onclick="editarPedido('${pedido.id}',${Number(pedido.quantity||1)})">Editar</button>
+                 <button class="btn btn-s" type="button" onclick="mostrarPagamento('${pedido.id}')">Como pagar</button>
+                 <button class="btn btn-s" type="button" onclick="cancelarPedido('${pedido.id}')">Cancelar pedido</button>`)
+          : '<span class="hint">—</span>';
+        return `<tr>
+          <td data-th="Plano">${esc(plano?.name||pedido.plan_code)}${desconto}</td>
+          <td data-th="Qtd.">${Number(pedido.quantity||0)}</td>
+          <td data-th="Valor total">${reais(pedido.total_cents)}</td>
+          <td data-th="Status"><span class="pill ${classe}">${rotulo}</span></td>
+          <td data-th="Pedido em">${formatarData(pedido.created_at)}</td>
+          <td data-th="Ações"><div class="acts">${acoes}</div></td>
+        </tr>`;
+      }).join(''):'<tr><td colspan="6" class="partner-status">Nenhum pedido ainda.</td></tr>';
+    }catch(error){
+      if(error.message==='SEM_SESSAO')return mostrarErroSessao(qs('#partner-status'));
+      corpo.innerHTML=`<tr><td colspan="6" class="partner-status err">${esc(error.message)}</td></tr>`;
+    }
+  }
+  async function editarPedido(orderId,quantidadeAtual){
+    const resposta=prompt('Quantas licenças neste pedido?',String(quantidadeAtual));
+    if(resposta===null)return;
+    const quantity=Math.round(Number(resposta));
+    if(!Number.isFinite(quantity)||quantity<1)return avisar('pedidos-acao','Informe uma quantidade a partir de 1.','err');
+    avisar('pedidos-acao','Atualizando o pedido...');
+    try{
+      const pedido=await chamarApiParceiro('/api/partner/licenses/orders/'+orderId,{method:'PUT',body:JSON.stringify({quantity})});
+      avisar('pedidos-acao',`Pedido atualizado para ${quantity} licença(s) — novo total ${reais(pedido.totalCents)}.`,'ok');
+      await carregarPedidos();
+    }catch(error){avisar('pedidos-acao',error.message,'err')}
+  }
+  async function cancelarPedido(orderId){
+    if(!confirm('Cancelar este pedido? Ele sai da fila de pagamento e nenhuma licença é creditada.'))return;
+    avisar('pedidos-acao','Cancelando...');
+    try{
+      await chamarApiParceiro('/api/partner/licenses/orders/'+orderId+'/cancel',{method:'POST'});
+      avisar('pedidos-acao','Pedido cancelado.','ok');
+      await carregarPedidos();
+    }catch(error){avisar('pedidos-acao',error.message,'err')}
+  }
+  // Pagamento (21/08/2026): ainda não há gateway ligado para o parceiro — a
+  // confirmação é manual pelo TITAN, mesma situação da cobrança do cliente
+  // final. Em vez de um botão "Pagar" que não paga nada, a tela diz com todas
+  // as letras o que acontece e o que ele precisa fazer.
+  function mostrarPagamento(orderId){
+    const card=qs('#pedido-pagamento-card');
+    qs('#pedido-pagamento-corpo').innerHTML=`
+      <p>O pedido <span class="mono">${esc(String(orderId).slice(0,8))}</span> está <b>aguardando pagamento</b>.</p>
+      <ol class="hint" style="margin:10px 0 0 18px;line-height:1.9">
+        <li>O TITAN emite a cobrança e a nota fiscal da licença no CNPJ/CPF do seu cadastro.</li>
+        <li>A cobrança aparece na aba <b>Cobranças</b> assim que for emitida.</li>
+        <li>Assim que o pagamento é confirmado, as licenças entram no seu saldo automaticamente.</li>
+      </ol>
+      <div class="acts" style="justify-content:flex-start;margin-top:14px">
+        <button class="btn btn-s" type="button" onclick="partnerTab('cobrancas',document.querySelector('[data-partner-tab=&quot;cobrancas&quot;]'))">Ver cobranças</button>
+        <button class="btn btn-s" type="button" onclick="partnerTab('suporte',document.querySelector('[data-partner-tab=&quot;suporte&quot;]'))">Falar com o suporte</button>
+        <button class="btn btn-s" type="button" onclick="document.querySelector('#pedido-pagamento-card').style.display='none'">Fechar</button>
+      </div>`;
+    card.style.display='';card.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+
+  /* ---------- COBRANÇAS ---------- */
+  const COBRANCA_STATUS={pending:['p-warn','Aguardando pagamento'],paid:['p-ok','Paga'],overdue:['p-err','Vencida'],canceled:['p-off','Cancelada']};
+  async function carregarCobrancas(){
+    const corpo=qs('#licencas-cobrancas-rows');
+    try{
+      const dados=await buscarApiParceiro('/api/partner/license-charges');
+      const cobrancas=dados.charges||[];
+      corpo.innerHTML=cobrancas.length?cobrancas.map(cobranca=>{
+        const [classe,rotulo]=COBRANCA_STATUS[cobranca.status]||['p-off',cobranca.status];
+        return `<tr>
+          <td data-th="Empresa">${cobranca.company_name?esc(cobranca.company_name):'<span class="hint">Cobrança inicial (pedido)</span>'}</td>
+          <td data-th="Valor">${reais(cobranca.amount_cents)}</td>
+          <td data-th="Vencimento">${formatarData(cobranca.due_at)}</td>
+          <td data-th="Status"><span class="pill ${classe}">${rotulo}</span></td>
+        </tr>`;
+      }).join(''):'<tr><td colspan="4" class="partner-status">Nenhuma cobrança ainda.</td></tr>';
+    }catch(error){
+      if(error.message==='SEM_SESSAO')return mostrarErroSessao(qs('#partner-status'));
+      corpo.innerHTML=`<tr><td colspan="4" class="partner-status err">${esc(error.message)}</td></tr>`;
+    }
+  }
+
+  /* ---------- CRÉDITOS / COMISSÕES / FINANCEIRO ---------- */
+  async function carregarCreditos(){
+    const status=qs('#creditos-status'),tabela=qs('#creditos-table'),corpo=qs('#creditos-rows');
+    status.className='partner-status';status.style.display='';status.textContent='Carregando créditos...';tabela.style.display='none';
+    try{
+      const data=await buscarApiParceiro('/api/partner/creditos');
+      const empresas=data.companies||[];
+      if(!empresas.length){status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
+      corpo.innerHTML=empresas.map(company=>{
+        const limite=Number(company.monthly_limit||0),uso=Number(company.monthly_used||0);
+        const pertoDoLimite=limite>0&&uso>=Math.ceil(limite*.8);
+        const cota=limite?`<span class="pill ${pertoDoLimite?'p-warn':'p-ok'}">${uso} / ${limite} notas</span>`:`${uso} notas`;
+        const funcoes=(company.features||[]).map(nome=>`<span class="tag">${esc(nome)}</span>`).join('')||'—';
+        return `<tr><td data-th="Empresa"><b>${esc(company.trade_name||company.legal_name)}</b><br><span class="mono hint">${esc(formatarCnpj(company.federal_tax_id))}</span></td><td data-th="Plano">${esc(company.plan_name||company.plan_code||'—')}</td><td data-th="Cota de notas (mês corrente)">${cota}</td><td data-th="Funções contratadas">${funcoes}</td></tr>`;
+      }).join('');
+      status.style.display='none';tabela.style.display='';
+    }catch(error){
+      if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
+      status.className='partner-status err';status.textContent=error.message;
+    }
+  }
+
+  async function carregarComissoes(){
+    const status=qs('#comissoes-status'),tabela=qs('#comissoes-table'),corpo=qs('#comissoes-rows'),resumo=qs('#comissoes-summary');
+    status.className='partner-status';status.style.display='';status.textContent='Carregando comissões...';tabela.style.display='none';
+    try{
+      const data=await buscarApiParceiro('/api/partner/comissoes');
+      const empresas=data.companies||[];
+      resumo.innerHTML=`Empresas liberadas por licença: a margem é a revenda menos o custo da licença (já com o seu desconto de parceria). Empresas ainda no modelo antigo: comissão de <b>${brl(data.commissionPercent)}%</b> configurada pelo Master. Total do mês corrente: <b>${reais(data.totalCents)}</b>. Valor de visibilidade — o repasse continua manual.`;
+      if(!empresas.length){status.textContent='Nenhuma empresa com emissão liberada na carteira ainda.';return}
+      corpo.innerHTML=empresas.map(company=>`<tr><td data-th="Empresa"><b>${esc(company.trade_name||company.legal_name)}</b></td><td data-th="Modelo"><span class="pill ${company.model==='licenca'?'p-ok':'p-off'}">${company.model==='licenca'?'Licença':'Percentual (legado)'}</span></td><td data-th="Mensalidade cobrada do cliente">${reais(company.price_cents)}</td><td data-th="Sua margem">${reais(company.commission_cents)}</td></tr>`).join('');
+      status.style.display='none';tabela.style.display='';
+    }catch(error){
+      if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
+      status.className='partner-status err';status.textContent=error.message;
+    }
+  }
+
+  const IMPLANTACAO_LABEL={self_service:'Autoimplantação',paid_pending:'Implantação paga — pendente',paid_active:'Implantação paga — ativa'};
+  async function carregarFinanceiro(){
+    const status=qs('#financeiro-status'),tabela=qs('#financeiro-table'),corpo=qs('#financeiro-rows');
+    status.className='partner-status';status.style.display='';status.textContent='Carregando financeiro...';tabela.style.display='none';
+    try{
+      const data=await buscarApiParceiro('/api/partner/financeiro');
+      const empresas=data.companies||[];
+      if(!empresas.length){status.textContent='Nenhuma empresa vinculada à sua carteira ainda.';return}
+      corpo.innerHTML=empresas.map(company=>{
+        const implantacao=IMPLANTACAO_LABEL[company.implementation_status]||'—';
+        const taxa=Number(company.implementation_fee_cents||0);
+        return `<tr><td data-th="Empresa"><b>${esc(company.trade_name||company.legal_name)}</b></td><td data-th="Plano">${esc(company.plan_name||company.plan_code||'—')}</td><td data-th="Mensalidade">${reais(company.price_cents)}</td><td data-th="Implantação">${esc(implantacao)}${taxa?` · taxa ${reais(taxa)}`:''}</td></tr>`;
+      }).join('');
+      status.style.display='none';tabela.style.display='';
+    }catch(error){
+      if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
+      status.className='partner-status err';status.textContent=error.message;
+    }
+  }
+
+  /* ---------- CONFIGURAÇÕES ---------- */
+  async function carregarPerfilParceiro(){
+    try{
+      const data=await buscarApiParceiro('/api/partner/profile');
+      qs('#perfil-nome').value=data.user?.name||'';
+      qs('#perfil-email').value=data.user?.email||'';
+      qs('#cfg-parceiro-nome').value=data.partner?.name||'';
+      qs('#cfg-parceiro-apelido').value=data.partner?.nickname||'';
+      qs('#cfg-parceiro-cnpj').value=data.partner?.federal_tax_id?formatarCnpj(data.partner.federal_tax_id):'não informado';
+      qs('#cfg-desconto').value=`${brl(Number(data.partner?.license_discount_percent||0))}%`;
+      qs('#cfg-comissao').value=`${brl(Number(data.partner?.commission_percent||0))}%`;
+      qs('#cfg-cnpj-aviso').style.display=data.partner?.federal_tax_id?'none':'';
+      const nome=data.user?.name||data.partner?.nickname||'Parceiro TITAN';
+      qs('#top-user-name').textContent=nome;
+      qs('#top-user-role').textContent=data.partner?.nickname?`Parceiro · ${data.partner.nickname}`:'Acesso de parceiro';
+      qs('#avatar').textContent=nome.trim().split(/\s+/).slice(0,2).map(parte=>parte[0]||'').join('').toUpperCase()||'--';
+      qs('#sb-partner-nickname').textContent=data.partner?.nickname||'';
+      qs('#partner-banner-name').textContent=data.partner?.nickname||data.partner?.name||'carteira de parceiro TITAN';
+    }catch(error){
+      if(error.message==='SEM_SESSAO')return mostrarErroSessao(qs('#partner-status'));
+      avisar('perfil-status',error.message,'err');
+    }
+  }
+  async function salvarPerfilParceiro(){
+    const nome=qs('#perfil-nome').value.trim();
+    if(nome.length<2)return avisar('perfil-status','Informe seu nome.','err');
+    avisar('perfil-status','Salvando...');
+    try{
+      await chamarApiParceiro('/api/partner/profile',{method:'PUT',body:JSON.stringify({name:nome})});
+      avisar('perfil-status','Nome salvo.','ok');
+      qs('#top-user-name').textContent=nome;
+    }catch(error){avisar('perfil-status',error.message,'err')}
+  }
+  async function trocarSenhaParceiro(){
+    const atual=qs('#senha-atual').value,nova=qs('#senha-nova').value,confirmacao=qs('#senha-confirma').value;
+    if(nova.length<10)return avisar('senha-status','A nova senha precisa ter pelo menos 10 caracteres.','err');
+    if(nova!==confirmacao)return avisar('senha-status','A confirmação não confere.','err');
+    avisar('senha-status','Trocando...');
+    try{
+      await chamarApiParceiro('/api/partner/password',{method:'PUT',body:JSON.stringify({currentPassword:atual,newPassword:nova,confirmation:confirmacao})});
+      avisar('senha-status','Senha trocada com sucesso.','ok');
+      qs('#senha-atual').value='';qs('#senha-nova').value='';qs('#senha-confirma').value='';
+    }catch(error){avisar('senha-status',error.message,'err')}
+  }
+
+  /* ---------- INDICAR / SUPORTE / NOVIDADES ---------- */
+  async function indicarClienteParceiro(){
+    const federalTaxId=qs('#ind-cnpj').value.replace(/\D/g,''),email=qs('#ind-email').value.trim(),whatsappPhone=qs('#ind-whatsapp').value.trim();
+    if(federalTaxId.length!==14)return avisar('ind-status','Informe um CNPJ válido (14 dígitos).','err');
+    if(!email)return avisar('ind-status','Informe o e-mail do responsável.','err');
+    avisar('ind-status','Consultando CNPJ e enviando convite...');
+    try{
+      await chamarApiParceiro('/api/partner/invitations',{method:'POST',body:JSON.stringify({federalTaxId,email,whatsappPhone:whatsappPhone||undefined})});
+      avisar('ind-status',`Convite enviado para ${email}. A empresa já está na sua carteira.`,'ok');
+      qs('#ind-cnpj').value='';qs('#ind-email').value='';qs('#ind-whatsapp').value='';
+      carregarCarteira();
+    }catch(error){avisar('ind-status',error.message,'err')}
+  }
+  async function enviarSuporteParceiro(){
+    const subject=qs('#sup-assunto').value.trim(),message=qs('#sup-mensagem').value.trim();
+    if(subject.length<3)return avisar('sup-status','Informe o assunto.','err');
+    if(message.length<10)return avisar('sup-status','Descreva sua mensagem com pelo menos 10 caracteres.','err');
+    avisar('sup-status','Enviando...');
+    try{
+      await chamarApiParceiro('/api/partner/support',{method:'POST',body:JSON.stringify({subject,message})});
+      avisar('sup-status','Mensagem enviada. O time TITAN responde pelo seu e-mail de acesso.','ok');
+      qs('#sup-assunto').value='';qs('#sup-mensagem').value='';
+    }catch(error){avisar('sup-status',error.message,'err')}
+  }
+
+  // Sino de notificações (achado da auditoria: "cliente tem, parceiro não") —
+  // mesmo endpoint GET/POST /api/announcements do portal do cliente
+  // (requireAuth, não requireCompany: já funciona pra qualquer usuário
+  // autenticado, inclusive login de parceiro).
+  async function atualizarBadgeNovidadesParceiro(){
+    try{
+      const data=await buscarApiParceiro('/api/announcements');
+      const badge=qs('#novidades-badge');if(!badge)return;
+      const total=Number(data.unreadCount||0);
+      badge.textContent=String(total);badge.classList.toggle('on',total>0);
+    }catch{}
+  }
+  async function carregarNovidadesParceiro(){
+    const status=qs('#novidades-status'),lista=qs('#novidades-list');
+    status.className='partner-status';status.style.display='';status.textContent='Carregando...';lista.style.display='none';
+    try{
+      const data=await buscarApiParceiro('/api/announcements');
+      const itens=data.announcements||[];
+      if(!itens.length){status.textContent='Nenhuma novidade publicada ainda.';return}
+      lista.innerHTML=itens.map(item=>`<div class="novidade"><b>${esc(item.title)}</b><br><small class="hint">${formatarData(item.published_at)}</small><p>${esc(item.body)}</p></div>`).join('');
+      status.style.display='none';lista.style.display='';
+      await chamarApiParceiro('/api/announcements/seen',{method:'POST'});
+      qs('#novidades-badge').classList.remove('on');
+    }catch(error){
+      if(error.message==='SEM_SESSAO')return mostrarErroSessao(status);
+      status.className='partner-status err';status.textContent=error.message;
+    }
+  }
+
+  /* ---------- NAVEGAÇÃO ---------- */
+  const PARTNER_LOADERS={painel:carregarPainel,carteira:carregarCarteira,licencas:carregarAdminLicencas,comprar:carregarComprar,pedidos:carregarPedidos,cobrancas:carregarCobrancas,comissoes:carregarComissoes,creditos:carregarCreditos,financeiro:carregarFinanceiro,perfil:carregarPerfilParceiro,config:carregarPerfilParceiro,novidades:carregarNovidadesParceiro};
+  function partnerTab(nome,botao){
+    document.querySelectorAll('.view').forEach(secao=>{secao.classList.toggle('on',secao.id==='partner-view-'+nome)});
+    document.querySelectorAll('.sb-link').forEach(link=>{link.classList.remove('active');link.removeAttribute('aria-current')});
+    if(botao){botao.classList.add('active');botao.setAttribute('aria-current','page')}
+    fecharMenuLateral();
+    PARTNER_LOADERS[nome]?.();
+  }
+
+  carregarPerfilParceiro();
+  carregarCarteira();
+  carregarPainel();
+  atualizarBadgeNovidadesParceiro();
+</script>
 </body>
 </html>

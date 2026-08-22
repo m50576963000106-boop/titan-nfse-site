@@ -964,10 +964,16 @@ test("buscarApiParceiro trata falha de rede em PT-BR e sessão expirada no servi
   assert.match(html,/if\(response\.status===401\)throw new Error\('SEM_SESSAO'\);/);
 });
 
-test("as 4 tabelas do portal do parceiro ficam dentro de .table-wrap, com scroll horizontal em telas estreitas (achado 11/08/2026)",async()=>{
+test("as tabelas do portal do parceiro ficam dentro de .table-wrap, com scroll horizontal em telas estreitas (achado 11/08/2026)",async()=>{
   const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
-  assert.match(html,/\.table-wrap\{overflow:auto\}/);
-  for(const id of ['partner-table','creditos-table','comissoes-table','financeiro-table']){
+  // A regra .table-wrap{overflow:auto} não é mais copiada aqui: desde
+  // 21/08/2026 esta tela usa o MESMO titan.css dos outros portais, que já a
+  // define — copiar de novo é justamente o tipo de divergência que o achado
+  // de 11/08/2026 criou.
+  assert.match(html,/<link rel="stylesheet" href="\/titan\.css">/);
+  const css=await readFile(resolve(root,"public/titan.css"),"utf8");
+  assert.match(css,/\.table-wrap\{overflow:auto\}/);
+  for(const id of ['partner-table','creditos-table','comissoes-table','financeiro-table','licencas-uso-table','licencas-pedidos-table','licencas-cobrancas-table']){
     const re=new RegExp(`<div class="table-wrap"><table id="${id}"`);
     assert.match(html,re);
   }
@@ -981,23 +987,47 @@ test("as 4 tabelas do portal do parceiro ficam dentro de .table-wrap, com scroll
 // mensalidade (financeiro). Ainda não há split de pagamento nem lançamento
 // financeiro automático — só visibilidade.
 
-test("topbar do parceiro tem Carteira/Créditos/Comissões/Financeiro, todas as quatro abas clicáveis",async()=>{
+test("o Portal do Parceiro usa o mesmo menu lateral dos outros portais, e não uma topbar de abas própria",async()=>{
+  // Pedido do usuário (21/08/2026): "o menu inclusive precisa ser igual o do
+  // administrador — gestão por CNPJ, comissão, crédito, financeiro, licença —
+  // e ao invés de ser no menu superior, precisa vir no menu lateral".
   const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
-  const topbar=html.slice(html.indexOf('<header class="partner-topbar">'),html.indexOf('</header>'));
-  assert.match(topbar,/<button class="partner-nav-link on" type="button" data-partner-tab="carteira" onclick="partnerTab\('carteira',this\)" aria-current="page">Carteira<\/button>/);
-  for(const [tab,label] of [['creditos','Créditos'],['comissoes','Comissões'],['financeiro','Financeiro']]){
-    const re=new RegExp(`<button class="partner-nav-link" type="button" data-partner-tab="${tab}" onclick="partnerTab\\('${tab}',this\\)">${label}<\\/button>`);
-    assert.match(topbar,re);
+  assert.doesNotMatch(html,/partner-topbar|partner-nav-link/);
+  const sidebar=html.slice(html.indexOf('<aside class="sidebar" id="sb">'),html.indexOf('</aside>'));
+  assert.match(sidebar,/<button class="sb-link active" type="button" data-partner-tab="painel" onclick="partnerTab\('painel',this\)">/);
+  for(const [tab,label] of [['carteira','Gestão por CNPJ'],['licencas','Administração de licenças'],['comprar','Comprar licenças'],['pedidos','Pedidos'],['cobrancas','Cobranças'],['comissoes','Comissão e margem'],['creditos','Créditos'],['financeiro','Financeiro'],['config','Configurações']]){
+    const re=new RegExp(`data-partner-tab="${tab}" onclick="partnerTab\\('${tab}',this\\)"[^>]*>(<svg[\\s\\S]*?<\\/svg>)?${label}`);
+    assert.match(sidebar,re);
   }
-  assert.doesNotMatch(topbar,/disabled|em breve/);
+  assert.doesNotMatch(sidebar,/disabled|em breve/);
+});
+
+test("tarja amarela fixa no topo avisa que o portal é do parceiro",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/<div id="partner-banner" role="status">/);
+  assert.match(html,/Você está no <b>Portal do Parceiro<\/b>/);
+  assert.match(html,/#partner-banner\{position:fixed;top:0;left:0;right:0;z-index:150;background:var\(--gold\)/);
+  // A tarja empurra menu e topbar para baixo pela altura MEDIDA (o texto
+  // quebra em duas linhas em tela estreita), mesmo cuidado que titan.js tem
+  // com a faixa de sessão administrativa.
+  assert.match(html,/document\.documentElement\.style\.setProperty\('--partner-banner-h',faixa\.offsetHeight\+'px'\)/);
+});
+
+test("seletor de empresa ativa abre o portal do cliente numa sessão de parceiro (POST /api/partner/companies/:id/session)",async()=>{
+  const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
+  assert.match(html,/<div class="admin-company-switch" id="admin-company-switch">/);
+  assert.match(html,/chamarApiParceiro\('\/api\/partner\/companies\/'\+companyId\+'\/session',\{method:'POST'\}\)/);
+  assert.match(html,/const handoff=btoa\(binary\),url='\/dashboard#handoff='\+encodeURIComponent\(handoff\)/);
 });
 
 test("partnerTab troca a seção visível e recarrega os dados da aba escolhida",async()=>{
   const html=await readFile(resolve(root,"public/parceiro.html"),"utf8");
   // Mais abas de parceiro entraram desde então (licenças, perfil, novidades).
-  assert.match(html,/const PARTNER_LOADERS=\{carteira:carregarCarteira,creditos:carregarCreditos,comissoes:carregarComissoes,financeiro:carregarFinanceiro,licencas:carregarLicencas,perfil:carregarPerfilParceiro,novidades:carregarNovidadesParceiro\};/);
+  assert.match(html,/const PARTNER_LOADERS=\{painel:carregarPainel,carteira:carregarCarteira,licencas:carregarAdminLicencas,comprar:carregarComprar,pedidos:carregarPedidos,cobrancas:carregarCobrancas,comissoes:carregarComissoes,creditos:carregarCreditos,financeiro:carregarFinanceiro,perfil:carregarPerfilParceiro,config:carregarPerfilParceiro,novidades:carregarNovidadesParceiro\};/);
   assert.match(html,/function partnerTab\(nome,botao\)\{/);
-  assert.match(html,/secao\.style\.display=secao\.id==='partner-view-'\+nome\?'block':'none'/);
+  // Mostrar/esconder pela classe .on é o que titan.css já faz com .view em
+  // todos os portais — style.display inline era invenção só desta tela.
+  assert.match(html,/secao\.classList\.toggle\('on',secao\.id==='partner-view-'\+nome\)/);
   assert.match(html,/PARTNER_LOADERS\[nome\]\?\.\(\);/);
 });
 
@@ -1014,7 +1044,8 @@ test("aba Comissões calcula a estimativa a partir do % que o Master configurou,
   // Copy ganhou contexto do modelo de revenda por licença (empresas
   // liberadas por licença vs. empresas no modelo antigo de comissão).
   assert.match(html,/comissão de <b>\$\{brl\(data\.commissionPercent\)\}%<\/b> configurada pelo Master/);
-  assert.match(html,/Number\(company\.commission_cents\|\|0\)\/100/);
+  assert.match(html,/reais\(company\.commission_cents\)/);
+  assert.match(html,/const reais=cents=>'R\$ '\+brl\(Number\(cents\|\|0\)\/100\);/);
 });
 
 test("aba Financeiro mostra plano, mensalidade e status de implantação por empresa (GET /api/partner/financeiro)",async()=>{
@@ -1029,7 +1060,7 @@ test("Master define a comissão (%) do parceiro, usada pela aba Comissões do Po
   assert.match(html,/<input id="partner-commission" class="inp" inputmode="decimal" placeholder="Ex\.: 10">/);
   assert.match(html,/commissionPercent=dinheiro\(qs\('#partner-commission'\)\.value\)/);
   // Ganhou email e CNPJ do parceiro desde então (Frontend Master: campo CNPJ).
-  assert.match(html,/JSON\.stringify\(\{name,nickname,email,federalTaxId,active,commissionPercent\}\)/);
+  assert.match(html,/JSON\.stringify\(\{name,nickname,email,federalTaxId,active,commissionPercent,licenseDiscountPercent\}\)/);
   assert.match(html,/qs\('#partner-commission'\)\.value=String\(Number\(partner\.commission_percent\|\|0\)\)\.replace\('\.',','\);/);
   assert.match(html,/commissionPercent:Number\(partner\.commission_percent\|\|0\)/);
 });
