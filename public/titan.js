@@ -1243,22 +1243,30 @@ async function carregarDasn(){
       const m=meses.find(x=>Number(x.mes)===i+1)||{total:0,porOrigem:{}};
       const valor=Number(m.total||0),temValor=valor>0;
       const situacao=temValor?'<span class="pill p-ok">Ativa</span>':'<span class="hint">—</span>';
-      const manual=Number(m.porOrigem?.manual)>0;
-      const excluir=manual?`<button class="ico-btn danger" title="Remover o lançamento manual deste mês" onclick="removerDasnManual(${data.year||year.value},${i+1})">×</button>`:'';
+      // O ✎ leva o AJUSTE MANUAL do mês, nunca o total: o total já inclui as
+      // notas emitidas aqui e o que veio do Portal, e mandar isso de volta para
+      // o lançamento manual era o que dobrava o mês a cada Salvar.
+      const ajusteManual=Number(m.porOrigem?.manual||0);
+      const excluir=ajusteManual>0?`<button class="ico-btn danger" title="Zerar o ajuste manual deste mês" onclick="removerDasnManual(${data.year||year.value},${i+1})">×</button>`:'';
       return `<tr>
         <td data-th="Mês">${nome}</td>
         <td class="r" data-th="Receita bruta">${brl(valor)}</td>
         <td data-th="Situação">${situacao}</td>
         <td data-th="Fonte">${esc(fonteDoMes(m.porOrigem))}</td>
-        <td class="r" data-th="Ações"><div class="acts"><button class="ico-btn" title="Editar este mês" onclick="editarMesDasn(${i+1},${valor})">✎</button>${excluir}</div></td>
+        <td class="r" data-th="Ações"><div class="acts"><button class="ico-btn" title="Ajustar manualmente este mês" onclick="editarMesDasn(${i+1},${ajusteManual})">✎</button>${excluir}</div></td>
       </tr>`;
     }).join('');
   }catch(error){corpo.innerHTML=`<tr><td colspan="5"><div class="empty-state">${esc(error.message)}</div></td></tr>`}
 }
-/** Leva o mês para o formulário da esquerda, já preenchido. */
-function editarMesDasn(mes,valor){
+/**
+ * Leva o mês para o formulário da esquerda com o AJUSTE MANUAL dele — e nunca
+ * com o total. O formulário só manda a parcela manual; o total é a soma de
+ * quatro origens, e devolvê-lo para cá fazia o valor das notas emitidas entrar
+ * uma segunda vez a cada Salvar (R$ 5.000 viravam R$ 10.000 em dois cliques).
+ */
+function editarMesDasn(mes,ajusteManual){
   qs('#dasn-month').value=String(mes);
-  qs('#dasn-amount').value=brl(Number(valor||0));
+  qs('#dasn-amount').value=brl(Number(ajusteManual||0));
   qs('#dasn-notes').value='';
   qs('#dasn-amount').focus();
 }
@@ -1267,15 +1275,21 @@ async function salvarDasnManual(){
   const notes=qs('#dasn-notes')?.value.trim()||undefined;
   if(!year||month<1||month>12||amount<0){alert('Informe ano, mês e valor válidos.');return}
   try{
+    // O backend substitui o ajuste daquela competência em vez de somar mais
+    // uma linha (rota /manual, UPSERT por company+ano+mês), então salvar duas
+    // vezes deixa o mesmo valor de pé.
     await api('/api/dasn/manual',{method:'POST',body:JSON.stringify({year,month,amount,notes})});
     qs('#dasn-amount').value='0,00';if(qs('#dasn-notes'))qs('#dasn-notes').value='';
-    await carregarDasn();alert('Valor salvo.');
+    await carregarDasn();alert(`Ajuste manual de ${DASN_MESES[month-1]}/${year} salvo.`);
   }catch(error){alert(error.message)}
 }
 async function removerDasnManual(year,month){
-  if(!await titanConfirm(`Remover o lançamento manual de ${DASN_MESES[month-1]}/${year}?\n\nO que foi emitido pelo TITAN e o que veio do Portal continuam contando.`,'Remover lançamento','err'))return;
-  // Sem rota de exclusão: gravar zero é o ajuste que o backend entende, e
-  // preserva o histórico de quem mexeu — apagar a linha apagaria isso.
+  if(!await titanConfirm(`Zerar o ajuste manual de ${DASN_MESES[month-1]}/${year}?\n\nO que foi emitido pelo TITAN e o que veio do Portal continuam contando.`,'Zerar ajuste','err'))return;
+  // Gravar zero é o que zera: como a rota substitui o ajuste da competência em
+  // vez de somar, o valor da linha passa a ser 0 — antes isso só acrescentava
+  // mais um zero à soma e o ajuste anterior continuava contando. A linha fica,
+  // com o motivo: num número que vai para declaração, saber quem mexeu vale
+  // mais que a linha a menos.
   try{await api('/api/dasn/manual',{method:'POST',body:JSON.stringify({year,month,amount:0,notes:'Lançamento manual zerado pelo usuário.'})});await carregarDasn()}
   catch(error){alert(error.message)}
 }

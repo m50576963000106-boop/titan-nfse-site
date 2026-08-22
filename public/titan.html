@@ -1064,15 +1064,21 @@
         <div>
           <div class="card"><div class="card-h"><h2>Lançamento manual / ajustes</h2></div><div class="card-b">
             <div class="row r2"><div class="field"><label for="dasn-year">Ano</label><input id="dasn-year" class="inp" inputmode="numeric" onchange="carregarDasn()"></div><div class="field"><label for="dasn-month">Mês</label><select id="dasn-month" class="inp"><option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option></select></div></div>
-            <div class="field"><label for="dasn-amount">Receita bruta (R$)</label><input id="dasn-amount" class="inp num" inputmode="decimal" placeholder="0,00"></div>
-            <div class="field"><label for="dasn-notes">Observações (opcional)</label><textarea id="dasn-notes" class="inp" rows="3" placeholder="Ex.: ajuste de valores, nota de outro emissor..."></textarea></div>
-            <button class="btn btn-p" type="button" onclick="salvarDasnManual()">Salvar alterações</button>
+            <!-- O rótulo diz AJUSTE, não "receita bruta", porque o campo é só
+                 a parcela manual do mês. Quando ele dizia receita bruta, o ✎
+                 trazia o total (notas do TITAN incluídas) e salvar somava esse
+                 total de novo: mês de R$ 5.000 virava R$ 10.000. O texto abaixo
+                 do campo existe para o usuário não refazer o defeito na mão. -->
+            <div class="field"><label for="dasn-amount">Ajuste manual do mês (R$)</label><input id="dasn-amount" class="inp num" inputmode="decimal" placeholder="0,00">
+              <div class="hint" style="margin-top:6px">Só o <b>ajuste manual</b> deste mês — <b>não</b> o total. O que foi emitido pelo TITAN e o que veio do Portal continuam somando por cima. Salvar de novo <b>substitui</b> o ajuste anterior; salvar <b>0,00</b> remove o ajuste.</div></div>
+            <div class="field"><label for="dasn-notes">Observações (opcional)</label><textarea id="dasn-notes" class="inp" rows="3" placeholder="Ex.: nota de outro emissor, receita que o Portal não trouxe..."></textarea></div>
+            <button class="btn btn-p" type="button" onclick="salvarDasnManual()">Salvar ajuste do mês</button>
           </div></div>
           <div class="card" style="margin-top:14px"><div class="card-h"><h2>Informações importantes</h2></div><div class="card-b">
             <div class="hint">Todo dia <b>10/01</b>, o sistema envia a DASN-SIMEI ao contador automaticamente.</div>
             <div class="hint" style="margin-top:8px">Importe do Portal Nacional com seu certificado digital para preencher os valores e situações de cada mês.</div>
             <div class="hint" style="margin-top:8px">São consideradas <b>apenas notas com situação ativa</b> — cancelada não entra na receita.</div>
-            <div class="hint" style="margin-top:8px">Edite manualmente os valores, se necessário, antes do envio.</div>
+            <div class="hint" style="margin-top:8px">O lápis (✎) de cada mês traz o <b>ajuste manual</b> daquele mês para o formulário acima, não o total — o total é a soma das origens.</div>
           </div></div>
         </div>
         <div class="card"><div class="card-h"><h2>Resumo anual — <span id="dasn-ano-label">—</span></h2><span id="dasn-total" class="pill p-gold">R$ 0,00</span></div>

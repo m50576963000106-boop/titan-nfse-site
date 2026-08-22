@@ -2642,3 +2642,22 @@ test("os cartoes de contrato do Master existem uma vez so", async()=>{
     assert.equal(vezes, 1, `id ${id} aparece ${vezes}x — id repetido faz qs() pegar so o primeiro`);
   }
 });
+
+/**
+ * DASN-SIMEI (22/08/2026). Cinco defeitos numa tela cujo número vai para uma
+ * declaração — o pior deles fazia um mês de R$ 5.000 virar R$ 10.000 com dois
+ * cliques, porque o lápis mandava o TOTAL do mês (soma de quatro origens) para
+ * um formulário que só grava a parcela manual, e o backend somava.
+ */
+test("DASN: o lapis leva o AJUSTE MANUAL do mes para o formulario, nunca o total", async()=>{
+  const js=await readFile(resolve(root,"public/titan.js"),"utf8");
+  const html=await readFile(resolve(root,"public/titan.html"),"utf8");
+  assert.match(js, /onclick="editarMesDasn\(\$\{i\+1\},\$\{ajusteManual\}\)"/,
+    "mandar o total do mes de volta para o lancamento manual e o defeito que dobrava a receita");
+  assert.doesNotMatch(js, /onclick="editarMesDasn\(\$\{i\+1\},\$\{valor\}\)"/);
+  assert.match(js, /const ajusteManual=Number\(m\.porOrigem\?\.manual\|\|0\)/);
+  // E a tela precisa DIZER que o campo e ajuste, senao o usuario digita o total
+  // de novo e refaz o defeito na mao.
+  assert.match(html, /<label for="dasn-amount">Ajuste manual do m[êe]s \(R\$\)<\/label>/);
+  assert.match(html, /S[óo] o <b>ajuste manual<\/b> deste m[êe]s — <b>n[ãa]o<\/b> o total/);
+});
